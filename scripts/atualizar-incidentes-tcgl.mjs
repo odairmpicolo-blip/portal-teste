@@ -12,7 +12,7 @@ const usuario = process.env.CIOP_INCIDENTES_USUARIO;
 const senha = process.env.CIOP_INCIDENTES_SENHA;
 let endpoint = '';
 const requestTimeoutMs = Number(process.env.CIOP_INCIDENTES_TIMEOUT_MS || 60000);
-const requestRetries = Number(process.env.CIOP_INCIDENTES_RETRIES || 4);
+const requestRetries = Number(process.env.CIOP_INCIDENTES_RETRIES || 20);
 const detailConcurrency = Number(process.env.CIOP_INCIDENTES_DETALHES_CONCURRENCY || 8);
 const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
 const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
