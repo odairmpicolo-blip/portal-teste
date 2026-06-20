@@ -1,0 +1,2386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script>
+document.documentElement.classList.add("portal-auth-pending");
+</script>
+<style id="portalAuthBootStyle">
+.portal-auth-pending body > :not(#portalLoadingOverlay){
+    visibility:hidden!important;
+}
+</style>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Operacional - CIOP</title>
+
+<style>
+
+:root{
+    --azul:#06245c;
+    --azul-hover:#0b3a8a;
+    --laranja:#ff6b00;
+    --fundo:#f5f7fb;
+    --borda:#dfe5ef;
+    --texto:#101828;
+    --cinza:#667085;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, Helvetica, "Segoe UI", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    background:var(--fundo);
+    color:var(--texto);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* HEADER */
+
+.header{
+    background:#ffffff;
+    display:grid;
+    grid-template-columns:200px 1fr minmax(300px, auto);
+    align-items:center;
+    padding:15px 25px;
+    border-bottom:1px solid #e5e7eb;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+
+.logo{
+    height:60px;
+    object-fit:contain;
+}
+
+.logo-right{
+    justify-self:end;
+}
+
+h1{
+    text-align:center;
+    color:var(--azul);
+    font-size:32px;
+    font-weight:800;
+}
+
+.portal-title-art{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0;
+    min-width:0;
+}
+
+.portal-title-art img{
+    display:block;
+    width:min(430px, 42vw);
+    max-width:100%;
+    height:auto;
+    object-fit:contain;
+}
+
+/* BARRA SUPERIOR */
+
+.toolbar{
+    background:#fff;
+    padding:12px 0;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.toolbar-inner{
+    width:100%;
+    margin:0;
+    padding:0 25px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(10px, 2vw, 14px);
+}
+
+.menu-toggle{
+    background:var(--azul);
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:12px 18px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    transition:.2s;
+    flex:0 0 auto;
+}
+
+.menu-toggle:hover{
+    background:var(--azul-hover);
+}
+
+/* MENU LATERAL */
+
+.sidebar{
+    position:fixed;
+    top:0;
+    left:-300px;
+    width:300px;
+    height:100%;
+    background:linear-gradient(180deg, #06245c 0%, #071d49 100%);
+    transition:.3s;
+    z-index:1000;
+    overflow-y:auto;
+    box-shadow:3px 0 15px rgba(0,0,0,.2);
+    padding-bottom:16px;
+}
+
+.sidebar.active{
+    left:0;
+}
+
+.sidebar-header{
+    padding:22px 20px 18px;
+    font-size:18px;
+    font-weight:900;
+    color:white;
+    text-align:center;
+    border-bottom:1px solid rgba(255,255,255,.14);
+    letter-spacing:0;
+}
+
+.side-link{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:white;
+    text-decoration:none;
+    padding:11px 14px;
+    margin:7px 10px 0;
+    border-radius:8px;
+    transition:.2s;
+    border:1px solid rgba(255,255,255,.08);
+    background:rgba(255,255,255,.035);
+    min-height:52px;
+}
+
+.side-link-button{
+    width:calc(100% - 20px);
+    font:inherit;
+    text-align:left;
+    cursor:pointer;
+}
+
+.side-link:hover,
+.side-link:focus-visible{
+    background:var(--laranja);
+    border-color:rgba(255,255,255,.18);
+    transform:translateX(3px);
+    outline:none;
+}
+
+.side-icon{
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    display:grid;
+    place-items:center;
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    flex:0 0 auto;
+}
+
+.side-icon svg{
+    width:19px;
+    height:19px;
+    stroke:currentColor;
+    stroke-width:1.9;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.side-text{
+    min-width:0;
+    flex:1;
+    font-size:13px;
+    font-weight:800;
+    line-height:1.2;
+}
+
+.side-arrow{
+    width:18px;
+    height:18px;
+    border-radius:999px;
+    display:grid;
+    place-items:center;
+    color:rgba(255,255,255,.68);
+    font-size:14px;
+    font-weight:900;
+    flex:0 0 auto;
+    transition:.2s;
+}
+
+.side-link:hover .side-icon,
+.side-link:focus-visible .side-icon{
+    background:rgba(255,255,255,.2);
+}
+
+.side-link:hover .side-arrow,
+.side-link:focus-visible .side-arrow{
+    color:#fff;
+    transform:translateX(2px);
+}
+
+#overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:none;
+    z-index:999;
+}
+
+#overlay.active{
+    display:block;
+}
+
+/* CONTAINER */
+
+.container{
+    width:100%;
+    margin:35px 0;
+    padding:0 clamp(42px, 5vw, 72px);
+    flex:1;
+}
+
+.welcome{
+    text-align:center;
+    color:var(--cinza);
+    margin-bottom:35px;
+    font-size:17px;
+}
+
+.password-panel{
+    display:none;
+    max-width:520px;
+    margin:0 auto 24px;
+    background:#fff;
+    border:1px solid var(--borda);
+    border-radius:6px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(6,36,92,.08);
+}
+.password-panel.active{display:block}
+.password-panel h2{margin:0 0 12px;color:var(--azul);font-size:16px}
+.password-panel label{display:block;margin:8px 0 4px;color:var(--cinza);font-size:12px;font-weight:700}
+.password-panel input{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:6px;padding:9px 10px;font-size:14px}
+.password-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-small{border:none;border-radius:5px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;background:#06245c;color:#fff}
+.btn-small.secondary{background:#e8edf6;color:#06245c}
+.password-status{font-size:12px;font-weight:700;margin-top:10px}
+.password-status.ok{color:#2e9b45}
+.password-status.erro{color:#dc2626}
+
+/* CARDS */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:16px;
+    align-items:stretch;
+}
+
+.card{
+    --card-accent:var(--azul);
+    background:#fff;
+    border-radius:8px;
+    border:1px solid rgba(6,36,92,.12);
+    padding:18px 16px;
+    min-height:202px;
+    aspect-ratio:1 / 1;
+    text-decoration:none;
+    color:inherit;
+    transition:.22s;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    text-align:center;
+    box-shadow:0 8px 22px rgba(16,24,40,.06);
+    outline:none;
+}
+
+.card:hover,
+.card:focus-visible{
+    transform:translateY(-3px);
+    border-color:var(--azul);
+    box-shadow:0 16px 32px rgba(6,36,92,.15);
+}
+
+.card-top{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:0 0 12px;
+}
+
+.card-figure{
+    width:50px;
+    height:50px;
+    border-radius:8px;
+    background:#eef4ff;
+    color:var(--azul);
+    display:grid;
+    place-items:center;
+    flex:0 0 auto;
+}
+
+.card-figure svg{
+    width:27px;
+    height:27px;
+    stroke:currentColor;
+    stroke-width:1.9;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.card-title{
+    width:100%;
+    color:var(--azul);
+    font-size:15px;
+    font-weight:900;
+    line-height:1.22;
+    text-align:center;
+}
+
+.card-desc{
+    width:100%;
+    color:var(--cinza);
+    font-size:12px;
+    line-height:1.35;
+    margin:0;
+    text-align:center;
+    flex:0 1 auto;
+}
+
+.card-btn{
+    width:100%;
+    margin-top:14px;
+    border-radius:7px;
+    background:var(--azul);
+    color:#fff;
+    padding:10px 12px;
+    font-size:12px;
+    font-weight:900;
+    text-align:center;
+    transition:.2s;
+}
+
+.card:hover .card-btn,
+.card:focus-visible .card-btn{
+    background:var(--laranja);
+}
+
+@media(max-width:720px){
+    .container{
+        padding:0 18px;
+    }
+}
+
+/* FOOTER */
+
+footer{
+    background:#fff;
+    border-top:1px solid #e5e7eb;
+    padding:14px 22px;
+}
+
+.footer-inner{
+    max-width:1200px;
+    width:100%;
+    margin:0 auto;
+    padding:0 20px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:32px;
+}
+
+.footer-text{
+    color:var(--cinza);
+    font-size:12px;
+    text-align:center;
+}
+
+.toolbar-whatsapp{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    color:#075e54;
+    text-decoration:none;
+    border:1px solid rgba(37,211,102,.28);
+    background:#ecfdf3;
+    border-radius:999px;
+    padding:7px 12px 7px 8px;
+    font-size:12px;
+    font-weight:800;
+    box-shadow:0 2px 8px rgba(16,24,40,.05);
+    transition:.2s;
+    white-space:nowrap;
+    flex:0 0 auto;
+}
+
+.toolbar-whatsapp:hover{
+    transform:translateY(-1px);
+    border-color:#25d366;
+    box-shadow:0 6px 14px rgba(37,211,102,.16);
+}
+
+.toolbar-whatsapp-icon{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:#25d366;
+    color:#fff;
+    display:grid;
+    place-items:center;
+    flex:0 0 auto;
+}
+
+.toolbar-whatsapp-icon svg{
+    width:17px;
+    height:17px;
+    display:block;
+    fill:currentColor;
+}
+/* Inicio Codex quadro de avisos */
+.toolbar-inner{
+    flex-wrap:wrap;
+}
+
+.notice-board{
+    flex:1 1 420px;
+    min-width:280px;
+    max-width:760px;
+    justify-self:center;
+    display:flex;
+    align-items:stretch;
+    gap:10px;
+    padding:8px 10px;
+    border:1px solid #dbe4f0;
+    border-left:4px solid var(--laranja);
+    border-radius:8px;
+    background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+    box-shadow:0 8px 18px rgba(6,36,92,.07);
+}
+
+.notice-board-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:0 0 auto;
+    min-width:116px;
+    color:var(--azul);
+}
+
+.notice-board-icon{
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    display:grid;
+    place-items:center;
+    color:var(--azul);
+    background:#eef4ff;
+    border:1px solid rgba(6,36,92,.12);
+}
+
+.notice-board-icon svg,
+.notice-send-btn svg,
+.notice-modal-close svg,
+.notice-delete-btn svg{
+    width:17px;
+    height:17px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.notice-board-title{
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+    color:var(--azul);
+}
+
+.notice-count{
+    min-width:18px;
+    height:18px;
+    display:inline-grid;
+    place-items:center;
+    border-radius:999px;
+    background:var(--laranja);
+    color:#fff;
+    font-size:10px;
+    font-weight:900;
+}
+
+.notice-send-btn{
+    border:0;
+    border-radius:7px;
+    background:var(--azul);
+    color:#fff;
+    width:30px;
+    height:30px;
+    display:inline-grid;
+    place-items:center;
+    cursor:pointer;
+    box-shadow:0 8px 16px rgba(6,36,92,.16);
+}
+
+.notice-list{
+    flex:1;
+    min-width:0;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+}
+
+.notice-item{
+    min-width:0;
+    border:1px solid #e5eaf3;
+    border-radius:7px;
+    background:#fff;
+    padding:7px 9px;
+}
+
+.notice-item-title,
+.notice-item-text,
+.notice-manage-item strong,
+.notice-manage-item span,
+#avisoTitulo,
+#avisoMensagem{
+    font-family:Arial, Helvetica, "Segoe UI", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+}
+
+.notice-item-title{
+    color:var(--azul);
+    font-size:12px;
+    font-weight:900;
+    line-height:1.25;
+    white-space:normal;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.notice-item-text{
+    margin-top:3px;
+    color:#344054;
+    font-size:11px;
+    line-height:1.35;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.notice-item-meta,
+.notice-empty{
+    color:var(--cinza);
+    font-size:10px;
+    font-weight:700;
+}
+
+.notice-empty{
+    grid-column:1/-1;
+    display:flex;
+    align-items:center;
+    min-height:43px;
+}
+
+.notice-modal-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:1200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(16,24,40,.46);
+}
+
+.notice-modal-backdrop[hidden]{
+    display:none;
+}
+
+.notice-modal{
+    width:min(920px,100%);
+    max-height:92vh;
+    overflow:auto;
+    background:#fff;
+    border:1px solid var(--borda);
+    border-radius:8px;
+    box-shadow:0 22px 58px rgba(16,24,40,.25);
+}
+
+.notice-modal-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--borda);
+}
+
+.notice-modal-title{
+    margin:0;
+    color:var(--azul);
+    font-size:18px;
+    line-height:1.15;
+}
+
+.notice-modal-close{
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:7px;
+    display:grid;
+    place-items:center;
+    background:#eef2f7;
+    color:var(--azul);
+    cursor:pointer;
+}
+
+.notice-modal-body{
+    padding:18px 20px 20px;
+}
+
+.notice-form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+}
+
+.notice-field-full{
+    grid-column:1/-1;
+}
+
+.notice-modal label,
+.notice-modal legend{
+    display:block;
+    margin:0 0 6px;
+    color:var(--cinza);
+    font-size:12px;
+    font-weight:800;
+}
+
+.notice-optional-label{
+    color:#98a2b3;
+    font-size:11px;
+    font-weight:700;
+}
+
+.notice-modal input[type="text"],
+.notice-modal input[type="search"],
+.notice-modal input[type="datetime-local"],
+.notice-modal textarea{
+    width:100%;
+    border:1px solid var(--borda);
+    border-radius:7px;
+    padding:10px 11px;
+    font:inherit;
+    font-size:13px;
+    outline:none;
+}
+
+.notice-modal textarea{
+    min-height:92px;
+    resize:vertical;
+}
+
+.notice-targets{
+    border:1px solid #e4eaf4;
+    border-radius:8px;
+    padding:10px;
+    background:#f8fafc;
+}
+
+.notice-users-box{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    min-height:166px;
+}
+
+.notice-users-list{
+    max-height:218px;
+    overflow:auto;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+    padding:8px;
+    border:1px solid #e4eaf4;
+    border-radius:8px;
+    background:#f8fafc;
+}
+
+.notice-user-check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+    padding:7px 8px;
+    border:1px solid #dfe6f2;
+    border-radius:7px;
+    background:#fff;
+    color:var(--azul);
+    font-size:11px;
+    font-weight:800;
+}
+
+.notice-user-check span{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.notice-checks{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+}
+
+.notice-check{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-height:32px;
+    padding:7px 8px;
+    border:1px solid #dfe6f2;
+    border-radius:7px;
+    background:#fff;
+    color:var(--azul);
+    font-size:12px;
+    font-weight:800;
+}
+
+.notice-check input{
+    width:15px;
+    height:15px;
+}
+
+.notice-dropdown{
+    position:relative;
+}
+
+.notice-dropdown summary{
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 10px;
+    border:1px solid var(--borda);
+    border-radius:6px;
+    background:#fff;
+    color:var(--azul);
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+    list-style:none;
+    box-shadow:inset 0 1px 0 rgba(16,24,40,.02);
+}
+
+.notice-dropdown summary::-webkit-details-marker{
+    display:none;
+}
+
+.notice-dropdown summary::after{
+    content:"";
+    width:0;
+    height:0;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:6px solid var(--cinza);
+    flex:0 0 auto;
+}
+
+.notice-dropdown[open] summary{
+    border-color:var(--laranja);
+}
+
+.notice-dropdown-menu{
+    margin-top:8px;
+    padding:8px;
+    border:1px solid #dfe6f2;
+    border-radius:8px;
+    background:#f8fafc;
+    box-shadow:0 14px 30px rgba(16,24,40,.12);
+}
+
+.notice-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+.notice-action-primary,
+.notice-action-secondary{
+    border:0;
+    border-radius:7px;
+    min-height:36px;
+    padding:8px 13px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.notice-action-primary{
+    background:var(--azul);
+    color:#fff;
+}
+
+.notice-action-secondary{
+    background:#e8edf6;
+    color:var(--azul);
+}
+
+.notice-editor-status{
+    min-height:18px;
+    margin-top:10px;
+    font-size:12px;
+    font-weight:800;
+}
+
+.notice-editor-status.ok{color:#15803d}
+.notice-editor-status.erro{color:#dc2626}
+
+.notice-manage{
+    margin-top:18px;
+    border-top:1px solid var(--borda);
+    padding-top:16px;
+}
+
+.notice-manage-title{
+    margin:0 0 10px;
+    color:var(--azul);
+    font-size:14px;
+    font-weight:900;
+}
+
+.notice-manage-list{
+    display:grid;
+    gap:8px;
+}
+
+.notice-manage-item{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    align-items:center;
+    border:1px solid #e4eaf4;
+    border-radius:8px;
+    padding:10px;
+    background:#fbfdff;
+}
+
+.notice-manage-item strong{
+    display:block;
+    color:var(--azul);
+    font-size:13px;
+    line-height:1.25;
+}
+
+.notice-manage-item span{
+    display:block;
+    margin-top:4px;
+    color:var(--cinza);
+    font-size:11px;
+    font-weight:700;
+}
+
+.notice-manage-actions{
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.notice-edit-btn,
+.notice-delete-btn{
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:7px;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+}
+
+.notice-edit-btn{
+    background:#e8edf6;
+    color:var(--azul);
+}
+
+.notice-delete-btn{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+@media(max-width:980px){
+    .toolbar-inner{
+        justify-content:center;
+    }
+    .notice-board{
+        order:3;
+        flex-basis:100%;
+        max-width:none;
+    }
+}
+
+@media(max-width:660px){
+    .notice-board{
+        flex-direction:column;
+    }
+    .notice-board-head{
+        min-width:0;
+    }
+    .notice-list,
+    .notice-form-grid,
+    .notice-checks,
+    .notice-users-list{
+        grid-template-columns:1fr;
+    }
+}
+/* Fim Codex quadro de avisos */
+
+
+/* RESPONSIVO */
+
+@media(max-width:900px){
+
+    .header{
+        grid-template-columns:1fr;
+        gap:12px;
+    }
+
+    .logo,
+    .logo-right{
+        justify-self:center;
+    }
+
+    h1{
+        font-size:24px;
+    }
+
+    .sidebar{
+        width:260px;
+    }
+}
+
+
+.user-area{display:flex;justify-content:flex-end;align-items:center;}
+.btn-logout{background:#dc2626;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:bold;}
+
+
+.ciop-session{
+    position:static;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    max-width:260px;
+    padding:4px 6px;
+    border:1px solid rgba(6,36,92,.12);
+    border-radius:6px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 2px 8px rgba(16,24,40,.08);
+    color:#06245c;
+    font-size:11px;
+    line-height:1;
+}
+.ciop-session-user{
+    max-width:170px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:700;
+}
+.ciop-session-profile{
+    color:#667085;
+    font-weight:600;
+}
+.ciop-session .btn-logout{
+    background:#dc2626;
+    color:#fff;
+    border:none;
+    border-radius:5px;
+    padding:4px 7px;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+}
+.ciop-session .btn-logout:hover{
+    background:#b91c1c;
+}
+
+.header-actions{
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    min-width:0;
+}
+.header-actions .ciop-session{
+    flex:0 1 auto;
+}
+@media(max-width:900px){
+    .header-actions{
+        justify-self:center;
+        flex-wrap:wrap;
+    }
+    .toolbar-inner{
+        padding:0 clamp(14px, 4vw, 20px);
+    }
+    .footer-inner{
+        text-align:center;
+    }
+}
+
+@media(max-width:520px){
+    .portal-title-art img{
+        width:min(300px, 78vw);
+    }
+    .container{
+        padding:0 18px;
+    }
+    .toolbar{
+        padding:10px 0;
+    }
+    .menu-toggle{
+        padding:10px 12px;
+        font-size:13px;
+    }
+    .toolbar-whatsapp{
+        padding:6px 9px 6px 7px;
+        gap:7px;
+        font-size:11px;
+    }
+}
+
+@media(max-width:390px){
+    .toolbar-whatsapp-label{
+        display:none;
+    }
+    .toolbar-whatsapp{
+        width:38px;
+        height:38px;
+        padding:0;
+    }
+}
+
+[data-admin-only]{display:none;}
+[data-perfis], [data-usuarios]{display:flex;}
+
+
+
+
+
+
+
+
+
+/* Ajuste Codex: titulos do cabecalho menores e centralizados */
+@media (min-width: 1101px) {
+    .header {
+        grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr) !important;
+    }
+    .header > a:first-child {
+        justify-self: start !important;
+    }
+    .header > h1,
+    .header > .header-title,
+    .header > .pontualidade-title-wrap,
+    .header > .autuacoes-title-wrap {
+        justify-self: center !important;
+        text-align: center !important;
+    }
+    .header-actions {
+        justify-self: end !important;
+    }
+}
+
+.portal-title-art,
+.usuarios-title-art,
+.fiscais-title-art,
+.page-title-art,
+.pontualidade-title-art,
+.autuacoes-title-art,
+.patio-title-art,
+.header-title,
+.pontualidade-title-wrap,
+.autuacoes-title-wrap {
+    justify-self: center !important;
+    text-align: center !important;
+}
+
+.portal-title-art,
+.usuarios-title-art,
+.fiscais-title-art,
+.page-title-art,
+.pontualidade-title-art,
+.autuacoes-title-art,
+.patio-title-art {
+    margin: 0 !important;
+    line-height: 0 !important;
+}
+
+.portal-title-art img {
+    width: min(340px, 30vw) !important;
+    height: 40px !important;
+    max-height: 40px !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+}
+
+.usuarios-title-art img,
+.fiscais-title-art img,
+.page-title-art img,
+.pontualidade-title-art img,
+.autuacoes-title-art img,
+.patio-title-art img {
+    width: min(420px, 34vw) !important;
+    height: 42px !important;
+    max-height: 42px !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+}
+
+.page-title-art span,
+.subtitle,
+.header-subtitle {
+    text-align: center !important;
+    font-size: 11px !important;
+    line-height: 1.15 !important;
+}
+
+h1 {
+    text-align: center !important;
+    font-size: 20px !important;
+    line-height: 1.08 !important;
+}
+
+@media (max-width: 1100px) {
+    .portal-title-art img,
+    .usuarios-title-art img,
+    .fiscais-title-art img,
+    .page-title-art img,
+    .pontualidade-title-art img,
+    .autuacoes-title-art img,
+    .patio-title-art img {
+        width: min(340px, 84vw) !important;
+        height: 38px !important;
+        max-height: 38px !important;
+    }
+}
+
+@media (max-width: 560px) {
+    .portal-title-art img,
+    .usuarios-title-art img,
+    .fiscais-title-art img,
+    .page-title-art img,
+    .pontualidade-title-art img,
+    .autuacoes-title-art img,
+    .patio-title-art img {
+        width: min(290px, 88vw) !important;
+        height: 34px !important;
+        max-height: 34px !important;
+    }
+}
+/* Fim ajuste Codex */
+
+</style>
+
+<script type="module" src="assets/js/auth.js"></script>
+
+</head>
+
+<body>
+<!-- MENU LATERAL -->
+
+<div class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+        Links Operacionais
+    </div>
+
+    <button id="sidebarAdicionarAviso"
+            class="side-link side-link-button"
+            type="button"
+            data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h16"/><path d="M17 10h4"/><path d="M19 8v4"/></svg></span>
+        <span class="side-text">Adicionar Aviso</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </button>
+    
+   <a class="side-link"
+       href="http://intranet.grandelondrina.com.br:8080/escala/"
+       target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>
+        <span class="side-text">Escala</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="https://docs.google.com/forms/d/e/1FAIpQLScgGUDPuZdyN2KHVQfVWG0dORMmfOx06XEFYCEqwedqrPKwug/viewform"
+       target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h3l2-2h4l2 2h3v12H5V7Z"/><circle cx="12" cy="13" r="3"/></svg></span>
+        <span class="side-text">Pedido de Imagem</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    
+    <a class="side-link"
+       href="https://monitoramentotcgl.github.io/tajetos/index.html"
+       target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="14" rx="2"/><path d="M8 18v2"/><path d="M16 18v2"/><path d="M5 10h14"/><path d="M8 7h8"/></svg></span>
+        <span class="side-text">Itinerários</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="https://cioplondrina.com.br/CADIncidentManagement/?ReturnUrl=%2fCADIncidentManagement%2fg%2f6ac2842af62b497aa5b0e515ef4b2ce9"
+       target="_blank"
+        data-perfis="Analista,Supervisor,Administrador">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
+        <span class="side-text">Gerenciamento de Incidentes</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="http://10.235.142.105:8888/Timeout.i4"
+       target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/></svg></span>
+        <span class="side-text">Clever Reports</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+     <a class="side-link"
+       href="https://fleetbus.app/"
+       target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h.01"/><path d="M8 18a4 4 0 0 1 8 0"/><path d="M5 11a10 10 0 0 1 14 0"/><path d="M2 6a15 15 0 0 1 20 0"/></svg></span>
+        <span class="side-text">FleetBus</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+   href="https://www.gsgsistem.com/tcgl/index.php"
+   target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
+        <span class="side-text">GSG Sistem</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    
+    <a class="side-link"
+   href="https://cmp.passaromarron.com.br"
+   target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg></span>
+        <span class="side-text">Globus</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    
+    <a class="side-link"
+   href="https://editor.mobilibus.com/web/home"
+   target="_blank">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
+        <span class="side-text">Mobilibus</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="side-link"
+       href="pages/admin-usuarios.html"
+       data-perfis="Administrador,Supervisor,Gerência">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="side-text">Gerênciar Usuários</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="http://192.168.0.243"
+       target="_blank"
+       data-perfis="Secretária,Administrador">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span>
+        <span class="side-text">Ponto Eletrônico Ciop</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="https://localhost:4445/#/home/monitoramento"
+       target="_blank"
+       data-perfis="Secretária,Administrador">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/><path d="M8 15c1.1 1 2.4 1.5 4 1.5s2.9-.5 4-1.5"/></svg></span>
+        <span class="side-text">Reconhecimento Facial</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="https://dss.lineamidia.com.br/login?returnUrl=%2F"
+       target="_blank"
+       data-perfis="Secretária,Administrador">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="11" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
+        <span class="side-text">Linea</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    
+</div>
+
+<div id="overlay" onclick="toggleMenu()"></div>
+
+<!-- CABEÇALHO -->
+
+<header class="header">
+
+    <a href="https://mov1.com.br" target="_blank">
+        <img src="assets/img/CIOP Sem Fundo.png"
+             class="logo"
+             alt="CIOP">
+    </a>
+
+    <h1 class="portal-title-art" aria-label="Portal">
+        <img src="assets/img/titulo-portal-oficial.png" alt="Portal">
+    </h1>
+
+    <div class="header-actions">
+        <div class="ciop-session" aria-label="Sessao do usuario">
+    <span id="usuarioLogado" class="ciop-session-user">Usuario</span>
+    <span id="perfilUsuario" class="ciop-session-profile">Perfil</span>
+    <button onclick="toggleSenhaPanel()" class="btn-logout" type="button">Senha</button>
+    <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+</div>
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank">
+            <img src="assets/img/LOGO_TCGL-removebg-preview.png"
+                 class="logo logo-right"
+                 alt="TCGL">
+        </a>
+    </div>
+</header>
+
+<!-- BOTÃO SISTEMAS -->
+
+<div class="toolbar">
+    <div class="toolbar-inner">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            ☰ Links Operação
+        </button>
+        <section class="notice-board" aria-label="Quadro de avisos">
+            <div class="notice-board-head">
+                <span class="notice-board-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h16"/><path d="m17 10 3 2-3 2v-4Z"/></svg>
+                </span>
+                <span class="notice-board-title">Avisos</span>
+                <span id="avisosContador" class="notice-count" hidden>0</span>
+            </div>
+            <div id="avisosLista" class="notice-list">
+                <div class="notice-empty">Carregando avisos...</div>
+            </div>
+        </section>
+        <a class="toolbar-whatsapp" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="Conectar ao WhatsApp">
+            <span class="toolbar-whatsapp-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" role="img" focusable="false">
+                    <path d="M16.01 3.2c-7.02 0-12.73 5.64-12.73 12.58 0 2.24.6 4.42 1.74 6.34L3.2 28.8l6.89-1.77a12.84 12.84 0 0 0 5.92 1.45c7.02 0 12.73-5.64 12.73-12.58S23.03 3.2 16.01 3.2Zm0 22.98c-1.92 0-3.79-.52-5.42-1.51l-.39-.23-4.08 1.05 1.09-3.86-.26-.4a10.15 10.15 0 0 1-1.58-5.45c0-5.68 4.77-10.3 10.64-10.3s10.64 4.62 10.64 10.3-4.77 10.4-10.64 10.4Zm5.83-7.72c-.32-.16-1.9-.93-2.2-1.03-.29-.11-.5-.16-.72.16-.21.32-.82 1.03-1.01 1.24-.19.21-.37.24-.69.08-.32-.16-1.36-.49-2.59-1.55-.96-.84-1.61-1.88-1.8-2.2-.19-.32-.02-.49.14-.65.14-.14.32-.37.48-.55.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.55-.08-.16-.72-1.71-.98-2.34-.26-.62-.52-.53-.72-.54h-.61c-.21 0-.55.08-.84.4-.29.32-1.11 1.07-1.11 2.61s1.14 3.03 1.3 3.24c.16.21 2.25 3.39 5.45 4.75.76.32 1.35.51 1.82.65.76.24 1.45.2 2 .12.61-.09 1.9-.77 2.17-1.51.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z"/>
+                </svg>
+            </span>
+            <span class="toolbar-whatsapp-label">Conectar ao WhatsApp</span>
+        </a>
+    </div>
+</div>
+
+<div id="avisoModal" class="notice-modal-backdrop" hidden>
+    <div class="notice-modal" role="dialog" aria-modal="true" aria-labelledby="avisoModalTitulo">
+        <div class="notice-modal-header">
+            <h2 id="avisoModalTitulo" class="notice-modal-title">Enviar aviso</h2>
+            <button class="notice-modal-close" type="button" onclick="fecharEditorAvisos()" aria-label="Fechar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+        </div>
+        <div class="notice-modal-body">
+            <form id="avisoForm" onsubmit="salvarAvisoPortal(event)">
+                <input id="avisoIdEdicao" type="hidden">
+                <div class="notice-form-grid">
+                    <div class="notice-field-full">
+                        <label for="avisoTitulo">Título</label>
+                        <input id="avisoTitulo" type="text" maxlength="120" autocomplete="off" inputmode="text">
+                    </div>
+                    <div class="notice-field-full">
+                        <label for="avisoMensagem">Mensagem</label>
+                        <textarea id="avisoMensagem"></textarea>
+                    </div>
+                    <div>
+                        <label for="avisoInicio">Início</label>
+                        <input id="avisoInicio" type="datetime-local" required>
+                    </div>
+                    <div>
+                        <label for="avisoFim">Fim</label>
+                        <input id="avisoFim" type="datetime-local" required>
+                    </div>
+                    <div>
+                        <label>Grupos <span class="notice-optional-label">opcional se escolher usuário</span></label>
+                        <details class="notice-dropdown" id="avisoGrupoDropdown">
+                            <summary id="avisoGrupoResumo">Todos</summary>
+                            <div class="notice-dropdown-menu notice-checks">
+                                <label class="notice-check"><input id="avisoTodos" type="checkbox" checked>Todos</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="Administrador">Administrador</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="Supervisor">Supervisor</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="Gerência">Gerência</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="Analista">Analista</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="SAC">SAC</label>
+                                <label class="notice-check"><input name="avisoPerfil" type="checkbox" value="Secretária">Secretária</label>
+                            </div>
+                        </details>
+                    </div>
+                    <div>
+                        <label>Usuários</label>
+                        <details class="notice-dropdown" id="avisoUsuarioDropdown">
+                            <summary id="avisoUsuarioResumo">Selecionar usuários</summary>
+                            <div class="notice-dropdown-menu notice-users-box">
+                                <input id="avisoBuscaUsuarios" type="search" placeholder="Buscar usuário" autocomplete="off">
+                                <div id="avisoUsuariosLista" class="notice-users-list">
+                                    <div class="notice-empty">Carregando usuários...</div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                <div class="notice-actions">
+                    <button class="notice-action-secondary" type="button" onclick="fecharEditorAvisos()">Cancelar</button>
+                    <button id="avisoSubmitBtn" class="notice-action-primary" type="submit">Enviar aviso</button>
+                </div>
+                <div id="avisoEditorStatus" class="notice-editor-status"></div>
+            </form>
+            <section class="notice-manage" aria-label="Avisos enviados">
+                <h3 class="notice-manage-title">Avisos enviados</h3>
+                <div id="avisosGerenciarLista" class="notice-manage-list"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- CONTROLE DE CONTEUDO POR USUARIO
+     Para restringir um card ou link, adicione:
+     data-perfis="Administrador,Supervisor,Gerência"
+     ou data-usuarios="email@empresa.com.br,outro@empresa.com.br"
+     Administrador ve tudo automaticamente.
+-->
+
+<!-- CONTEÚDO -->
+
+<div class="container">
+
+    <section id="senhaPanel" class="password-panel" aria-label="Alterar senha">
+        <h2>Alterar senha de acesso</h2>
+        <label for="senhaAtual">Senha atual</label>
+        <input id="senhaAtual" type="password" autocomplete="current-password">
+        <label for="novaSenha">Nova senha</label>
+        <input id="novaSenha" type="password" autocomplete="new-password">
+        <label for="confirmarSenha">Confirmar nova senha</label>
+        <input id="confirmarSenha" type="password" autocomplete="new-password">
+        <div class="password-actions">
+            <button class="btn-small" type="button" onclick="salvarNovaSenha()">Salvar senha</button>
+            <button class="btn-small secondary" type="button" onclick="toggleSenhaPanel(false)">Cancelar</button>
+        </div>
+        <div id="senhaStatus" class="password-status"></div>
+    </section>
+
+    <div class="grid">
+
+        <a href="pages/Folhadeservico.html" class="card theme-blue">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-4"/></svg></div>
+                <div class="card-title">Serviços CIOP</div>
+            </div>
+            <div class="card-desc">
+                Dashboard da planilha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="pages/pontualidade.html" class="card theme-teal">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></div>
+                <div class="card-title">Pontualidade</div>
+            </div>
+            <div class="card-desc">
+                Indicadores operacionais.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="pages/autuacoes.html" class="card theme-amber" data-perfis="Administrador,Supervisor,Gerência">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
+                <div class="card-title">Autuações</div>
+            </div>
+            <div class="card-desc">
+                Consulta e indicadores de autuações.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+       
+        <a href="pages/terminais-agora.html" class="card theme-violet">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="12" rx="2"/><path d="M8 20h8"/><path d="M10 17v3"/><path d="M14 17v3"/></svg></div>
+                <div class="card-title">Terminais Agora</div>
+            </div>
+            <div class="card-desc">
+                Presença de Fiscais por terminal em tempo real.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="pages/criar-relatorio.html" class="card theme-blue" data-perfis="Analista,Supervisor,Administrador">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3Z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h3"/></svg></div>
+                <div class="card-title">Criar Relatório</div>
+            </div>
+            <div class="card-desc">
+                Gerar relatório operacional com protocolo.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+
+        <a href="pages/incidentes-dashboard.html" class="card theme-teal" data-perfis="Analista,Supervisor,Administrador,Gerência,Gerencia">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></div>
+                <div class="card-title">Dashboard de Incidentes</div>
+            </div>
+            <div class="card-desc">
+                Indicadores, filtros e exportação dos incidentes TCGL.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+      <a href="pages/gerenciapatio.html" class="card theme-sky">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16h12l-1-5H7l-1 5Z"/><path d="M7 11l2-4h6l2 4"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg></div>
+                <div class="card-title">Gerenciar Pátio</div>
+            </div>
+            <div class="card-desc">
+                Controle das filas para a saída dos carros.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="https://drive.google.com/drive/folders/1m9ODnZuVVtFVUP1p_FUECy9E1xVBN1yd" class="card theme-green" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h7l2 2h7v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z"/><path d="M4 8V6a2 2 0 0 1 2-2h4l2 4"/></svg></div>
+                <div class="card-title">Drive Monitoramento</div>
+            </div>
+            <div class="card-desc">
+                Drive - Oficial Monitoramento.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="https://drive.google.com/drive/folders/140AXmLicGVvTm2Z5ALESVEmv0-K_mhYW" class="card theme-cyan" target="_blank" data-saida-carros-cot="true">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="14" rx="2"/><path d="M8 18v2"/><path d="M16 18v2"/><path d="M5 10h14"/><path d="M8 7h8"/></svg></div>
+                <div class="card-title">Saída de carros</div>
+            </div>
+            <div class="card-desc">
+                Saida de carros da COT.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+       <a href="https://drive.google.com/drive/folders/1-jBeEFxHtTgvXbjkJbhonY-ijKg16UcF" class="card theme-slate" target="_blank" data-diarios-bordo="true">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5a3 3 0 0 1 3-3h11v18H8a3 3 0 0 0-3 3V5Z"/><path d="M5 5v16"/><path d="M9 6h6"/></svg></div>
+                <div class="card-title">Diários de bordo</div>
+            </div>
+            <div class="card-desc">
+               Diários de bordo.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="https://drive.google.com/drive/folders/111RpLw8iQI3Pypwi_sYdJ3NO1iG_Ow5K" class="card theme-indigo" target="_blank">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></div>
+                <div class="card-title">Horários para fiscais</div>
+            </div>
+            <div class="card-desc">
+               Horários por terminal.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA/edit?gid=1013912232#gid=1013912232" class="card theme-blue" target="_blank" data-perfis="Analista,Supervisor,Administrador">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div>
+                <div class="card-title">Planilha</div>
+            </div>
+            <div class="card-desc">
+                Acesso a Planilha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+       <a href="https://drive.google.com/drive/folders/1oq_QLjcIpZGqWD6zRcLtK4PIj5my6TtE" class="card theme-teal" target="_blank">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/><path d="M10 5v14"/><path d="M15 5v14"/></svg></div>
+                <div class="card-title">Tabelas</div>
+            </div>
+            <div class="card-desc">
+                Tabelas Planejamento.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="https://www.canva.com/design/DAGmHCnCGlc/hBDsSXTyhOo_FJjbAsIRMQ/edit" class="card theme-rose" target="_blank" data-perfis="Analista,Supervisor,Administrador">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v5"/><path d="M12 18h.01"/></svg></div>
+                <div class="card-title">Desvios</div>
+            </div>
+            <div class="card-desc">
+                Acesso aos desvios criados.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="https://www.canva.com/design/DAHDub_Za2k/oMlNaOEy98L0BTW1m1-Wuw/edit" class="card theme-amber" target="_blank" data-perfis="Analista,Supervisor,Administrador">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg></div>
+                <div class="card-title">Cenário Atual</div>
+            </div>
+            <div class="card-desc">
+                Acesso ao cenário atual - Divergências.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="https://www.canva.com/" class="card theme-violet" target="_blank" data-perfis="Analista,Supervisor,Administrador">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4-1 11-11-3-3L5 16l-1 4Z"/><path d="m14 7 3 3"/></svg></div>
+                <div class="card-title">Canva</div>
+            </div>
+            <div class="card-desc">
+                Acesso ao Canva - Inicio.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        
+        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQcoPBPbjoZKmWb6KlDMMpwm0-AbzPA4PRziV6zS8U-VzXRKMtKEp_sbVf4cgHNEg/pubhtml#" class="card theme-red" target="_blank">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.4 6-11a6 6 0 0 0-12 0c0 5.6 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></div>
+                <div class="card-title">Pontos de controle</div>
+            </div>
+            <div class="card-desc">
+                Localização dos pontos de controle.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+    </div>
+
+</div>
+
+<footer>
+    <div class="footer-inner">
+        <span class="footer-text">
+            © 2026 CIOP - Todos os direitos reservados
+        </span>
+    </div>
+</footer>
+
+<script>
+function toggleMenu(){
+    document.getElementById("sidebar").classList.toggle("active");
+    document.getElementById("overlay").classList.toggle("active");
+}
+
+function toggleSenhaPanel(force){
+    const panel = document.getElementById("senhaPanel");
+    const abrir = typeof force === "boolean" ? force : !panel.classList.contains("active");
+    panel.classList.toggle("active", abrir);
+    if (!abrir) {
+        document.getElementById("senhaAtual").value = "";
+        document.getElementById("novaSenha").value = "";
+        document.getElementById("confirmarSenha").value = "";
+        document.getElementById("senhaStatus").textContent = "";
+        document.getElementById("senhaStatus").className = "password-status";
+    }
+}
+
+async function salvarNovaSenha(){
+    const status = document.getElementById("senhaStatus");
+    const senhaAtual = document.getElementById("senhaAtual").value;
+    const novaSenha = document.getElementById("novaSenha").value;
+    const confirmarSenha = document.getElementById("confirmarSenha").value;
+
+    if (novaSenha !== confirmarSenha) {
+        status.className = "password-status erro";
+        status.textContent = "A confirmacao da senha nao confere.";
+        return;
+    }
+
+    status.className = "password-status";
+    status.textContent = "Alterando senha...";
+
+    try {
+        await window.alterarSenha(senhaAtual, novaSenha);
+        status.className = "password-status ok";
+        status.textContent = "Senha alterada com sucesso.";
+        document.getElementById("senhaAtual").value = "";
+        document.getElementById("novaSenha").value = "";
+        document.getElementById("confirmarSenha").value = "";
+    } catch (error) {
+        status.className = "password-status erro";
+        status.textContent = "Nao foi possivel alterar: " + error.message;
+    }
+}
+</script>
+
+<script type="module" id="portalAvisosScript">
+import {
+    listarAvisosFirestore,
+    listarUsuariosFirestore,
+    salvarAvisoFirestore,
+    excluirAvisoFirestore,
+    normalizarCadastro
+} from "./assets/js/portal-firestore.js";
+import { usuarios as usuariosLocais } from "./assets/js/usuarios.js";
+
+const avisosLista = document.getElementById("avisosLista");
+const avisosContador = document.getElementById("avisosContador");
+const avisoEditorBtn = document.getElementById("abrirAvisoEditor");
+const sidebarAvisoBtn = document.getElementById("sidebarAdicionarAviso");
+const avisoModal = document.getElementById("avisoModal");
+const avisoStatus = document.getElementById("avisoEditorStatus");
+const avisosGerenciarLista = document.getElementById("avisosGerenciarLista");
+const avisoUsuariosLista = document.getElementById("avisoUsuariosLista");
+const avisoBuscaUsuarios = document.getElementById("avisoBuscaUsuarios");
+const avisoGrupoResumo = document.getElementById("avisoGrupoResumo");
+const avisoUsuarioResumo = document.getElementById("avisoUsuarioResumo");
+const avisoSubmitBtn = document.getElementById("avisoSubmitBtn");
+const avisoIdEdicao = document.getElementById("avisoIdEdicao");
+
+let avisosCarregados = [];
+let avisosGestorCarregados = [];
+let usuariosAviso = [];
+let usuariosSelecionadosPendentes = [];
+const usuariosAvisoSelecionados = new Set();
+
+function textoAvisoEntrada(valor) {
+    return String(valor || "").normalize("NFC").trim();
+}
+
+function escapeAviso(valor) {
+    return String(valor ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function normalizarAvisoTexto(valor) {
+    return String(valor || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function usuarioPodeEnviarAviso() {
+    const perfil = normalizarAvisoTexto(window.portalUsuario?.perfil);
+    return Boolean(window.portalUsuario?.isAdmin || ["administrador", "supervisor", "gerencia", "secretaria"].includes(perfil));
+}
+
+function fecharMenuLateralAviso() {
+    document.getElementById("sidebar")?.classList.remove("active");
+    document.getElementById("overlay")?.classList.remove("active");
+}
+
+function avisoTimestampLocal(aviso) {
+    const data = aviso?.criadoEm || aviso?.atualizadoEm;
+    if (data?.toDate) return data.toDate();
+    if (typeof data?.seconds === "number") return new Date(data.seconds * 1000);
+    return null;
+}
+
+function formatarDataAviso(aviso) {
+    const data = avisoTimestampLocal(aviso);
+    if (!data) return "";
+    return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function dataAvisoLocal(valor) {
+    if (!valor) return null;
+    if (valor?.toDate) return valor.toDate();
+    if (typeof valor?.seconds === "number") return new Date(valor.seconds * 1000);
+    if (valor instanceof Date) return valor;
+    const data = new Date(valor);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+
+function formatarDataHoraAviso(valor) {
+    const data = dataAvisoLocal(valor);
+    if (!data) return "";
+    return data.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function formatarPeriodoAviso(aviso) {
+    const inicio = formatarDataHoraAviso(aviso?.inicioEm);
+    const fim = formatarDataHoraAviso(aviso?.fimEm);
+    if (inicio && fim) return inicio + " até " + fim;
+    if (inicio) return "A partir de " + inicio;
+    if (fim) return "Até " + fim;
+    return "";
+}
+
+function valorDateTimeLocal(data) {
+    const pad = (valor) => String(valor).padStart(2, "0");
+    return data.getFullYear() + "-" + pad(data.getMonth() + 1) + "-" + pad(data.getDate()) +
+        "T" + pad(data.getHours()) + ":" + pad(data.getMinutes());
+}
+
+function definirPeriodoAvisoPadrao(force = false) {
+    const inicio = document.getElementById("avisoInicio");
+    const fim = document.getElementById("avisoFim");
+    if (!inicio || !fim) return;
+    const agora = new Date();
+    agora.setSeconds(0, 0);
+    const fimPadrao = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
+    if (force || !inicio.value) inicio.value = valorDateTimeLocal(agora);
+    if (force || !fim.value) fim.value = valorDateTimeLocal(fimPadrao);
+}
+
+function lerDataHoraAviso(id) {
+    const valor = document.getElementById(id)?.value;
+    if (!valor) return null;
+    const data = new Date(valor);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+
+function emailUsuarioAviso(usuario) {
+    return String(usuario?.email || "").trim().toLowerCase();
+}
+
+function nomeUsuarioAviso(usuario) {
+    return String(usuario?.nome || usuario?.email || "").trim();
+}
+
+function usuariosSelecionadosAviso() {
+    return [...usuariosAvisoSelecionados].map((email) => String(email || "").trim().toLowerCase()).filter(Boolean);
+}
+
+function definirUsuariosSelecionadosAviso(emails = []) {
+    usuariosAvisoSelecionados.clear();
+    emails.forEach((email) => {
+        const normalizado = String(email || "").trim().toLowerCase();
+        if (normalizado) usuariosAvisoSelecionados.add(normalizado);
+    });
+}
+
+function ajustarTodosAviso(origem) {
+    const todos = document.getElementById("avisoTodos");
+    if (!todos) return;
+    if (origem === "todos" && todos.checked) {
+        document.querySelectorAll('input[name="avisoPerfil"], input[name="avisoUsuario"]').forEach((item) => item.checked = false);
+    }
+    if (origem === "usuario") {
+        const temUsuario = document.querySelector('input[name="avisoUsuario"]:checked');
+        if (temUsuario) {
+            document.querySelectorAll('input[name="avisoPerfil"]').forEach((item) => item.checked = false);
+        }
+    }
+    if (origem !== "todos") {
+        const temEspecifico = document.querySelector('input[name="avisoPerfil"]:checked, input[name="avisoUsuario"]:checked');
+        if (temEspecifico) todos.checked = false;
+    }
+}
+
+function atualizarResumosDestinatarios() {
+    const todos = document.getElementById("avisoTodos")?.checked;
+    const perfis = [...document.querySelectorAll('input[name="avisoPerfil"]:checked')].map((item) => item.value);
+    const usuarios = usuariosSelecionadosAviso();
+    if (avisoGrupoResumo) {
+        avisoGrupoResumo.textContent = todos ? "Todos" : (perfis.length ? perfis.join(", ") : (usuarios.length ? "Somente usuários" : "Selecionar grupos"));
+    }
+    if (avisoUsuarioResumo) {
+        avisoUsuarioResumo.textContent = usuarios.length ? usuarios.length + " usuário(s) selecionado(s)" : "Selecionar usuários";
+    }
+}
+
+function usuarioCombinaAviso(usuario, busca) {
+    const termo = normalizarAvisoTexto(busca);
+    if (!termo) return true;
+    return normalizarAvisoTexto([usuario.nome, usuario.email, usuario.perfil, usuario.registro].join(" ")).includes(termo);
+}
+
+function renderUsuariosAviso(selecionados = null) {
+    if (!avisoUsuariosLista) return;
+    if (selecionados) definirUsuariosSelecionadosAviso(selecionados);
+    const marcados = new Set(usuariosSelecionadosAviso());
+    const busca = avisoBuscaUsuarios?.value || "";
+    const lista = usuariosAviso.filter((usuario) => usuarioCombinaAviso(usuario, busca));
+    if (!lista.length) {
+        avisoUsuariosLista.innerHTML = '<div class="notice-empty">Nenhum usuário encontrado.</div>';
+        return;
+    }
+    avisoUsuariosLista.innerHTML = lista.map((usuario) => {
+        const email = emailUsuarioAviso(usuario);
+        const nome = nomeUsuarioAviso(usuario);
+        const perfil = usuario.perfil ? " · " + usuario.perfil : "";
+        return `
+            <label class="notice-user-check" title="${escapeAviso(nome)} - ${escapeAviso(email)}">
+                <input name="avisoUsuario" type="checkbox" value="${escapeAviso(email)}" ${marcados.has(email) ? "checked" : ""}>
+                <span>${escapeAviso(nome || email)}${escapeAviso(perfil)}</span>
+            </label>
+        `;
+    }).join("");
+    avisoUsuariosLista.querySelectorAll('input[name="avisoUsuario"]').forEach((item) => {
+        item.addEventListener("change", () => {
+            const email = String(item.value || "").trim().toLowerCase();
+            if (item.checked && email) usuariosAvisoSelecionados.add(email);
+            if (!item.checked && email) usuariosAvisoSelecionados.delete(email);
+            ajustarTodosAviso("usuario");
+            atualizarResumosDestinatarios();
+        });
+    });
+    atualizarResumosDestinatarios();
+}
+
+async function carregarUsuariosAviso() {
+    const mapa = new Map();
+    Object.entries(usuariosLocais || {}).forEach(([email, cadastro]) => {
+        const user = normalizarCadastro(cadastro, email);
+        mapa.set(emailUsuarioAviso(user), user);
+    });
+    try {
+        const online = await listarUsuariosFirestore();
+        Object.entries(online).forEach(([email, cadastro]) => {
+            const user = normalizarCadastro(cadastro, email);
+            mapa.set(emailUsuarioAviso(user), user);
+        });
+    } catch (error) {
+        console.warn("Nao foi possivel carregar usuarios online para avisos:", error);
+    }
+    usuariosAviso = [...mapa.values()]
+        .filter((usuario) => usuario.ativo !== false)
+        .sort((a, b) => nomeUsuarioAviso(a).localeCompare(nomeUsuarioAviso(b), "pt-BR"));
+    renderUsuariosAviso(usuariosSelecionadosPendentes);
+    usuariosSelecionadosPendentes = [];
+}
+
+function destinatariosAviso(aviso) {
+    if (aviso.publico) return "Todos";
+    const partes = [];
+    if (aviso.perfis?.length) partes.push(aviso.perfis.join(", "));
+    if (aviso.usuarios?.length) partes.push(aviso.usuarios.length + " usuário(s)");
+    return partes.join(" · ") || "Sem destinatário";
+}
+
+function renderAvisos(lista) {
+    const visiveis = lista.slice(0, 4);
+    avisosContador.textContent = String(lista.length);
+    avisosContador.hidden = lista.length === 0;
+
+    if (!visiveis.length) {
+        avisosLista.innerHTML = '<div class="notice-empty">Nenhum aviso no momento.</div>';
+        return;
+    }
+
+    avisosLista.innerHTML = "";
+    visiveis.forEach((aviso) => {
+        const item = document.createElement("article");
+        item.className = "notice-item";
+        const titulo = document.createElement("div");
+        titulo.className = "notice-item-title";
+        titulo.textContent = aviso.titulo || "";
+        const mensagem = document.createElement("div");
+        mensagem.className = "notice-item-text";
+        mensagem.textContent = aviso.mensagem || "";
+        item.append(titulo, mensagem);
+        avisosLista.appendChild(item);
+    });
+}
+
+function renderAvisosGestor(lista) {
+    if (!avisosGerenciarLista) return;
+    if (!lista.length) {
+        avisosGerenciarLista.innerHTML = '<div class="notice-empty">Nenhum aviso enviado.</div>';
+        return;
+    }
+
+    avisosGerenciarLista.innerHTML = lista.map((aviso) => `
+        <div class="notice-manage-item">
+            <div>
+                <strong>${escapeAviso(aviso.titulo)}</strong>
+                <span>${escapeAviso(destinatariosAviso(aviso))}</span>
+            </div>
+            <div class="notice-manage-actions">
+                <button class="notice-edit-btn" type="button" onclick="editarAvisoPortal('${escapeAviso(aviso.id)}')" aria-label="Editar aviso">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4-1 11-11-3-3L5 16l-1 4Z"/><path d="m14 7 3 3"/></svg>
+                </button>
+                <button class="notice-delete-btn" type="button" onclick="excluirAvisoPortal('${escapeAviso(aviso.id)}')" aria-label="Excluir aviso">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function setAvisoStatus(texto, tipo = "") {
+    avisoStatus.textContent = texto;
+    avisoStatus.className = "notice-editor-status" + (tipo ? " " + tipo : "");
+}
+
+async function carregarAvisos() {
+    try {
+        const usuario = window.portalUsuario || {};
+        avisosCarregados = await listarAvisosFirestore({
+            email: usuario.email,
+            perfil: usuario.perfil,
+            gestor: false
+        });
+        renderAvisos(avisosCarregados);
+    } catch (error) {
+        console.error("Erro ao carregar avisos:", error);
+        avisosLista.innerHTML = '<div class="notice-empty">Avisos indisponíveis.</div>';
+    }
+}
+
+async function carregarAvisosGestor() {
+    if (!usuarioPodeEnviarAviso()) return;
+    try {
+        avisosGestorCarregados = await listarAvisosFirestore({ gestor: true });
+        renderAvisosGestor(avisosGestorCarregados);
+    } catch (error) {
+        console.error("Erro ao carregar avisos de gestor:", error);
+        renderAvisosGestor([]);
+    }
+}
+
+function resetarFormularioAviso() {
+    avisoIdEdicao.value = "";
+    document.getElementById("avisoTitulo").value = "";
+    document.getElementById("avisoMensagem").value = "";
+    document.getElementById("avisoInicio").value = "";
+    document.getElementById("avisoFim").value = "";
+    document.getElementById("avisoTodos").checked = true;
+    document.querySelectorAll('input[name="avisoPerfil"]').forEach((item) => item.checked = false);
+    document.querySelectorAll('input[name="avisoUsuario"]').forEach((item) => item.checked = false);
+    usuariosAvisoSelecionados.clear();
+    if (avisoBuscaUsuarios) avisoBuscaUsuarios.value = "";
+    if (avisoSubmitBtn) avisoSubmitBtn.textContent = "Enviar aviso";
+    definirPeriodoAvisoPadrao(true);
+    renderUsuariosAviso([]);
+    atualizarResumosDestinatarios();
+    setAvisoStatus("");
+}
+
+window.abrirEditorAvisos = async function () {
+    if (!usuarioPodeEnviarAviso()) return;
+    if (!avisoIdEdicao.value) definirPeriodoAvisoPadrao();
+    avisoModal.hidden = false;
+    document.body.classList.add("modal-open");
+    await carregarUsuariosAviso();
+    await carregarAvisosGestor();
+    window.setTimeout(() => document.getElementById("avisoTitulo")?.focus(), 0);
+};
+
+window.fecharEditorAvisos = function () {
+    avisoModal.hidden = true;
+    document.body.classList.remove("modal-open");
+};
+
+window.salvarAvisoPortal = async function (event) {
+    event?.preventDefault();
+    if (!usuarioPodeEnviarAviso()) return;
+
+    const titulo = textoAvisoEntrada(document.getElementById("avisoTitulo").value);
+    const mensagem = textoAvisoEntrada(document.getElementById("avisoMensagem").value);
+    const publico = document.getElementById("avisoTodos").checked;
+    const perfis = [...document.querySelectorAll('input[name="avisoPerfil"]:checked')].map((item) => item.value);
+    const usuarios = usuariosSelecionadosAviso();
+    const inicioEm = lerDataHoraAviso("avisoInicio");
+    const fimEm = lerDataHoraAviso("avisoFim");
+
+    if (!titulo || !mensagem) {
+        setAvisoStatus("Informe título e mensagem.", "erro");
+        return;
+    }
+    if (!inicioEm || !fimEm) {
+        setAvisoStatus("Informe início e fim da exposição.", "erro");
+        return;
+    }
+    if (fimEm.getTime() <= inicioEm.getTime()) {
+        setAvisoStatus("O fim da exposição deve ser depois do início.", "erro");
+        return;
+    }
+    if (!publico && !perfis.length && !usuarios.length) {
+        setAvisoStatus("Escolha pelo menos um destinatário.", "erro");
+        return;
+    }
+
+    setAvisoStatus("Enviando aviso...");
+
+    try {
+        await salvarAvisoFirestore({
+            id: avisoIdEdicao.value || "",
+            titulo,
+            mensagem,
+            publico,
+            perfis,
+            usuarios,
+            inicioEm,
+            fimEm,
+            autorEmail: window.portalUsuario?.email,
+            autorNome: window.portalUsuario?.nome
+        });
+        setAvisoStatus(avisoIdEdicao.value ? "Aviso atualizado." : "Aviso enviado.", "ok");
+        resetarFormularioAviso();
+        await carregarAvisos();
+        await carregarAvisosGestor();
+    } catch (error) {
+        console.error(error);
+        setAvisoStatus("Não foi possível enviar: " + error.message, "erro");
+    }
+};
+
+window.editarAvisoPortal = async function (id) {
+    if (!usuarioPodeEnviarAviso()) return;
+    const aviso = avisosGestorCarregados.find((item) => item.id === id);
+    if (!aviso) {
+        setAvisoStatus("Aviso não encontrado para edição.", "erro");
+        return;
+    }
+    avisoIdEdicao.value = aviso.id;
+    document.getElementById("avisoTitulo").value = aviso.titulo || "";
+    document.getElementById("avisoMensagem").value = aviso.mensagem || "";
+    document.getElementById("avisoInicio").value = valorDateTimeLocal(dataAvisoLocal(aviso.inicioEm) || new Date());
+    document.getElementById("avisoFim").value = valorDateTimeLocal(dataAvisoLocal(aviso.fimEm) || new Date(Date.now() + 24 * 60 * 60 * 1000));
+    document.getElementById("avisoTodos").checked = aviso.publico === true;
+    document.querySelectorAll('input[name="avisoPerfil"]').forEach((item) => {
+        item.checked = (aviso.perfis || []).includes(item.value);
+    });
+    atualizarResumosDestinatarios();
+    definirUsuariosSelecionadosAviso(aviso.usuarios || []);
+    usuariosSelecionadosPendentes = aviso.usuarios || [];
+    if (avisoBuscaUsuarios) avisoBuscaUsuarios.value = "";
+    if (avisoSubmitBtn) avisoSubmitBtn.textContent = "Salvar aviso";
+    setAvisoStatus("");
+    await window.abrirEditorAvisos();
+};
+
+window.excluirAvisoPortal = async function (id) {
+    if (!usuarioPodeEnviarAviso()) return;
+    if (!confirm("Deseja excluir este aviso?")) return;
+    try {
+        await excluirAvisoFirestore(id);
+        await carregarAvisos();
+        await carregarAvisosGestor();
+    } catch (error) {
+        console.error(error);
+        setAvisoStatus("Não foi possível excluir: " + error.message, "erro");
+    }
+};
+
+avisoBuscaUsuarios?.addEventListener("input", () => renderUsuariosAviso());
+document.getElementById("avisoTodos")?.addEventListener("change", () => {
+    ajustarTodosAviso("todos");
+    renderUsuariosAviso([]);
+    atualizarResumosDestinatarios();
+});
+document.querySelectorAll('input[name="avisoPerfil"]').forEach((item) => {
+    item.addEventListener("change", () => {
+        ajustarTodosAviso("perfil");
+        atualizarResumosDestinatarios();
+    });
+});
+
+sidebarAvisoBtn?.addEventListener("click", async (event) => {
+    event.preventDefault();
+    if (!usuarioPodeEnviarAviso()) return;
+    await window.abrirEditorAvisos();
+    fecharMenuLateralAviso();
+});
+
+avisoModal?.addEventListener("click", (event) => {
+    if (event.target === avisoModal) window.fecharEditorAvisos();
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && avisoModal && !avisoModal.hidden) {
+        window.fecharEditorAvisos();
+    }
+});
+
+function iniciarAvisosPortal() {
+    if (avisoEditorBtn) avisoEditorBtn.hidden = !usuarioPodeEnviarAviso();
+    carregarAvisos();
+}
+
+if (window.portalUsuarioValidado) {
+    iniciarAvisosPortal();
+} else {
+    window.addEventListener("portal:usuario-validado", iniciarAvisosPortal, { once: true });
+}
+</script><!-- Fim portalAvisosScript -->
+
+
+<script>
+(function configurarSaidaCarrosCot() {
+    const pastaDrive = "https://drive.google.com/drive/folders/140AXmLicGVvTm2Z5ALESVEmv0-K_mhYW";
+    const planilhasPorMes = {
+        "2026-01": { id: "1SyBWJu4ruFbiTJdJgNXfatRdYcpj2TIsF4pIyZ3zo7g", abas: {} },
+        "2026-02": { id: "17D8Ps6KdcsidwYboPHjwduhDIY88zP4t4NYRsMmWmL4", abas: {} },
+        "2026-03": { id: "1-xN-XCT06OZSQ_Ksrkl9FZJAiaSYRsPgXyOR5JLwjwA", abas: {} },
+        "2026-04": { id: "1RT8S_e_YvOo9fwoE6I7AjDcWaU-XzGLlZ2UNetOgySI", abas: {} },
+        "2026-05": { id: "1HZjjWUf31B0KPJZ5wiwkMP7mntZIplFxozzZEv6QJPo", abas: {} },
+        "2026-06": {
+            id: "18AbgwQ8RcYX7Ng_sE_fqzAWaV_k510tbWv4ScWU9ZmA",
+            abas: {
+                "01": "476758202",
+                "02": "1974452398",
+                "03": "385333917",
+                "04": "2079590186",
+                "05": "511125669",
+                "06": "994622231",
+                "07": "292629914",
+                "08": "806090330",
+                "09": "845385074",
+                "10": "1666240587",
+                "11": "44154813",
+                "12": "212963382",
+                "13": "1737897722",
+                "14": "1903936578",
+                "15": "585043884",
+                "16": "364387985",
+                "17": "1229057228",
+                "18": "894847989",
+                "19": "1486499768"
+            }
+        }
+    };
+
+    function doisDigitos(valor) {
+        return String(valor).padStart(2, "0");
+    }
+
+    function linkSaidaCarrosHoje() {
+        const hoje = new Date();
+        const chaveMes = hoje.getFullYear() + "-" + doisDigitos(hoje.getMonth() + 1);
+        const dia = doisDigitos(hoje.getDate());
+        const planilha = planilhasPorMes[chaveMes];
+        if (!planilha) return pastaDrive;
+        const gid = planilha.abas[dia];
+        const base = "https://docs.google.com/spreadsheets/d/" + planilha.id + "/edit";
+        return gid ? base + "?gid=" + gid + "#gid=" + gid : base;
+    }
+
+    function atualizarLinkSaidaCarros() {
+        document.querySelectorAll("[data-saida-carros-cot]").forEach((link) => {
+            link.href = linkSaidaCarrosHoje();
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", atualizarLinkSaidaCarros);
+    } else {
+        atualizarLinkSaidaCarros();
+    }
+})();
+</script>
+
+<script>
+(function configurarDiariosBordo() {
+    const pastaRaiz = "https://drive.google.com/drive/folders/1-jBeEFxHtTgvXbjkJbhonY-ijKg16UcF";
+    const pastasPorMes = {
+        "2026-01": "1x05B25zRP1miRdLrN6nBIWBBPiI9_lw6",
+        "2026-02": "1Eh_-NqdIhNZv7D3-naqSr6VTJUXxPDTP",
+        "2026-03": "1Z4xIdPaYP7iyyfTNyqaYXHbYroPeJHAt",
+        "2026-04": "15b0Xeia7WjpJk_SkDPgbEPlv1f4uBCTL",
+        "2026-05": "1Z5net1LFdSJUi4ShZp1IUVX2PrEtoxGs",
+        "2026-06": "1SmFg0L0jcj7RIybYqPocdW4anQ3YYEyp",
+        "2026-07": "1b28F_oANDILYAOux3AxTRnB0fN-1k1Cv",
+        "2026-08": "1uzSd9jHJzC_vjeYbwC_ZthH_rpm0Dp5g",
+        "2026-09": "193XroR50xiBD8TDmqPXTj-Bbdpebw5Q7",
+        "2026-10": "1fUkHNUVY6FN-TPv8-W5pX1SEQYTiZrqX",
+        "2026-11": "1Vm5pF5BROXfgSzJapBXmNEXwwTLL-nId",
+        "2026-12": "1pBT5-Gxpp095G-yA3bV1Ll8SBxFzKrQJ"
+    };
+    const arquivosPorDia = {
+        "2026-06-01": "1zKhqjgVhZfGNgkpkzWPBG3YKeKkHMD9o",
+        "2026-06-02": "1AphsvTCDHf1WMSD0elRkMBy758ItqD5j",
+        "2026-06-03": "1KbzrpCNQKmgrjYqiZLt9llgD2o_ahKGV",
+        "2026-06-04": "1oAdhdyqieeXeAzL-iWk7ch7Z34UVx_Ol",
+        "2026-06-05": "1cPoF4YRWnmrjdlXhNqEvr_fkNpybU1Om",
+        "2026-06-06": "1sTqg1gm9x-ZLyIgIFYHUkcS3S3c6ZB0d",
+        "2026-06-07": "1PgFqpfQVvWJdjy92iRhcfd6km_BOg-pe",
+        "2026-06-08": "1T9DpPBnaYFVsW1HcBx91BBfWyiuXPpMW",
+        "2026-06-09": "1_MAovLOS6KKXDzEVPF-wJgn9-yPY9bqV",
+        "2026-06-10": "1nlTryuIePpFEZG76guBg3gzyx48mlj9I",
+        "2026-06-11": "178M0q1W9k44BsAe9IyzrZNarCYjNXOOd",
+        "2026-06-12": "1FHzLA2RQlwbGLfTrDM7f4y92AUsHnGot",
+        "2026-06-13": "1t7EpsZuYjK8Tqu87L8E5m4AGLzgChMYU",
+        "2026-06-14": "19ilezo8491jVYJd0u-YTq_O6xDRfTia4",
+        "2026-06-15": "1hZyO1NPnz4tJ-jqwqFMSlBKynpwns8OL",
+        "2026-06-16": "1rkDuv-WU6eF_q9r1V_Pr9ibdgHPouAXu",
+        "2026-06-17": "1rx_EsfuBZbtmKG68xO6ABYj0eXIVN_AQ",
+        "2026-06-18": "1H5fDGG6IcLZV6Ge1VC17Tt7RDbe1Bp_p",
+        "2026-06-19": "1bkA3ejubFelikITti2e8TSGaVhDjahD7",
+        "2026-06-20": "1eA48pUJ0ND9wrRRtnkXgVCH0LsJXFWf-",
+        "2026-06-21": "1CQHB8ZQPxNOiClRfRCHeMya3_487E1nB",
+        "2026-06-22": "1RQicVMN6YKCOgNLA9BZRocEjWb1zmPfh"
+    };
+
+    function doisDigitos(valor) {
+        return String(valor).padStart(2, "0");
+    }
+
+    function linkDiarioHoje() {
+        const hoje = new Date();
+        const chaveMes = hoje.getFullYear() + "-" + doisDigitos(hoje.getMonth() + 1);
+        const chaveDia = chaveMes + "-" + doisDigitos(hoje.getDate());
+        const arquivoId = arquivosPorDia[chaveDia];
+        if (arquivoId) return "https://drive.google.com/file/d/" + arquivoId + "/view";
+        const pastaMes = pastasPorMes[chaveMes];
+        return pastaMes ? "https://drive.google.com/drive/folders/" + pastaMes : pastaRaiz;
+    }
+
+    function atualizarLinkDiarios() {
+        document.querySelectorAll("[data-diarios-bordo]").forEach((link) => {
+            link.href = linkDiarioHoje();
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", atualizarLinkDiarios);
+    } else {
+        atualizarLinkDiarios();
+    }
+})();
+</script>
+
+</body>
+
+</html>

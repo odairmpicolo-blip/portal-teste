@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>
+document.documentElement.classList.add("portal-auth-pending");
+</script>
+<style id="portalAuthBootStyle">
+.portal-auth-pending body > :not(#portalLoadingOverlay){visibility:hidden!important}
+</style>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório - Portal CIOP</title>
+<style>
+:root{
+    --blue:#06245c;
+    --blue2:#0b3a8a;
+    --orange:#ff6b00;
+    --bg:#f5f7fb;
+    --border:#dfe5ef;
+    --text:#101828;
+    --muted:#667085;
+    --white:#fff;
+    --red:#dc2626;
+    --green:#15803d;
+}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+}
+.header{
+    background:#fff;
+    display:grid;
+    grid-template-columns:minmax(260px, 1fr) auto minmax(260px, 1fr);
+    gap:16px;
+    align-items:center;
+    padding:6px 20px;
+    border-bottom:1px solid #e8edf6;
+}
+.header > a:first-child{
+    justify-self:start;
+    display:flex;
+    align-items:center;
+}
+.logo-ciop{height:40px;object-fit:contain}
+.logo-tcgl{height:45px;object-fit:contain}
+h1{margin:0;text-align:center;color:var(--blue);font-size:22px}
+.header-actions{
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    min-width:0;
+}
+.relatorio-title-wrap{
+    justify-self:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+}
+.relatorio-title-art{
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    line-height:1;
+}
+.relatorio-title-art span{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:min(420px, 34vw);
+    height:42px;
+    padding:0 28px;
+    color:var(--blue);
+    font-size:26px;
+    font-weight:900;
+    letter-spacing:0;
+    text-transform:uppercase;
+}
+
+.ciop-session{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    max-width:260px;
+    padding:4px 6px;
+    border:1px solid rgba(6,36,92,.12);
+    border-radius:6px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 2px 8px rgba(16,24,40,.08);
+    color:var(--blue);
+    font-size:11px;
+    line-height:1;
+}
+.ciop-session-user{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.ciop-session-profile{color:var(--muted);font-weight:600}
+.btn-logout,.btn{
+    border:0;
+    border-radius:6px;
+    padding:8px 10px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+}
+.ciop-session .btn-logout{background:var(--red);color:#fff;padding:4px 7px;font-size:11px}
+.container{max-width:1480px;margin:22px auto;padding:0 18px}
+.portal-return{
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.btn-link,.btn-portal,.btn-primary,.btn-secondary{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    text-decoration:none;
+    min-height:38px;
+    box-shadow:0 1px 2px rgba(16,24,40,.08);
+}
+.btn-link,.btn-portal{
+    background:linear-gradient(135deg,var(--blue),var(--blue2));
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:800;
+    box-shadow:0 8px 16px rgba(6,36,92,.16);
+}
+.btn-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+}
+.btn-icon svg{
+    width:18px;
+    height:18px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-secondary{background:#e8edf6;color:var(--blue)}
+.btn-danger{background:var(--red);color:#fff}
+.workspace{
+    display:grid;
+    grid-template-columns:minmax(320px, 400px) minmax(0, 1fr);
+    gap:20px;
+    align-items:start;
+}
+.panel{
+    position:sticky;
+    top:16px;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:18px;
+    box-shadow:0 12px 32px rgba(16,24,40,.08);
+}
+.panel-title{
+    margin:0 0 12px;
+    color:var(--blue);
+    font-size:16px;
+}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-grid .full{grid-column:1/-1}
+label{display:block;margin:10px 0 5px;color:var(--muted);font-size:12px;font-weight:700}
+input,select,textarea{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fff;
+}
+textarea{resize:none;overflow:hidden;line-height:1.55}
+input[readonly],
+select:disabled{
+    background:#f8fafc;
+    color:#344054;
+}
+#numeroRelatorio{
+    color:var(--red);
+    font-weight:900;
+}
+.cargo-vinculado{
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:9px 10px;
+    background:#f8fafc;
+    color:#344054;
+    font-size:14px;
+    font-weight:700;
+}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.status{min-height:18px;margin-top:10px;font-size:12px;font-weight:700;color:var(--muted)}
+.status.erro{color:var(--red)}
+.status.ok{color:var(--green)}
+.paper-wrap{
+    background:#eef2f7;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:22px;
+    overflow:auto;
+}
+.paper{
+    width:210mm;
+    max-width:100%;
+    min-height:297mm;
+    margin:0 auto;
+    background:#fff;
+    color:#111827;
+    border:1px solid #cbd5e1;
+    box-shadow:0 22px 55px rgba(16,24,40,.16);
+    padding:18mm 17mm 16mm;
+}
+.report-head{
+    display:grid;
+    grid-template-columns:108px 1fr 108px;
+    align-items:center;
+    gap:18px;
+    border:1px solid #6b7280;
+    border-bottom:3px solid var(--blue);
+    padding:10px 12px;
+}
+.report-head img{max-width:100%;height:58px;object-fit:contain}
+.report-company{
+    text-align:center;
+    font-size:14px;
+    font-weight:800;
+    color:#111827;
+    line-height:1.35;
+    text-transform:uppercase;
+}
+
+.report-title{
+    position:relative;
+    margin:18px 0 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:34px;
+}
+.report-title h2{
+    margin:0;
+    text-align:center;
+    color:#111827;
+    font-size:19px;
+    letter-spacing:0;
+}
+.report-number{
+    position:absolute;
+    right:0;
+    top:50%;
+    transform:translateY(-50%);
+    border:1px solid #6b7280;
+    background:#f8fafc;
+    padding:7px 10px;
+    color:var(--red);
+    font-size:14px;
+    font-weight:900;
+    white-space:nowrap;
+}
+.report-fields{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-top:1px solid #6b7280;
+    border-left:1px solid #6b7280;
+    margin-top:10px;
+}
+.report-line{
+    min-height:34px;
+    border-right:1px solid #6b7280;
+    border-bottom:1px solid #6b7280;
+    padding:7px 9px;
+    font-size:13.5px;
+}
+.report-line.full{grid-column:1/-1}
+.report-label{font-weight:800}
+.report-body-label{
+    border:1px solid #6b7280;
+    border-bottom:0;
+    margin-top:16px;
+    padding:7px 10px;
+    background:#f8fafc;
+    font-weight:800;
+    font-size:13.5px;
+}
+.report-body{
+    min-height:410px;
+    width:100%;
+    border:1px solid #6b7280;
+    border-radius:0;
+    padding:13px 14px;
+    font-size:14.5px;
+    line-height:1.7;
+    color:#111827;
+    text-align:justify;
+}
+.report-body-print{
+    display:none;
+    min-height:410px;
+    width:100%;
+    border:1px solid #6b7280;
+    padding:13px 14px;
+    font-size:14.5px;
+    line-height:1.7;
+    color:#111827;
+    white-space:pre-wrap;
+    text-align:justify;
+}
+.signature{
+    margin:58px auto 0;
+    max-width:520px;
+    text-align:center;
+    color:#111827;
+}
+.signature-line{border-top:1px solid #111827;padding-top:9px}
+.signature-title{
+    display:block;
+    margin-bottom:22px;
+    color:#475467;
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+}
+.signature strong{display:block;font-size:14px}
+.signature span{display:block;font-size:13px;margin-top:2px}
+.print-only{display:none}
+@media (max-width:980px){
+    .header{grid-template-columns:1fr;justify-items:center;text-align:center}
+    .header > a:first-child{justify-self:center}
+    .header-actions{justify-self:center;min-width:0;flex-wrap:wrap}
+    .relatorio-title-art span{min-width:0;width:min(420px, 84vw);font-size:23px}
+    .workspace{grid-template-columns:1fr}
+    .paper{padding:24px 18px;min-height:auto}
+    .report-head{grid-template-columns:78px 1fr 78px}
+    .report-title{display:grid;grid-template-columns:1fr;gap:8px}
+    .report-number{position:static;transform:none;justify-self:center}
+    .report-fields{grid-template-columns:1fr}
+}
+@page{size:A4;margin:0}
+@media print{
+    html,body{width:210mm;min-height:297mm;background:#fff!important}
+    body::before,body::after,.container::before,.container::after{display:none!important;content:none!important}
+    .header,.portal-return,.panel{display:none!important}
+    .container{max-width:none;margin:0;padding:0;background:#fff!important}
+    .workspace{display:block}
+    .paper-wrap{border:0;padding:0;background:#fff!important;overflow:visible}
+    .paper{width:210mm;max-width:none;min-height:297mm;border:0;box-shadow:none;padding:12mm 14mm;background:#fff!important}
+    .report-body{display:none}
+    .report-body-print{display:block}
+}
+</style>
+</head>
+<body data-require-perfis="Analista,Supervisor,Administrador">
+<header class="header">
+    <a href="https://mov1.com.br" target="_blank">
+        <img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP">
+    </a>
+    <div class="relatorio-title-wrap">
+        <h1 class="relatorio-title-art" aria-label="Relatório"><span>RELATÓRIO</span></h1>
+    </div>
+    <div class="header-actions">
+        <img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL">
+        <div class="ciop-session" aria-label="Usuário logado">
+            <span class="ciop-session-user" id="usuarioLogado">Usuário</span>
+            <span class="ciop-session-profile" id="perfilUsuario">Perfil</span>
+            <button type="button" class="btn-logout" onclick="window.portalLogout && window.portalLogout()">Sair</button>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div class="portal-return">
+        <a class="btn btn-portal" href="../index.html" aria-label="Voltar ao portal">
+            <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
+            <span>Portal</span>
+        </a>
+        <button class="btn btn-primary" type="button" id="pdfTopoBtn">Gerar PDF</button>
+    </div>
+
+    <section class="workspace">
+        <aside class="panel">
+            <h2 class="panel-title">Dados do relatório</h2>
+
+            <div class="field-grid">
+                <div>
+                    <label for="registroFuncionario">Registro do funcionário</label>
+                    <input id="registroFuncionario" type="text" inputmode="numeric" autocomplete="off" list="listaFuncionarios" placeholder="Digite o registro">
+                    <datalist id="listaFuncionarios"></datalist>
+                </div>
+                <div>
+                    <label for="numeroRelatorio">Nº Protocolo</label>
+                    <input id="numeroRelatorio" type="text" readonly>
+                </div>
+                <div class="full">
+                    <label for="nomeFuncionario">Nome</label>
+                    <input id="nomeFuncionario" type="text" readonly>
+                </div>
+                <div>
+                    <label for="funcaoFuncionario">Função</label>
+                    <input id="funcaoFuncionario" type="text" readonly>
+                </div>
+                <div>
+                    <label for="dataRelatorio">Data</label>
+                    <input id="dataRelatorio" type="date">
+                </div>
+                <div>
+                    <label for="carroRelatorio">Carro</label>
+                    <input id="carroRelatorio" list="listaCarros" type="text">
+                    <datalist id="listaCarros"></datalist>
+                </div>
+                <div>
+                    <label for="linhaRelatorio">Linha/Rota</label>
+                    <input id="linhaRelatorio" list="listaLinhas" type="text">
+                    <datalist id="listaLinhas"></datalist>
+                </div>
+            </div>
+
+            <label for="assinaturaSelect">Assinatura</label>
+            <select id="assinaturaSelect">
+                <option value="">Carregando usuários...</option>
+            </select>
+
+            <label>Cargo da assinatura</label>
+            <div id="cargoAssinaturaTexto" class="cargo-vinculado">Cargo não vinculado</div>
+
+            <div class="actions">
+                <button class="btn btn-secondary" type="button" id="gerarTextoBtn">Gerar texto</button>
+                <button class="btn btn-secondary" type="button" id="limparBtn">Limpar</button>
+            </div>
+            <div class="status" id="statusRelatorio">Preparando base do relatório...</div>
+        </aside>
+
+        <section class="paper-wrap" aria-label="Prévia do relatório">
+            <article class="paper">
+                <div class="report-head">
+                    <img src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL">
+                    <div class="report-company">TRANSPORTES COLETIVOS GRANDE LONDRINA</div>
+                    <img src="../assets/img/CIOP Sem Fundo.png" alt="CIOP">
+                </div>
+
+                <div class="report-title">
+                    <h2>RELATÓRIO</h2>
+                    <div class="report-number" id="previewNumero">N° CIOP00000</div>
+                </div>
+
+                <div class="report-fields">
+                    <div class="report-line"><span class="report-label">Funcionário:</span> <span id="previewRegistro"></span></div>
+                    <div class="report-line"><span class="report-label">Nome:</span> <span id="previewNome"></span></div>
+                    <div class="report-line"><span class="report-label">Função:</span> <span id="previewFuncao"></span></div>
+                    <div class="report-line"><span class="report-label">Carro:</span> <span id="previewCarro"></span></div>
+                    <div class="report-line"><span class="report-label">Data:</span> <span id="previewData"></span></div>
+                    <div class="report-line"><span class="report-label">Linha/Rota:</span> <span id="previewLinha"></span></div>
+                </div>
+
+                <div class="report-body-label">Descrição</div>
+                <textarea id="corpoRelatorio" class="report-body" spellcheck="true"></textarea>
+                <div id="corpoRelatorioPrint" class="report-body-print"></div>
+
+                <div class="signature">
+                    <span class="signature-title">Assinatura do responsável</span>
+                    <div class="signature-line">
+                        <strong id="previewAssinaturaNome">Selecione o usuário para assinatura</strong>
+                        <span id="previewAssinaturaRegistro"></span>
+                        <span id="previewAssinaturaCargo"></span>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </section>
+</main>
+
+<script type="module" src="../assets/js/auth.js"></script>
+<script type="module">
+import { listarUsuariosFirestore, normalizarCadastro } from "../assets/js/portal-firestore.js";
+import { usuarios as usuariosLocais } from "../assets/js/usuarios.js";
+
+const SHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
+const GID_RO = "665320337";
+const GID_CONT_PROT = "1001265560";
+const GID_FUNCIONARIOS = "1931884858";
+const GID_DADOS = "665133219";
+const PROTOCOLO_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGuAS3XN7FQkaqj2n4pjZTcGOt_mIvdMG1rg14bS9F928A-zMUDEI2nZneKm8vUtCcOA/exec";
+const TIPO_DOCUMENTO_PROTOCOLO = "R. OCORRÊNCIA";
+
+const assinaturaSelect = document.getElementById("assinaturaSelect");
+const cargoAssinaturaTexto = document.getElementById("cargoAssinaturaTexto");
+const statusRelatorio = document.getElementById("statusRelatorio");
+const corpoRelatorio = document.getElementById("corpoRelatorio");
+const corpoRelatorioPrint = document.getElementById("corpoRelatorioPrint");
+const campos = {
+    registro: document.getElementById("registroFuncionario"),
+    numero: document.getElementById("numeroRelatorio"),
+    nome: document.getElementById("nomeFuncionario"),
+    funcao: document.getElementById("funcaoFuncionario"),
+    data: document.getElementById("dataRelatorio"),
+    carro: document.getElementById("carroRelatorio"),
+    linha: document.getElementById("linhaRelatorio"),
+
+};
+const preview = {
+    numero: document.getElementById("previewNumero"),
+    registro: document.getElementById("previewRegistro"),
+    nome: document.getElementById("previewNome"),
+    funcao: document.getElementById("previewFuncao"),
+    data: document.getElementById("previewData"),
+    carro: document.getElementById("previewCarro"),
+    linha: document.getElementById("previewLinha"),
+    assinaturaNome: document.getElementById("previewAssinaturaNome"),
+    assinaturaRegistro: document.getElementById("previewAssinaturaRegistro"),
+    assinaturaCargo: document.getElementById("previewAssinaturaCargo")
+};
+
+let funcionarios = [];
+let usuariosAssinatura = [];
+let protocoloAtual = null;
+let usuarioCriador = null;
+let protocoloRegistrado = false;
+let corpoFoiEditado = false;
+
+function setStatus(texto, tipo) {
+    statusRelatorio.textContent = texto;
+    statusRelatorio.className = "status" + (tipo ? " " + tipo : "");
+}
+
+function csvUrl(gid) {
+    return "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/export?format=csv&gid=" + gid;
+}
+
+function parseCsv(texto) {
+    const linhas = [];
+    let linha = [];
+    let campo = "";
+    let aspas = false;
+    for (let i = 0; i < texto.length; i += 1) {
+        const c = texto[i];
+        const prox = texto[i + 1];
+        if (c === '"') {
+            if (aspas && prox === '"') {
+                campo += '"';
+                i += 1;
+            } else {
+                aspas = !aspas;
+            }
+        } else if (c === "," && !aspas) {
+            linha.push(campo);
+            campo = "";
+        } else if ((c === "\n" || c === "\r") && !aspas) {
+            if (c === "\r" && prox === "\n") i += 1;
+            linha.push(campo);
+            if (linha.some((item) => String(item).trim())) linhas.push(linha);
+            linha = [];
+            campo = "";
+        } else {
+            campo += c;
+        }
+    }
+    linha.push(campo);
+    if (linha.some((item) => String(item).trim())) linhas.push(linha);
+    return linhas;
+}
+
+async function carregarCsv(gid) {
+    const resposta = await fetch(csvUrl(gid), { cache: "no-store" });
+    if (!resposta.ok) throw new Error("Base " + gid + " indisponível.");
+    return parseCsv(await resposta.text());
+}
+
+function normalizarDataInput(data) {
+    const d = data ? new Date(data + "T12:00:00") : new Date();
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("pt-BR");
+}
+
+function hojeISO() {
+    const d = new Date();
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const dia = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + mes + "-" + dia;
+}
+
+function escapeOption(valor) {
+    return String(valor || "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[c]));
+}
+
+function preencherDatalist(id, valores) {
+    const lista = document.getElementById(id);
+    const unicos = [...new Set(valores.map((item) => String(item || "").trim()).filter(Boolean))];
+    lista.innerHTML = unicos.slice(0, 600).map((item) => "<option value=\"" + escapeOption(item) + "\"></option>").join("");
+}
+
+function carregarFuncionarios(linhas) {
+    const dados = linhas.slice(1)
+        .map((linha) => ({
+            registro: String(linha[0] || "").trim(),
+            nome: String(linha[1] || "").trim(),
+            funcao: String(linha[2] || "").trim()
+        }))
+        .filter((item) => item.registro && item.nome)
+        .sort((a, b) => Number(a.registro) - Number(b.registro) || a.nome.localeCompare(b.nome, "pt-BR"));
+    funcionarios = dados;
+    const lista = document.getElementById("listaFuncionarios");
+    lista.innerHTML = dados.map((item) =>
+        "<option value=\"" + escapeOption(item.registro) + "\">" + escapeOption(item.nome + " - " + item.funcao) + "</option>"
+    ).join("");
+}
+
+function carregarDadosGerais(linhas) {
+    preencherDatalist("listaCarros", linhas.slice(1).map((linha) => linha[4]));
+    preencherDatalist("listaLinhas", linhas.slice(1).map((linha) => linha[5]));
+}
+
+function protocoloDisponivel(linhas) {
+    const idx = linhas.findIndex((linha, index) => {
+        if (index <= 1) return false;
+        const protocolo = String(linha[0] || "").trim();
+        const semDados = [1, 2, 3, 4].every((coluna) => !String(linha[coluna] || "").trim());
+        return protocolo && semDados;
+    });
+    if (idx < 0) return null;
+    return {
+        linhaPlanilha: idx + 1,
+        protocolo: String(linhas[idx][0] || "").trim()
+    };
+}
+
+function formatarNumero(valor) {
+    const texto = String(valor || "").trim();
+    if (/^N[°º]?\s*CIOP/i.test(texto)) return texto.replace(/^Nº/i, "N°");
+    const numero = Number(texto.replace(/\D/g, ""));
+    return "N° CIOP" + String(numero || 0).padStart(5, "0");
+}
+
+function configurarProtocolo(linhas) {
+    protocoloAtual = protocoloDisponivel(linhas);
+    campos.numero.value = protocoloAtual?.protocolo || "";
+    atualizarPreview();
+}
+
+function gerarCorpoPadrao() {
+    const data = normalizarDataInput(campos.data.value);
+    const nome = campos.nome.value || "nome do funcionário";
+    const registro = campos.registro.value || "registro";
+    const funcao = campos.funcao.value || "função";
+    const carro = campos.carro.value ? ", carro " + campos.carro.value : "";
+    const linha = campos.linha.value ? ", linha/rota " + campos.linha.value : "";
+    return "No dia " + data + ", o(a) " + funcao.toLowerCase() + " " + nome + ", registro " + registro + carro + linha + ", apresentou a ocorrência descrita neste relatório.\n\nDescreva aqui os detalhes da ocorrência, providências tomadas e demais informações necessárias.";
+}
+
+function atualizarCorpoPDF() {
+    corpoRelatorioPrint.textContent = corpoRelatorio.value || "";
+}
+
+function autoGrow() {
+    corpoRelatorio.style.height = "auto";
+    corpoRelatorio.style.height = Math.max(410, corpoRelatorio.scrollHeight + 2) + "px";
+    atualizarCorpoPDF();
+}
+
+function atualizarPreview() {
+    preview.numero.textContent = formatarNumero(campos.numero.value);
+    preview.registro.textContent = campos.registro.value || "";
+    preview.nome.textContent = campos.nome.value || "";
+    preview.funcao.textContent = campos.funcao.value || "";
+    preview.data.textContent = normalizarDataInput(campos.data.value);
+    preview.carro.textContent = campos.carro.value || "";
+    preview.linha.textContent = campos.linha.value || "";
+    const opcao = assinaturaSelect.selectedOptions[0];
+    preview.assinaturaNome.textContent = opcao?.dataset.nome || "Selecione o usuário para assinatura";
+    const cargo = usuarioCriador?.cargo || "";
+    preview.assinaturaRegistro.textContent = opcao?.dataset.registro ? "Registro " + opcao.dataset.registro : "";
+    preview.assinaturaCargo.textContent = cargo;
+    cargoAssinaturaTexto.textContent = cargo || "Cargo não vinculado";
+    if (!corpoFoiEditado && campos.registro.value) {
+        corpoRelatorio.value = gerarCorpoPadrao();
+        autoGrow();
+    }
+}
+
+function preencherFuncionarioPorRegistro() {
+    const registro = String(campos.registro.value || "").trim();
+    const funcionario = funcionarios.find((item) => item.registro === registro);
+    campos.nome.value = funcionario?.nome || "";
+    campos.funcao.value = funcionario?.funcao || "";
+    if (!funcionario && registro) {
+        setStatus("Registro " + registro + " não encontrado na base de funcionários.", "erro");
+    } else if (funcionario) {
+        setStatus("Funcionário carregado: " + funcionario.registro + " - " + funcionario.nome + ".", "ok");
+    }
+    if (!corpoFoiEditado) corpoRelatorio.value = gerarCorpoPadrao();
+    atualizarPreview();
+}
+
+function normalizarUsuarioAssinatura(cadastro, email) {
+    const user = normalizarCadastro(cadastro, email);
+    return {
+        email: user.email || email,
+        nome: String(user.nome || email || "").trim(),
+        registro: String(user.registro || "").trim(),
+        cargo: String(user.cargo || "").trim(),
+        ativo: user.ativo !== false
+    };
+}
+
+async function carregarAssinaturas() {
+    const mapa = new Map();
+    Object.entries(usuariosLocais || {}).forEach(([email, cadastro]) => {
+        const user = normalizarUsuarioAssinatura(cadastro, email);
+        const chave = user.registro || user.email;
+        if (chave) mapa.set(chave, user);
+    });
+    try {
+        const online = await listarUsuariosFirestore();
+        Object.entries(online).forEach(([email, cadastro]) => {
+            const user = normalizarUsuarioAssinatura(cadastro, email);
+            if (!user.ativo) return;
+            const chave = user.registro || user.email;
+            if (chave) mapa.set(chave, user);
+        });
+    } catch (error) {
+        console.warn("Assinaturas online indisponíveis:", error);
+    }
+    const lista = [...mapa.values()]
+        .filter((user) => user.nome)
+        .sort((a, b) => (Number(a.registro) || 999999) - (Number(b.registro) || 999999) || a.nome.localeCompare(b.nome, "pt-BR"));
+    usuariosAssinatura = lista;
+    const emailLogado = String(window.portalUsuario?.email || "").trim().toLowerCase();
+    usuarioCriador = lista.find((user) => String(user.email || "").trim().toLowerCase() === emailLogado) || null;
+    assinaturaSelect.innerHTML = "<option value=\"\">Selecione registro e nome</option>" + lista.map((user) => {
+        const label = (user.registro ? user.registro + " - " : "") + user.nome;
+        return "<option value=\"" + escapeOption(user.registro || user.email) + "\" data-nome=\"" + escapeOption(user.nome) + "\" data-registro=\"" + escapeOption(user.registro) + "\">" + escapeOption(label) + "</option>";
+    }).join("");
+    vincularAssinaturaAoUsuarioLogado();
+}
+
+function vincularAssinaturaAoUsuarioLogado() {
+    if (!usuarioCriador) {
+        assinaturaSelect.disabled = false;
+        return;
+    }
+    assinaturaSelect.value = usuarioCriador.registro || usuarioCriador.email;
+    assinaturaSelect.disabled = true;
+    atualizarPreview();
+}
+
+async function iniciarRelatorio() {
+    window.portalMostrarCarregando?.("Carregando relatório");
+    campos.data.value = hojeISO();
+    try {
+        const [funcionariosCsv, dadosCsv, contProtCsv] = await Promise.all([
+            carregarCsv(GID_FUNCIONARIOS),
+            carregarCsv(GID_DADOS),
+            carregarCsv(GID_CONT_PROT)
+        ]);
+        carregarFuncionarios(funcionariosCsv);
+        carregarDadosGerais(dadosCsv);
+        configurarProtocolo(contProtCsv);
+        await carregarAssinaturas();
+        corpoRelatorio.value = gerarCorpoPadrao();
+        autoGrow();
+        atualizarPreview();
+        const protocoloTexto = protocoloAtual ? " Próximo protocolo: " + protocoloAtual.protocolo + "." : "";
+        setStatus("Base carregada." + protocoloTexto + " Digite o registro do funcionário e edite o corpo do relatório.", "ok");
+    } catch (error) {
+        console.error(error);
+        setStatus("Não foi possível carregar a base da planilha: " + error.message, "erro");
+    } finally {
+        window.portalOcultarCarregando?.();
+    }
+}
+
+campos.registro.addEventListener("change", preencherFuncionarioPorRegistro);
+campos.registro.addEventListener("blur", preencherFuncionarioPorRegistro);
+assinaturaSelect.addEventListener("change", atualizarPreview);
+Object.values(campos).forEach((campo) => campo.addEventListener("input", atualizarPreview));
+corpoRelatorio.addEventListener("input", () => {
+    corpoFoiEditado = true;
+    autoGrow();
+});
+document.getElementById("gerarTextoBtn").addEventListener("click", () => {
+    corpoFoiEditado = false;
+    corpoRelatorio.value = gerarCorpoPadrao();
+    autoGrow();
+});
+function dadosProtocolo() {
+    const analista = usuarioCriador || usuariosAssinatura.find((user) => (user.registro || user.email) === assinaturaSelect.value) || null;
+    return {
+        protocolo: campos.numero.value,
+        linhaPlanilha: protocoloAtual?.linhaPlanilha || "",
+        tipoDocumento: TIPO_DOCUMENTO_PROTOCOLO,
+        funcionario: String(campos.registro.value || "").trim(),
+        dataDocumento: normalizarDataInput(campos.data.value),
+        analista: analista ? ((analista.registro ? analista.registro + " - " : "") + analista.nome).toUpperCase() : "",
+        cargoAnalista: analista?.cargo || ""
+    };
+}
+
+async function registrarProtocolo() {
+    if (protocoloRegistrado) return true;
+    const dados = dadosProtocolo();
+    if (!dados.protocolo || !dados.linhaPlanilha) {
+        setStatus("Não foi possível identificar o próximo protocolo livre.", "erro");
+        return false;
+    }
+    if (!dados.funcionario || !campos.nome.value) {
+        setStatus("Digite um registro de funcionário válido antes de gerar o PDF.", "erro");
+        return false;
+    }
+    if (!dados.analista) {
+        setStatus("Não encontrei o registro do usuário logado para preencher o analista.", "erro");
+        return false;
+    }
+    if (!PROTOCOLO_SCRIPT_URL) {
+        setStatus("Protocolo " + dados.protocolo + " separado. Para gravar na planilha, falta publicar o Apps Script de gravação da aba CONT. PROT.", "erro");
+        return false;
+    }
+    const resposta = await fetch(PROTOCOLO_SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(dados)
+    });
+    if (!resposta.ok) throw new Error("Falha ao registrar protocolo.");
+    const retorno = await resposta.json().catch(() => ({ ok: true }));
+    if (retorno.ok === false) throw new Error(retorno.erro || "Falha ao registrar protocolo.");
+    protocoloRegistrado = true;
+    setStatus("Protocolo " + dados.protocolo + " registrado na planilha.", "ok");
+    return true;
+}
+
+async function gerarPDF() {
+    const registrado = await registrarProtocolo();
+    if (!registrado && PROTOCOLO_SCRIPT_URL) return;
+    atualizarCorpoPDF();
+    document.title = "Relatorio-" + formatarNumero(campos.numero.value).replace(/\s+/g, "-");
+    window.print();
+}
+
+document.getElementById("pdfTopoBtn").addEventListener("click", gerarPDF);
+window.addEventListener("beforeprint", atualizarCorpoPDF);
+document.getElementById("limparBtn").addEventListener("click", () => {
+    campos.registro.value = "";
+    campos.nome.value = "";
+    campos.funcao.value = "";
+    campos.carro.value = "";
+    campos.linha.value = "";
+    vincularAssinaturaAoUsuarioLogado();
+    corpoFoiEditado = false;
+    corpoRelatorio.value = gerarCorpoPadrao();
+    autoGrow();
+    atualizarPreview();
+});
+
+if (window.portalUsuarioValidado) {
+    iniciarRelatorio();
+} else {
+    window.addEventListener("portal:usuario-validado", iniciarRelatorio, { once: true });
+}
+</script>
+</body>
+</html>
