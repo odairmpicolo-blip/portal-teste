@@ -17,6 +17,7 @@ const detailConcurrency = Number(process.env.CIOP_INCIDENTES_DETALHES_CONCURRENC
 const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
 const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
 const pageLength = Number(process.env.CIOP_INCIDENTES_LOTE || 2000);
+const lookbackDays = Number(process.env.CIOP_INCIDENTES_REVISAR_DIAS || 10);
 
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
@@ -145,6 +146,22 @@ function splitDateTime(value) {
   };
 }
 
+function parseBrazilianDate(value) {
+  const match = String(value || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const rawYear = Number(match[3]);
+  const year = rawYear < 100 ? 2000 + rawYear : rawYear;
+  const date = new Date(year, month, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isBeforeLookback(row, cutoff) {
+  const date = parseBrazilianDate(row.data);
+  return date ? date < cutoff : false;
+}
+
 function vehicleNumber(value) {
   const text = String(value || '').trim();
   const match = text.match(/^([^\s-]+)/);
@@ -266,7 +283,7 @@ async function loadIncidentDetail(jar, incidentId) {
   };
 }
 
-async function enrichDetails(jar, rows) {
+async function enrichDetails(jar, rows, candidateRows = rows) {
   if (!loadDetails) return rows;
   const details = existingPayload.details;
   rows.forEach((row) => {
@@ -277,7 +294,7 @@ async function enrichDetails(jar, rows) {
     }
   });
 
-  let pending = rows.filter((row) => {
+  let pending = candidateRows.filter((row) => {
     const key = rowKey(row);
     return !row.natureOfProblem && !row.instructions && key && !existingPayload.checkedDetailIds.has(key);
   });
@@ -342,11 +359,14 @@ let start = 0;
 let total = null;
 const rows = [];
 const fullLoad = existingPayload.processedIds.size === 0;
+const lookbackCutoff = new Date();
+lookbackCutoff.setHours(0, 0, 0, 0);
+lookbackCutoff.setDate(lookbackCutoff.getDate() - lookbackDays);
 
 if (fullLoad) {
   console.log('Atualização: primeira carga, buscando toda a tabela TCGL.');
 } else {
-  console.log(`Atualização: cache encontrado com ${existingPayload.processedIds.size} IDs. Buscando somente dados novos.`);
+  console.log(`Atualização: cache encontrado com ${existingPayload.processedIds.size} IDs. Revisando os últimos ${lookbackDays} dias e buscando dados novos.`);
 }
 
 while (total === null || start < total) {
@@ -365,15 +385,17 @@ while (total === null || start < total) {
   };
   fs.writeFileSync(partialFile, JSON.stringify(snapshot));
   console.log(`Baixados ${rows.length}/${total}`);
-  if (!fullLoad && normalized.every((row) => existingPayload.processedIds.has(rowKey(row)))) {
-    console.log('Atualização: registros antigos encontrados. Encerrando busca incremental.');
+  const allKnown = normalized.every((row) => existingPayload.processedIds.has(rowKey(row)));
+  const outsideLookback = normalized.some((row) => isBeforeLookback(row, lookbackCutoff));
+  if (!fullLoad && allKnown && outsideLookback) {
+    console.log(`Atualização: registros conhecidos e anteriores a ${lookbackDays} dias encontrados. Encerrando busca incremental.`);
     break;
   }
   start += pageLength;
 }
 
 const mergedRows = mergeRows(rows, existingPayload);
-await enrichDetails(jar, mergedRows);
+await enrichDetails(jar, mergedRows, fullLoad ? mergedRows : rows);
 const filteredRows = mergedRows.filter((row) => row.natureOfProblem.trim() || row.instructions.trim());
 const processedIds = Array.from(new Set([
   ...existingPayload.processedIds,
