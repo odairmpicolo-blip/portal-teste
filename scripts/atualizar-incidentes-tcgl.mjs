@@ -17,7 +17,7 @@ const detailConcurrency = Number(process.env.CIOP_INCIDENTES_DETALHES_CONCURRENC
 const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
 const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
 const pageLength = Number(process.env.CIOP_INCIDENTES_LOTE || 2000);
-const lookbackDays = Number(process.env.CIOP_INCIDENTES_REVISAR_DIAS || 10);
+const lookbackDays = Number(process.env.CIOP_INCIDENTES_REVISAR_DIAS || 30);
 
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
