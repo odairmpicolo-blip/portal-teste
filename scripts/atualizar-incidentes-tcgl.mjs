@@ -16,6 +16,7 @@ const requestRetries = Number(process.env.CIOP_INCIDENTES_RETRIES || 20);
 const detailConcurrency = Number(process.env.CIOP_INCIDENTES_DETALHES_CONCURRENCY || 8);
 const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
 const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
+const pageLength = Number(process.env.CIOP_INCIDENTES_LOTE || 2000);
 
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
@@ -193,24 +194,45 @@ function normalize(row) {
   };
 }
 
-function readExistingDetails() {
-  if (!fs.existsSync(outputFile)) return new Map();
+function rowKey(row) {
+  return String(row?.incidentId || row?.id || '').trim();
+}
+
+function readExistingPayload() {
+  const empty = {
+    rows: [],
+    rowMap: new Map(),
+    details: new Map(),
+    processedIds: new Set(),
+    checkedDetailIds: new Set(),
+  };
+  if (!fs.existsSync(outputFile)) return empty;
   try {
     const payload = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
-    const details = new Map();
+    const existing = {
+      rows: [],
+      rowMap: new Map(),
+      details: new Map(),
+      processedIds: new Set((payload.idsProcessados || []).map(String)),
+      checkedDetailIds: new Set((payload.idsDetalhesConsultados || []).map(String)),
+    };
     for (const row of payload.incidentes || []) {
-      const key = String(row.incidentId || row.id || '');
+      const key = rowKey(row);
       if (!key) continue;
+      existing.rows.push(row);
+      existing.rowMap.set(key, row);
+      existing.processedIds.add(key);
       if (row.natureOfProblem || row.instructions) {
-        details.set(key, {
+        existing.details.set(key, {
           natureOfProblem: String(row.natureOfProblem || ''),
           instructions: String(row.instructions || ''),
         });
+        existing.checkedDetailIds.add(key);
       }
     }
-    return details;
+    return existing;
   } catch {
-    return new Map();
+    return empty;
   }
 }
 
@@ -246,7 +268,7 @@ async function loadIncidentDetail(jar, incidentId) {
 
 async function enrichDetails(jar, rows) {
   if (!loadDetails) return rows;
-  const details = readExistingDetails();
+  const details = existingPayload.details;
   rows.forEach((row) => {
     const cached = details.get(row.incidentId) || details.get(row.id);
     if (cached) {
@@ -255,7 +277,10 @@ async function enrichDetails(jar, rows) {
     }
   });
 
-  let pending = rows.filter((row) => !row.natureOfProblem && !row.instructions && row.incidentId);
+  let pending = rows.filter((row) => {
+    const key = rowKey(row);
+    return !row.natureOfProblem && !row.instructions && key && !existingPayload.checkedDetailIds.has(key);
+  });
   if (detailLimit > 0) pending = pending.slice(0, detailLimit);
   if (!pending.length) {
     console.log('Detalhes: todos os registros já estavam em cache.');
@@ -272,6 +297,7 @@ async function enrichDetails(jar, rows) {
         const detail = await loadIncidentDetail(jar, row.incidentId);
         row.natureOfProblem = detail.natureOfProblem;
         row.instructions = detail.instructions;
+        existingPayload.checkedDetailIds.add(rowKey(row));
       } catch (error) {
         console.log(`Detalhes: falha no incidente ${row.incidentId}: ${error.message}`);
       }
@@ -286,19 +312,49 @@ async function enrichDetails(jar, rows) {
   return rows;
 }
 
+function mergeRows(newRows, existing) {
+  const merged = [];
+  const used = new Set();
+  for (const row of newRows) {
+    const key = rowKey(row);
+    const old = existing.rowMap.get(key);
+    if (old?.natureOfProblem || old?.instructions) {
+      row.natureOfProblem = String(old.natureOfProblem || '');
+      row.instructions = String(old.instructions || '');
+    }
+    if (key) used.add(key);
+    merged.push(row);
+  }
+  for (const row of existing.rows) {
+    const key = rowKey(row);
+    if (key && used.has(key)) continue;
+    merged.push(row);
+    if (key) used.add(key);
+  }
+  return merged;
+}
+
+const existingPayload = readExistingPayload();
 const jar = await login();
 fs.mkdirSync(outputDir, { recursive: true });
 
-const length = 2000;
 let start = 0;
 let total = null;
 const rows = [];
+const fullLoad = existingPayload.processedIds.size === 0;
+
+if (fullLoad) {
+  console.log('Atualização: primeira carga, buscando toda a tabela TCGL.');
+} else {
+  console.log(`Atualização: cache encontrado com ${existingPayload.processedIds.size} IDs. Buscando somente dados novos.`);
+}
 
 while (total === null || start < total) {
-  const chunk = await loadChunk(jar, start, length);
+  const chunk = await loadChunk(jar, start, pageLength);
   if (chunk.length === 0) break;
   total = Number(chunk[0].QueryRowCount || chunk.length);
-  rows.push(...chunk.map(normalize));
+  const normalized = chunk.map(normalize);
+  rows.push(...normalized);
   const snapshot = {
     atualizadoEm: new Date().toISOString(),
     fonte: 'Gerenciamento de Incidentes',
@@ -309,12 +365,22 @@ while (total === null || start < total) {
   };
   fs.writeFileSync(partialFile, JSON.stringify(snapshot));
   console.log(`Baixados ${rows.length}/${total}`);
-  start += length;
+  if (!fullLoad && normalized.every((row) => existingPayload.processedIds.has(rowKey(row)))) {
+    console.log('Atualização: registros antigos encontrados. Encerrando busca incremental.');
+    break;
+  }
+  start += pageLength;
 }
 
-await enrichDetails(jar, rows);
-const filteredRows = rows.filter((row) => row.natureOfProblem.trim() || row.instructions.trim());
-console.log(`Filtro de detalhes: ${filteredRows.length}/${rows.length} incidentes mantidos.`);
+const mergedRows = mergeRows(rows, existingPayload);
+await enrichDetails(jar, mergedRows);
+const filteredRows = mergedRows.filter((row) => row.natureOfProblem.trim() || row.instructions.trim());
+const processedIds = Array.from(new Set([
+  ...existingPayload.processedIds,
+  ...mergedRows.map(rowKey).filter(Boolean),
+]));
+const checkedDetailIds = Array.from(existingPayload.checkedDetailIds);
+console.log(`Filtro de detalhes: ${filteredRows.length}/${mergedRows.length} incidentes mantidos.`);
 
 const payload = {
   atualizadoEm: new Date().toISOString(),
@@ -322,7 +388,9 @@ const payload = {
   empresa: 'TCGL',
   totalServidor: total ?? rows.length,
   totalExtraido: filteredRows.length,
-  totalComEmpresa: rows.length,
+  totalComEmpresa: mergedRows.length,
+  idsProcessados: processedIds,
+  idsDetalhesConsultados: checkedDetailIds,
   incidentes: filteredRows,
 };
 
