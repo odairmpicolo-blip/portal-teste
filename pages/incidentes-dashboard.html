@@ -538,7 +538,7 @@ async function init() {
     const response = await fetch("../assets/data/incidentes-tcgl.json?ts=" + Date.now(), { cache: "no-store" });
     if (!response.ok) throw new Error("Não foi possível carregar o arquivo de incidentes.");
     const payload = await response.json();
-    state.all = (payload.incidentes || []).filter((row) => String(row.empresa || "").toUpperCase() === "TCGL");
+    state.all = (payload.incidentes || []).filter((row) => String(row.empresa || "").toUpperCase() === "TCGL" && (String(row.natureOfProblem || "").trim() || String(row.instructions || "").trim()));
     state.filtered = state.all.slice();
     populateSelect(fields.estado, state.all, "estado");
     populateSelect(fields.tipo, state.all, "tipo");
@@ -546,7 +546,7 @@ async function init() {
     populateSelect(fields.veiculo, state.all, "veiculo");
     populateSelect(fields.criado, state.all, "criadoPor");
     populateSelect(fields.proprietario, state.all, "proprietario");
-    document.getElementById("statusLine").textContent = "Atualizado em " + new Date(payload.atualizadoEm).toLocaleString("pt-BR") + " - " + formatNumber(state.all.length) + " incidentes TCGL";
+    document.getElementById("statusLine").textContent = "Atualizado em " + new Date(payload.atualizadoEm).toLocaleString("pt-BR") + " - " + formatNumber(state.all.length) + " incidentes TCGL com detalhes";
     sortRows();
     render();
 }

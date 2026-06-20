@@ -313,14 +313,17 @@ while (total === null || start < total) {
 }
 
 await enrichDetails(jar, rows);
+const filteredRows = rows.filter((row) => row.natureOfProblem.trim() || row.instructions.trim());
+console.log(`Filtro de detalhes: ${filteredRows.length}/${rows.length} incidentes mantidos.`);
 
 const payload = {
   atualizadoEm: new Date().toISOString(),
   fonte: 'Gerenciamento de Incidentes',
   empresa: 'TCGL',
   totalServidor: total ?? rows.length,
-  totalExtraido: rows.length,
-  incidentes: rows,
+  totalExtraido: filteredRows.length,
+  totalComEmpresa: rows.length,
+  incidentes: filteredRows,
 };
 
 fs.writeFileSync(outputFile, JSON.stringify(payload));
