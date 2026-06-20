@@ -13,12 +13,16 @@ const senha = process.env.CIOP_INCIDENTES_SENHA;
 let endpoint = '';
 const requestTimeoutMs = Number(process.env.CIOP_INCIDENTES_TIMEOUT_MS || 60000);
 const requestRetries = Number(process.env.CIOP_INCIDENTES_RETRIES || 4);
+const detailConcurrency = Number(process.env.CIOP_INCIDENTES_DETALHES_CONCURRENCY || 8);
+const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
+const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
 
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
 }
 
 const columns = [
+  'IncidentID',
   'IncidentNr',
   'StateName',
   'IncidentTypeName',
@@ -172,6 +176,7 @@ async function loadChunk(jar, start, length) {
 function normalize(row) {
   const dateTime = splitDateTime(row.AddDTS);
   return {
+    incidentId: String(row.IncidentID || row.IncidentNr || ''),
     id: String(row.IncidentNr || ''),
     data: dateTime.data,
     hora: dateTime.hora,
@@ -181,9 +186,104 @@ function normalize(row) {
     tipo: String(row.IncidentTypeName || ''),
     proprietario: String(row.OwnedBy || ''),
     estado: String(row.StateName || ''),
+    natureOfProblem: '',
+    instructions: '',
     empresa: String(row.DivisionShortName || ''),
     veiculoDescricao: String(row.VehicleDescription || ''),
   };
+}
+
+function readExistingDetails() {
+  if (!fs.existsSync(outputFile)) return new Map();
+  try {
+    const payload = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+    const details = new Map();
+    for (const row of payload.incidentes || []) {
+      const key = String(row.incidentId || row.id || '');
+      if (!key) continue;
+      if (row.natureOfProblem || row.instructions) {
+        details.set(key, {
+          natureOfProblem: String(row.natureOfProblem || ''),
+          instructions: String(row.instructions || ''),
+        });
+      }
+    }
+    return details;
+  } catch {
+    return new Map();
+  }
+}
+
+async function loadIncidentDetail(jar, incidentId) {
+  const body = new URLSearchParams();
+  body.set('DataSourceKey', 'CADIncidentManagement.Sql.Unified');
+  ['IncidentID', 'NatureOfProblem', 'Instructions'].forEach((column) => body.append('Columns[]', column));
+  body.set('SortColumn', 'IncidentID');
+  body.set('ResultType', '1');
+  body.set('SortDirection', '1');
+  body.set('DisplayStart', '0');
+  body.set('DisplayLength', '1');
+  body.set('ColumnsSearch[IncidentID]', String(incidentId));
+  body.set('timezoneOffset', '180');
+
+  const response = await fetchWithRetry(endpoint, {
+    method: 'POST',
+    headers: {
+      Cookie: cookieHeader(jar),
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body,
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status} no detalhe do incidente ${incidentId}`);
+  const json = JSON.parse(await response.text());
+  const row = Array.isArray(json) ? json[0] : null;
+  return {
+    natureOfProblem: String(row?.NatureOfProblem || ''),
+    instructions: String(row?.Instructions || ''),
+  };
+}
+
+async function enrichDetails(jar, rows) {
+  if (!loadDetails) return rows;
+  const details = readExistingDetails();
+  rows.forEach((row) => {
+    const cached = details.get(row.incidentId) || details.get(row.id);
+    if (cached) {
+      row.natureOfProblem = cached.natureOfProblem;
+      row.instructions = cached.instructions;
+    }
+  });
+
+  let pending = rows.filter((row) => !row.natureOfProblem && !row.instructions && row.incidentId);
+  if (detailLimit > 0) pending = pending.slice(0, detailLimit);
+  if (!pending.length) {
+    console.log('Detalhes: todos os registros já estavam em cache.');
+    return rows;
+  }
+
+  console.log(`Detalhes: buscando ${pending.length} incidentes sem cache.`);
+  let index = 0;
+  let done = 0;
+  async function worker() {
+    while (index < pending.length) {
+      const row = pending[index++];
+      try {
+        const detail = await loadIncidentDetail(jar, row.incidentId);
+        row.natureOfProblem = detail.natureOfProblem;
+        row.instructions = detail.instructions;
+      } catch (error) {
+        console.log(`Detalhes: falha no incidente ${row.incidentId}: ${error.message}`);
+      }
+      done += 1;
+      if (done % 500 === 0 || done === pending.length) {
+        console.log(`Detalhes: ${done}/${pending.length}`);
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.max(1, detailConcurrency) }, worker));
+  return rows;
 }
 
 const jar = await login();
@@ -211,6 +311,8 @@ while (total === null || start < total) {
   console.log(`Baixados ${rows.length}/${total}`);
   start += length;
 }
+
+await enrichDetails(jar, rows);
 
 const payload = {
   atualizadoEm: new Date().toISOString(),
