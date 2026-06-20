@@ -2,8 +2,8 @@ name: Atualizar incidentes TCGL
 
 on:
   schedule:
-    # GitHub Actions usa UTC. 02:59 UTC = 23:59 em America/Sao_Paulo.
-    - cron: "59 2 * * *"
+    # GitHub Actions usa UTC. 19:00 UTC = 16:00 em America/Sao_Paulo.
+    - cron: "0 19 * * *"
   workflow_dispatch:
 
 permissions:
