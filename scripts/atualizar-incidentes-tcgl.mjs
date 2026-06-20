@@ -11,6 +11,8 @@ const loginUrl = `${baseUrl}/?ReturnUrl=%2fCADIncidentManagement%2fg%2f6ac2842af
 const usuario = process.env.CIOP_INCIDENTES_USUARIO;
 const senha = process.env.CIOP_INCIDENTES_SENHA;
 let endpoint = '';
+const requestTimeoutMs = Number(process.env.CIOP_INCIDENTES_TIMEOUT_MS || 60000);
+const requestRetries = Number(process.env.CIOP_INCIDENTES_RETRIES || 4);
 
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
@@ -55,9 +57,36 @@ function guidFrom(html) {
 async function request(jar, url, options = {}) {
   const headers = new Headers(options.headers || {});
   if (jar.size) headers.set('Cookie', cookieHeader(jar));
-  const response = await fetch(url, { ...options, headers, redirect: 'manual' });
+  const response = await fetchWithRetry(url, { ...options, headers, redirect: 'manual' });
   storeCookies(jar, response);
   return response;
+}
+
+async function fetchWithRetry(url, options = {}) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= requestRetries; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(requestTimeoutMs),
+      });
+      if (response.status >= 500 && attempt < requestRetries) {
+        await delay(attempt * 4000);
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt >= requestRetries) break;
+      console.log(`Tentativa ${attempt} falhou ao acessar ${url}. Nova tentativa em ${attempt * 4}s.`);
+      await delay(attempt * 4000);
+    }
+  }
+  throw lastError;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function login() {
@@ -118,7 +147,7 @@ function vehicleNumber(value) {
 }
 
 async function loadChunk(jar, start, length) {
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: 'POST',
     headers: {
       Cookie: cookieHeader(jar),
