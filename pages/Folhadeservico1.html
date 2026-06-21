@@ -1,106 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lançamento Folha de Serviços - CIOP / TCGL</title>
-
 <script>
-window.portalMostrarCarregando = function(msg) { console.log('Carregando:', msg); };
-window.portalOcultarCarregando = function() { console.log('Concluído'); };
-window.portalAguardarUsuario = function(callback) {
-    setTimeout(function() {
-        var user = document.getElementById('usuarioLogado');
-        var perfil = document.getElementById('perfilUsuario');
-        if (user) user.textContent = 'Usuário';
-        if (perfil) perfil.textContent = 'Operador';
-        if (callback) callback();
-    }, 100);
-};
 window.logout = function() {
     if (confirm('Deseja sair?')) window.location.href = '../index.html';
 };
 </script>
-
 <style>
-:root {
-    --blue: #06245c;
-    --blue2: #0b3a8a;
-    --orange: #ff6b00;
-    --bg: #f5f7fb;
-    --border: #dfe5ef;
-    --text: #101828;
-    --muted: #667085;
-    --white: #ffffff;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-    background: var(--bg);
-    font-family: Arial, Helvetica, sans-serif;
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #f5f7fb; padding: 20px; }
+.header { background: white; padding: 20px; margin-bottom: 20px; text-align: center; }
+.container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+th { background: #06245c; color: white; }
+input, select, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+button { padding: 10px 20px; background: #06245c; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+button:hover { background: #0b3a8a; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+.msg { padding: 10px; margin: 10px 0; border-radius: 4px; display: none; }
+.msg.ok { background: #d1fae5; color: #065f46; display: block; }
+.msg.erro { background: #fee2e2; color: #991b1b; display: block; }
+</style>
+</head>
+<body>
 
-.header {
-    position: relative;
-    background: #ffffff;
-    padding: 10px 24px;
-    display: grid;
-    grid-template-columns: 190px 1fr minmax(300px, auto);
-    gap: 15px;
-    align-items: center;
-    border-bottom: 1px solid #e8edf6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-.logo-ciop { height: 48px; object-fit: contain; justify-self: start; }
-.logo-tcgl { height: 48px; object-fit: contain; justify-self: end; }
-h1 {
-    margin: 0;
-    text-align: center;
-    color: #071f57;
-    font-size: 26px;
-    line-height: 1.05;
-    font-weight: 800;
-}
+<div class="header">
+    <h1>Folha de Serviço - Lançamento</h1>
+    <div>
+        <span id="usuarioLogado">Usuário</span> | 
+        <span id="perfilUsuario">Operador</span> | 
+        <button onclick="logout()">Sair</button>
+    </div>
+</div>
 
-.container {
-    max-width: 1400px;
-    margin: 30px auto;
-    padding: 0 20px;
-    width: 100%;
-    flex: 1;
-}
-
-.filter-wrapper {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-.filter-title {
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--blue);
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.filter-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-}
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.filter-group label {
-    font-size: 12px;
-    font-weight: bold;
-    color
+<div class="container">
+    <h2>Novo Lançamento</h2>
+    <form id="form-lancamento" onsubmit="enviarLancamento(event)">
+        <div class="form-grid">
+            <div>
+                <label>Data:</label>
+                <input type="date" id="novo-data" name="data" required>
+            </div>
+            <div>
+                <label>Hora:</label>
+                <input type="text" id="novo-hora" name="hora" placeholder="HH:MM" maxlength="5">
+            </div>
+            <div>
+                <label>Ocorrência:</label>
+                <input type="text" id="novo-ocorrencia" name="ocorrencia" required>
+            </div>
+            <div>
+                <label>Analista:</label>
+                <input type="text" id="novo-analista" name="analista" required>
+            </div>
+            <div>
+                <label>Carro que sai:</label>
+                <input type="text"
