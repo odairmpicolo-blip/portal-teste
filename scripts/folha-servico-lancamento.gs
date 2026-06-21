@@ -15,7 +15,7 @@ const SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const ABA_GID = 1013912232;
 const ABA_NOME = "FOLHA DE SERVIÇO";
 const LISTAS_GID = 665133219;
-const SCRIPT_VERSAO = "2026-06-21-hora-hhmm";
+const SCRIPT_VERSAO = "2026-06-21-liberacao-v1";
 
 /** Colunas da aba DADOS (gid 665133219) — listas verticais por coluna */
 const COLUNAS_LISTAS = {
@@ -69,6 +69,9 @@ const ALIAS_COLUNAS = {
 
 function doGet(e) {
   const params = e && e.parameter ? e.parameter : {};
+  if (String(params.liberacao || "") === "1") {
+    return json_(montarRespostaLiberacaoGet_(params));
+  }
   if (String(params.somente_opcoes || "") === "1") {
     const opcoes = lerOpcoesPadronizadas_();
     return json_({
@@ -91,6 +94,9 @@ function doGet(e) {
 function doPost(e) {
   try {
     const params = e && e.parameter ? e.parameter : {};
+    if (String(params.liberacao || "") === "1") {
+      return json_(montarRespostaLiberacaoPost_(params));
+    }
     const action = String(params.action || "create").toLowerCase();
     if (action === "update") return json_(atualizarRegistro_(params));
     return json_(criarRegistro_(params));

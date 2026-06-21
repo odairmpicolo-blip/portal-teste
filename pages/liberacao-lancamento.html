@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){visibility:hidden!important}</style>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lançamento — Acompanhamento da Liberação</title>
+<style>
+:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+.header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:6px 20px;border-bottom:1px solid #e8edf6}
+.logo-ciop{height:40px;object-fit:contain}.logo-tcgl{height:45px;object-fit:contain}
+.title-wrap{text-align:center}h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppercase}
+.header-subtitle{margin-top:4px;color:var(--muted);font-size:11px;font-weight:700}
+.header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
+.ciop-session{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid rgba(6,36,92,.12);border-radius:6px;font-size:11px;color:var(--blue)}
+.ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 7px;font-size:11px;cursor:pointer}
+.container{max-width:1540px;margin:22px auto 34px;padding:0 18px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit}
+.btn-portal,.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#e8edf6;color:var(--blue)}
+.status-line{color:var(--muted);font-size:12px;font-weight:700}
+.panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
+.panel-title{margin:0 0 12px;color:var(--blue);font-size:15px;font-weight:900}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.form-grid label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
+.form-grid input,.form-grid select,.form-grid textarea{width:100%;min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+.form-grid textarea{min-height:64px;resize:vertical}
+.form-grid .span-2{grid-column:span 2}.form-grid .span-4{grid-column:1/-1}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.msg{font-size:12px;font-weight:700;margin-top:10px}.msg.ok{color:var(--green)}.msg.erro{color:var(--red)}
+.import-list{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:6px;margin-top:10px}
+.import-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid #edf2f7;font-size:12px}
+.import-item:last-child{border-bottom:0}
+.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
+.table-head{padding:14px;border-bottom:1px solid var(--border)}.table-wrap{overflow:auto;max-height:520px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1200px}
+thead th{background:#f8fafc;color:var(--blue);padding:9px;font-size:10px;text-transform:uppercase;text-align:center;position:sticky;top:0}
+tbody td{border-bottom:1px solid #edf2f7;padding:8px;text-align:center}
+tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#fff7ed}
+@media(max-width:900px){.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.form-grid{grid-template-columns:1fr}.header{grid-template-columns:1fr;text-align:center}}
+</style>
+<link rel="stylesheet" href="../assets/css/portal-senha.css">
+<script type="module" src="../assets/js/auth.js"></script>
+<script src="../assets/js/portal-senha.js" defer></script>
+</head>
+<body>
+<header class="header">
+    <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
+    <div class="title-wrap">
+        <h1>Acompanhamento da Liberação</h1>
+        <div class="header-subtitle">Lançamento — aba ACOMPANHAMENTO LIBERAÇÃO</div>
+    </div>
+    <div class="header-actions">
+        <div class="ciop-session">
+            <span class="ciop-session-user" id="usuarioLogado">Usuário</span>
+            <span class="ciop-session-profile" id="perfilUsuario">Perfil</span>
+            <button class="btn-logout" type="button" onclick="logout()">Sair</button>
+        </div>
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
+    </div>
+</header>
+<main class="container">
+    <div class="topbar">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a class="btn-portal" href="../index.html">Portal</a>
+            <a class="btn-secondary" href="liberacao-dashboard.html">Dashboard</a>
+        </div>
+        <div class="status-line" id="statusLine">Pronto para lançar.</div>
+    </div>
+
+    <section class="panel">
+        <h2 class="panel-title">Importar da Saída de Carros</h2>
+        <div class="form-grid">
+            <div><label for="dataImport">Data</label><input id="dataImport" type="date"></div>
+            <div style="align-self:end"><button class="btn-secondary" type="button" id="btnImportar">Carregar saída de carros</button></div>
+        </div>
+        <div class="import-list" id="listaImport"></div>
+    </section>
+
+    <section class="panel">
+        <h2 class="panel-title">Registrar acompanhamento</h2>
+        <form id="formLiberacao" class="form-grid">
+            <input type="hidden" id="_row">
+            <div><label for="data">Data</label><input id="data" name="data" required></div>
+            <div><label for="maquina">Máquina</label><input id="maquina" name="maquina"></div>
+            <div><label for="linha">Linha</label><input id="linha" name="linha"></div>
+            <div><label for="work_id">Work-ID</label><input id="work_id" name="work_id"></div>
+            <div><label for="carro">Carro</label><input id="carro" name="carro"></div>
+            <div><label for="motorista">Motorista</label><input id="motorista" name="motorista"></div>
+            <div><label for="preparo">Preparo</label><input id="preparo" name="preparo" placeholder="00:10"></div>
+            <div><label for="horario_saida_da_garagem">Horário saída garagem</label><input id="horario_saida_da_garagem" name="horario_saida_da_garagem" placeholder="HH:mm"></div>
+            <div><label for="saida_real">Saída real</label><input id="saida_real" name="saida_real" placeholder="HH:mm"></div>
+            <div><label for="saiu_no_horario">Saiu no horário</label><select id="saiu_no_horario" name="saiu_no_horario"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
+            <div><label for="saida_atrasado_adiantado">Saída atrasado/adiantado</label><select id="saida_atrasado_adiantado" name="saida_atrasado_adiantado"><option value="">—</option><option>NO HORÁRIO</option><option>ATRASADO</option><option>ADIANTADO</option></select></div>
+            <div><label for="local_inicio">Local início</label><input id="local_inicio" name="local_inicio"></div>
+            <div><label for="horario_de_inicio">Horário início</label><input id="horario_de_inicio" name="horario_de_inicio" placeholder="HH:mm"></div>
+            <div><label for="inicio_real">Início real</label><input id="inicio_real" name="inicio_real" placeholder="HH:mm"></div>
+            <div><label for="inicio_no_horario">Início no horário</label><select id="inicio_no_horario" name="inicio_no_horario"><option value="">—</option><option>NO HORÁRIO</option><option>ATRASADO</option><option>ADIANTADO</option></select></div>
+            <div class="span-4"><label for="observacoes">Observações</label><textarea id="observacoes" name="observacoes"></textarea></div>
+        </form>
+        <div class="form-actions">
+            <button class="btn-primary" type="button" id="btnSalvar">Salvar lançamento</button>
+            <button class="btn-secondary" type="button" id="btnLimpar">Limpar formulário</button>
+        </div>
+        <div id="msgForm" class="msg"></div>
+    </section>
+
+    <section class="table-card">
+        <div class="table-head"><h2 class="panel-title">Últimos lançamentos</h2></div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Data</th><th>Linha</th><th>Carro</th><th>Motorista</th><th>Saída prog.</th><th>Saída real</th><th>Local</th></tr></thead>
+                <tbody id="tabelaRecentes"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
+const CAMPOS = ["data","maquina","linha","work_id","carro","motorista","preparo","horario_saida_da_garagem","saida_real","saiu_no_horario","minutos_atrasado_garagem","minutos_adiantado_garagem","saida_atrasado_adiantado","local_inicio","trajeto_ocioso_correto","horario_de_inicio","inicio_real","inicio_no_horario","observacoes","minutos_atrasado_no_inicio","minutos_adiantado_no_inicio"];
+let importados = [];
+
+function $(id){return document.getElementById(id)}
+function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+
+async function apiGet(params){
+    const res = await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)),{cache:"no-store"});
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.erro||"Erro na leitura.");
+    return data;
+}
+async function apiPost(payload){
+    const body = new URLSearchParams(Object.assign({liberacao:"1"},payload));
+    const res = await fetch(API_URL,{method:"POST",body});
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.erro||"Erro ao salvar.");
+    return data;
+}
+
+function preencherForm(item){
+    CAMPOS.forEach(c=>{ if($(c)) $(c).value = item[c]||""; });
+    $("data").value = item.data ? (item.data.includes("/")?item.data:brDate(item.data)) : $("data").value;
+    $("_row").value = item._row||"";
+}
+
+function lerForm(){
+    const payload = { action: $("_row").value ? "update" : "create" };
+    if($("_row").value) payload._row = $("_row").value;
+    CAMPOS.forEach(c=>{ if($(c)) payload[c] = $(c).value.trim(); });
+    return payload;
+}
+
+function limparForm(){
+    $("formLiberacao").reset();
+    $("_row").value = "";
+    $("msgForm").textContent = "";
+    $("msgForm").className = "msg";
+}
+
+function renderImport(){
+    const box = $("listaImport");
+    if(!importados.length){ box.innerHTML = '<div class="import-item">Nenhum registro na saída de carros para esta data.</div>'; return; }
+    box.innerHTML = importados.map((item,i)=>'<div class="import-item"><span><strong>'+escapeHtml(item.carro||"-")+'</strong> · Linha '+escapeHtml(item.linha||"-")+' · Mot. '+escapeHtml(item.motorista||"-")+'</span><button type="button" class="btn-secondary" data-i="'+i+'">Usar</button></div>').join("");
+    box.querySelectorAll("button[data-i]").forEach(btn=>btn.addEventListener("click",()=>{
+        const item = importados[Number(btn.dataset.i)];
+        preencherForm(item);
+    }));
+}
+
+async function carregarImport(){
+    const data = $("dataImport").value;
+    $("statusLine").textContent = "Carregando saída de carros...";
+    const res = await apiGet({ recurso: "saida_carros", data });
+    importados = res.dados||[];
+    renderImport();
+    $("statusLine").textContent = importados.length + " registro(s) importável(is) da saída de carros.";
+}
+
+async function carregarRecentes(){
+    const res = await apiGet({ recurso: "acompanhamento", limit: "30" });
+    $("tabelaRecentes").innerHTML = (res.dados||[]).map(row=>'<tr data-row="'+row._row+'"><td>'+escapeHtml(row.data)+'</td><td>'+escapeHtml(row.linha)+'</td><td>'+escapeHtml(row.carro)+'</td><td>'+escapeHtml(row.motorista)+'</td><td>'+escapeHtml(row.horario_saida_da_garagem)+'</td><td>'+escapeHtml(row.saida_real)+'</td><td>'+escapeHtml(row.local_inicio)+'</td></tr>').join("");
+    $("tabelaRecentes").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click", async ()=>{
+        const row = tr.dataset.row;
+        const res = await apiGet({ recurso: "acompanhamento", limit: "500" });
+        const item = (res.dados||[]).find(r=>String(r._row)===String(row));
+        if(item) preencherForm(item);
+    }));
+}
+
+$("btnImportar").addEventListener("click", ()=>carregarImport().catch(e=>$("statusLine").textContent=e.message));
+$("btnSalvar").addEventListener("click", async ()=>{
+    try{
+        $("msgForm").textContent = "Salvando...";
+        await apiPost(lerForm());
+        $("msgForm").textContent = "Lançamento salvo com sucesso.";
+        $("msgForm").className = "msg ok";
+        limparForm();
+        carregarRecentes();
+    }catch(e){
+        $("msgForm").textContent = e.message;
+        $("msgForm").className = "msg erro";
+    }
+});
+$("btnLimpar").addEventListener("click", limparForm);
+
+function iniciar(){
+    const hoje = new Date().toISOString().slice(0,10);
+    $("dataImport").value = hoje;
+    $("data").value = brDate(hoje);
+    carregarRecentes().catch(e=>$("statusLine").textContent=e.message);
+}
+if(window.portalUsuarioValidado) iniciar();
+else window.addEventListener("portal:usuario-validado", iniciar, { once: true });
+</script>
+</body>
+</html>
