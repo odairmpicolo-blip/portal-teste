@@ -1323,8 +1323,8 @@ h1 {
 <script>
     const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbxZCBQvizRj0qQ3zgB_FHSwWWkpaozr0C2w6bQyi4YpLbutAI-SjODwZFVqqCkLjPNYaw/exec";
     const URL_LEITURA_FALLBACK = "https://script.google.com/macros/s/AKfycbxLQZaotEpUGonwyu09JrhYK-0c8ELjjjadhJ3Dhz9sUB0Is3JTHIWOEDVR5JJ1D7hA/exec";
-    const TEMPO_LIMITE_LEITURA_MS = 12000;
-    const TEMPO_LIMITE_SALVAR_MS = 15000;
+    const TEMPO_LIMITE_LEITURA_MS = 60000;
+    const TEMPO_LIMITE_SALVAR_MS = 30000;
 
     let dadosMestres = [];
     let opcoesPlanilha = {};
@@ -1393,9 +1393,13 @@ h1 {
         }
     };
 
+    function urlLeituraPlanilha() {
+        return `${URL_DO_SCRIPT_GOOGLE}?data=${encodeURIComponent(hojeISO())}`;
+    }
+
     function carregarFolhaServico() {
         window.portalMostrarCarregando?.("Carregando lançamento");
-        return carregarDadosPlanilha(URL_DO_SCRIPT_GOOGLE)
+        return carregarDadosPlanilha(urlLeituraPlanilha())
             .catch(errorPrincipal => {
                 console.warn("Falha ao ler Apps Script principal. Usando leitura do dashboard:", errorPrincipal);
                 mostrarMensagemLancamento("Dados carregados em modo leitura. O envio depende da implantação do Apps Script de lançamento.", "erro");
