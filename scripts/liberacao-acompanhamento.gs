@@ -7,6 +7,7 @@
  * Saída de carros semanal: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
+ * GET  ?liberacao=1&recurso=graficos&data_de=...&data_ate=...
  * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&data_de=...][&data_ate=...][&maquina=...][&limit=N][&incluir_colunas=1][&ultima_semana=0|1]
  * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD][&maquina=...]
  * GET  ?liberacao=1&recurso=comparacao&data=YYYY-MM-DD[&maquina=...]
@@ -14,14 +15,63 @@
  * POST ?liberacao=1  action=create|update|upsert  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-21-liberacao-v7";
+const LIBERACAO_VERSAO = "2026-06-21-liberacao-v8";
 const LIBERACAO_DIAS_JANELA = 7;
 const LIBERACAO_CHUNK_LINHAS = 800;
+const LIBERACAO_CACHE_TTL = 600;
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const LIBERACAO_OPERACIONAIS_GID = 751419807;
 const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
 const LIBERACAO_SAIDA_SPREADSHEET_ID = "1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0";
 const LIBERACAO_SAIDA_GID = 1482156234;
+
+function versaoCacheLiberacao_() {
+  return PropertiesService.getScriptProperties().getProperty("liberacao_cache_v") || "0";
+}
+
+function invalidarCacheLiberacao_() {
+  PropertiesService.getScriptProperties().setProperty("liberacao_cache_v", String(Date.now()));
+}
+
+function cacheChaveLiberacao_(recurso, partes) {
+  return "lib-" + LIBERACAO_VERSAO + "-" + versaoCacheLiberacao_() + "-" + recurso + "-" + partes.join("|");
+}
+
+function lerCacheLiberacao_(chave) {
+  try {
+    var raw = CacheService.getScriptCache().get(chave);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+}
+
+function gravarCacheLiberacao_(chave, obj) {
+  try {
+    CacheService.getScriptCache().put(chave, JSON.stringify(obj), LIBERACAO_CACHE_TTL);
+  } catch (err) {}
+}
+
+function montarJanelaLeituraLiberacao_(dataFiltro, dataDe, dataAte, ultimaSemanaFlag) {
+  var dataDeNorm = normalizarDataIsoLiberacao_(dataDe || "");
+  var dataAteNorm = normalizarDataIsoLiberacao_(dataAte || "");
+  var ultimaSemana = ultimaSemanaFlag;
+
+  if (dataFiltro && !dataDeNorm && !dataAteNorm) {
+    dataDeNorm = dataFiltro;
+    dataAteNorm = dataFiltro;
+    ultimaSemana = false;
+  }
+  if (!dataDeNorm && !dataAteNorm && ultimaSemana) {
+    dataDeNorm = isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA);
+  }
+  return {
+    ultimaSemanaOnly: ultimaSemana && !dataDeNorm && !dataAteNorm,
+    dataDe: dataDeNorm,
+    dataAte: dataAteNorm
+  };
+}
 
 function montarRespostaLiberacaoGet_(params) {
   const recurso = String(params.recurso || "operacionais").toLowerCase();
@@ -33,12 +83,18 @@ function montarRespostaLiberacaoGet_(params) {
     const incluirColunas = String(params.incluir_colunas || "") === "1";
     const dataDe = normalizarDataIsoLiberacao_(params.data_de || "");
     const dataAte = normalizarDataIsoLiberacao_(params.data_ate || "");
-    const ultimaSemana = String(params.ultima_semana || "1") !== "0" && !dataDe && !dataAte;
-    const janela = {
-      ultimaSemanaOnly: ultimaSemana,
-      dataDe: dataDe || (ultimaSemana ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : ""),
-      dataAte: dataAte
-    };
+    const ultimaSemana = String(params.ultima_semana || "1") !== "0" && !dataDe && !dataAte && !dataFiltro;
+    const janela = montarJanelaLeituraLiberacao_(dataFiltro, dataDe, dataAte, ultimaSemana);
+    const cacheKey = cacheChaveLiberacao_("acomp", [
+      dataFiltro, janela.dataDe, janela.dataAte, maquinaFiltro, String(limit), incluirColunas ? "1" : "0"
+    ]);
+    const emCache = lerCacheLiberacao_(cacheKey);
+    if (emCache) {
+      emCache.meta = emCache.meta || {};
+      emCache.meta.cache = true;
+      return emCache;
+    }
+
     const dados = lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janela);
     const payload = {
       ok: true,
@@ -48,10 +104,27 @@ function montarRespostaLiberacaoGet_(params) {
         recurso: recurso,
         ultima_semana: ultimaSemana,
         data_de: janela.dataDe,
-        data_ate: janela.dataAte
+        data_ate: janela.dataAte,
+        cache: false
       }
     };
     if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
+    gravarCacheLiberacao_(cacheKey, payload);
+    return payload;
+  }
+  if (recurso === "graficos") {
+    const dataDe = normalizarDataIsoLiberacao_(params.data_de || "");
+    const dataAte = normalizarDataIsoLiberacao_(params.data_ate || "");
+    if (!dataDe || !dataAte) return { ok: false, erro: "Informe data_de e data_ate para os gráficos." };
+    const cacheKey = cacheChaveLiberacao_("graficos", [dataDe, dataAte]);
+    const emCache = lerCacheLiberacao_(cacheKey);
+    if (emCache) {
+      emCache.meta = emCache.meta || {};
+      emCache.meta.cache = true;
+      return emCache;
+    }
+    const payload = montarGraficosLiberacao_(dataDe, dataAte);
+    gravarCacheLiberacao_(cacheKey, payload);
     return payload;
   }
   if (recurso === "comparacao") {
@@ -482,6 +555,36 @@ var CATEGORIAS_BASE_DADOS_ = [
   { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE" }
 ];
 
+function montarGraficosLiberacao_(dataDe, dataAte) {
+  const janela = { dataDe: dataDe, dataAte: dataAte, ultimaSemanaOnly: false };
+  const dados = lerAcompanhamentoLiberacao_("", 0, "", janela);
+  const categorias = {};
+  CATEGORIAS_BASE_DADOS_.forEach(function (cat) {
+    categorias[cat.chave] = {};
+  });
+  dados.forEach(function (row) {
+    const saida = situacaoSaidaLiberacao_(row);
+    const inicio = situacaoInicioLiberacao_(row);
+    const mot = String(row.motorista || "").trim();
+    if (!saida || !inicio || !mot) return;
+    const chave = chaveCategoriaLiberacao_(saida, inicio);
+    if (!categorias[chave]) return;
+    categorias[chave][mot] = (categorias[chave][mot] || 0) + 1;
+  });
+  return {
+    ok: true,
+    categorias: categorias,
+    total_linhas: dados.length,
+    meta: {
+      versao: LIBERACAO_VERSAO,
+      recurso: "graficos",
+      data_de: dataDe,
+      data_ate: dataAte,
+      cache: false
+    }
+  };
+}
+
 function calcularResumoDiaLiberacao_(dados, dataIso) {
   let noHorario = 0;
   let atrasado = 0;
@@ -627,7 +730,8 @@ function upsertAcompanhamentoLiberacao_(params) {
 }
 
 function encontrarLinhaAcompanhamento_(dataIso, workId) {
-  const dados = lerAcompanhamentoLiberacao_(dataIso, 0, "");
+  const janela = { dataDe: dataIso, dataAte: dataIso, ultimaSemanaOnly: false };
+  const dados = lerAcompanhamentoLiberacao_(dataIso, 0, "", janela);
   for (var i = 0; i < dados.length; i++) {
     if (String(dados[i].work_id || "").trim() === String(workId).trim()) return dados[i];
   }
@@ -643,6 +747,7 @@ function criarAcompanhamentoLiberacao_(params) {
     return valoresParams[chave] != null ? String(valoresParams[chave]) : "";
   });
   sheet.appendRow(linha);
+  invalidarCacheLiberacao_();
   return { ok: true, linha: sheet.getLastRow(), acao: "create" };
 }
 
@@ -658,6 +763,7 @@ function atualizarAcompanhamentoLiberacao_(params) {
     if (!chave || valoresParams[chave] == null) return;
     sheet.getRange(row, idx + 1).setValue(valoresParams[chave]);
   });
+  invalidarCacheLiberacao_();
   return { ok: true, linha: row, acao: "update" };
 }
 

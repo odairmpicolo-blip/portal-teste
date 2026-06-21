@@ -163,7 +163,7 @@ const SECOES = [
 ];
 
 const CATEGORIAS = SECOES.flatMap(s => s.categorias.map(c => Object.assign({ grupo: s.id }, c)));
-const state = { dados: [], charts: {}, reloadTimer: null };
+const state = { mapaGraficos: {}, totalLinhas: 0, cacheChave: "", charts: {}, reloadTimer: null };
 
 function $(id){ return document.getElementById(id); }
 function idGrafico(chave){ return String(chave).replace(/\|/g, "-"); }
@@ -285,7 +285,7 @@ function destruirGraficos(){
 
 function renderGraficos(){
     destruirGraficos();
-    const mapa = agregarPorCategoria(state.dados);
+    const mapa = state.mapaGraficos || {};
     let algumDado = false;
 
     CATEGORIAS.forEach(cat => {
@@ -375,7 +375,7 @@ function renderGraficos(){
         });
     });
 
-    $("pageEmpty").hidden = algumDado || state.dados.length > 0;
+    $("pageEmpty").hidden = algumDado || state.totalLinhas > 0;
 }
 
 async function carregar(){
@@ -384,18 +384,27 @@ async function carregar(){
     if(!dataDe || !dataAte){ setStatus("Informe o período (de/até).","erro"); return; }
     if(dataDe > dataAte){ setStatus("A data inicial não pode ser maior que a final.","erro"); return; }
 
+    const chave = dataDe + "|" + dataAte;
+    if(state.cacheChave === chave && state.mapaGraficos){
+        renderGraficos();
+        setStatus(formatNumber(state.totalLinhas) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte) + " · memória","ok");
+        return;
+    }
+
     setStatus("Carregando planilha...","load");
     window.portalMostrarCarregando?.("Carregando liberação");
     try {
         const res = await apiGet({
-            recurso: "acompanhamento",
+            recurso: "graficos",
             data_de: dataDe,
-            data_ate: dataAte,
-            ultima_semana: "0"
+            data_ate: dataAte
         });
-        state.dados = res.dados || [];
+        state.mapaGraficos = res.categorias || {};
+        state.totalLinhas = res.total_linhas || 0;
+        state.cacheChave = chave;
         renderGraficos();
-        setStatus(formatNumber(state.dados.length) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
+        const cacheTxt = res.meta && res.meta.cache ? " · cache" : "";
+        setStatus(formatNumber(state.totalLinhas) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte) + cacheTxt, "ok");
     } finally {
         window.portalOcultarCarregando?.();
     }

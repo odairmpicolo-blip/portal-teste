@@ -168,6 +168,8 @@ const CAMPOS_SELECT = {
     inicio_no_horario: ["","NO HORÁRIO","ATRASADO","ADIANTADO"],
     trajeto_ocioso_correto: ["","SIM","NÃO"]
 };
+const CATEGORIAS = SECOES.flatMap(s => s.categorias.map(c => Object.assign({ grupo: s.id }, c)));
+const COLUNAS_CACHE = "liberacao_colunas_v8";
 const state = { colunas: COLUNAS_PADRAO, todos: [], dados: [], saveTimers: {}, saving: {} };
 
 function $(id){return document.getElementById(id)}
@@ -352,19 +354,35 @@ function popularMaquinas(lista){
     if(items.includes(prev)) sel.value=prev;
 }
 
+function carregarColunasCache(){
+    try{
+        const raw=sessionStorage.getItem(COLUNAS_CACHE);
+        if(raw) return JSON.parse(raw);
+    }catch(_){}
+    return null;
+}
+
 async function carregar(){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");return;}
     setStatus("Carregando planilha...","load");
     window.portalMostrarCarregando?.("Carregando liberação");
     try {
-        const res=await apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",ultima_semana:"1"});
-        state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
+        const params={recurso:"acompanhamento",data,ultima_semana:"0"};
+        if(!carregarColunasCache()) params.incluir_colunas="1";
+        const res=await apiGet(params);
+        if(res.colunas&&res.colunas.length){
+            sessionStorage.setItem(COLUNAS_CACHE,JSON.stringify(res.colunas));
+            state.colunas=res.colunas;
+        }else{
+            state.colunas=carregarColunasCache()||COLUNAS_PADRAO;
+        }
         state.todos=(res.dados||[]).map(r=>Object.assign({},r));
         popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
         aplicarFiltroMaquina();
         renderTabela();
-        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data),"ok");
+        const cacheTxt=res.meta&&res.meta.cache?" · cache":"";
+        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data)+cacheTxt,"ok");
     } finally {
         window.portalOcultarCarregando?.();
     }
