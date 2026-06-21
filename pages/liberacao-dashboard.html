@@ -170,7 +170,6 @@ function idGrafico(chave){ return String(chave).replace(/\|/g, "-"); }
 function escapeHtml(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function formatNumber(v){ return Number(v||0).toLocaleString("pt-BR"); }
 function brDate(iso){ if(!iso) return "—"; const p=iso.split("-"); return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : iso; }
-function isoDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
 function val(row,key){
     if(row[key]!=null&&row[key]!=="") return row[key];
     if(key==="saida_atrasado_adiantado") return row.saida_atrasado_adiantado||"";
@@ -464,8 +463,9 @@ async function gerarPdf(){
 function iniciar(){
     if(window.ChartDataLabels) Chart.register(ChartDataLabels);
     montarHtmlGraficos();
-    $("dataAte").value = new Date().toISOString().slice(0,10);
-    $("dataDe").value = isoDaysAgo(6);
+    const hoje=new Date().toISOString().slice(0,10);
+    $("dataDe").value=hoje;
+    $("dataAte").value=hoje;
     $("dataDe").addEventListener("change", agendarRecarga);
     $("dataAte").addEventListener("change", agendarRecarga);
     $("btnPdf").addEventListener("click", () => gerarPdf().catch(e => setStatus(e.message,"erro")));
