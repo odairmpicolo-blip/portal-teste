@@ -64,7 +64,7 @@ tbody tr.ativo{background:#ffedd5;font-weight:700}
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Dados calculados da aba ACOMPANHAMENTO LIBERAÇÃO (lançamentos)</div>
+        <div class="header-subtitle">Dados da aba ACOMPANHAMENTO LIBERAÇÃO — histórico dos últimos 7 dias</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -244,7 +244,7 @@ function calcularBase(dados){
 }
 
 function montarResumoLocal(data){
-    return apiGet({recurso:"acompanhamento",incluir_colunas:"1",limit:"5000"}).then(tab=>{
+    return apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",ultima_semana:"1"}).then(tab=>{
         const todos=tab.dados||[];
         const colunas=(tab.colunas&&tab.colunas.length)?tab.colunas:COLUNAS_PADRAO;
         const dadosDia=data?todos.filter(r=>normalizarDataIso(val(r,"data"))===data):todos;
@@ -331,7 +331,7 @@ async function carregar(){
     populateSelect(fields.motorista,state.all,"motorista");
     renderResumo();
     renderBase();
-    $("statusLine").textContent="Dashboard atualizado — fonte: lançamentos ("+(state.resumo?.data_br||brDate(data))+")";
+    $("statusLine").textContent="Dashboard atualizado — últimos 7 dias ("+(state.resumo?.data_br||brDate(data))+")";
     applyFilters();
 }
 

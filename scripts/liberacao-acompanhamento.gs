@@ -14,7 +14,9 @@
  * POST ?liberacao=1  action=create|update|upsert  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-21-liberacao-v5";
+const LIBERACAO_VERSAO = "2026-06-21-liberacao-v6";
+const LIBERACAO_DIAS_JANELA = 7;
+const LIBERACAO_CHUNK_LINHAS = 800;
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const LIBERACAO_OPERACIONAIS_GID = 751419807;
 const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
@@ -29,10 +31,17 @@ function montarRespostaLiberacaoGet_(params) {
   if (recurso === "acompanhamento") {
     const limit = parseInt(params.limit || "0", 10);
     const incluirColunas = String(params.incluir_colunas || "") === "1";
+    const ultimaSemana = String(params.ultima_semana || "1") !== "0";
+    const dados = lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, ultimaSemana);
     const payload = {
       ok: true,
-      dados: lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro),
-      meta: { versao: LIBERACAO_VERSAO, recurso: recurso }
+      dados: dados,
+      meta: {
+        versao: LIBERACAO_VERSAO,
+        recurso: recurso,
+        ultima_semana: ultimaSemana,
+        data_inicio: ultimaSemana ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : ""
+      }
     };
     if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
     return payload;
@@ -295,24 +304,48 @@ function abrirSaidaCarrosPorData_(dataIso) {
   return abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
 }
 
-function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro) {
+function isoDataDiasAtrasLiberacao_(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
+}
+
+function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, ultimaSemanaOnly) {
+  ultimaSemanaOnly = ultimaSemanaOnly !== false;
+  const dataMinIso = ultimaSemanaOnly ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : "";
   const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
   if (lastRow < 2) return [];
 
   const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(normalizarChaveLiberacao_);
-  const valores = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
   const dados = [];
+  var endRow = lastRow;
 
-  for (let i = 0; i < valores.length; i++) {
-    const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], i + 2);
-    if (dataFiltro && normalizarDataIsoLiberacao_(item.data) !== dataFiltro) continue;
-    if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
-    dados.push(item);
+  while (endRow >= 2) {
+    const startRow = Math.max(2, endRow - LIBERACAO_CHUNK_LINHAS + 1);
+    const numRows = endRow - startRow + 1;
+    const valores = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
+    var parar = false;
+
+    for (var i = valores.length - 1; i >= 0; i--) {
+      const rowNum = startRow + i;
+      const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], rowNum);
+      const iso = item.data_iso || normalizarDataIsoLiberacao_(item.data);
+
+      if (ultimaSemanaOnly && dataMinIso && iso && iso < dataMinIso) {
+        parar = true;
+        break;
+      }
+      if (dataFiltro && iso !== dataFiltro) continue;
+      if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
+      dados.push(item);
+    }
+
+    if (parar) break;
+    endRow = startRow - 1;
   }
 
-  dados.reverse();
   if (limit > 0 && dados.length > limit) dados.splice(limit);
   return dados;
 }
@@ -512,7 +545,12 @@ function montarResumoDashboardLiberacao_(dataFiltro, incluirColunas) {
     historico: calcularHistoricoResumoLiberacao_(),
     base_dados: calcularBaseDadosLiberacao_(dadosDia),
     dados: dadosDia,
-    meta: { versao: LIBERACAO_VERSAO, recurso: "resumo" }
+    meta: {
+      versao: LIBERACAO_VERSAO,
+      recurso: "resumo",
+      ultima_semana: true,
+      data_inicio: isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA)
+    }
   };
   if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
   return payload;
