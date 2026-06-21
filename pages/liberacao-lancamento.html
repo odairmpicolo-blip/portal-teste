@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lançamento — Acompanhamento da Liberação</title>
 <style>
-:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d;--amber:#b45309}
+:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
 .header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:6px 20px;border-bottom:1px solid #e8edf6}
 .logo-ciop{height:40px;object-fit:contain}.logo-tcgl{height:45px;object-fit:contain}
@@ -28,24 +28,19 @@
 .toolbar label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
 .toolbar input,.toolbar select{min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:160px}
 .info{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.chip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:#eef4ff;color:var(--blue)}
-.chip.ok{background:#dcfce7;color:var(--green)}.chip.warn{background:#fef3c7;color:var(--amber)}
+.chip{display:inline-block;margin-top:10px;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:#eef4ff;color:var(--blue)}
 .table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
 .table-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.table-wrap{overflow:auto;max-height:calc(100vh - 340px);min-height:400px}
+.table-wrap{overflow:auto;max-height:calc(100vh - 320px);min-height:400px}
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2600px}
 thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);padding:7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
 tbody td{border-bottom:1px solid #edf2f7;padding:2px;text-align:center;vertical-align:middle}
 tbody tr:hover{background:#fff7ed}
 .cell-input,.cell-select{width:100%;min-width:72px;border:1px solid transparent;background:transparent;padding:5px 4px;font-size:11px;font-family:inherit;text-align:center;border-radius:4px}
 .cell-input:focus,.cell-select:focus{outline:none;border-color:var(--blue);background:#fff}
-.cell-input.base{background:#f8fafc;color:#475467;cursor:default}
 .cell-input.saving,.cell-select.saving{background:#fff7ed;border-color:var(--orange)}
 .cell-input.saved,.cell-select.saved{background:#f0fdf4;border-color:var(--green)}
 .cell-input.erro,.cell-select.erro{background:#fef2f2;border-color:var(--red)}
-.badge{display:inline-block;padding:2px 6px;border-radius:999px;font-size:8px;font-weight:900;text-transform:uppercase}
-.badge.cadastrado{background:#dcfce7;color:var(--green)}.badge.pendente{background:#fef3c7;color:var(--amber)}.badge.somente_planilha{background:#e0e7ff;color:#3730a3}
 .empty{padding:28px;color:var(--muted);font-weight:800;text-align:center}
 @media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}}
 </style>
@@ -58,7 +53,7 @@ tbody tr:hover{background:#fff7ed}
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Planilha editável — base Saída de Carros (semanal) · salvamento automático</div>
+        <div class="header-subtitle">Planilha ACOMPANHAMENTO LIBERAÇÃO — edição com salvamento automático</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -85,18 +80,18 @@ tbody tr:hover{background:#fff7ed}
             <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas</option></select></div>
             <button class="btn-secondary" type="button" id="btnRecarregar">Atualizar</button>
         </div>
-        <div class="chips" id="resumoChips"></div>
-        <p class="info">A base vem da <strong>planilha semanal de Saída de Carros</strong> (atualizada ~2× por semana). Ao filtrar a data, o sistema traz os serviços daquele dia e preenche máquina, linha, work-id, preparo e horários programados. Você edita carro, motorista, saída real e demais campos — cada alteração salva automaticamente na aba <strong>ACOMPANHAMENTO LIBERAÇÃO</strong>.</p>
+        <span class="chip" id="resumoChip">0 registros</span>
+        <p class="info">Dados da aba <strong>ACOMPANHAMENTO LIBERAÇÃO</strong>. Edite qualquer célula — cada alteração é salva automaticamente na planilha.</p>
     </section>
 
     <section class="table-card">
         <div class="table-head">
-            <h2 class="panel-title" style="margin:0">Planilha de lançamento</h2>
+            <h2 class="panel-title" style="margin:0">Planilha de acompanhamento</h2>
             <span class="status-line" id="tableInfo">0 linhas</span>
         </div>
         <div class="table-wrap">
             <table>
-                <thead id="tabelaHead"><tr><th>Status</th><th>Sync</th></tr></thead>
+                <thead id="tabelaHead"><tr><th>Sync</th></tr></thead>
                 <tbody id="tabelaCorpo"></tbody>
             </table>
             <div class="empty" id="emptyState" hidden>Nenhum registro para esta data e máquina.</div>
@@ -117,19 +112,18 @@ const COLUNAS_PADRAO = [
     { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MIN ATR INÍCIO" },
     { chave: "minutos_adiantado_no_inicio", rotulo: "MIN AD INÍCIO" }
 ];
-/** Campos vindos da Saída de Carros — somente leitura quando pendente */
-const CAMPOS_BASE = new Set(["data","maquina","linha","work_id","preparo","horario_saida_da_garagem","horario_de_saida_da_garagem","horario_de_inicio","local_inicio"]);
 const CAMPOS_SELECT = {
     saiu_no_horario: ["","SIM","NÃO"],
     saida_atrasado_adiantado: ["","NO HORÁRIO","ATRASADO","ADIANTADO"],
     inicio_no_horario: ["","NO HORÁRIO","ATRASADO","ADIANTADO"],
     trajeto_ocioso_correto: ["","SIM","NÃO"]
 };
-const state = { colunas: COLUNAS_PADRAO, dados: [], resumo: null, saveTimers: {}, saving: {} };
+const state = { colunas: COLUNAS_PADRAO, todos: [], dados: [], saveTimers: {}, saving: {} };
 
 function $(id){return document.getElementById(id)}
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+function normalizarMaquina(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim()}
 function val(row,key){
     if(row[key]!=null&&row[key]!=="") return row[key];
     if(key==="horario_saida_da_garagem") return row.horario_de_saida_da_garagem||"";
@@ -150,42 +144,33 @@ async function apiPost(payload){
     return data;
 }
 
-function isBaseReadonly(row, chave){
-    if(row._status==="somente_planilha") return CAMPOS_BASE.has(chave);
-    if(row._status==="pendente"||!row._row) return CAMPOS_BASE.has(chave);
-    return false;
+function aplicarFiltroMaquina(){
+    const maquina=$("maquinaFiltro").value;
+    state.dados=maquina
+        ? state.todos.filter(r=>normalizarMaquina(r.maquina)===normalizarMaquina(maquina))
+        : state.todos.slice();
 }
 
 function renderResumo(){
-    const r=state.resumo||{};
-    $("resumoChips").innerHTML=[
-        '<span class="chip">Saída de carros: <strong>'+(r.total_saida||0)+'</strong></span>',
-        '<span class="chip">Na planilha: <strong>'+(r.total_planilha||0)+'</strong></span>',
-        '<span class="chip ok">Sincronizados: <strong>'+(r.total_cadastrados||0)+'</strong></span>',
-        '<span class="chip warn">Aguardando: <strong>'+(r.total_pendentes||0)+'</strong></span>'
-    ].join("");
+    $("resumoChip").textContent=state.dados.length+" registro(s)";
 }
 
 function renderCelula(row, rowIdx, col){
     const chave=col.chave;
     const v=val(row,chave);
-    const readonly=isBaseReadonly(row,chave);
-    const cls=["cell-input"];
-    if(readonly) cls.push("base");
     if(CAMPOS_SELECT[chave]){
         const opts=CAMPOS_SELECT[chave].map(o=>'<option value="'+escapeHtml(o)+'"'+(o===v?" selected":"")+'>'+(o||"—")+'</option>').join("");
-        return '<select class="cell-select" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'"'+(readonly?" disabled":"")+'>'+opts+'</select>';
+        return '<select class="cell-select" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'">'+opts+'</select>';
     }
-    return '<input class="'+cls.join(" ")+'" type="text" value="'+escapeHtml(v)+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'"'+(readonly?" readonly":"")+'>';
+    return '<input class="cell-input" type="text" value="'+escapeHtml(v)+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'">';
 }
 
 function renderTabela(){
     const cols=state.colunas;
-    $("tabelaHead").innerHTML="<tr><th>Status</th><th>Sync</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
+    $("tabelaHead").innerHTML="<tr><th>Sync</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
     $("tabelaCorpo").innerHTML=state.dados.map((row,i)=>{
-        const st=row._status||"";
-        const sync=state.saving[i]?"Salvando…":(row._dirty?"Alterado":(row._row?"OK":"Novo"));
-        return '<tr data-i="'+i+'"><td><span class="badge '+escapeHtml(st)+'">'+(st==="cadastrado"?"OK":st==="pendente"?"Novo":"Planilha")+'</span></td><td class="sync-'+i+'" style="font-size:9px;color:var(--muted)">'+sync+'</td>'+
+        const sync=state.saving[i]?"Salvando…":(row._dirty?"Alterado":"OK");
+        return '<tr data-i="'+i+'"><td class="sync-'+i+'" style="font-size:9px;color:var(--muted)">'+sync+'</td>'+
             cols.map(c=>'<td>'+renderCelula(row,i,c)+'</td>').join("")+'</tr>';
     }).join("");
     $("emptyState").hidden=state.dados.length>0;
@@ -211,24 +196,19 @@ function onCellChange(e){
 
 async function salvarLinha(i){
     const row=state.dados[i];
-    if(!row) return;
+    if(!row||!row._row) return;
     state.saving[i]=true;
     document.querySelector(".sync-"+i).textContent="Salvando…";
-    const payload={action:"upsert"};
-    if(row._row) payload._row=row._row;
+    const payload={action:"update",_row:row._row};
     state.colunas.forEach(c=>{
         const v=val(row,c.chave);
-        if(v!=="") payload[c.chave]=v;
+        payload[c.chave]=v;
     });
-    if(!payload.data) payload.data=brDate($("dataFiltro").value);
     try{
-        const res=await apiPost(payload);
-        row._row=res.linha;
-        row._status="cadastrado";
+        await apiPost(payload);
         row._dirty=false;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving","erro");el.classList.add("saved");});
         document.querySelector(".sync-"+i).textContent="OK";
-        renderResumo();
     }catch(err){
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
         document.querySelector(".sync-"+i).textContent="Erro";
@@ -248,66 +228,21 @@ function popularMaquinas(lista){
 
 async function carregar(){
     const data=$("dataFiltro").value;
-    const maquina=$("maquinaFiltro").value;
     if(!data){$("statusLine").textContent="Informe a data.";return;}
-    $("statusLine").textContent="Carregando base da Saída de Carros e planilha...";
-    const params={recurso:"comparacao",data};
-    if(maquina) params.maquina=maquina;
-    let res;
-    try{ res=await apiGet(params); }
-    catch(_){ res=await carregarLocal(data,maquina); }
-    if(!res.colunas||!res.colunas.length) res=await carregarLocal(data,maquina);
+    $("statusLine").textContent="Carregando planilha de acompanhamento...";
+    const res=await apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",limit:"5000"});
     state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
-    state.dados=(res.dados||[]).map(r=>Object.assign({},r));
-    state.resumo=res.resumo||null;
-    popularMaquinas(res.maquinas);
+    state.todos=(res.dados||[]).map(r=>Object.assign({},r));
+    popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
+    aplicarFiltroMaquina();
     renderResumo();
     renderTabela();
-    const ref=res.saida_ref;
-    $("statusLine").textContent=(ref&&ref.origem==="semanal")
-        ? "Saída de Carros (semanal) — "+state.dados.length+" linha(s) para "+brDate(data)+"."
-        : "Carregado — "+state.dados.length+" linha(s).";
-}
-
-function chaveRegistro(item){
-    const w=String(item.work_id||"").trim();
-    if(w) return "w:"+w;
-    return "c:"+String(item.carro||"").trim()+"|l:"+String(item.linha||"").trim()+"|h:"+String(val(item,"horario_saida_da_garagem")).trim();
-}
-
-async function carregarLocal(data,maquina){
-    const p={recurso:"acompanhamento",data,incluir_colunas:"1",limit:"5000"};
-    const s={recurso:"saida_carros",data};
-    if(maquina){p.maquina=maquina;s.maquina=maquina;}
-    const [plan,saida]=await Promise.all([apiGet(p),apiGet(s)]);
-    const colunas=(plan.colunas&&plan.colunas.length)?plan.colunas:COLUNAS_PADRAO;
-    const planilha=plan.dados||[];
-    const saidaRows=saida.dados||[];
-    const map={};const usados={};const dados=[];
-    planilha.forEach(r=>{map[chaveRegistro(r)]=r;});
-    saidaRows.forEach(row=>{
-        const ch=chaveRegistro(row);
-        const ex=map[ch]; usados[ch]=true;
-        const m=ex?Object.assign({},row,ex):Object.assign({},row);
-        m._status=ex?"cadastrado":"pendente"; m._row=ex?ex._row:""; m._chave=ch;
-        dados.push(m);
-    });
-    planilha.forEach(r=>{
-        const ch=chaveRegistro(r);
-        if(usados[ch]) return;
-        dados.push(Object.assign({},r,{_status:"somente_planilha",_row:r._row,_chave:ch}));
-    });
-    const maquinas=[...new Set(dados.map(d=>String(d.maquina||"").trim()).filter(Boolean))];
-    return {colunas,dados,maquinas,resumo:{
-        total_saida:saidaRows.length,total_planilha:planilha.length,
-        total_cadastrados:dados.filter(d=>d._status==="cadastrado").length,
-        total_pendentes:dados.filter(d=>d._status==="pendente").length
-    }};
+    $("statusLine").textContent="Acompanhamento — "+state.dados.length+" linha(s) para "+brDate(data)+".";
 }
 
 $("btnRecarregar").addEventListener("click",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
 $("dataFiltro").addEventListener("change",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
-$("maquinaFiltro").addEventListener("change",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
+$("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderResumo();renderTabela();});
 
 function iniciar(){
     $("dataFiltro").value=new Date().toISOString().slice(0,10);
