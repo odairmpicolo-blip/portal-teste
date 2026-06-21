@@ -23,31 +23,31 @@
 .btn-portal,.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#e8edf6;color:var(--blue)}
 .status-line{color:var(--muted);font-size:12px;font-weight:700}
 .panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
-.panel-title{margin:0 0 12px;color:var(--blue);font-size:15px;font-weight:900}
+.panel-title{margin:0 0 10px;color:var(--blue);font-size:15px;font-weight:900}
 .toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
 .toolbar label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.toolbar input{min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
-.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.toolbar input,.toolbar select{min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:160px}
+.info{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .chip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:#eef4ff;color:var(--blue)}
-.chip.ok{background:#dcfce7;color:var(--green)}.chip.warn{background:#fef3c7;color:var(--amber)}.chip.muted{background:#f2f4f7;color:var(--muted)}
-.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
+.chip.ok{background:#dcfce7;color:var(--green)}.chip.warn{background:#fef3c7;color:var(--amber)}
+.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
 .table-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.table-wrap{overflow:auto;max-height:calc(100vh - 320px);min-height:360px}
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2400px}
-thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);padding:8px 7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
-tbody td{border-bottom:1px solid #edf2f7;padding:7px;text-align:center;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
-tbody tr{cursor:pointer}tbody tr:hover{background:#fff7ed}tbody tr.selected{background:#ffedd5;outline:1px solid var(--orange)}
-.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase}
+.table-wrap{overflow:auto;max-height:calc(100vh - 340px);min-height:400px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2600px}
+thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);padding:7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody td{border-bottom:1px solid #edf2f7;padding:2px;text-align:center;vertical-align:middle}
+tbody tr:hover{background:#fff7ed}
+.cell-input,.cell-select{width:100%;min-width:72px;border:1px solid transparent;background:transparent;padding:5px 4px;font-size:11px;font-family:inherit;text-align:center;border-radius:4px}
+.cell-input:focus,.cell-select:focus{outline:none;border-color:var(--blue);background:#fff}
+.cell-input.base{background:#f8fafc;color:#475467;cursor:default}
+.cell-input.saving,.cell-select.saving{background:#fff7ed;border-color:var(--orange)}
+.cell-input.saved,.cell-select.saved{background:#f0fdf4;border-color:var(--green)}
+.cell-input.erro,.cell-select.erro{background:#fef2f2;border-color:var(--red)}
+.badge{display:inline-block;padding:2px 6px;border-radius:999px;font-size:8px;font-weight:900;text-transform:uppercase}
 .badge.cadastrado{background:#dcfce7;color:var(--green)}.badge.pendente{background:#fef3c7;color:var(--amber)}.badge.somente_planilha{background:#e0e7ff;color:#3730a3}
-.edit-panel .form-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.edit-panel label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.edit-panel input,.edit-panel select,.edit-panel textarea{width:100%;min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
-.edit-panel textarea{min-height:64px;resize:vertical}.edit-panel .span-5{grid-column:1/-1}
-.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.msg{font-size:12px;font-weight:700;margin-top:10px}.msg.ok{color:var(--green)}.msg.erro{color:var(--red)}
 .empty{padding:28px;color:var(--muted);font-weight:800;text-align:center}
-@media(max-width:900px){.edit-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}.edit-panel .form-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
 <script type="module" src="../assets/js/auth.js"></script>
@@ -58,7 +58,7 @@ tbody tr{cursor:pointer}tbody tr:hover{background:#fff7ed}tbody tr.selected{back
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Comparativo Saída de Carros × Planilha ACOMPANHAMENTO LIBERAÇÃO</div>
+        <div class="header-subtitle">Planilha editável — base Saída de Carros (semanal) · salvamento automático</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -75,40 +75,32 @@ tbody tr{cursor:pointer}tbody tr:hover{background:#fff7ed}tbody tr.selected{back
             <a class="btn-portal" href="../index.html">Portal</a>
             <a class="btn-secondary" href="liberacao-dashboard.html">Dashboard</a>
         </div>
-        <div class="status-line" id="statusLine">Selecione a data para comparar.</div>
+        <div class="status-line" id="statusLine">Carregando...</div>
     </div>
 
     <section class="panel">
-        <h2 class="panel-title">Data da Saída de Carros</h2>
+        <h2 class="panel-title">Filtros</h2>
         <div class="toolbar">
             <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
-            <button class="btn-secondary" type="button" id="btnRecarregar">Atualizar comparativo</button>
+            <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas</option></select></div>
+            <button class="btn-secondary" type="button" id="btnRecarregar">Atualizar</button>
         </div>
-        <div class="resumo" id="resumoChips"></div>
+        <div class="chips" id="resumoChips"></div>
+        <p class="info">A base vem da <strong>planilha semanal de Saída de Carros</strong> (atualizada ~2× por semana). Ao filtrar a data, o sistema traz os serviços daquele dia e preenche máquina, linha, work-id, preparo e horários programados. Você edita carro, motorista, saída real e demais campos — cada alteração salva automaticamente na aba <strong>ACOMPANHAMENTO LIBERAÇÃO</strong>.</p>
     </section>
 
     <section class="table-card">
         <div class="table-head">
-            <h2 class="panel-title" style="margin:0">Todos os registros do dia</h2>
+            <h2 class="panel-title" style="margin:0">Planilha de lançamento</h2>
             <span class="status-line" id="tableInfo">0 linhas</span>
         </div>
         <div class="table-wrap">
             <table>
-                <thead id="tabelaHead"><tr><th>Status</th></tr></thead>
+                <thead id="tabelaHead"><tr><th>Status</th><th>Sync</th></tr></thead>
                 <tbody id="tabelaCorpo"></tbody>
             </table>
-            <div class="empty" id="emptyState" hidden>Nenhum registro para esta data.</div>
+            <div class="empty" id="emptyState" hidden>Nenhum registro para esta data e máquina.</div>
         </div>
-    </section>
-
-    <section class="panel edit-panel" id="editPanel" hidden>
-        <h2 class="panel-title">Editar / cadastrar linha selecionada</h2>
-        <form id="formLiberacao" class="form-grid"></form>
-        <div class="form-actions">
-            <button class="btn-primary" type="button" id="btnSalvar">Salvar na planilha</button>
-            <button class="btn-secondary" type="button" id="btnLimpar">Limpar seleção</button>
-        </div>
-        <div id="msgForm" class="msg"></div>
     </section>
 </main>
 <script>
@@ -116,221 +108,210 @@ const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D
 const COLUNAS_PADRAO = [
     { chave: "data", rotulo: "DATA" }, { chave: "maquina", rotulo: "MAQUINA" }, { chave: "linha", rotulo: "LINHA" },
     { chave: "work_id", rotulo: "WORK-ID" }, { chave: "carro", rotulo: "CARRO" }, { chave: "motorista", rotulo: "MOTORISTA" },
-    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO DE SAÍDA DA GARAGEM" },
+    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO SAÍDA GARAGEM" },
     { chave: "saida_real", rotulo: "SAÍDA REAL" }, { chave: "saiu_no_horario", rotulo: "SAIU NO HORÁRIO" },
-    { chave: "minutos_atrasado_garagem", rotulo: "MINUTOS ATRASADO GARAGEM" }, { chave: "minutos_adiantado_garagem", rotulo: "MINUTOS ADIANTADO GARAGEM" },
-    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATRASADO/ADIANTADO" }, { chave: "local_inicio", rotulo: "LOCAL INICIO" },
-    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OCIOSO CORRETO?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INICIO" },
-    { chave: "inicio_real", rotulo: "INICIO REAL" }, { chave: "inicio_no_horario", rotulo: "INICÍO NO HORÁRIO" },
-    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MINUTOS ATRASADO NO INICIO" },
-    { chave: "minutos_adiantado_no_inicio", rotulo: "MINUTOS ADIANTADO NO INICIO" }
+    { chave: "minutos_atrasado_garagem", rotulo: "MIN ATRASO GAR." }, { chave: "minutos_adiantado_garagem", rotulo: "MIN ADIANT. GAR." },
+    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATR/AD" }, { chave: "local_inicio", rotulo: "LOCAL INÍCIO" },
+    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OK?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO INÍCIO" },
+    { chave: "inicio_real", rotulo: "INÍCIO REAL" }, { chave: "inicio_no_horario", rotulo: "INÍCIO NO HOR." },
+    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MIN ATR INÍCIO" },
+    { chave: "minutos_adiantado_no_inicio", rotulo: "MIN AD INÍCIO" }
 ];
-const state = { colunas: [], dados: [], resumo: null, selecionado: null };
+/** Campos vindos da Saída de Carros — somente leitura quando pendente */
+const CAMPOS_BASE = new Set(["data","maquina","linha","work_id","preparo","horario_saida_da_garagem","horario_de_saida_da_garagem","horario_de_inicio","local_inicio"]);
+const CAMPOS_SELECT = {
+    saiu_no_horario: ["","SIM","NÃO"],
+    saida_atrasado_adiantado: ["","NO HORÁRIO","ATRASADO","ADIANTADO"],
+    inicio_no_horario: ["","NO HORÁRIO","ATRASADO","ADIANTADO"],
+    trajeto_ocioso_correto: ["","SIM","NÃO"]
+};
+const state = { colunas: COLUNAS_PADRAO, dados: [], resumo: null, saveTimers: {}, saving: {} };
 
 function $(id){return document.getElementById(id)}
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
-function val(row,key){return row[key]!=null?row[key]:""}
+function val(row,key){
+    if(row[key]!=null&&row[key]!=="") return row[key];
+    if(key==="horario_saida_da_garagem") return row.horario_de_saida_da_garagem||"";
+    if(key==="saiu_no_horario") return row.saiu_no_horaro||"";
+    return "";
+}
 
 async function apiGet(params){
-    const res = await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)),{cache:"no-store"});
-    const data = await res.json();
+    const res=await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)),{cache:"no-store"});
+    const data=await res.json();
     if(!data.ok) throw new Error(data.erro||"Erro na leitura.");
     return data;
 }
 async function apiPost(payload){
-    const body = new URLSearchParams(Object.assign({liberacao:"1"},payload));
-    const res = await fetch(API_URL,{method:"POST",body});
-    const data = await res.json();
+    const res=await fetch(API_URL,{method:"POST",body:new URLSearchParams(Object.assign({liberacao:"1"},payload))});
+    const data=await res.json();
     if(!data.ok) throw new Error(data.erro||"Erro ao salvar.");
     return data;
 }
 
-function rotuloStatus(s){
-    if(s==="cadastrado") return "Cadastrado";
-    if(s==="pendente") return "Pendente";
-    if(s==="somente_planilha") return "Só planilha";
-    return s||"—";
+function isBaseReadonly(row, chave){
+    if(row._status==="somente_planilha") return CAMPOS_BASE.has(chave);
+    if(row._status==="pendente"||!row._row) return CAMPOS_BASE.has(chave);
+    return false;
 }
 
 function renderResumo(){
-    const r = state.resumo||{};
-    $("resumoChips").innerHTML = [
+    const r=state.resumo||{};
+    $("resumoChips").innerHTML=[
         '<span class="chip">Saída de carros: <strong>'+(r.total_saida||0)+'</strong></span>',
         '<span class="chip">Na planilha: <strong>'+(r.total_planilha||0)+'</strong></span>',
-        '<span class="chip ok">Cadastrados: <strong>'+(r.total_cadastrados||0)+'</strong></span>',
-        '<span class="chip warn">Pendentes: <strong>'+(r.total_pendentes||0)+'</strong></span>',
-        (r.total_somente_planilha?'<span class="chip muted">Só na planilha: <strong>'+r.total_somente_planilha+'</strong></span>':"")
+        '<span class="chip ok">Sincronizados: <strong>'+(r.total_cadastrados||0)+'</strong></span>',
+        '<span class="chip warn">Aguardando: <strong>'+(r.total_pendentes||0)+'</strong></span>'
     ].join("");
 }
 
+function renderCelula(row, rowIdx, col){
+    const chave=col.chave;
+    const v=val(row,chave);
+    const readonly=isBaseReadonly(row,chave);
+    const cls=["cell-input"];
+    if(readonly) cls.push("base");
+    if(CAMPOS_SELECT[chave]){
+        const opts=CAMPOS_SELECT[chave].map(o=>'<option value="'+escapeHtml(o)+'"'+(o===v?" selected":"")+'>'+(o||"—")+'</option>').join("");
+        return '<select class="cell-select" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'"'+(readonly?" disabled":"")+'>'+opts+'</select>';
+    }
+    return '<input class="'+cls.join(" ")+'" type="text" value="'+escapeHtml(v)+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'"'+(readonly?" readonly":"")+'>';
+}
+
 function renderTabela(){
-    const cols = state.colunas;
-    $("tabelaHead").innerHTML = "<tr><th>Status</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
-    const sel = state.selecionado;
-    $("tabelaCorpo").innerHTML = state.dados.map((row,i)=>{
-        const cls = sel && sel._chave===row._chave ? "selected" : "";
-        const st = row._status||"";
-        return '<tr class="'+cls+'" data-i="'+i+'"><td><span class="badge '+escapeHtml(st)+'">'+escapeHtml(rotuloStatus(st))+'</span></td>'+
-            cols.map(c=>'<td title="'+escapeHtml(val(row,c.chave))+'">'+escapeHtml(val(row,c.chave))+'</td>').join("")+
-        '</tr>';
+    const cols=state.colunas;
+    $("tabelaHead").innerHTML="<tr><th>Status</th><th>Sync</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
+    $("tabelaCorpo").innerHTML=state.dados.map((row,i)=>{
+        const st=row._status||"";
+        const sync=state.saving[i]?"Salvando…":(row._dirty?"Alterado":(row._row?"OK":"Novo"));
+        return '<tr data-i="'+i+'"><td><span class="badge '+escapeHtml(st)+'">'+(st==="cadastrado"?"OK":st==="pendente"?"Novo":"Planilha")+'</span></td><td class="sync-'+i+'" style="font-size:9px;color:var(--muted)">'+sync+'</td>'+
+            cols.map(c=>'<td>'+renderCelula(row,i,c)+'</td>').join("")+'</tr>';
     }).join("");
-    $("emptyState").hidden = state.dados.length > 0;
-    $("tableInfo").textContent = state.dados.length + " linha(s)";
-    $("tabelaCorpo").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>selecionarLinha(Number(tr.dataset.i))));
-}
-
-function montarFormulario(){
-    const form = $("formLiberacao");
-    form.innerHTML = '<input type="hidden" id="_row" name="_row">'+
-        state.colunas.map(c=>{
-            const id = c.chave;
-            const isObs = /observ/.test(id);
-            const isSelect = /^(saiu_no_horario|saida_atrasado_adiantado|inicio_no_horario|trajeto_ocioso_correto)/.test(id);
-            if(isObs) return '<div class="span-5"><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><textarea id="'+id+'" name="'+id+'"></textarea></div>';
-            if(isSelect){
-                const opts = id.includes("saiu") ? ["","SIM","NÃO"] : ["","NO HORÁRIO","ATRASADO","ADIANTADO"];
-                if(id.includes("trajeto")) opts.splice(1,3,"SIM","NÃO");
-                return '<div><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><select id="'+id+'" name="'+id+'">'+opts.map(o=>'<option value="'+o+'">'+ (o||"—") +'</option>').join("")+'</select></div>';
-            }
-            return '<div><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><input id="'+id+'" name="'+id+'"></div>';
-        }).join("");
-}
-
-function preencherForm(item){
-    if(!item) return;
-    state.colunas.forEach(c=>{
-        const el = $(c.chave);
-        if(!el) return;
-        let v = val(item,c.chave);
-        if(c.chave==="data" && v && !String(v).includes("/") && String(v).includes("-")) v = brDate(String(v).slice(0,10));
-        el.value = v;
+    $("emptyState").hidden=state.dados.length>0;
+    $("tableInfo").textContent=state.dados.length+" linha(s)";
+    $("tabelaCorpo").querySelectorAll("input,select").forEach(el=>{
+        el.addEventListener("change", onCellChange);
+        el.addEventListener("blur", onCellChange);
     });
-    $("_row").value = item._row||"";
-    $("editPanel").hidden = false;
 }
 
-function lerForm(){
-    const payload = { action: $("_row").value ? "update" : "create" };
-    if($("_row").value) payload._row = $("_row").value;
+function onCellChange(e){
+    const el=e.target;
+    const i=Number(el.dataset.i);
+    const k=el.dataset.k;
+    if(isNaN(i)||!k) return;
+    state.dados[i][k]=el.value.trim();
+    state.dados[i]._dirty=true;
+    el.classList.remove("saved","erro");
+    el.classList.add("saving");
+    clearTimeout(state.saveTimers[i]);
+    state.saveTimers[i]=setTimeout(()=>salvarLinha(i),800);
+}
+
+async function salvarLinha(i){
+    const row=state.dados[i];
+    if(!row) return;
+    state.saving[i]=true;
+    document.querySelector(".sync-"+i).textContent="Salvando…";
+    const payload={action:"upsert"};
+    if(row._row) payload._row=row._row;
     state.colunas.forEach(c=>{
-        const el = $(c.chave);
-        if(el) payload[c.chave] = el.value.trim();
+        const v=val(row,c.chave);
+        if(v!=="") payload[c.chave]=v;
     });
-    return payload;
+    if(!payload.data) payload.data=brDate($("dataFiltro").value);
+    try{
+        const res=await apiPost(payload);
+        row._row=res.linha;
+        row._status="cadastrado";
+        row._dirty=false;
+        document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving","erro");el.classList.add("saved");});
+        document.querySelector(".sync-"+i).textContent="OK";
+        renderResumo();
+    }catch(err){
+        document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
+        document.querySelector(".sync-"+i).textContent="Erro";
+        $("statusLine").textContent=err.message;
+    }finally{
+        state.saving[i]=false;
+    }
 }
 
-function selecionarLinha(i){
-    state.selecionado = state.dados[i]||null;
-    renderTabela();
-    preencherForm(state.selecionado);
-    $("msgForm").textContent = "";
+function popularMaquinas(lista){
+    const sel=$("maquinaFiltro");
+    const prev=sel.value;
+    const items=(lista||[]).slice().sort((a,b)=>a.localeCompare(b,"pt-BR"));
+    sel.innerHTML='<option value="">Todas</option>'+items.map(m=>'<option value="'+escapeHtml(m)+'">'+escapeHtml(m)+'</option>').join("");
+    if(items.includes(prev)) sel.value=prev;
 }
 
-function limparSelecao(){
-    state.selecionado = null;
-    $("formLiberacao").reset();
-    $("_row").value = "";
-    $("editPanel").hidden = true;
-    $("msgForm").textContent = "";
-    renderTabela();
-}
-
-async function carregarComparativo(){
-    const data = $("dataFiltro").value;
-    if(!data){ $("statusLine").textContent = "Informe a data."; return; }
-    $("statusLine").textContent = "Comparando saída de carros com a planilha...";
+async function carregar(){
+    const data=$("dataFiltro").value;
+    const maquina=$("maquinaFiltro").value;
+    if(!data){$("statusLine").textContent="Informe a data.";return;}
+    $("statusLine").textContent="Carregando base da Saída de Carros e planilha...";
+    const params={recurso:"comparacao",data};
+    if(maquina) params.maquina=maquina;
     let res;
-    try {
-        res = await apiGet({ recurso: "comparacao", data });
-    } catch (_) {
-        res = await carregarComparativoLocal(data);
-    }
-    if(!res.colunas || !res.colunas.length){
-        res = await carregarComparativoLocal(data);
-    }
-    state.colunas = (res.colunas && res.colunas.length) ? res.colunas : COLUNAS_PADRAO;
-    state.dados = res.dados||[];
-    state.resumo = res.resumo||null;
-    state.selecionado = null;
-    montarFormulario();
+    try{ res=await apiGet(params); }
+    catch(_){ res=await carregarLocal(data,maquina); }
+    if(!res.colunas||!res.colunas.length) res=await carregarLocal(data,maquina);
+    state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
+    state.dados=(res.dados||[]).map(r=>Object.assign({},r));
+    state.resumo=res.resumo||null;
+    popularMaquinas(res.maquinas);
     renderResumo();
     renderTabela();
-    limparSelecao();
-    $("statusLine").textContent = "Comparativo de "+brDate(data)+" carregado.";
+    const ref=res.saida_ref;
+    $("statusLine").textContent=(ref&&ref.origem==="semanal")
+        ? "Saída de Carros (semanal) — "+state.dados.length+" linha(s) para "+brDate(data)+"."
+        : "Carregado — "+state.dados.length+" linha(s).";
 }
 
 function chaveRegistro(item){
-    const work = String(item.work_id||"").trim();
-    if(work) return "w:"+work;
-    return "c:"+String(item.carro||"").trim()+"|l:"+String(item.linha||"").trim()+"|h:"+String(item.horario_saida_da_garagem||"").trim();
+    const w=String(item.work_id||"").trim();
+    if(w) return "w:"+w;
+    return "c:"+String(item.carro||"").trim()+"|l:"+String(item.linha||"").trim()+"|h:"+String(val(item,"horario_saida_da_garagem")).trim();
 }
 
-async function carregarComparativoLocal(data){
-    const [plan, saida] = await Promise.all([
-        apiGet({ recurso: "acompanhamento", data, incluir_colunas: "1" }),
-        apiGet({ recurso: "saida_carros", data })
-    ]);
-    const colunas = (plan.colunas && plan.colunas.length) ? plan.colunas : COLUNAS_PADRAO;
-    const planilha = plan.dados||[];
-    const saidaRows = saida.dados||[];
-    const mapPlanilha = {};
-    const usados = {};
-    const dados = [];
-    planilha.forEach(p=>{ mapPlanilha[chaveRegistro(p)] = p; });
-    saidaRows.forEach(s=>{
-        const chave = chaveRegistro(s);
-        const existente = mapPlanilha[chave];
-        usados[chave] = true;
-        const merged = existente ? Object.assign({}, s, existente) : Object.assign({}, s);
-        merged._status = existente ? "cadastrado" : "pendente";
-        merged._row = existente ? existente._row : "";
-        merged._chave = chave;
-        dados.push(merged);
+async function carregarLocal(data,maquina){
+    const p={recurso:"acompanhamento",data,incluir_colunas:"1",limit:"5000"};
+    const s={recurso:"saida_carros",data};
+    if(maquina){p.maquina=maquina;s.maquina=maquina;}
+    const [plan,saida]=await Promise.all([apiGet(p),apiGet(s)]);
+    const colunas=(plan.colunas&&plan.colunas.length)?plan.colunas:COLUNAS_PADRAO;
+    const planilha=plan.dados||[];
+    const saidaRows=saida.dados||[];
+    const map={};const usados={};const dados=[];
+    planilha.forEach(r=>{map[chaveRegistro(r)]=r;});
+    saidaRows.forEach(row=>{
+        const ch=chaveRegistro(row);
+        const ex=map[ch]; usados[ch]=true;
+        const m=ex?Object.assign({},row,ex):Object.assign({},row);
+        m._status=ex?"cadastrado":"pendente"; m._row=ex?ex._row:""; m._chave=ch;
+        dados.push(m);
     });
-    planilha.forEach(p=>{
-        const chave = chaveRegistro(p);
-        if(usados[chave]) return;
-        const item = Object.assign({}, p);
-        item._status = "somente_planilha";
-        item._row = p._row;
-        item._chave = chave;
-        dados.push(item);
+    planilha.forEach(r=>{
+        const ch=chaveRegistro(r);
+        if(usados[ch]) return;
+        dados.push(Object.assign({},r,{_status:"somente_planilha",_row:r._row,_chave:ch}));
     });
-    return {
-        colunas,
-        dados,
-        resumo: {
-            total_saida: saidaRows.length,
-            total_planilha: planilha.length,
-            total_cadastrados: dados.filter(d=>d._status==="cadastrado").length,
-            total_pendentes: dados.filter(d=>d._status==="pendente").length,
-            total_somente_planilha: dados.filter(d=>d._status==="somente_planilha").length
-        }
-    };
+    const maquinas=[...new Set(dados.map(d=>String(d.maquina||"").trim()).filter(Boolean))];
+    return {colunas,dados,maquinas,resumo:{
+        total_saida:saidaRows.length,total_planilha:planilha.length,
+        total_cadastrados:dados.filter(d=>d._status==="cadastrado").length,
+        total_pendentes:dados.filter(d=>d._status==="pendente").length
+    }};
 }
 
-$("btnRecarregar").addEventListener("click", ()=>carregarComparativo().catch(e=>$("statusLine").textContent=e.message));
-$("dataFiltro").addEventListener("change", ()=>carregarComparativo().catch(e=>$("statusLine").textContent=e.message));
-$("btnSalvar").addEventListener("click", async ()=>{
-    if(!state.selecionado){ $("msgForm").textContent = "Selecione uma linha na tabela."; $("msgForm").className = "msg erro"; return; }
-    try{
-        $("msgForm").textContent = "Salvando...";
-        $("msgForm").className = "msg";
-        await apiPost(lerForm());
-        $("msgForm").textContent = "Salvo na planilha com sucesso.";
-        $("msgForm").className = "msg ok";
-        await carregarComparativo();
-    }catch(e){
-        $("msgForm").textContent = e.message;
-        $("msgForm").className = "msg erro";
-    }
-});
-$("btnLimpar").addEventListener("click", limparSelecao);
+$("btnRecarregar").addEventListener("click",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
+$("dataFiltro").addEventListener("change",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
+$("maquinaFiltro").addEventListener("change",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
 
 function iniciar(){
-    $("dataFiltro").value = new Date().toISOString().slice(0,10);
-    carregarComparativo().catch(e=>$("statusLine").textContent=e.message);
+    $("dataFiltro").value=new Date().toISOString().slice(0,10);
+    carregar().catch(e=>$("statusLine").textContent=e.message);
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", iniciar, { once: true });

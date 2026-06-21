@@ -4,16 +4,17 @@
  * Planilha CIOP: 1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA
  *   - D.Operacionais de In.Linhas (gráficos): gid 751419807
  *   - ACOMPANHAMENTO LIBERAÇÃO (lançamentos): gid 753262285
- * Saída de carros: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
+ * Saída de carros semanal: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
- * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&limit=N][&incluir_colunas=1]
- * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD]
+ * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&maquina=...][&limit=N][&incluir_colunas=1]
+ * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD][&maquina=...]
+ * GET  ?liberacao=1&recurso=comparacao&data=YYYY-MM-DD[&maquina=...]
  * GET  ?liberacao=1&recurso=resumo[&data=YYYY-MM-DD][&incluir_colunas=1]
- * POST ?liberacao=1  action=create|update  (+ campos da aba acompanhamento)
+ * POST ?liberacao=1  action=create|update|upsert  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-21-liberacao-v3";
+const LIBERACAO_VERSAO = "2026-06-21-liberacao-v5";
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const LIBERACAO_OPERACIONAIS_GID = 751419807;
 const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
@@ -23,13 +24,14 @@ const LIBERACAO_SAIDA_GID = 1482156234;
 function montarRespostaLiberacaoGet_(params) {
   const recurso = String(params.recurso || "operacionais").toLowerCase();
   const dataFiltro = normalizarDataIsoLiberacao_(params.data || "");
+  const maquinaFiltro = String(params.maquina || "").trim();
 
   if (recurso === "acompanhamento") {
     const limit = parseInt(params.limit || "0", 10);
     const incluirColunas = String(params.incluir_colunas || "") === "1";
     const payload = {
       ok: true,
-      dados: lerAcompanhamentoLiberacao_(dataFiltro, limit),
+      dados: lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro),
       meta: { versao: LIBERACAO_VERSAO, recurso: recurso }
     };
     if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
@@ -37,16 +39,24 @@ function montarRespostaLiberacaoGet_(params) {
   }
   if (recurso === "comparacao") {
     if (!dataFiltro) return { ok: false, erro: "Informe a data (data=YYYY-MM-DD) para comparar." };
-    return Object.assign({ ok: true, meta: { versao: LIBERACAO_VERSAO, recurso: recurso } }, montarComparacaoLiberacao_(dataFiltro));
+    return Object.assign(
+      { ok: true, meta: { versao: LIBERACAO_VERSAO, recurso: recurso } },
+      montarComparacaoLiberacao_(dataFiltro, maquinaFiltro)
+    );
   }
   if (recurso === "resumo") {
     return montarResumoDashboardLiberacao_(dataFiltro, String(params.incluir_colunas || "") === "1");
   }
   if (recurso === "saida_carros") {
+    const ref = resolverSaidaCarrosPorData_(dataFiltro);
     return {
       ok: true,
-      dados: lerSaidaCarrosLiberacao_(dataFiltro),
-      meta: { versao: LIBERACAO_VERSAO, recurso: recurso }
+      dados: lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro),
+      meta: {
+        versao: LIBERACAO_VERSAO,
+        recurso: recurso,
+        saida_ref: ref
+      }
     };
   }
   return {
@@ -59,6 +69,7 @@ function montarRespostaLiberacaoGet_(params) {
 function montarRespostaLiberacaoPost_(params) {
   const action = String(params.action || "create").toLowerCase();
   if (action === "update") return atualizarAcompanhamentoLiberacao_(params);
+  if (action === "upsert") return upsertAcompanhamentoLiberacao_(params);
   return criarAcompanhamentoLiberacao_(params);
 }
 
@@ -179,14 +190,16 @@ function chaveRegistroLiberacao_(item) {
   if (work) return "w:" + work;
   const carro = String(item.carro || "").trim();
   const linha = String(item.linha || "").trim();
-  const hora = String(item.horario_saida_da_garagem || item.horario_saida || "").trim();
+  const hora = String(
+    item.horario_saida_da_garagem || item.horario_de_saida_da_garagem || item.horario_saida || ""
+  ).trim();
   return "c:" + carro + "|l:" + linha + "|h:" + hora;
 }
 
-function montarComparacaoLiberacao_(dataFiltro) {
+function montarComparacaoLiberacao_(dataFiltro, maquinaFiltro) {
   const colunas = lerColunasAcompanhamento_();
-  const planilha = lerAcompanhamentoLiberacao_(dataFiltro, 0);
-  const saida = lerSaidaCarrosLiberacao_(dataFiltro);
+  const planilha = lerAcompanhamentoLiberacao_(dataFiltro, 0, maquinaFiltro);
+  const saida = lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro);
   const mapPlanilha = {};
   const usados = {};
   const dados = [];
@@ -219,14 +232,22 @@ function montarComparacaoLiberacao_(dataFiltro) {
   });
 
   dados.sort(function (a, b) {
-    const ha = String(a.horario_saida_da_garagem || a.horario_saida || "");
-    const hb = String(b.horario_saida_da_garagem || b.horario_saida || "");
+    const ha = String(a.horario_saida_da_garagem || a.horario_de_saida_da_garagem || a.horario_saida || "");
+    const hb = String(b.horario_saida_da_garagem || b.horario_de_saida_da_garagem || b.horario_saida || "");
     return ha.localeCompare(hb, "pt-BR", { numeric: true });
+  });
+
+  const maquinas = {};
+  dados.forEach(function (d) {
+    const m = String(d.maquina || "").trim();
+    if (m) maquinas[m] = true;
   });
 
   return {
     colunas: colunas,
     dados: dados,
+    maquinas: Object.keys(maquinas).sort(),
+    saida_ref: resolverSaidaCarrosPorData_(dataFiltro),
     resumo: {
       total_saida: saida.length,
       total_planilha: planilha.length,
@@ -247,7 +268,34 @@ function mesclarRegistroLiberacao_(saida, planilha) {
   return merged;
 }
 
-function lerAcompanhamentoLiberacao_(dataFiltro, limit) {
+function normalizarMaquinaLiberacao_(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function filtrarMaquinaLiberacao_(item, maquinaFiltro) {
+  if (!maquinaFiltro) return true;
+  return normalizarMaquinaLiberacao_(item.maquina) === normalizarMaquinaLiberacao_(maquinaFiltro);
+}
+
+function resolverSaidaCarrosPorData_(dataIso) {
+  return {
+    spreadsheetId: LIBERACAO_SAIDA_SPREADSHEET_ID,
+    gid: LIBERACAO_SAIDA_GID,
+    origem: "semanal",
+    data: dataIso || ""
+  };
+}
+
+function abrirSaidaCarrosPorData_(dataIso) {
+  return abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
+}
+
+function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro) {
   const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
@@ -260,6 +308,7 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit) {
   for (let i = 0; i < valores.length; i++) {
     const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], i + 2);
     if (dataFiltro && normalizarDataIsoLiberacao_(item.data) !== dataFiltro) continue;
+    if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
     dados.push(item);
   }
 
@@ -268,8 +317,14 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit) {
   return dados;
 }
 
-function lerSaidaCarrosLiberacao_(dataFiltro) {
-  const sheet = abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
+function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
+  if (!dataFiltro) return [];
+  var sheet;
+  try {
+    sheet = abrirSaidaCarrosPorData_(dataFiltro);
+  } catch (err) {
+    return [];
+  }
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
   if (lastRow < 2) return [];
@@ -285,10 +340,12 @@ function lerSaidaCarrosLiberacao_(dataFiltro) {
       if (!chave) return;
       bruto[chave] = valorCelulaLiberacao_(valores[i][idx]);
     });
-    const dataBr = bruto.data || bruto.dia || bruto.data_saida || "";
+    const dataBr = pickCampoLiberacao_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIsoLiberacao_(dataBr);
     if (dataFiltro && dataIso !== dataFiltro) continue;
-    dados.push(mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr));
+    const item = mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr);
+    if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
+    dados.push(item);
   }
 
   return dados;
@@ -298,13 +355,15 @@ function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
   const dataExibir = dataBr || (dataIso ? formatarDataBrLiberacao_(dataIso) : "");
   return {
     data: dataExibir,
-    maquina: pickCampoLiberacao_(bruto, ["maquina", "maquina_"]),
+    maquina: pickCampoLiberacao_(bruto, ["maquina", "maquina_", "maq", "equipamento"]),
     linha: pickCampoLiberacao_(bruto, ["linha", "linha_"]),
     work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "id_servico"]),
     carro: pickCampoLiberacao_(bruto, ["carro", "prefixo", "veiculo", "frota"]),
     motorista: pickCampoLiberacao_(bruto, ["motorista", "matricula", "mot", "registro"]),
     preparo: pickCampoLiberacao_(bruto, ["preparo", "tempo_preparo"]),
-    horario_saida_da_garagem: pickCampoLiberacao_(bruto, ["horario_saida_da_garagem", "horario_saida", "saida_programada", "previsto", "horario"]),
+    horario_saida_da_garagem: pickCampoLiberacao_(bruto, [
+      "horario_saida_da_garagem", "horario_de_saida_da_garagem", "horario_saida", "saida_programada", "previsto", "horario"
+    ]),
     saida_real: pickCampoLiberacao_(bruto, ["saida_real", "realizado", "saida_efetiva", "hora_real"]),
     local_inicio: pickCampoLiberacao_(bruto, ["local_inicio", "local", "terminal"]),
     horario_de_inicio: pickCampoLiberacao_(bruto, ["horario_de_inicio", "horario_inicio", "inicio_programado"]),
@@ -466,12 +525,63 @@ function pickCampoLiberacao_(obj, chaves) {
   return "";
 }
 
+function aplicarAliasesCamposLiberacao_(item) {
+  if (item.horario_de_saida_da_garagem && !item.horario_saida_da_garagem) {
+    item.horario_saida_da_garagem = item.horario_de_saida_da_garagem;
+  }
+  if (item.saiu_no_horaro && !item.saiu_no_horario) {
+    item.saiu_no_horario = item.saiu_no_horaro;
+  }
+  return item;
+}
+
+function expandirParamsColunasPlanilha_(params, chaves) {
+  const out = {};
+  chaves.forEach(function (chave) {
+    if (params[chave] != null) out[chave] = params[chave];
+  });
+  const aliases = [
+    ["horario_saida_da_garagem", "horario_de_saida_da_garagem"],
+    ["saiu_no_horario", "saiu_no_horaro"]
+  ];
+  aliases.forEach(function (par) {
+    if (params[par[0]] == null) return;
+    if (chaves.indexOf(par[0]) >= 0) out[par[0]] = params[par[0]];
+    if (chaves.indexOf(par[1]) >= 0) out[par[1]] = params[par[1]];
+  });
+  return out;
+}
+
+function upsertAcompanhamentoLiberacao_(params) {
+  const row = parseInt(params._row || params.row || "0", 10);
+  if (row && row >= 2) return atualizarAcompanhamentoLiberacao_(params);
+  const workId = String(params.work_id || "").trim();
+  const dataIso = normalizarDataIsoLiberacao_(params.data || "");
+  if (workId && dataIso) {
+    const existente = encontrarLinhaAcompanhamento_(dataIso, workId);
+    if (existente) {
+      params._row = existente._row;
+      return atualizarAcompanhamentoLiberacao_(params);
+    }
+  }
+  return criarAcompanhamentoLiberacao_(params);
+}
+
+function encontrarLinhaAcompanhamento_(dataIso, workId) {
+  const dados = lerAcompanhamentoLiberacao_(dataIso, 0, "");
+  for (var i = 0; i < dados.length; i++) {
+    if (String(dados[i].work_id || "").trim() === String(workId).trim()) return dados[i];
+  }
+  return null;
+}
+
 function criarAcompanhamentoLiberacao_(params) {
   const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
   const cabecalho = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const chaves = cabecalho.map(normalizarChaveLiberacao_);
+  const valoresParams = expandirParamsColunasPlanilha_(params, chaves);
   const linha = chaves.map(function (chave) {
-    return params[chave] != null ? String(params[chave]) : "";
+    return valoresParams[chave] != null ? String(valoresParams[chave]) : "";
   });
   sheet.appendRow(linha);
   return { ok: true, linha: sheet.getLastRow(), acao: "create" };
@@ -484,9 +594,10 @@ function atualizarAcompanhamentoLiberacao_(params) {
   const lastCol = sheet.getLastColumn();
   const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   const chaves = cabecalho.map(normalizarChaveLiberacao_);
+  const valoresParams = expandirParamsColunasPlanilha_(params, chaves);
   chaves.forEach(function (chave, idx) {
-    if (!chave || params[chave] == null) return;
-    sheet.getRange(row, idx + 1).setValue(params[chave]);
+    if (!chave || valoresParams[chave] == null) return;
+    sheet.getRange(row, idx + 1).setValue(valoresParams[chave]);
   });
   return { ok: true, linha: row, acao: "update" };
 }
@@ -497,6 +608,7 @@ function linhaAcompanhamentoParaObjeto_(cabecalho, valores, rowNumber) {
     if (!chave) return;
     item[chave] = valorCelulaLiberacao_(valores[idx]);
   });
+  aplicarAliasesCamposLiberacao_(item);
   if (item.data) item.data_iso = normalizarDataIsoLiberacao_(item.data);
   return item;
 }
