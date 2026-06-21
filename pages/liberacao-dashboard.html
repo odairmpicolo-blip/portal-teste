@@ -42,7 +42,9 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .group-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
 .group-dot.rosa{background:var(--rosa)}.group-dot.laranja{background:var(--laranja)}.group-dot.vermelha{background:var(--red)}
 .group-title{margin:0;font-size:13px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.03em}
+.group-dot.orientar{background:linear-gradient(135deg,var(--rosa) 0%,var(--laranja) 100%)}
 .charts-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.charts-grid.linha-quatro{grid-template-columns:repeat(4,minmax(0,1fr))}
 .chart-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 32px rgba(16,24,40,.08);overflow:hidden;display:flex;flex-direction:column;min-height:300px}
 .chart-card.tone-rosa{border-top:4px solid var(--rosa)}.chart-card.tone-laranja{border-top:4px solid var(--laranja)}.chart-card.tone-vermelha{border-top:4px solid var(--red)}
 .chart-head{padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.72);backdrop-filter:blur(4px)}
@@ -58,8 +60,8 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .chart-body canvas{width:100%!important;height:100%!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-weight:700;background:rgba(255,255,255,.45);border-radius:0 0 16px 16px}
 .empty-page{padding:48px 24px;text-align:center;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--border);border-radius:16px}
-@media(max-width:1280px){.charts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:960px){.charts-grid{grid-template-columns:1fr}.toolbar-left,.filters-inline{width:100%}.filter-field{max-width:none}}
+@media(max-width:1100px){.charts-grid.linha-quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:960px){.charts-grid,.charts-grid.linha-quatro{grid-template-columns:1fr}.toolbar-left,.filters-inline{width:100%}.filter-field{max-width:none}}
 @media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
@@ -74,7 +76,6 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Gráficos por categoria — aba ACOMPANHAMENTO LIBERAÇÃO</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -109,33 +110,32 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 
-const GRUPOS = [
+const SECOES = [
     {
-        id: "rosa", titulo: "Orientar — saída no horário", cor: "#ec4899", tone: "tone-rosa",
+        id: "orientar",
+        titulo: "Orientar",
+        dotClass: "orientar",
         categorias: [
-            { chave: "NO_HORARIO|ATRASADO", titulo: "SAIU NO HORÁRIO E INICIOU ATRASADO", gravidade: "ORIENTAR" },
-            { chave: "NO_HORARIO|ADIANTADO", titulo: "SAIU NO HORÁRIO E INICIOU ADIANTADO", gravidade: "ORIENTAR" }
+            { chave: "NO_HORARIO|ATRASADO", titulo: "SAIU NO HORÁRIO E INICIOU ATRASADO", gravidade: "ORIENTAR", cor: "#ec4899", tone: "tone-rosa" },
+            { chave: "NO_HORARIO|ADIANTADO", titulo: "SAIU NO HORÁRIO E INICIOU ADIANTADO", gravidade: "ORIENTAR", cor: "#ec4899", tone: "tone-rosa" },
+            { chave: "ATRASADO|NO_HORARIO", titulo: "SAIU ATRASADO E INICIOU NO HORÁRIO", gravidade: "ORIENTAR", cor: "#f97316", tone: "tone-laranja" },
+            { chave: "ATRASADO|ADIANTADO", titulo: "SAIU ATRASADO E INICIOU ADIANTADO", gravidade: "ORIENTAR", cor: "#f97316", tone: "tone-laranja" }
         ]
     },
     {
-        id: "laranja", titulo: "Orientar — saída atrasada", cor: "#f97316", tone: "tone-laranja",
+        id: "grave",
+        titulo: "Grave",
+        dotClass: "vermelha",
         categorias: [
-            { chave: "ATRASADO|NO_HORARIO", titulo: "SAIU ATRASADO E INICIOU NO HORÁRIO", gravidade: "ORIENTAR" },
-            { chave: "ATRASADO|ADIANTADO", titulo: "SAIU ATRASADO E INICIOU ADIANTADO", gravidade: "ORIENTAR" }
-        ]
-    },
-    {
-        id: "vermelha", titulo: "Grave", cor: "#dc2626", tone: "tone-vermelha",
-        categorias: [
-            { chave: "ATRASADO|ATRASADO", titulo: "SAIU ATRASADO E INICIOU ATRASADO", gravidade: "GRAVE" },
-            { chave: "ADIANTADO|NO_HORARIO", titulo: "SAIU ADIANTADO E INICIOU NO HORÁRIO", gravidade: "GRAVE" },
-            { chave: "ADIANTADO|ATRASADO", titulo: "SAIU ADIANTADO E INICIOU ATRASADO", gravidade: "GRAVE" },
-            { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE" }
+            { chave: "ATRASADO|ATRASADO", titulo: "SAIU ATRASADO E INICIOU ATRASADO", gravidade: "GRAVE", cor: "#dc2626", tone: "tone-vermelha" },
+            { chave: "ADIANTADO|NO_HORARIO", titulo: "SAIU ADIANTADO E INICIOU NO HORÁRIO", gravidade: "GRAVE", cor: "#dc2626", tone: "tone-vermelha" },
+            { chave: "ADIANTADO|ATRASADO", titulo: "SAIU ADIANTADO E INICIOU ATRASADO", gravidade: "GRAVE", cor: "#dc2626", tone: "tone-vermelha" },
+            { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE", cor: "#dc2626", tone: "tone-vermelha" }
         ]
     }
 ];
 
-const CATEGORIAS = GRUPOS.flatMap(g => g.categorias.map(c => Object.assign({ cor: g.cor, tone: g.tone, grupo: g.id }, c)));
+const CATEGORIAS = SECOES.flatMap(s => s.categorias.map(c => Object.assign({ grupo: s.id }, c)));
 const state = { dados: [], charts: {}, reloadTimer: null };
 
 function $(id){ return document.getElementById(id); }
@@ -181,12 +181,12 @@ async function apiGet(params){
 }
 
 function montarHtmlGraficos(){
-    $("chartsRoot").innerHTML = GRUPOS.map(g => `
-        <section class="group-section" data-grupo="${g.id}">
-            <div class="group-head"><span class="group-dot ${g.id}"></span><h2 class="group-title">${escapeHtml(g.titulo)}</h2></div>
-            <div class="charts-grid">
-                ${g.categorias.map(c => `
-                    <article class="chart-card ${g.tone}" data-chave="${c.chave}">
+    $("chartsRoot").innerHTML = SECOES.map(s => `
+        <section class="group-section" data-grupo="${s.id}">
+            <div class="group-head"><span class="group-dot ${s.dotClass}"></span><h2 class="group-title">${escapeHtml(s.titulo)}</h2></div>
+            <div class="charts-grid linha-quatro">
+                ${s.categorias.map(c => `
+                    <article class="chart-card ${c.tone}" data-chave="${c.chave}">
                         <div class="chart-head">
                             <h3 class="chart-title">${escapeHtml(c.titulo)}</h3>
                             <div class="chart-meta">
@@ -194,7 +194,7 @@ function montarHtmlGraficos(){
                                 <span class="chart-total" id="total-${c.chave}">0 ocorrências</span>
                             </div>
                         </div>
-                        <div class="chart-body ${g.tone}">
+                        <div class="chart-body ${c.tone}">
                             <canvas id="chart-${c.chave}" aria-label="${escapeHtml(c.titulo)}"></canvas>
                             <div class="chart-empty" id="empty-${c.chave}" hidden>Sem registros no período</div>
                         </div>
