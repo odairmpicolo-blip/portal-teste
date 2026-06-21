@@ -852,6 +852,149 @@ h1 {
 }
 /* Fim ajuste Codex */
 
+
+        /* Caixa de lançamento conectada ao Google Sheets */
+        .launch-card {
+            background: #ffffff;
+            border: 1px solid #d9e2f0;
+            border-left: 4px solid var(--blue2);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 14px 36px rgba(6, 36, 92, 0.08);
+        }
+        .launch-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e8edf6;
+        }
+        .launch-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--blue);
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .launch-help {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: right;
+        }
+        .launch-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .launch-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+        .launch-group.launch-wide { grid-column: span 2; }
+        .launch-group.launch-full { grid-column: 1 / -1; }
+        .launch-group label {
+            color: #344054;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .launch-group input,
+        .launch-group select,
+        .launch-group textarea {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid #cfd8e8;
+            border-radius: 7px;
+            background: #ffffff;
+            padding: 8px 10px;
+            color: #182230;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .launch-group textarea {
+            min-height: 74px;
+            resize: vertical;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .launch-group input:focus,
+        .launch-group select:focus,
+        .launch-group textarea:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.14);
+        }
+        .launch-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .btn-launch,
+        .btn-clear {
+            border: 0;
+            border-radius: 8px;
+            min-height: 38px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-launch {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--blue), var(--blue2));
+            box-shadow: 0 8px 16px rgba(6, 36, 92, 0.16);
+        }
+        .btn-clear {
+            color: var(--blue);
+            background: #eef4ff;
+            border: 1px solid rgba(6, 36, 92, 0.12);
+        }
+        .btn-launch:disabled,
+        .btn-clear:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+        .launch-msg {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            display: none;
+        }
+        .launch-msg.ok {
+            display: block;
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .launch-msg.erro {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        @media (max-width: 1100px) {
+            .launch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 650px) {
+            .launch-head { align-items: flex-start; flex-direction: column; }
+            .launch-help { text-align: left; }
+            .launch-grid { grid-template-columns: 1fr; }
+            .launch-group.launch-wide { grid-column: auto; }
+            .launch-actions { justify-content: stretch; flex-direction: column; }
+            .btn-launch, .btn-clear { width: 100%; }
+        }
+
 </style>
 </head>
 <body>
@@ -876,6 +1019,91 @@ h1 {
     </div>
 </div>
 <div class="container">
+    
+    <div class="launch-card">
+        <div class="launch-head">
+            <div class="launch-title"><span class="section-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span><span>Lançamento de Informações na Planilha</span></div>
+            <div class="launch-help">Preencha os campos e clique em salvar para alimentar a aba da planilha em tempo real.</div>
+        </div>
+        <form id="form-lancamento" onsubmit="enviarLancamento(event)">
+            <div class="launch-grid">
+                <div class="launch-group">
+                    <label for="novo-data">Data</label>
+                    <input type="date" id="novo-data" name="data" required>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-hora">Hora</label>
+                    <input type="text" id="novo-hora" name="hora" placeholder="Ex.: 19:43">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-ocorrencia">Ocorrência</label>
+                    <select id="novo-ocorrencia" name="ocorrencia" required><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-analista">Analista</label>
+                    <select id="novo-analista" name="analista" required><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-carro-sai">Carro que sai</label>
+                    <select id="novo-carro-sai" name="carro_sai"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mot-sai">Mot. que sai</label>
+                    <select id="novo-mot-sai" name="mot_sai"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-carro-entra">Carro que entra</label>
+                    <select id="novo-carro-entra" name="carro_entra"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mot-entra">Mot. que entra</label>
+                    <select id="novo-mot-entra" name="mot_entra"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-linha">Linha</label>
+                    <select id="novo-linha" name="linha"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-tabela">Tabela</label>
+                    <input type="text" id="novo-tabela" name="tabela" placeholder="Livre">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-servico">Serviço</label>
+                    <input type="text" id="novo-servico" name="servico" placeholder="Livre">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-motivo-oficina">Motivo (somente oficina)</label>
+                    <select id="novo-motivo-oficina" name="motivo_oficina"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-local">Local</label>
+                    <select id="novo-local" name="local"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mecanico">Mecânico</label>
+                    <select id="novo-mecanico" name="mecanico"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-situacao">Situação</label>
+                    <select id="novo-situacao" name="situacao"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-tempo-deslocamento">Tempo de deslocamento da oficina</label>
+                    <select id="novo-tempo-deslocamento" name="tempo_deslocamento"><option value="">Selecione</option></select>
+                </div>
+                <div class="launch-group launch-full">
+                    <label for="novo-observacoes">Observações</label>
+                    <textarea id="novo-observacoes" name="observacoes" placeholder="Livre"></textarea>
+                </div>
+            </div>
+            <div class="launch-actions">
+                <button type="button" class="btn-clear" onclick="limparLancamento()">Limpar</button>
+                <button type="submit" class="btn-launch" id="btn-salvar-lancamento">Salvar na planilha</button>
+            </div>
+            <div id="msg-lancamento" class="launch-msg"></div>
+        </form>
+    </div>
+
     
     <div class="filter-wrapper">
         <div class="filter-head">
@@ -978,15 +1206,18 @@ h1 {
             <thead>
                 <tr>
                     <th data-sort="data"><span class="sort-label">Data <span class="sort-icon" aria-hidden="true">↕</span></span></th>
+                    <th data-sort="hora"><span class="sort-label">Hora <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="analista"><span class="sort-label">Analista <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="ocorrencia"><span class="sort-label">Ocorrência <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="linha"><span class="sort-label">Linha <span class="sort-icon" aria-hidden="true">↕</span></span></th>
+                    <th data-sort="carro_sai"><span class="sort-label">Carro Sai <span class="sort-icon" aria-hidden="true">↕</span></span></th>
+                    <th data-sort="carro_entra"><span class="sort-label">Carro Entra <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="situacao"><span class="sort-label">Situação <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                 </tr>
             </thead>
             <tbody id="tabela-corpo">
                 <tr>
-                    <td colspan="5" class="loading">Buscando dados em tempo real do Google Sheets...</td>
+                    <td colspan="8" class="loading">Buscando dados em tempo real do Google Sheets...</td>
                 </tr>
             </tbody>
         </table>
@@ -999,27 +1230,49 @@ h1 {
 </footer>
 
 <script>
-    const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbxLQZaotEpUGonwyu09JrhYK-0c8ELjjjadhJ3Dhz9sUB0Is3JTHIWOEDVR5JJ1D7hA/exec";
+    const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbwhrK2VcDaj8nqWK46_LtwqapppV5mAOqN6Xu5va8PNRcoPcUMP8dTTpBK_1RvJj3NdHw/exec";
 
     let dadosMestres = [];
+    let opcoesPlanilha = {};
     let chartAnalistasInstance = null;
     let chartOcorrenciasInstance = null;
     let chartSituacaoInstance = null;
     const ordenacaoTabela = { key: "data", dir: "desc" };
+    const camposFormularioComOpcoes = [
+        { id: "novo-ocorrencia", key: "ocorrencia" },
+        { id: "novo-analista", key: "analista" },
+        { id: "novo-carro-sai", key: "carro_sai" },
+        { id: "novo-mot-sai", key: "mot_sai" },
+        { id: "novo-carro-entra", key: "carro_entra" },
+        { id: "novo-mot-entra", key: "mot_entra" },
+        { id: "novo-linha", key: "linha" },
+        { id: "novo-motivo-oficina", key: "motivo_oficina" },
+        { id: "novo-local", key: "local" },
+        { id: "novo-mecanico", key: "mecanico" },
+        { id: "novo-situacao", key: "situacao" },
+        { id: "novo-tempo-deslocamento", key: "tempo_deslocamento" }
+    ];
 
     function carregarFolhaServico() {
         window.portalMostrarCarregando?.("Carregando folha de serviço");
-        fetch(URL_DO_SCRIPT_GOOGLE)
+        return fetch(URL_DO_SCRIPT_GOOGLE)
             .then(response => response.json())
-            .then(dados => {
-                dadosMestres = dados;
+            .then(retorno => {
+                if (Array.isArray(retorno)) {
+                    dadosMestres = retorno;
+                    opcoesPlanilha = {};
+                } else {
+                    dadosMestres = Array.isArray(retorno.dados) ? retorno.dados : [];
+                    opcoesPlanilha = retorno.opcoes || {};
+                }
                 gerarFiltrosDinamicos(dadosMestres);
                 inicializarGraficos(dadosMestres);
                 renderizarTabela(dadosMestres);
+                preencherDataAtual();
             })
             .catch(error => {
                 console.error("Erro ao carregar dados:", error);
-                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="5" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha. Verifique se as permissões de implantação estão para 'Qualquer pessoa'.</td></tr>`;
+                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha. Verifique se as permissões de implantação estão para 'Qualquer pessoa'.</td></tr>`;
             })
             .finally(() => window.portalOcultarCarregando?.());
     }
@@ -1043,19 +1296,99 @@ h1 {
         populateSelect('filtro-ocorrencia', ocorrencias);
         populateSelect('filtro-linha', linhas);
         populateSelect('filtro-situacao', situacoes);
+        preencherSelectsDoFormulario(dados);
     }
 
     function populateSelect(id, set) {
         const select = document.getElementById(id);
+        if (!select) return;
         const valorSelecionado = select.value;
         select.innerHTML = select.options[0].outerHTML;
-        Array.from(set).sort().forEach(val => {
+        Array.from(set).filter(Boolean).sort((a,b) => String(a).localeCompare(String(b), "pt-BR", { numeric:true })).forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
             opt.innerText = val;
             select.appendChild(opt);
         });
         select.value = valorSelecionado;
+    }
+
+    function preencherSelectsDoFormulario(dados) {
+        camposFormularioComOpcoes.forEach(campo => {
+            const valores = new Set(opcoesPlanilha[campo.key] || []);
+            dados.forEach(item => {
+                if (item[campo.key]) valores.add(item[campo.key]);
+            });
+            populateSelect(campo.id, valores);
+        });
+    }
+
+    function preencherDataAtual() {
+        const campoData = document.getElementById("novo-data");
+        if (campoData && !campoData.value) {
+            campoData.value = new Date().toISOString().slice(0, 10);
+        }
+    }
+
+    function limparLancamento() {
+        const form = document.getElementById("form-lancamento");
+        if (form) form.reset();
+        preencherDataAtual();
+        mostrarMensagemLancamento("", "");
+    }
+
+    function mostrarMensagemLancamento(texto, tipo) {
+        const msg = document.getElementById("msg-lancamento");
+        if (!msg) return;
+        msg.className = "launch-msg" + (tipo ? " " + tipo : "");
+        msg.textContent = texto || "";
+    }
+
+    function coletarDadosLancamento() {
+        const ids = [
+            "novo-data", "novo-hora", "novo-ocorrencia", "novo-analista", "novo-carro-sai", "novo-mot-sai",
+            "novo-carro-entra", "novo-mot-entra", "novo-linha", "novo-tabela", "novo-servico",
+            "novo-motivo-oficina", "novo-observacoes", "novo-local", "novo-mecanico", "novo-situacao", "novo-tempo-deslocamento"
+        ];
+        const payload = {};
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            payload[el.name] = (el.value || "").trim();
+        });
+        return payload;
+    }
+
+    async function enviarLancamento(event) {
+        event.preventDefault();
+        const btn = document.getElementById("btn-salvar-lancamento");
+        const payload = coletarDadosLancamento();
+        mostrarMensagemLancamento("", "");
+        btn.disabled = true;
+        btn.textContent = "Salvando...";
+        try {
+            const resposta = await fetch(URL_DO_SCRIPT_GOOGLE, {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: { "Content-Type": "text/plain;charset=utf-8" }
+            });
+            const texto = await resposta.text();
+            let retorno = {};
+            try { retorno = JSON.parse(texto); } catch(e) { retorno = { ok: resposta.ok }; }
+            if (!resposta.ok || retorno.ok === false) {
+                throw new Error(retorno.erro || "Não foi possível salvar na planilha.");
+            }
+            mostrarMensagemLancamento("Lançamento salvo na planilha com sucesso.", "ok");
+            document.getElementById("form-lancamento").reset();
+            preencherDataAtual();
+            await carregarFolhaServico();
+        } catch (erro) {
+            console.error("Erro ao salvar lançamento:", erro);
+            mostrarMensagemLancamento("Erro ao salvar. Confira a implantação do Apps Script e as permissões da planilha.", "erro");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Salvar na planilha";
+        }
     }
 
     function inicializarGraficos(dados) {
@@ -1234,12 +1567,12 @@ h1 {
         atualizarSetasTabela();
         
         if(dados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
             return;
         }
 
         ordenarDadosTabela(dados).forEach(d => {
-            let dataFormatada = d.data;
+            let dataFormatada = d.data || "";
             if(d.data && d.data.includes('-')) {
                 dataFormatada = d.data.split('-').reverse().join('/');
             }
@@ -1249,9 +1582,12 @@ h1 {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${dataFormatada}</td>
-                <td><strong>${d.analista}</strong></td>
-                <td>${d.ocorrencia}</td>
-                <td><span style="background:#e8edf6; padding:2px 6px; border-radius:4px; font-weight:bold;">${d.linha}</span></td>
+                <td>${d.hora || ""}</td>
+                <td><strong>${d.analista || ""}</strong></td>
+                <td>${d.ocorrencia || ""}</td>
+                <td><span style="background:#e8edf6; padding:2px 6px; border-radius:4px; font-weight:bold;">${d.linha || ""}</span></td>
+                <td>${d.carro_sai || ""}</td>
+                <td>${d.carro_entra || ""}</td>
                 <td><span class="status-badge ${badgeClass}">${d.situacao || 'Pendente'}</span></td>
             `;
             tbody.appendChild(tr);
