@@ -1291,7 +1291,7 @@ h1 {
     </div>
 
     <div class="table-card">
-        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Lançamentos de Hoje</span></div>
+        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Últimos 10 Lançamentos</span></div>
         <table>
             <thead>
                 <tr>
@@ -1308,7 +1308,7 @@ h1 {
             </thead>
             <tbody id="tabela-corpo">
                 <tr>
-                    <td colspan="9" class="loading">Carregando lançamentos da planilha...</td>
+                    <td colspan="9" class="loading">Carregando lançamentos recentes...</td>
                 </tr>
             </tbody>
         </table>
@@ -1322,9 +1322,9 @@ h1 {
 
 <script>
     const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbxZCBQvizRj0qQ3zgB_FHSwWWkpaozr0C2w6bQyi4YpLbutAI-SjODwZFVqqCkLjPNYaw/exec";
-    const URL_LEITURA_FALLBACK = "https://script.google.com/macros/s/AKfycbxLQZaotEpUGonwyu09JrhYK-0c8ELjjjadhJ3Dhz9sUB0Is3JTHIWOEDVR5JJ1D7hA/exec";
-    const TEMPO_LIMITE_LEITURA_MS = 60000;
     const TEMPO_LIMITE_SALVAR_MS = 30000;
+    const CACHE_STORAGE_KEY = "ciop_folha_lancamentos_recentes_v1";
+    const LIMITE_LINHAS_RECENTES = 10;
 
     let dadosMestres = [];
     let opcoesPlanilha = {};
@@ -1386,56 +1386,99 @@ h1 {
 
     window.onload = () => {
         aplicarMascaraHora();
+        const iniciar = () => inicializarPaginaLancamento();
         if (typeof window.portalAguardarUsuario === "function") {
-            window.portalAguardarUsuario(carregarFolhaServico);
+            window.portalAguardarUsuario(iniciar);
         } else {
-            carregarFolhaServico();
+            iniciar();
         }
     };
 
-    function urlLeituraPlanilha() {
-        return `${URL_DO_SCRIPT_GOOGLE}?data=${encodeURIComponent(hojeISO())}`;
-    }
-
-    function carregarFolhaServico() {
-        window.portalMostrarCarregando?.("Carregando lançamento");
-        return carregarDadosPlanilha(urlLeituraPlanilha())
-            .catch(errorPrincipal => {
-                console.warn("Falha ao ler Apps Script principal. Usando leitura do dashboard:", errorPrincipal);
-                mostrarMensagemLancamento("Dados carregados em modo leitura. O envio depende da implantação do Apps Script de lançamento.", "erro");
-                return carregarDadosPlanilha(URL_LEITURA_FALLBACK);
-            })
-            .then(retorno => {
-                dadosMestres = normalizarDados(extrairDadosRetorno(retorno));
-                opcoesPlanilha = normalizarOpcoes(retorno.opcoes || {});
-                preencherSelectsDoFormulario(dadosMestres);
-                renderizarTabela(dadosMestres);
-                preencherDataAtual();
-            })
-            .catch(error => {
-                console.error("Erro ao carregar dados:", error);
-                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="9" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha: ${error.message}</td></tr>`;
-            })
-            .finally(() => window.portalOcultarCarregando?.());
-    }
-
-    async function carregarDadosPlanilha(url) {
-        const response = await fetchComTimeout(url, {}, TEMPO_LIMITE_LEITURA_MS);
-        const texto = await response.text();
-        let retorno;
+    function lerCacheLancamentos() {
         try {
-            retorno = JSON.parse(texto);
-        } catch (e) {
-            throw new Error("O Apps Script não retornou JSON válido. Verifique a implantação do Web App.");
+            const raw = localStorage.getItem(CACHE_STORAGE_KEY);
+            if (!raw) return { lancamentos: [], opcoes: {} };
+            const parsed = JSON.parse(raw);
+            return {
+                lancamentos: Array.isArray(parsed.lancamentos) ? parsed.lancamentos : [],
+                opcoes: parsed.opcoes && typeof parsed.opcoes === "object" ? parsed.opcoes : {}
+            };
+        } catch (error) {
+            console.warn("Cache local inválido:", error);
+            return { lancamentos: [], opcoes: {} };
         }
-        if (Array.isArray(retorno)) return retorno;
-        if (!response.ok || retorno.ok === false) {
-            throw new Error(retorno.erro || "Erro retornado pelo Apps Script.");
-        }
-        return retorno;
     }
 
-    function fetchComTimeout(url, options = {}, timeoutMs = TEMPO_LIMITE_LEITURA_MS) {
+    function salvarCacheLancamentos(lancamentos, opcoes) {
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify({
+            lancamentos: lancamentos.slice(0, LIMITE_LINHAS_RECENTES),
+            opcoes: opcoes || {},
+            atualizadoEm: Date.now()
+        }));
+    }
+
+    function mesclarPayloadNasOpcoes(opcoes, payload) {
+        const resultado = { ...(opcoes || {}) };
+        camposFormularioComOpcoes.forEach(campo => {
+            const valor = String(payload[campo.key] || "").trim();
+            if (!valor) return;
+            const lista = Array.isArray(resultado[campo.key]) ? [...resultado[campo.key]] : [];
+            if (!lista.some(item => String(item).trim().toLowerCase() === valor.toLowerCase())) {
+                lista.push(valor);
+            }
+            resultado[campo.key] = lista;
+        });
+        return resultado;
+    }
+
+    function inicializarPaginaLancamento() {
+        aplicarCacheLocal();
+    }
+
+    function aplicarCacheLocal() {
+        const cache = lerCacheLancamentos();
+        dadosMestres = normalizarDados(cache.lancamentos).slice(0, LIMITE_LINHAS_RECENTES);
+        opcoesPlanilha = normalizarOpcoes(cache.opcoes);
+        preencherSelectsDoFormulario(dadosMestres);
+        renderizarTabela(dadosMestres);
+        preencherDataAtual();
+    }
+
+    function adicionarLancamentoAoCache(payload, retorno) {
+        const cache = lerCacheLancamentos();
+        const registro = normalizarRegistro({
+            ...payload,
+            _row: retorno.linha || retorno._row || "",
+            _localId: `local-${Date.now()}`
+        });
+        const lista = [registro, ...normalizarDados(cache.lancamentos)].slice(0, LIMITE_LINHAS_RECENTES);
+        const opcoes = mesclarPayloadNasOpcoes(cache.opcoes, payload);
+        salvarCacheLancamentos(lista, opcoes);
+        dadosMestres = normalizarDados(lista);
+        opcoesPlanilha = normalizarOpcoes(opcoes);
+        preencherSelectsDoFormulario(dadosMestres);
+        renderizarTabela(dadosMestres);
+    }
+
+    function atualizarLancamentoNoCache(rowKey, payload) {
+        const cache = lerCacheLancamentos();
+        const rowId = String(rowKey);
+        const campos = { ...payload };
+        delete campos.action;
+        delete campos._row;
+        const lista = normalizarDados(cache.lancamentos).map(item => {
+            const chave = String(chaveLinhaPlanilha(item) || item._localId || "");
+            if (chave !== rowId) return item;
+            return normalizarRegistro({ ...item, ...campos, _row: rowKey });
+        });
+        const opcoes = mesclarPayloadNasOpcoes(cache.opcoes, payload);
+        salvarCacheLancamentos(lista, opcoes);
+        dadosMestres = lista;
+        opcoesPlanilha = normalizarOpcoes(opcoes);
+        preencherSelectsDoFormulario(dadosMestres);
+        renderizarTabela(dadosMestres);
+    }
+    function fetchComTimeout(url, options = {}, timeoutMs = TEMPO_LIMITE_SALVAR_MS) {
         const controller = new AbortController();
         const timer = window.setTimeout(() => controller.abort(), timeoutMs);
         return fetch(url, { ...options, signal: controller.signal })
@@ -1444,11 +1487,6 @@ h1 {
                 throw error;
             })
             .finally(() => window.clearTimeout(timer));
-    }
-
-    function extrairDadosRetorno(retorno) {
-        if (Array.isArray(retorno)) return retorno;
-        return retorno.dados || retorno.registros || retorno.linhas || retorno.rows || [];
     }
 
     function normalizarNomeCampo(valor) {
@@ -1631,7 +1669,7 @@ h1 {
             mostrarMensagemLancamento(`Lançamento salvo com sucesso na linha ${retorno.linha || ""}.`, "ok");
             document.getElementById("form-lancamento").reset();
             preencherDataAtual();
-            await carregarFolhaServico();
+            adicionarLancamentoAoCache(payload, retorno);
         } catch (erro) {
             console.error("Erro ao salvar lançamento:", erro);
             mostrarMensagemLancamento("Erro ao salvar: " + (erro.message || "Confira a implantação do Apps Script e as permissões da planilha."), "erro");
@@ -1649,9 +1687,13 @@ h1 {
     function ordenarDadosTabela(dados) {
         const dir = ordenacaoTabela.dir === "asc" ? 1 : -1;
         return dados.slice().sort((a, b) => {
+            if (ordenacaoTabela.key === "data") {
+                const va = `${dataParaISO(a.data)} ${String(a.hora || "")}`;
+                const vb = `${dataParaISO(b.data)} ${String(b.hora || "")}`;
+                return va.localeCompare(vb) * dir;
+            }
             const va = valorOrdenacaoTabela(a, ordenacaoTabela.key);
             const vb = valorOrdenacaoTabela(b, ordenacaoTabela.key);
-            if (ordenacaoTabela.key === "data") return va.localeCompare(vb) * dir;
             return va.localeCompare(vb, "pt-BR", { numeric: true }) * dir;
         });
     }
@@ -1670,14 +1712,13 @@ h1 {
         tbody.innerHTML = "";
         atualizarSetasTabela();
 
-        const dataHoje = hojeISO();
-        const dadosHoje = dados.filter(d => dataParaISO(d.data) === dataHoje);
+        const linhas = dados.slice(0, LIMITE_LINHAS_RECENTES);
 
-        if(dadosHoje.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--muted);">Nenhum lançamento encontrado para hoje.</td></tr>`;
+        if (linhas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--muted);">Nenhum lançamento recente. Após salvar, as últimas ${LIMITE_LINHAS_RECENTES} linhas ficam guardadas neste navegador.</td></tr>`;
             return;
         }
-        ordenarDadosTabela(dadosHoje).forEach(d => {
+        ordenarDadosTabela(linhas).forEach(d => {
             const rowKey = chaveLinhaPlanilha(d);
             const editando = rowKey && String(rowKey) === String(linhaEditando);
             const tr = document.createElement('tr');
@@ -1794,7 +1835,7 @@ h1 {
             if (!resposta.ok || retorno.ok === false) throw new Error(retorno.erro || "Não foi possível atualizar a planilha.");
             mostrarMensagemLancamento("Lançamento atualizado com sucesso.", "ok");
             linhaEditando = "";
-            await carregarFolhaServico();
+            atualizarLancamentoNoCache(rowKey, payload);
         } catch (erro) {
             console.error("Erro ao atualizar lançamento:", erro);
             mostrarMensagemLancamento("Erro ao atualizar: " + (erro.message || "Confira o Apps Script."), "erro");
