@@ -61,7 +61,11 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .chart-empty[hidden]{display:none!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-weight:700;background:rgba(255,255,255,.45);border-radius:0 0 16px 16px}
 .empty-page{padding:48px 24px;text-align:center;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--border);border-radius:16px}
-.pdf-sheet-header{display:none;text-align:center;padding:0 0 12px}
+.pdf-sheet-header{display:none;padding:0 0 10px}
+.pdf-sheet-top{display:grid;grid-template-columns:minmax(140px,1fr) auto minmax(140px,1fr);align-items:center;gap:16px;padding:8px 14px 10px;background:#fff;border-bottom:1px solid #e8edf6;margin-bottom:10px}
+.pdf-sheet-top .logo-ciop{justify-self:start;height:38px}
+.pdf-sheet-top .logo-tcgl{justify-self:end;height:42px}
+.pdf-sheet-title-wrap{text-align:center}
 .pdf-sheet-title{margin:0;color:var(--blue);font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
 .pdf-sheet-period{margin:4px 0 0;color:var(--muted);font-size:11px;font-weight:700}
 .pdf-exporting .pdf-sheet-header{display:block}
@@ -116,8 +120,14 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 
     <div id="pdfExport">
         <div class="pdf-sheet-header" aria-hidden="true">
-            <h2 class="pdf-sheet-title">Acompanhamento da Liberação</h2>
-            <p class="pdf-sheet-period" id="pdfPeriodo"></p>
+            <div class="pdf-sheet-top">
+                <img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP">
+                <div class="pdf-sheet-title-wrap">
+                    <h2 class="pdf-sheet-title">Acompanhamento da Liberação</h2>
+                    <p class="pdf-sheet-period" id="pdfPeriodo"></p>
+                </div>
+                <img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL">
+            </div>
         </div>
         <div id="chartsRoot"></div>
     </div>
