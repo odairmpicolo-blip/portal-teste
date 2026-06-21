@@ -995,6 +995,131 @@ h1 {
             .btn-launch, .btn-clear { width: 100%; }
         }
 
+
+        /* Ajuste solicitado: título acima da caixa e lançamento compacto */
+        .launch-section-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--blue);
+            font-size: 15px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            text-align: center;
+        }
+        .launch-section-title .section-icon {
+            width: 30px;
+            height: 30px;
+        }
+        .launch-head.launch-head-compact {
+            justify-content: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+        }
+        .launch-head.launch-head-compact .launch-help {
+            width: 100%;
+            text-align: center;
+        }
+        @media (min-width: 1200px) {
+            .launch-card {
+                padding: 12px 14px;
+                margin-bottom: 18px;
+            }
+            .launch-section-title {
+                font-size: 14px;
+                margin-bottom: 7px;
+            }
+            .launch-section-title .section-icon {
+                width: 28px;
+                height: 28px;
+            }
+            .launch-head.launch-head-compact {
+                margin-bottom: 8px;
+                padding-bottom: 7px;
+            }
+            .launch-help {
+                font-size: 10px;
+            }
+            .launch-grid {
+                grid-template-columns: repeat(9, minmax(82px, 1fr));
+                gap: 7px;
+                align-items: end;
+            }
+            .launch-group {
+                gap: 3px;
+            }
+            .launch-group.launch-wide,
+            .launch-group.launch-full {
+                grid-column: span 2;
+            }
+            .launch-group label {
+                font-size: 8.8px;
+                line-height: 1.05;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .launch-group input,
+            .launch-group select,
+            .launch-group textarea {
+                min-height: 30px;
+                height: 30px;
+                padding: 4px 6px;
+                border-radius: 6px;
+                font-size: 11px;
+                line-height: 1.1;
+            }
+            .launch-group textarea {
+                min-height: 30px;
+                height: 30px;
+                resize: none;
+            }
+            .launch-actions {
+                margin-top: 9px;
+            }
+            .btn-launch,
+            .btn-clear {
+                min-height: 32px;
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 7px;
+            }
+            .launch-msg {
+                margin-top: 8px;
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+        }
+        @media (min-width: 900px) and (max-width: 1199px) {
+            .launch-grid {
+                grid-template-columns: repeat(6, minmax(92px, 1fr));
+                gap: 8px;
+            }
+            .launch-group.launch-full {
+                grid-column: span 2;
+            }
+            .launch-group input,
+            .launch-group select,
+            .launch-group textarea {
+                min-height: 32px;
+                height: 32px;
+                padding: 5px 7px;
+                font-size: 12px;
+            }
+            .launch-group textarea {
+                min-height: 32px;
+                height: 32px;
+                resize: none;
+            }
+            .launch-group label {
+                font-size: 9.5px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1020,9 +1145,9 @@ h1 {
 </div>
 <div class="container">
     
+    <div class="launch-section-title"><span class="section-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span><span>Lançamento de Informações na Planilha</span></div>
     <div class="launch-card">
-        <div class="launch-head">
-            <div class="launch-title"><span class="section-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span><span>Lançamento de Informações na Planilha</span></div>
+        <div class="launch-head launch-head-compact">
             <div class="launch-help">Preencha os campos e clique em salvar para alimentar a aba da planilha em tempo real.</div>
         </div>
         <form id="form-lancamento" onsubmit="enviarLancamento(event)">
@@ -1037,63 +1162,63 @@ h1 {
                 </div>
                 <div class="launch-group">
                     <label for="novo-ocorrencia">Ocorrência</label>
-                    <select id="novo-ocorrencia" name="ocorrencia" required><option value="">Selecione</option></select>
+                    <input type="text" id="novo-ocorrencia" name="ocorrencia" list="lista-ocorrencia" autocomplete="off" required><datalist id="lista-ocorrencia"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-analista">Analista</label>
-                    <select id="novo-analista" name="analista" required><option value="">Selecione</option></select>
+                    <input type="text" id="novo-analista" name="analista" list="lista-analista" autocomplete="off" required><datalist id="lista-analista"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-carro-sai">Carro que sai</label>
-                    <select id="novo-carro-sai" name="carro_sai"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-carro-sai" name="carro_sai" list="lista-carro-sai" autocomplete="off"><datalist id="lista-carro-sai"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-mot-sai">Mot. que sai</label>
-                    <select id="novo-mot-sai" name="mot_sai"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-mot-sai" name="mot_sai" list="lista-mot-sai" autocomplete="off"><datalist id="lista-mot-sai"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-carro-entra">Carro que entra</label>
-                    <select id="novo-carro-entra" name="carro_entra"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-carro-entra" name="carro_entra" list="lista-carro-entra" autocomplete="off"><datalist id="lista-carro-entra"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-mot-entra">Mot. que entra</label>
-                    <select id="novo-mot-entra" name="mot_entra"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-mot-entra" name="mot_entra" list="lista-mot-entra" autocomplete="off"><datalist id="lista-mot-entra"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-linha">Linha</label>
-                    <select id="novo-linha" name="linha"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-linha" name="linha" list="lista-linha" autocomplete="off"><datalist id="lista-linha"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-tabela">Tabela</label>
-                    <input type="text" id="novo-tabela" name="tabela" placeholder="Livre">
+                    <input type="text" id="novo-tabela" name="tabela">
                 </div>
                 <div class="launch-group">
                     <label for="novo-servico">Serviço</label>
-                    <input type="text" id="novo-servico" name="servico" placeholder="Livre">
+                    <input type="text" id="novo-servico" name="servico">
                 </div>
                 <div class="launch-group">
                     <label for="novo-motivo-oficina">Motivo (somente oficina)</label>
-                    <select id="novo-motivo-oficina" name="motivo_oficina"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-motivo-oficina" name="motivo_oficina" list="lista-motivo-oficina" autocomplete="off"><datalist id="lista-motivo-oficina"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-local">Local</label>
-                    <select id="novo-local" name="local"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-local" name="local" list="lista-local" autocomplete="off"><datalist id="lista-local"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-mecanico">Mecânico</label>
-                    <select id="novo-mecanico" name="mecanico"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-mecanico" name="mecanico" list="lista-mecanico" autocomplete="off"><datalist id="lista-mecanico"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-situacao">Situação</label>
-                    <select id="novo-situacao" name="situacao"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-situacao" name="situacao" list="lista-situacao" autocomplete="off"><datalist id="lista-situacao"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-tempo-deslocamento">Tempo de deslocamento da oficina</label>
-                    <select id="novo-tempo-deslocamento" name="tempo_deslocamento"><option value="">Selecione</option></select>
+                    <input type="text" id="novo-tempo-deslocamento" name="tempo_deslocamento" list="lista-tempo-deslocamento" autocomplete="off"><datalist id="lista-tempo-deslocamento"></datalist>
                 </div>
                 <div class="launch-group launch-full">
                     <label for="novo-observacoes">Observações</label>
-                    <textarea id="novo-observacoes" name="observacoes" placeholder="Livre"></textarea>
+                    <textarea id="novo-observacoes" name="observacoes"></textarea>
                 </div>
             </div>
             <div class="launch-actions">
@@ -1230,10 +1355,11 @@ h1 {
 </footer>
 
 <script>
-    const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbwhrK2VcDaj8nqWK46_LtwqapppV5mAOqN6Xu5va8PNRcoPcUMP8dTTpBK_1RvJj3NdHw/exec";
+    const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbxZCBQvizRj0qQ3zgB_FHSwWWkpaozr0C2w6bQyi4YpLbutAI-SjODwZFVqqCkLjPNYaw/exec";
 
     let dadosMestres = [];
     let opcoesPlanilha = {};
+    let opcoesFormularioPermitidas = {};
     let chartAnalistasInstance = null;
     let chartOcorrenciasInstance = null;
     let chartSituacaoInstance = null;
@@ -1256,7 +1382,19 @@ h1 {
     function carregarFolhaServico() {
         window.portalMostrarCarregando?.("Carregando folha de serviço");
         return fetch(URL_DO_SCRIPT_GOOGLE)
-            .then(response => response.json())
+            .then(async response => {
+                const texto = await response.text();
+                let retorno;
+                try {
+                    retorno = JSON.parse(texto);
+                } catch (e) {
+                    throw new Error("O Apps Script não retornou JSON válido. Verifique a implantação do Web App.");
+                }
+                if (!response.ok || retorno.ok === false) {
+                    throw new Error(retorno.erro || "Erro retornado pelo Apps Script.");
+                }
+                return retorno;
+            })
             .then(retorno => {
                 if (Array.isArray(retorno)) {
                     dadosMestres = retorno;
@@ -1277,7 +1415,13 @@ h1 {
             .finally(() => window.portalOcultarCarregando?.());
     }
 
-    window.onload = () => window.portalAguardarUsuario?.(carregarFolhaServico);
+    window.onload = () => {
+        if (typeof window.portalAguardarUsuario === "function") {
+            window.portalAguardarUsuario(carregarFolhaServico);
+        } else {
+            carregarFolhaServico();
+        }
+    };
 
     function gerarFiltrosDinamicos(dados) {
         const analistas = new Set();
@@ -1299,26 +1443,49 @@ h1 {
         preencherSelectsDoFormulario(dados);
     }
 
+    function valoresOrdenados(set) {
+        return Array.from(set)
+            .map(v => String(v || "").trim())
+            .filter(Boolean)
+            .sort((a,b) => String(a).localeCompare(String(b), "pt-BR", { numeric:true }));
+    }
+
     function populateSelect(id, set) {
-        const select = document.getElementById(id);
-        if (!select) return;
-        const valorSelecionado = select.value;
-        select.innerHTML = select.options[0].outerHTML;
-        Array.from(set).filter(Boolean).sort((a,b) => String(a).localeCompare(String(b), "pt-BR", { numeric:true })).forEach(val => {
+        const campo = document.getElementById(id);
+        if (!campo) return;
+        const valores = valoresOrdenados(set);
+
+        if (campo.tagName === "INPUT" && campo.getAttribute("list")) {
+            const lista = document.getElementById(campo.getAttribute("list"));
+            if (!lista) return;
+            lista.innerHTML = "";
+            valores.forEach(val => {
+                const opt = document.createElement('option');
+                opt.value = val;
+                lista.appendChild(opt);
+            });
+            return;
+        }
+
+        const valorSelecionado = campo.value;
+        campo.innerHTML = campo.options[0].outerHTML;
+        valores.forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
             opt.innerText = val;
-            select.appendChild(opt);
+            campo.appendChild(opt);
         });
-        select.value = valorSelecionado;
+        campo.value = valorSelecionado;
     }
 
     function preencherSelectsDoFormulario(dados) {
+        opcoesFormularioPermitidas = {};
         camposFormularioComOpcoes.forEach(campo => {
             const valores = new Set(opcoesPlanilha[campo.key] || []);
             dados.forEach(item => {
                 if (item[campo.key]) valores.add(item[campo.key]);
             });
+            opcoesFormularioPermitidas[campo.key] = valoresOrdenados(valores);
             populateSelect(campo.id, valores);
         });
     }
@@ -1344,6 +1511,21 @@ h1 {
         msg.textContent = texto || "";
     }
 
+    function validarOpcoesPadrao(payload) {
+        for (const campo of camposFormularioComOpcoes) {
+            const valor = String(payload[campo.key] || "").trim();
+            if (!valor) continue;
+            const permitidas = opcoesFormularioPermitidas[campo.key] || [];
+            const ok = permitidas.some(opcao => String(opcao).trim().toLowerCase() === valor.toLowerCase());
+            if (!ok) {
+                const label = document.querySelector(`label[for="${campo.id}"]`);
+                const nomeCampo = label ? label.innerText : campo.key;
+                return `O campo "${nomeCampo}" aceita somente uma opção padrão da lista.`;
+            }
+        }
+        return "";
+    }
+
     function coletarDadosLancamento() {
         const ids = [
             "novo-data", "novo-hora", "novo-ocorrencia", "novo-analista", "novo-carro-sai", "novo-mot-sai",
@@ -1363,14 +1545,21 @@ h1 {
         event.preventDefault();
         const btn = document.getElementById("btn-salvar-lancamento");
         const payload = coletarDadosLancamento();
+        const erroValidacao = validarOpcoesPadrao(payload);
+        if (erroValidacao) {
+            mostrarMensagemLancamento(erroValidacao, "erro");
+            return;
+        }
         mostrarMensagemLancamento("", "");
         btn.disabled = true;
         btn.textContent = "Salvando...";
         try {
+            const corpo = new URLSearchParams();
+            Object.keys(payload).forEach(key => corpo.append(key, payload[key] || ""));
+
             const resposta = await fetch(URL_DO_SCRIPT_GOOGLE, {
                 method: "POST",
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "text/plain;charset=utf-8" }
+                body: corpo
             });
             const texto = await resposta.text();
             let retorno = {};
