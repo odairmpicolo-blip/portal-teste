@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lançamento — Acompanhamento da Liberação</title>
 <style>
-:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d}
+:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d;--amber:#b45309}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
 .header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:6px 20px;border-bottom:1px solid #e8edf6}
 .logo-ciop{height:40px;object-fit:contain}.logo-tcgl{height:45px;object-fit:contain}
@@ -17,31 +17,37 @@
 .header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
 .ciop-session{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid rgba(6,36,92,.12);border-radius:6px;font-size:11px;color:var(--blue)}
 .ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 7px;font-size:11px;cursor:pointer}
-.container{max-width:1540px;margin:22px auto 34px;padding:0 18px}
+.container{max-width:100%;margin:22px auto 34px;padding:0 18px}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit}
 .btn-portal,.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#e8edf6;color:var(--blue)}
 .status-line{color:var(--muted);font-size:12px;font-weight:700}
 .panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
 .panel-title{margin:0 0 12px;color:var(--blue);font-size:15px;font-weight:900}
-.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.form-grid label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.form-grid input,.form-grid select,.form-grid textarea{width:100%;min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
-.form-grid textarea{min-height:64px;resize:vertical}
-.form-grid .span-2{grid-column:span 2}.form-grid .span-4{grid-column:1/-1}
+.toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.toolbar label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
+.toolbar input{min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+.resumo{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:#eef4ff;color:var(--blue)}
+.chip.ok{background:#dcfce7;color:var(--green)}.chip.warn{background:#fef3c7;color:var(--amber)}.chip.muted{background:#f2f4f7;color:var(--muted)}
+.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
+.table-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.table-wrap{overflow:auto;max-height:calc(100vh - 320px);min-height:360px}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2400px}
+thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);padding:8px 7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody td{border-bottom:1px solid #edf2f7;padding:7px;text-align:center;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+tbody tr{cursor:pointer}tbody tr:hover{background:#fff7ed}tbody tr.selected{background:#ffedd5;outline:1px solid var(--orange)}
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase}
+.badge.cadastrado{background:#dcfce7;color:var(--green)}.badge.pendente{background:#fef3c7;color:var(--amber)}.badge.somente_planilha{background:#e0e7ff;color:#3730a3}
+.edit-panel .form-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.edit-panel label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
+.edit-panel input,.edit-panel select,.edit-panel textarea{width:100%;min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+.edit-panel textarea{min-height:64px;resize:vertical}.edit-panel .span-5{grid-column:1/-1}
 .form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .msg{font-size:12px;font-weight:700;margin-top:10px}.msg.ok{color:var(--green)}.msg.erro{color:var(--red)}
-.import-list{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:6px;margin-top:10px}
-.import-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid #edf2f7;font-size:12px}
-.import-item:last-child{border-bottom:0}
-.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
-.table-head{padding:14px;border-bottom:1px solid var(--border)}.table-wrap{overflow:auto;max-height:520px}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:1200px}
-thead th{background:#f8fafc;color:var(--blue);padding:9px;font-size:10px;text-transform:uppercase;text-align:center;position:sticky;top:0}
-tbody td{border-bottom:1px solid #edf2f7;padding:8px;text-align:center}
-tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#fff7ed}
-@media(max-width:900px){.form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.form-grid{grid-template-columns:1fr}.header{grid-template-columns:1fr;text-align:center}}
+.empty{padding:28px;color:var(--muted);font-weight:800;text-align:center}
+@media(max-width:900px){.edit-panel .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}.edit-panel .form-grid{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
 <script type="module" src="../assets/js/auth.js"></script>
@@ -52,7 +58,7 @@ tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#fff7ed}
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Lançamento — aba ACOMPANHAMENTO LIBERAÇÃO</div>
+        <div class="header-subtitle">Comparativo Saída de Carros × Planilha ACOMPANHAMENTO LIBERAÇÃO</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -69,64 +75,62 @@ tbody tr{cursor:pointer}tbody tr:hover,tbody tr.selected{background:#fff7ed}
             <a class="btn-portal" href="../index.html">Portal</a>
             <a class="btn-secondary" href="liberacao-dashboard.html">Dashboard</a>
         </div>
-        <div class="status-line" id="statusLine">Pronto para lançar.</div>
+        <div class="status-line" id="statusLine">Selecione a data para comparar.</div>
     </div>
 
     <section class="panel">
-        <h2 class="panel-title">Importar da Saída de Carros</h2>
-        <div class="form-grid">
-            <div><label for="dataImport">Data</label><input id="dataImport" type="date"></div>
-            <div style="align-self:end"><button class="btn-secondary" type="button" id="btnImportar">Carregar saída de carros</button></div>
+        <h2 class="panel-title">Data da Saída de Carros</h2>
+        <div class="toolbar">
+            <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
+            <button class="btn-secondary" type="button" id="btnRecarregar">Atualizar comparativo</button>
         </div>
-        <div class="import-list" id="listaImport"></div>
-    </section>
-
-    <section class="panel">
-        <h2 class="panel-title">Registrar acompanhamento</h2>
-        <form id="formLiberacao" class="form-grid">
-            <input type="hidden" id="_row">
-            <div><label for="data">Data</label><input id="data" name="data" required></div>
-            <div><label for="maquina">Máquina</label><input id="maquina" name="maquina"></div>
-            <div><label for="linha">Linha</label><input id="linha" name="linha"></div>
-            <div><label for="work_id">Work-ID</label><input id="work_id" name="work_id"></div>
-            <div><label for="carro">Carro</label><input id="carro" name="carro"></div>
-            <div><label for="motorista">Motorista</label><input id="motorista" name="motorista"></div>
-            <div><label for="preparo">Preparo</label><input id="preparo" name="preparo" placeholder="00:10"></div>
-            <div><label for="horario_saida_da_garagem">Horário saída garagem</label><input id="horario_saida_da_garagem" name="horario_saida_da_garagem" placeholder="HH:mm"></div>
-            <div><label for="saida_real">Saída real</label><input id="saida_real" name="saida_real" placeholder="HH:mm"></div>
-            <div><label for="saiu_no_horario">Saiu no horário</label><select id="saiu_no_horario" name="saiu_no_horario"><option value="">—</option><option>SIM</option><option>NÃO</option></select></div>
-            <div><label for="saida_atrasado_adiantado">Saída atrasado/adiantado</label><select id="saida_atrasado_adiantado" name="saida_atrasado_adiantado"><option value="">—</option><option>NO HORÁRIO</option><option>ATRASADO</option><option>ADIANTADO</option></select></div>
-            <div><label for="local_inicio">Local início</label><input id="local_inicio" name="local_inicio"></div>
-            <div><label for="horario_de_inicio">Horário início</label><input id="horario_de_inicio" name="horario_de_inicio" placeholder="HH:mm"></div>
-            <div><label for="inicio_real">Início real</label><input id="inicio_real" name="inicio_real" placeholder="HH:mm"></div>
-            <div><label for="inicio_no_horario">Início no horário</label><select id="inicio_no_horario" name="inicio_no_horario"><option value="">—</option><option>NO HORÁRIO</option><option>ATRASADO</option><option>ADIANTADO</option></select></div>
-            <div class="span-4"><label for="observacoes">Observações</label><textarea id="observacoes" name="observacoes"></textarea></div>
-        </form>
-        <div class="form-actions">
-            <button class="btn-primary" type="button" id="btnSalvar">Salvar lançamento</button>
-            <button class="btn-secondary" type="button" id="btnLimpar">Limpar formulário</button>
-        </div>
-        <div id="msgForm" class="msg"></div>
+        <div class="resumo" id="resumoChips"></div>
     </section>
 
     <section class="table-card">
-        <div class="table-head"><h2 class="panel-title">Últimos lançamentos</h2></div>
+        <div class="table-head">
+            <h2 class="panel-title" style="margin:0">Todos os registros do dia</h2>
+            <span class="status-line" id="tableInfo">0 linhas</span>
+        </div>
         <div class="table-wrap">
             <table>
-                <thead><tr><th>Data</th><th>Linha</th><th>Carro</th><th>Motorista</th><th>Saída prog.</th><th>Saída real</th><th>Local</th></tr></thead>
-                <tbody id="tabelaRecentes"></tbody>
+                <thead id="tabelaHead"><tr><th>Status</th></tr></thead>
+                <tbody id="tabelaCorpo"></tbody>
             </table>
+            <div class="empty" id="emptyState" hidden>Nenhum registro para esta data.</div>
         </div>
+    </section>
+
+    <section class="panel edit-panel" id="editPanel" hidden>
+        <h2 class="panel-title">Editar / cadastrar linha selecionada</h2>
+        <form id="formLiberacao" class="form-grid"></form>
+        <div class="form-actions">
+            <button class="btn-primary" type="button" id="btnSalvar">Salvar na planilha</button>
+            <button class="btn-secondary" type="button" id="btnLimpar">Limpar seleção</button>
+        </div>
+        <div id="msgForm" class="msg"></div>
     </section>
 </main>
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
-const CAMPOS = ["data","maquina","linha","work_id","carro","motorista","preparo","horario_saida_da_garagem","saida_real","saiu_no_horario","minutos_atrasado_garagem","minutos_adiantado_garagem","saida_atrasado_adiantado","local_inicio","trajeto_ocioso_correto","horario_de_inicio","inicio_real","inicio_no_horario","observacoes","minutos_atrasado_no_inicio","minutos_adiantado_no_inicio"];
-let importados = [];
+const COLUNAS_PADRAO = [
+    { chave: "data", rotulo: "DATA" }, { chave: "maquina", rotulo: "MAQUINA" }, { chave: "linha", rotulo: "LINHA" },
+    { chave: "work_id", rotulo: "WORK-ID" }, { chave: "carro", rotulo: "CARRO" }, { chave: "motorista", rotulo: "MOTORISTA" },
+    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO DE SAÍDA DA GARAGEM" },
+    { chave: "saida_real", rotulo: "SAÍDA REAL" }, { chave: "saiu_no_horario", rotulo: "SAIU NO HORÁRIO" },
+    { chave: "minutos_atrasado_garagem", rotulo: "MINUTOS ATRASADO GARAGEM" }, { chave: "minutos_adiantado_garagem", rotulo: "MINUTOS ADIANTADO GARAGEM" },
+    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATRASADO/ADIANTADO" }, { chave: "local_inicio", rotulo: "LOCAL INICIO" },
+    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OCIOSO CORRETO?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INICIO" },
+    { chave: "inicio_real", rotulo: "INICIO REAL" }, { chave: "inicio_no_horario", rotulo: "INICÍO NO HORÁRIO" },
+    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MINUTOS ATRASADO NO INICIO" },
+    { chave: "minutos_adiantado_no_inicio", rotulo: "MINUTOS ADIANTADO NO INICIO" }
+];
+const state = { colunas: [], dados: [], resumo: null, selecionado: null };
 
 function $(id){return document.getElementById(id)}
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+function val(row,key){return row[key]!=null?row[key]:""}
 
 async function apiGet(params){
     const res = await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)),{cache:"no-store"});
@@ -142,77 +146,191 @@ async function apiPost(payload){
     return data;
 }
 
+function rotuloStatus(s){
+    if(s==="cadastrado") return "Cadastrado";
+    if(s==="pendente") return "Pendente";
+    if(s==="somente_planilha") return "Só planilha";
+    return s||"—";
+}
+
+function renderResumo(){
+    const r = state.resumo||{};
+    $("resumoChips").innerHTML = [
+        '<span class="chip">Saída de carros: <strong>'+(r.total_saida||0)+'</strong></span>',
+        '<span class="chip">Na planilha: <strong>'+(r.total_planilha||0)+'</strong></span>',
+        '<span class="chip ok">Cadastrados: <strong>'+(r.total_cadastrados||0)+'</strong></span>',
+        '<span class="chip warn">Pendentes: <strong>'+(r.total_pendentes||0)+'</strong></span>',
+        (r.total_somente_planilha?'<span class="chip muted">Só na planilha: <strong>'+r.total_somente_planilha+'</strong></span>':"")
+    ].join("");
+}
+
+function renderTabela(){
+    const cols = state.colunas;
+    $("tabelaHead").innerHTML = "<tr><th>Status</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
+    const sel = state.selecionado;
+    $("tabelaCorpo").innerHTML = state.dados.map((row,i)=>{
+        const cls = sel && sel._chave===row._chave ? "selected" : "";
+        const st = row._status||"";
+        return '<tr class="'+cls+'" data-i="'+i+'"><td><span class="badge '+escapeHtml(st)+'">'+escapeHtml(rotuloStatus(st))+'</span></td>'+
+            cols.map(c=>'<td title="'+escapeHtml(val(row,c.chave))+'">'+escapeHtml(val(row,c.chave))+'</td>').join("")+
+        '</tr>';
+    }).join("");
+    $("emptyState").hidden = state.dados.length > 0;
+    $("tableInfo").textContent = state.dados.length + " linha(s)";
+    $("tabelaCorpo").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click",()=>selecionarLinha(Number(tr.dataset.i))));
+}
+
+function montarFormulario(){
+    const form = $("formLiberacao");
+    form.innerHTML = '<input type="hidden" id="_row" name="_row">'+
+        state.colunas.map(c=>{
+            const id = c.chave;
+            const isObs = /observ/.test(id);
+            const isSelect = /^(saiu_no_horario|saida_atrasado_adiantado|inicio_no_horario|trajeto_ocioso_correto)/.test(id);
+            if(isObs) return '<div class="span-5"><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><textarea id="'+id+'" name="'+id+'"></textarea></div>';
+            if(isSelect){
+                const opts = id.includes("saiu") ? ["","SIM","NÃO"] : ["","NO HORÁRIO","ATRASADO","ADIANTADO"];
+                if(id.includes("trajeto")) opts.splice(1,3,"SIM","NÃO");
+                return '<div><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><select id="'+id+'" name="'+id+'">'+opts.map(o=>'<option value="'+o+'">'+ (o||"—") +'</option>').join("")+'</select></div>';
+            }
+            return '<div><label for="'+id+'">'+escapeHtml(c.rotulo)+'</label><input id="'+id+'" name="'+id+'"></div>';
+        }).join("");
+}
+
 function preencherForm(item){
-    CAMPOS.forEach(c=>{ if($(c)) $(c).value = item[c]||""; });
-    $("data").value = item.data ? (item.data.includes("/")?item.data:brDate(item.data)) : $("data").value;
+    if(!item) return;
+    state.colunas.forEach(c=>{
+        const el = $(c.chave);
+        if(!el) return;
+        let v = val(item,c.chave);
+        if(c.chave==="data" && v && !String(v).includes("/") && String(v).includes("-")) v = brDate(String(v).slice(0,10));
+        el.value = v;
+    });
     $("_row").value = item._row||"";
+    $("editPanel").hidden = false;
 }
 
 function lerForm(){
     const payload = { action: $("_row").value ? "update" : "create" };
     if($("_row").value) payload._row = $("_row").value;
-    CAMPOS.forEach(c=>{ if($(c)) payload[c] = $(c).value.trim(); });
+    state.colunas.forEach(c=>{
+        const el = $(c.chave);
+        if(el) payload[c.chave] = el.value.trim();
+    });
     return payload;
 }
 
-function limparForm(){
+function selecionarLinha(i){
+    state.selecionado = state.dados[i]||null;
+    renderTabela();
+    preencherForm(state.selecionado);
+    $("msgForm").textContent = "";
+}
+
+function limparSelecao(){
+    state.selecionado = null;
     $("formLiberacao").reset();
     $("_row").value = "";
+    $("editPanel").hidden = true;
     $("msgForm").textContent = "";
-    $("msgForm").className = "msg";
+    renderTabela();
 }
 
-function renderImport(){
-    const box = $("listaImport");
-    if(!importados.length){ box.innerHTML = '<div class="import-item">Nenhum registro na saída de carros para esta data.</div>'; return; }
-    box.innerHTML = importados.map((item,i)=>'<div class="import-item"><span><strong>'+escapeHtml(item.carro||"-")+'</strong> · Linha '+escapeHtml(item.linha||"-")+' · Mot. '+escapeHtml(item.motorista||"-")+'</span><button type="button" class="btn-secondary" data-i="'+i+'">Usar</button></div>').join("");
-    box.querySelectorAll("button[data-i]").forEach(btn=>btn.addEventListener("click",()=>{
-        const item = importados[Number(btn.dataset.i)];
-        preencherForm(item);
-    }));
+async function carregarComparativo(){
+    const data = $("dataFiltro").value;
+    if(!data){ $("statusLine").textContent = "Informe a data."; return; }
+    $("statusLine").textContent = "Comparando saída de carros com a planilha...";
+    let res;
+    try {
+        res = await apiGet({ recurso: "comparacao", data });
+    } catch (_) {
+        res = await carregarComparativoLocal(data);
+    }
+    if(!res.colunas || !res.colunas.length){
+        res = await carregarComparativoLocal(data);
+    }
+    state.colunas = (res.colunas && res.colunas.length) ? res.colunas : COLUNAS_PADRAO;
+    state.dados = res.dados||[];
+    state.resumo = res.resumo||null;
+    state.selecionado = null;
+    montarFormulario();
+    renderResumo();
+    renderTabela();
+    limparSelecao();
+    $("statusLine").textContent = "Comparativo de "+brDate(data)+" carregado.";
 }
 
-async function carregarImport(){
-    const data = $("dataImport").value;
-    $("statusLine").textContent = "Carregando saída de carros...";
-    const res = await apiGet({ recurso: "saida_carros", data });
-    importados = res.dados||[];
-    renderImport();
-    $("statusLine").textContent = importados.length + " registro(s) importável(is) da saída de carros.";
+function chaveRegistro(item){
+    const work = String(item.work_id||"").trim();
+    if(work) return "w:"+work;
+    return "c:"+String(item.carro||"").trim()+"|l:"+String(item.linha||"").trim()+"|h:"+String(item.horario_saida_da_garagem||"").trim();
 }
 
-async function carregarRecentes(){
-    const res = await apiGet({ recurso: "acompanhamento", limit: "30" });
-    $("tabelaRecentes").innerHTML = (res.dados||[]).map(row=>'<tr data-row="'+row._row+'"><td>'+escapeHtml(row.data)+'</td><td>'+escapeHtml(row.linha)+'</td><td>'+escapeHtml(row.carro)+'</td><td>'+escapeHtml(row.motorista)+'</td><td>'+escapeHtml(row.horario_saida_da_garagem)+'</td><td>'+escapeHtml(row.saida_real)+'</td><td>'+escapeHtml(row.local_inicio)+'</td></tr>').join("");
-    $("tabelaRecentes").querySelectorAll("tr").forEach(tr=>tr.addEventListener("click", async ()=>{
-        const row = tr.dataset.row;
-        const res = await apiGet({ recurso: "acompanhamento", limit: "500" });
-        const item = (res.dados||[]).find(r=>String(r._row)===String(row));
-        if(item) preencherForm(item);
-    }));
+async function carregarComparativoLocal(data){
+    const [plan, saida] = await Promise.all([
+        apiGet({ recurso: "acompanhamento", data, incluir_colunas: "1" }),
+        apiGet({ recurso: "saida_carros", data })
+    ]);
+    const colunas = (plan.colunas && plan.colunas.length) ? plan.colunas : COLUNAS_PADRAO;
+    const planilha = plan.dados||[];
+    const saidaRows = saida.dados||[];
+    const mapPlanilha = {};
+    const usados = {};
+    const dados = [];
+    planilha.forEach(p=>{ mapPlanilha[chaveRegistro(p)] = p; });
+    saidaRows.forEach(s=>{
+        const chave = chaveRegistro(s);
+        const existente = mapPlanilha[chave];
+        usados[chave] = true;
+        const merged = existente ? Object.assign({}, s, existente) : Object.assign({}, s);
+        merged._status = existente ? "cadastrado" : "pendente";
+        merged._row = existente ? existente._row : "";
+        merged._chave = chave;
+        dados.push(merged);
+    });
+    planilha.forEach(p=>{
+        const chave = chaveRegistro(p);
+        if(usados[chave]) return;
+        const item = Object.assign({}, p);
+        item._status = "somente_planilha";
+        item._row = p._row;
+        item._chave = chave;
+        dados.push(item);
+    });
+    return {
+        colunas,
+        dados,
+        resumo: {
+            total_saida: saidaRows.length,
+            total_planilha: planilha.length,
+            total_cadastrados: dados.filter(d=>d._status==="cadastrado").length,
+            total_pendentes: dados.filter(d=>d._status==="pendente").length,
+            total_somente_planilha: dados.filter(d=>d._status==="somente_planilha").length
+        }
+    };
 }
 
-$("btnImportar").addEventListener("click", ()=>carregarImport().catch(e=>$("statusLine").textContent=e.message));
+$("btnRecarregar").addEventListener("click", ()=>carregarComparativo().catch(e=>$("statusLine").textContent=e.message));
+$("dataFiltro").addEventListener("change", ()=>carregarComparativo().catch(e=>$("statusLine").textContent=e.message));
 $("btnSalvar").addEventListener("click", async ()=>{
+    if(!state.selecionado){ $("msgForm").textContent = "Selecione uma linha na tabela."; $("msgForm").className = "msg erro"; return; }
     try{
         $("msgForm").textContent = "Salvando...";
+        $("msgForm").className = "msg";
         await apiPost(lerForm());
-        $("msgForm").textContent = "Lançamento salvo com sucesso.";
+        $("msgForm").textContent = "Salvo na planilha com sucesso.";
         $("msgForm").className = "msg ok";
-        limparForm();
-        carregarRecentes();
+        await carregarComparativo();
     }catch(e){
         $("msgForm").textContent = e.message;
         $("msgForm").className = "msg erro";
     }
 });
-$("btnLimpar").addEventListener("click", limparForm);
+$("btnLimpar").addEventListener("click", limparSelecao);
 
 function iniciar(){
-    const hoje = new Date().toISOString().slice(0,10);
-    $("dataImport").value = hoje;
-    $("data").value = brDate(hoje);
-    carregarRecentes().catch(e=>$("statusLine").textContent=e.message);
+    $("dataFiltro").value = new Date().toISOString().slice(0,10);
+    carregarComparativo().catch(e=>$("statusLine").textContent=e.message);
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", iniciar, { once: true });

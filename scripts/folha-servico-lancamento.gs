@@ -68,10 +68,11 @@ const ALIAS_COLUNAS = {
 };
 
 function doGet(e) {
-  const params = e && e.parameter ? e.parameter : {};
-  if (String(params.liberacao || "") === "1") {
-    return json_(montarRespostaLiberacaoGet_(params));
-  }
+  try {
+    const params = e && e.parameter ? e.parameter : {};
+    if (String(params.liberacao || "") === "1") {
+      return json_(montarRespostaLiberacaoGet_(params));
+    }
   if (String(params.somente_opcoes || "") === "1") {
     const opcoes = lerOpcoesPadronizadas_();
     return json_({
@@ -89,6 +90,9 @@ function doGet(e) {
     });
   }
   return json_(montarRespostaLeitura_(params));
+  } catch (err) {
+    return json_({ ok: false, erro: err.message || String(err) });
+  }
 }
 
 function doPost(e) {

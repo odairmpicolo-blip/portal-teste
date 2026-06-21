@@ -7,12 +7,13 @@
  * Saída de carros: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
- * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&limit=N]
+ * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&limit=N][&incluir_colunas=1]
  * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD]
+ * GET  ?liberacao=1&recurso=resumo[&data=YYYY-MM-DD][&incluir_colunas=1]
  * POST ?liberacao=1  action=create|update  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-21-liberacao-v1";
+const LIBERACAO_VERSAO = "2026-06-21-liberacao-v3";
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const LIBERACAO_OPERACIONAIS_GID = 751419807;
 const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
@@ -25,11 +26,21 @@ function montarRespostaLiberacaoGet_(params) {
 
   if (recurso === "acompanhamento") {
     const limit = parseInt(params.limit || "0", 10);
-    return {
+    const incluirColunas = String(params.incluir_colunas || "") === "1";
+    const payload = {
       ok: true,
       dados: lerAcompanhamentoLiberacao_(dataFiltro, limit),
       meta: { versao: LIBERACAO_VERSAO, recurso: recurso }
     };
+    if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
+    return payload;
+  }
+  if (recurso === "comparacao") {
+    if (!dataFiltro) return { ok: false, erro: "Informe a data (data=YYYY-MM-DD) para comparar." };
+    return Object.assign({ ok: true, meta: { versao: LIBERACAO_VERSAO, recurso: recurso } }, montarComparacaoLiberacao_(dataFiltro));
+  }
+  if (recurso === "resumo") {
+    return montarResumoDashboardLiberacao_(dataFiltro, String(params.incluir_colunas || "") === "1");
   }
   if (recurso === "saida_carros") {
     return {
@@ -149,6 +160,93 @@ function parseOrientacoesOperacionais_(valores, baseRow) {
   return categorias.sort(function (a, b) { return b.total - a.total; }).slice(0, 12);
 }
 
+function lerColunasAcompanhamento_() {
+  const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
+  const lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return [];
+  const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const colunas = [];
+  cabecalho.forEach(function (titulo) {
+    const chave = normalizarChaveLiberacao_(titulo);
+    if (!chave) return;
+    colunas.push({ chave: chave, rotulo: String(titulo || "").trim() });
+  });
+  return colunas;
+}
+
+function chaveRegistroLiberacao_(item) {
+  const work = String(item.work_id || "").trim();
+  if (work) return "w:" + work;
+  const carro = String(item.carro || "").trim();
+  const linha = String(item.linha || "").trim();
+  const hora = String(item.horario_saida_da_garagem || item.horario_saida || "").trim();
+  return "c:" + carro + "|l:" + linha + "|h:" + hora;
+}
+
+function montarComparacaoLiberacao_(dataFiltro) {
+  const colunas = lerColunasAcompanhamento_();
+  const planilha = lerAcompanhamentoLiberacao_(dataFiltro, 0);
+  const saida = lerSaidaCarrosLiberacao_(dataFiltro);
+  const mapPlanilha = {};
+  const usados = {};
+  const dados = [];
+
+  planilha.forEach(function (p) {
+    mapPlanilha[chaveRegistroLiberacao_(p)] = p;
+  });
+
+  saida.forEach(function (s) {
+    const chave = chaveRegistroLiberacao_(s);
+    const existente = mapPlanilha[chave];
+    usados[chave] = true;
+    const merged = existente ? mesclarRegistroLiberacao_(s, existente) : Object.assign({}, s);
+    merged._status = existente ? "cadastrado" : "pendente";
+    merged._row = existente ? existente._row : "";
+    merged._chave = chave;
+    merged._origem = existente ? "ambos" : "saida_carros";
+    dados.push(merged);
+  });
+
+  planilha.forEach(function (p) {
+    const chave = chaveRegistroLiberacao_(p);
+    if (usados[chave]) return;
+    const item = Object.assign({}, p);
+    item._status = "somente_planilha";
+    item._row = p._row;
+    item._chave = chave;
+    item._origem = "planilha";
+    dados.push(item);
+  });
+
+  dados.sort(function (a, b) {
+    const ha = String(a.horario_saida_da_garagem || a.horario_saida || "");
+    const hb = String(b.horario_saida_da_garagem || b.horario_saida || "");
+    return ha.localeCompare(hb, "pt-BR", { numeric: true });
+  });
+
+  return {
+    colunas: colunas,
+    dados: dados,
+    resumo: {
+      total_saida: saida.length,
+      total_planilha: planilha.length,
+      total_cadastrados: dados.filter(function (d) { return d._status === "cadastrado"; }).length,
+      total_pendentes: dados.filter(function (d) { return d._status === "pendente"; }).length,
+      total_somente_planilha: dados.filter(function (d) { return d._status === "somente_planilha"; }).length
+    }
+  };
+}
+
+function mesclarRegistroLiberacao_(saida, planilha) {
+  const merged = Object.assign({}, saida);
+  Object.keys(planilha).forEach(function (k) {
+    if (k.charAt(0) === "_") return;
+    const valor = planilha[k];
+    if (valor != null && String(valor).trim() !== "") merged[k] = valor;
+  });
+  return merged;
+}
+
 function lerAcompanhamentoLiberacao_(dataFiltro, limit) {
   const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
   const lastRow = sheet.getLastRow();
@@ -220,6 +318,145 @@ function formatarDataBrLiberacao_(iso) {
   const p = String(iso || "").slice(0, 10).split("-");
   if (p.length !== 3) return iso;
   return p[2] + "/" + p[1] + "/" + p[0];
+}
+
+function formatarPctLiberacao_(valor) {
+  if (!isFinite(valor)) return "0%";
+  return String(Math.round(valor * 100) / 100).replace(".", ",") + "%";
+}
+
+function pctLiberacao_(parte, total) {
+  if (!total) return 0;
+  return Math.round((parte / total) * 10000) / 100;
+}
+
+function normalizarSituacaoLiberacao_(valor) {
+  const t = String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
+  if (!t) return "";
+  if (t.indexOf("ADIANT") >= 0) return "ADIANTADO";
+  if (t.indexOf("ATRAS") >= 0) return "ATRASADO";
+  if (t.indexOf("HOR") >= 0 || t === "SIM") return "NO_HORARIO";
+  if (t === "NAO" || t === "NÃO") return "ATRASADO";
+  return "";
+}
+
+function situacaoSaidaLiberacao_(row) {
+  const s = normalizarSituacaoLiberacao_(row.saida_atrasado_adiantado);
+  if (s) return s;
+  return normalizarSituacaoLiberacao_(row.saiu_no_horario);
+}
+
+function situacaoInicioLiberacao_(row) {
+  return normalizarSituacaoLiberacao_(row.inicio_no_horario);
+}
+
+function chaveCategoriaLiberacao_(saida, inicio) {
+  return String(saida || "") + "|" + String(inicio || "");
+}
+
+var CATEGORIAS_BASE_DADOS_ = [
+  { chave: "NO_HORARIO|ATRASADO", titulo: "SAIU NO HORÁRIO E INICIOU ATRASADO", gravidade: "ORIENTAR" },
+  { chave: "NO_HORARIO|ADIANTADO", titulo: "SAIU NO HORÁRIO E INICIOU ADIANTADO", gravidade: "ORIENTAR" },
+  { chave: "ATRASADO|NO_HORARIO", titulo: "SAIU ATRASADO E INICIOU NO HORÁRIO", gravidade: "ORIENTAR" },
+  { chave: "ATRASADO|ADIANTADO", titulo: "SAIU ATRASADO E INICIOU ADIANTADO", gravidade: "ORIENTAR" },
+  { chave: "ATRASADO|ATRASADO", titulo: "SAIU ATRASADO E INICIOU ATRASADO", gravidade: "GRAVE" },
+  { chave: "ADIANTADO|NO_HORARIO", titulo: "SAIU ADIANTADO E INICIOU NO HORÁRIO", gravidade: "GRAVE" },
+  { chave: "ADIANTADO|ATRASADO", titulo: "SAIU ADIANTADO E INICIOU ATRASADO", gravidade: "GRAVE" },
+  { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE" }
+];
+
+function calcularResumoDiaLiberacao_(dados, dataIso) {
+  let noHorario = 0;
+  let atrasado = 0;
+  let adiantado = 0;
+  dados.forEach(function (row) {
+    const s = situacaoSaidaLiberacao_(row);
+    if (s === "NO_HORARIO") noHorario++;
+    else if (s === "ATRASADO") atrasado++;
+    else if (s === "ADIANTADO") adiantado++;
+  });
+  const qt = dados.length;
+  return {
+    data: dataIso || "",
+    data_br: dataIso ? formatarDataBrLiberacao_(dataIso) : "",
+    qt_saidas: qt,
+    no_horario: noHorario,
+    pct_no_horario: pctLiberacao_(noHorario, qt),
+    atrasado: atrasado,
+    pct_atrasado: pctLiberacao_(atrasado, qt),
+    adiantado: adiantado,
+    pct_adiantado: pctLiberacao_(adiantado, qt),
+    total_pct: pctLiberacao_(noHorario + atrasado + adiantado, qt)
+  };
+}
+
+function calcularHistoricoResumoLiberacao_() {
+  const todos = lerAcompanhamentoLiberacao_("", 0);
+  const porData = {};
+  todos.forEach(function (row) {
+    const iso = normalizarDataIsoLiberacao_(row.data);
+    if (!iso) return;
+    if (!porData[iso]) porData[iso] = [];
+    porData[iso].push(row);
+  });
+  return Object.keys(porData)
+    .sort(function (a, b) { return b.localeCompare(a); })
+    .map(function (iso) {
+      return calcularResumoDiaLiberacao_(porData[iso], iso);
+    });
+}
+
+function calcularBaseDadosLiberacao_(dados) {
+  const mapa = {};
+  CATEGORIAS_BASE_DADOS_.forEach(function (cat) {
+    mapa[cat.chave] = { titulo: cat.titulo, gravidade: cat.gravidade, motoristas: {} };
+  });
+
+  dados.forEach(function (row) {
+    const saida = situacaoSaidaLiberacao_(row);
+    const inicio = situacaoInicioLiberacao_(row);
+    if (!saida || !inicio) return;
+    const chave = chaveCategoriaLiberacao_(saida, inicio);
+    const mot = String(row.motorista || "").trim();
+    if (!mot || !mapa[chave]) return;
+    mapa[chave].motoristas[mot] = (mapa[chave].motoristas[mot] || 0) + 1;
+  });
+
+  return CATEGORIAS_BASE_DADOS_.map(function (cat) {
+    const item = mapa[cat.chave];
+    const lista = Object.keys(item.motoristas).sort(function (a, b) {
+      return a.localeCompare(b, "pt-BR", { numeric: true });
+    }).map(function (mot) {
+      return { motorista: mot, qtd: item.motoristas[mot] };
+    });
+    return {
+      titulo: cat.titulo,
+      gravidade: cat.gravidade,
+      total: lista.reduce(function (acc, cur) { return acc + cur.qtd; }, 0),
+      motoristas: lista
+    };
+  });
+}
+
+function montarResumoDashboardLiberacao_(dataFiltro, incluirColunas) {
+  const todos = lerAcompanhamentoLiberacao_("", 0);
+  const dadosDia = dataFiltro
+    ? todos.filter(function (row) { return normalizarDataIsoLiberacao_(row.data) === dataFiltro; })
+    : todos;
+  const payload = {
+    ok: true,
+    resumo: calcularResumoDiaLiberacao_(dadosDia, dataFiltro),
+    historico: calcularHistoricoResumoLiberacao_(),
+    base_dados: calcularBaseDadosLiberacao_(dadosDia),
+    dados: dadosDia,
+    meta: { versao: LIBERACAO_VERSAO, recurso: "resumo" }
+  };
+  if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
+  return payload;
 }
 
 function pickCampoLiberacao_(obj, chaves) {
