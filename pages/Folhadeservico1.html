@@ -1,14 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-    <script>
-document.documentElement.classList.add("portal-auth-pending");
-</script>
-<style id="portalAuthBootStyle">
-.portal-auth-pending body > :not(#portalLoadingOverlay){
-    visibility:hidden!important;
-}
-</style>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16,49 +8,23 @@ document.documentElement.classList.add("portal-auth-pending");
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lançamento Folha de Serviços - CIOP / TCGL</title>
     
-    <!-- TRATAMENTO DE ERRO PARA SCRIPTS EXTERNOS -->
+    <!-- FUNÇÕES PADRÃO -->
     <script>
-        // Define funções padrão caso os scripts externos falhem
-        window.portalMostrarCarregando = window.portalMostrarCarregando || function(msg) {
-            console.log('Carregando:', msg);
-        };
-        window.portalOcultarCarregando = window.portalOcultarCarregando || function() {
-            console.log('Carregamento concluído');
-            document.documentElement.classList.remove('portal-auth-pending');
-        };
-        window.portalAguardarUsuario = window.portalAguardarUsuario || function(callback) {
-            document.documentElement.classList.remove('portal-auth-pending');
-            setTimeout(() => {
-                const usuarioEl = document.getElementById('usuarioLogado');
-                const perfilEl = document.getElementById('perfilUsuario');
-                if (usuarioEl) usuarioEl.textContent = 'Usuário Sistema';
-                if (perfilEl) perfilEl.textContent = 'Operador';
-                if (typeof callback === 'function') callback();
+        window.portalMostrarCarregando = function(msg) { console.log('Carregando:', msg); };
+        window.portalOcultarCarregando = function() { console.log('Concluído'); };
+        window.portalAguardarUsuario = function(callback) {
+            setTimeout(function() {
+                var user = document.getElementById('usuarioLogado');
+                var perfil = document.getElementById('perfilUsuario');
+                if (user) user.textContent = 'Usuário';
+                if (perfil) perfil.textContent = 'Operador';
+                if (callback) callback();
             }, 100);
         };
-        window.logout = window.logout || function() {
-            if (confirm('Deseja realmente sair?')) {
-                window.location.href = '../index.html';
-            }
+        window.logout = function() {
+            if (confirm('Deseja sair?')) window.location.href = '../index.html';
         };
-        
-        // Tratamento global de erros de carregamento de scripts
-        window.addEventListener('error', function(e) {
-            if (e.target && e.target.tagName === 'SCRIPT') {
-                console.warn('Falha ao carregar script:', e.target.src);
-                // Remove o bloqueio visual
-                document.documentElement.classList.remove('portal-auth-pending');
-            }
-        }, true);
-        
-        // Fallback de timeout para remover bloqueio
-        setTimeout(function() {
-            document.documentElement.classList.remove('portal-auth-pending');
-        }, 3000);
     </script>
-    
-    <script src="../assets/js/loading.js" onerror="console.warn('loading.js não encontrado - usando funções padrão')"></script>
-    <script type="module" src="../assets/js/auth.js" onerror="console.warn('auth.js não encontrado - usando funções padrão')"></script>
     
     <style>
         :root {
@@ -82,4 +48,50 @@ document.documentElement.classList.add("portal-auth-pending");
         }
         
         .header {
-            position: relative
+            position: relative;
+            background: #ffffff;
+            padding: 10px 24px;
+            display: grid;
+            grid-template-columns: 190px 1fr minmax(300px, auto);
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #e8edf6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .logo-ciop { height: 48px; object-fit: contain; justify-self: start; }
+        .logo-tcgl { height: 48px; object-fit: contain; justify-self: end; }
+        h1 {
+            margin: 0;
+            text-align: center;
+            color: #071f57;
+            font-size: 26px;
+            line-height: 1.05;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+            width: 100%;
+            flex: 1;
+        }
+
+        .filter-wrapper {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .filter-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-
