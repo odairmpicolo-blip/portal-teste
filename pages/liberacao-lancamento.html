@@ -6,43 +6,83 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lançamento — Acompanhamento da Liberação</title>
+<title>Lançamento — Acompanhamento da Liberação | Portal CIOP</title>
 <style>
-:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
-.header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:6px 20px;border-bottom:1px solid #e8edf6}
-.logo-ciop{height:40px;object-fit:contain}.logo-tcgl{height:45px;object-fit:contain}
-.title-wrap{text-align:center}h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppercase}
+:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d;--amber:#b45309;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--white);display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:8px 20px;border-bottom:1px solid #e8edf6;box-shadow:0 1px 0 rgba(6,36,92,.04)}
+.header > a:first-child{justify-self:start;display:flex;align-items:center}
+.logo-ciop{height:42px;object-fit:contain}.logo-tcgl{height:46px;object-fit:contain}
+.title-wrap{justify-self:center;text-align:center}
+h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
 .header-subtitle{margin-top:4px;color:var(--muted);font-size:11px;font-weight:700}
 .header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
-.ciop-session{display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid rgba(6,36,92,.12);border-radius:6px;font-size:11px;color:var(--blue)}
-.ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 7px;font-size:11px;cursor:pointer}
-.container{max-width:100%;margin:22px auto 34px;padding:0 18px}
+.ciop-session{display:flex;align-items:center;gap:6px;max-width:260px;padding:4px 8px;border:1px solid rgba(6,36,92,.12);border-radius:6px;background:var(--white);color:var(--blue);font-size:11px}
+.ciop-session-user{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.ciop-session-profile{color:var(--muted);font-weight:600}
+.ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
+.container{max-width:100%;margin:20px auto 32px;padding:0 20px;flex:1;width:100%}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit}
-.btn-portal,.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#e8edf6;color:var(--blue)}
-.status-line{color:var(--muted);font-size:12px;font-weight:700}
-.panel{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px}
-.panel-title{margin:0 0 10px;color:var(--blue);font-size:15px;font-weight:900}
-.toolbar{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
-.toolbar label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.toolbar input,.toolbar select{min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:160px}
-.info{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
-.chip{display:inline-block;margin-top:10px;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:#eef4ff;color:var(--blue)}
-.table-card{overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
-.table-head{padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.table-wrap{overflow:auto;max-height:calc(100vh - 320px);min-height:400px}
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2600px}
-thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);padding:7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:1px solid var(--border)}
-tbody td{border-bottom:1px solid #edf2f7;padding:2px;text-align:center;vertical-align:middle}
-tbody tr:hover{background:#fff7ed}
-.cell-input,.cell-select{width:100%;min-width:72px;border:1px solid transparent;background:transparent;padding:5px 4px;font-size:11px;font-family:inherit;text-align:center;border-radius:4px}
-.cell-input:focus,.cell-select:focus{outline:none;border-color:var(--blue);background:#fff}
-.cell-input.saving,.cell-select.saving{background:#fff7ed;border-color:var(--orange)}
-.cell-input.saved,.cell-select.saved{background:#f0fdf4;border-color:var(--green)}
-.cell-input.erro,.cell-select.erro{background:#fef2f2;border-color:var(--red)}
-.empty{padding:28px;color:var(--muted);font-weight:800;text-align:center}
-@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}}
+.nav-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit;transition:background .15s,transform .15s}
+.btn-portal,.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.08)}
+.btn-portal:hover,.btn-primary:hover{background:var(--blue2)}
+.btn-secondary{background:#e8edf6;color:var(--blue)}
+.btn-secondary:hover{background:#dbe4f2}
+.btn-icon{display:inline-flex;width:16px;height:16px}.btn-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:var(--white);border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:700;color:var(--muted);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;flex:0 0 auto}
+.status-dot.ok{background:var(--green)}.status-dot.load{background:var(--orange);animation:pulse 1s infinite}
+.status-dot.erro{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.filters{display:grid;grid-template-columns:1.1fr 1.1fr auto;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 14px;box-shadow:0 10px 28px rgba(16,24,40,.06);margin-bottom:12px}
+.filters label{display:block;margin:0 0 4px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.filters input,.filters select{width:100%;min-height:36px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fafbfd;transition:border-color .15s,background .15s}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--blue2);background:var(--white)}
+.filters .btn-secondary{min-height:36px;width:100%;align-self:end}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 14px;box-shadow:0 8px 20px rgba(16,24,40,.05)}
+.stat-label{font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;margin-bottom:4px}
+.stat-value{font-size:22px;font-weight:900;color:var(--blue);line-height:1.1}
+.stat-hint{font-size:11px;color:var(--muted);margin-top:4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;background:#f8fafc;border-top:1px solid var(--border);font-size:10px;color:var(--muted);font-weight:700}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.legend-swatch{width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.08)}
+.legend-swatch.ok{background:#f0fdf4;border-color:#86efac}
+.legend-swatch.saving{background:#fff7ed;border-color:#fdba74}
+.legend-swatch.erro{background:#fef2f2;border-color:#fca5a5}
+.table-card{overflow:hidden;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07)}
+.table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff,#fafbfd)}
+.card-title{margin:0;color:var(--blue);font-size:15px;font-weight:900}
+.table-sub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.table-wrap{overflow:auto;max-height:calc(100vh - 360px);min-height:420px}
+table.planilha{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2600px}
+thead th{position:sticky;top:0;z-index:3;background:#f1f5f9;color:var(--blue);padding:9px 8px;font-size:9px;font-weight:900;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:2px solid #dbe3ef;letter-spacing:.03em}
+thead th.col-fix{z-index:5;background:#e8eef6}
+thead th.col-sync{width:88px;min-width:88px}
+thead th.col-num{width:42px;min-width:42px}
+tbody td{border-bottom:1px solid #edf2f7;padding:0;text-align:center;vertical-align:middle;background:var(--white)}
+tbody tr:nth-child(even) td{background:#fafbfd}
+tbody tr:hover td{background:#fff7ed}
+tbody td.col-fix{background:#f8fafc;font-weight:700;color:var(--muted);font-size:10px}
+tbody tr:nth-child(even) td.col-fix{background:#f1f5f9}
+.cell-input,.cell-select{width:100%;min-width:76px;border:1px solid transparent;background:transparent;padding:7px 6px;font-size:11px;font-family:inherit;text-align:center;border-radius:0;transition:background .15s,border-color .15s}
+.cell-input:focus,.cell-select:focus{outline:none;border-color:var(--blue2);background:var(--white);box-shadow:inset 0 0 0 1px rgba(11,58,138,.15)}
+.cell-input.saving,.cell-select.saving{background:#fff7ed}
+.cell-input.saved,.cell-select.saved{background:#f0fdf4}
+.cell-input.erro,.cell-select.erro{background:#fef2f2}
+.sync-badge{display:inline-flex;align-items:center;justify-content:center;min-width:68px;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
+.sync-badge.ok{background:#dcfce7;color:var(--green)}
+.sync-badge.saving{background:#ffedd5;color:var(--amber)}
+.sync-badge.dirty{background:#e0e7ff;color:#3730a3}
+.sync-badge.erro{background:#fee2e2;color:var(--red)}
+.empty{padding:48px 24px;color:var(--muted);text-align:center}
+.empty-title{font-size:15px;font-weight:900;color:var(--blue);margin-bottom:6px}
+.empty-text{font-size:12px;font-weight:600;line-height:1.5}
+.page-footer{text-align:center;padding:12px 20px 20px;font-size:11px;color:var(--muted);font-weight:600}
+@media(max-width:900px){.stats{grid-template-columns:1fr}.filters{grid-template-columns:1fr}}
+@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
 <script type="module" src="../assets/js/auth.js"></script>
@@ -53,7 +93,7 @@ tbody tr:hover{background:#fff7ed}
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Planilha ACOMPANHAMENTO LIBERAÇÃO — edição com salvamento automático</div>
+        <div class="header-subtitle">Lançamento operacional — aba ACOMPANHAMENTO LIBERAÇÃO</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -64,53 +104,69 @@ tbody tr:hover{background:#fff7ed}
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
     </div>
 </header>
+
 <main class="container">
     <div class="topbar">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn-portal" href="../index.html">Portal</a>
-            <a class="btn-secondary" href="liberacao-dashboard.html">Dashboard</a>
+        <div class="nav-actions">
+            <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg></span>Portal</a>
+            <a class="btn-secondary" href="liberacao-dashboard.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></span>Dashboard</a>
         </div>
-        <div class="status-line" id="statusLine">Carregando...</div>
+        <div class="status-pill" id="statusPill"><span class="status-dot load" id="statusDot"></span><span id="statusLine">Carregando planilha...</span></div>
     </div>
 
-    <section class="panel">
-        <h2 class="panel-title">Filtros</h2>
-        <div class="toolbar">
-            <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
-            <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas</option></select></div>
-            <button class="btn-secondary" type="button" id="btnRecarregar">Atualizar</button>
-        </div>
-        <span class="chip" id="resumoChip">0 registros</span>
-        <p class="info">Dados da aba <strong>ACOMPANHAMENTO LIBERAÇÃO</strong>. Edite qualquer célula — cada alteração é salva automaticamente na planilha.</p>
+    <section class="filters" aria-label="Filtros">
+        <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
+        <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas as máquinas</option></select></div>
+        <div><button class="btn-secondary" type="button" id="btnRecarregar">Atualizar dados</button></div>
     </section>
 
-    <section class="table-card">
+    <section class="stats" aria-label="Indicadores">
+        <article class="stat-card"><div class="stat-label">Registros exibidos</div><div class="stat-value" id="statRegistros">0</div><div class="stat-hint">Após filtros aplicados</div></article>
+        <article class="stat-card"><div class="stat-label">Data selecionada</div><div class="stat-value" id="statData" style="font-size:18px">—</div><div class="stat-hint">Formato dd/mm/aaaa</div></article>
+        <article class="stat-card"><div class="stat-label">Salvamento</div><div class="stat-value" style="font-size:16px;color:var(--green)">Automático</div><div class="stat-hint">Alterações gravadas na planilha</div></article>
+    </section>
+
+    <section class="table-card" aria-label="Planilha de acompanhamento">
         <div class="table-head">
-            <h2 class="panel-title" style="margin:0">Planilha de acompanhamento</h2>
-            <span class="status-line" id="tableInfo">0 linhas</span>
+            <div>
+                <h2 class="card-title">Planilha de acompanhamento</h2>
+                <div class="table-sub">Edite as células diretamente — os dados são sincronizados com o Google Sheets</div>
+            </div>
+            <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
         <div class="table-wrap">
-            <table>
-                <thead id="tabelaHead"><tr><th>Sync</th></tr></thead>
+            <table class="planilha">
+                <thead id="tabelaHead"><tr><th class="col-fix col-num">#</th><th class="col-fix col-sync">Status</th></tr></thead>
                 <tbody id="tabelaCorpo"></tbody>
             </table>
-            <div class="empty" id="emptyState" hidden>Nenhum registro para esta data e máquina.</div>
+            <div class="empty" id="emptyState" hidden>
+                <div class="empty-title">Nenhum registro encontrado</div>
+                <div class="empty-text">Não há lançamentos para a data e máquina selecionadas.<br>Altere os filtros ou verifique a planilha ACOMPANHAMENTO LIBERAÇÃO.</div>
+            </div>
+        </div>
+        <div class="legend" aria-hidden="true">
+            <span class="legend-item"><span class="legend-swatch ok"></span>Salvo</span>
+            <span class="legend-item"><span class="legend-swatch saving"></span>Salvando</span>
+            <span class="legend-item"><span class="legend-swatch erro"></span>Erro ao salvar</span>
         </div>
     </section>
 </main>
+
+<footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_PADRAO = [
     { chave: "data", rotulo: "DATA" }, { chave: "maquina", rotulo: "MAQUINA" }, { chave: "linha", rotulo: "LINHA" },
     { chave: "work_id", rotulo: "WORK-ID" }, { chave: "carro", rotulo: "CARRO" }, { chave: "motorista", rotulo: "MOTORISTA" },
-    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO SAÍDA GARAGEM" },
+    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO DE SAÍDA DA GARAGEM" },
     { chave: "saida_real", rotulo: "SAÍDA REAL" }, { chave: "saiu_no_horario", rotulo: "SAIU NO HORÁRIO" },
-    { chave: "minutos_atrasado_garagem", rotulo: "MIN ATRASO GAR." }, { chave: "minutos_adiantado_garagem", rotulo: "MIN ADIANT. GAR." },
-    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATR/AD" }, { chave: "local_inicio", rotulo: "LOCAL INÍCIO" },
-    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OK?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO INÍCIO" },
-    { chave: "inicio_real", rotulo: "INÍCIO REAL" }, { chave: "inicio_no_horario", rotulo: "INÍCIO NO HOR." },
-    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MIN ATR INÍCIO" },
-    { chave: "minutos_adiantado_no_inicio", rotulo: "MIN AD INÍCIO" }
+    { chave: "minutos_atrasado_garagem", rotulo: "MIN. ATRASADO GARAGEM" }, { chave: "minutos_adiantado_garagem", rotulo: "MIN. ADIANTADO GARAGEM" },
+    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATRASADO/ADIANTADO" }, { chave: "local_inicio", rotulo: "LOCAL INÍCIO" },
+    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OCIOSO CORRETO?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INÍCIO" },
+    { chave: "inicio_real", rotulo: "INÍCIO REAL" }, { chave: "inicio_no_horario", rotulo: "INÍCIO NO HORÁRIO" },
+    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MIN. ATRASADO NO INÍCIO" },
+    { chave: "minutos_adiantado_no_inicio", rotulo: "MIN. ADIANTADO NO INÍCIO" }
 ];
 const CAMPOS_SELECT = {
     saiu_no_horario: ["","SIM","NÃO"],
@@ -122,13 +178,20 @@ const state = { colunas: COLUNAS_PADRAO, todos: [], dados: [], saveTimers: {}, s
 
 function $(id){return document.getElementById(id)}
 function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+function brDate(iso){if(!iso)return "—";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+function formatNumber(v){return Number(v||0).toLocaleString("pt-BR")}
 function normalizarMaquina(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim()}
 function val(row,key){
     if(row[key]!=null&&row[key]!=="") return row[key];
     if(key==="horario_saida_da_garagem") return row.horario_de_saida_da_garagem||"";
     if(key==="saiu_no_horario") return row.saiu_no_horaro||"";
     return "";
+}
+
+function setStatus(texto, tipo){
+    $("statusLine").textContent=texto;
+    const dot=$("statusDot");
+    dot.className="status-dot"+(tipo?" "+tipo:"");
 }
 
 async function apiGet(params){
@@ -151,8 +214,11 @@ function aplicarFiltroMaquina(){
         : state.todos.slice();
 }
 
-function renderResumo(){
-    $("resumoChip").textContent=state.dados.length+" registro(s)";
+function syncBadge(row,i){
+    if(state.saving[i]) return '<span class="sync-badge saving">Salvando</span>';
+    if(row._syncErro) return '<span class="sync-badge erro">Erro</span>';
+    if(row._dirty) return '<span class="sync-badge dirty">Alterado</span>';
+    return '<span class="sync-badge ok">Salvo</span>';
 }
 
 function renderCelula(row, rowIdx, col){
@@ -162,19 +228,23 @@ function renderCelula(row, rowIdx, col){
         const opts=CAMPOS_SELECT[chave].map(o=>'<option value="'+escapeHtml(o)+'"'+(o===v?" selected":"")+'>'+(o||"—")+'</option>').join("");
         return '<select class="cell-select" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'">'+opts+'</select>';
     }
-    return '<input class="cell-input" type="text" value="'+escapeHtml(v)+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'">';
+    return '<input class="cell-input" type="text" value="'+escapeHtml(v)+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'" autocomplete="off" spellcheck="false">';
 }
 
 function renderTabela(){
     const cols=state.colunas;
-    $("tabelaHead").innerHTML="<tr><th>Sync</th>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
-    $("tabelaCorpo").innerHTML=state.dados.map((row,i)=>{
-        const sync=state.saving[i]?"Salvando…":(row._dirty?"Alterado":"OK");
-        return '<tr data-i="'+i+'"><td class="sync-'+i+'" style="font-size:9px;color:var(--muted)">'+sync+'</td>'+
-            cols.map(c=>'<td>'+renderCelula(row,i,c)+'</td>').join("")+'</tr>';
-    }).join("");
+    $("tabelaHead").innerHTML='<tr><th class="col-fix col-num">#</th><th class="col-fix col-sync">Status</th>'+
+        cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+'</tr>';
+    $("tabelaCorpo").innerHTML=state.dados.map((row,i)=>
+        '<tr data-i="'+i+'">'+
+        '<td class="col-fix col-num">'+(i+1)+'</td>'+
+        '<td class="col-fix col-sync sync-'+i+'">'+syncBadge(row,i)+'</td>'+
+        cols.map(c=>'<td>'+renderCelula(row,i,c)+'</td>').join("")+
+        '</tr>'
+    ).join("");
     $("emptyState").hidden=state.dados.length>0;
-    $("tableInfo").textContent=state.dados.length+" linha(s)";
+    $("tableInfo").textContent=formatNumber(state.dados.length)+" linha(s)";
+    $("statRegistros").textContent=formatNumber(state.dados.length);
     $("tabelaCorpo").querySelectorAll("input,select").forEach(el=>{
         el.addEventListener("change", onCellChange);
         el.addEventListener("blur", onCellChange);
@@ -188,8 +258,10 @@ function onCellChange(e){
     if(isNaN(i)||!k) return;
     state.dados[i][k]=el.value.trim();
     state.dados[i]._dirty=true;
+    state.dados[i]._syncErro=false;
     el.classList.remove("saved","erro");
     el.classList.add("saving");
+    document.querySelector(".sync-"+i).innerHTML=syncBadge(state.dados[i],i);
     clearTimeout(state.saveTimers[i]);
     state.saveTimers[i]=setTimeout(()=>salvarLinha(i),800);
 }
@@ -198,23 +270,21 @@ async function salvarLinha(i){
     const row=state.dados[i];
     if(!row||!row._row) return;
     state.saving[i]=true;
-    document.querySelector(".sync-"+i).textContent="Salvando…";
+    document.querySelector(".sync-"+i).innerHTML=syncBadge(row,i);
     const payload={action:"update",_row:row._row};
-    state.colunas.forEach(c=>{
-        const v=val(row,c.chave);
-        payload[c.chave]=v;
-    });
+    state.colunas.forEach(c=>{ payload[c.chave]=val(row,c.chave); });
     try{
         await apiPost(payload);
         row._dirty=false;
+        row._syncErro=false;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving","erro");el.classList.add("saved");});
-        document.querySelector(".sync-"+i).textContent="OK";
     }catch(err){
+        row._syncErro=true;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
-        document.querySelector(".sync-"+i).textContent="Erro";
-        $("statusLine").textContent=err.message;
+        setStatus(err.message,"erro");
     }finally{
         state.saving[i]=false;
+        document.querySelector(".sync-"+i).innerHTML=syncBadge(row,i);
     }
 }
 
@@ -222,31 +292,31 @@ function popularMaquinas(lista){
     const sel=$("maquinaFiltro");
     const prev=sel.value;
     const items=(lista||[]).slice().sort((a,b)=>a.localeCompare(b,"pt-BR"));
-    sel.innerHTML='<option value="">Todas</option>'+items.map(m=>'<option value="'+escapeHtml(m)+'">'+escapeHtml(m)+'</option>').join("");
+    sel.innerHTML='<option value="">Todas as máquinas</option>'+items.map(m=>'<option value="'+escapeHtml(m)+'">'+escapeHtml(m)+'</option>').join("");
     if(items.includes(prev)) sel.value=prev;
 }
 
 async function carregar(){
     const data=$("dataFiltro").value;
-    if(!data){$("statusLine").textContent="Informe a data.";return;}
-    $("statusLine").textContent="Carregando planilha de acompanhamento...";
+    if(!data){setStatus("Informe a data.","erro");return;}
+    setStatus("Carregando planilha...","load");
     const res=await apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",limit:"5000"});
     state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
     state.todos=(res.dados||[]).map(r=>Object.assign({},r));
     popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
     aplicarFiltroMaquina();
-    renderResumo();
+    $("statData").textContent=brDate(data);
     renderTabela();
-    $("statusLine").textContent="Acompanhamento — "+state.dados.length+" linha(s) para "+brDate(data)+".";
+    setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data),"ok");
 }
 
-$("btnRecarregar").addEventListener("click",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
-$("dataFiltro").addEventListener("change",()=>carregar().catch(e=>$("statusLine").textContent=e.message));
-$("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderResumo();renderTabela();});
+$("btnRecarregar").addEventListener("click",()=>carregar().catch(e=>setStatus(e.message,"erro")));
+$("dataFiltro").addEventListener("change",()=>carregar().catch(e=>setStatus(e.message,"erro")));
+$("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderTabela();setStatus(formatNumber(state.dados.length)+" registro(s) filtrados","ok");});
 
 function iniciar(){
     $("dataFiltro").value=new Date().toISOString().slice(0,10);
-    carregar().catch(e=>$("statusLine").textContent=e.message);
+    carregar().catch(e=>setStatus(e.message,"erro"));
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", iniciar, { once: true });
