@@ -1255,7 +1255,7 @@ h1 {
     </div>
 
     <div class="table-card">
-        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Últimos Lançamentos</span></div>
+        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Lançamentos de Hoje</span></div>
         <table>
             <thead>
                 <tr>
@@ -1512,15 +1512,27 @@ h1 {
         });
     }
 
+    function hojeISO() {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+        const dia = String(hoje.getDate()).padStart(2, "0");
+        return `${ano}-${mes}-${dia}`;
+    }
+
     function renderizarTabela(dados) {
         const tbody = document.getElementById('tabela-corpo');
         tbody.innerHTML = "";
         atualizarSetasTabela();
-        if(dados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado.</td></tr>`;
+
+        const dataHoje = hojeISO();
+        const dadosHoje = dados.filter(d => String(d.data || "").slice(0, 10) === dataHoje);
+
+        if(dadosHoje.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum lançamento encontrado para hoje.</td></tr>`;
             return;
         }
-        ordenarDadosTabela(dados).slice(0, 80).forEach(d => {
+        ordenarDadosTabela(dadosHoje).forEach(d => {
             let dataFormatada = d.data || "";
             if(d.data && d.data.includes('-')) dataFormatada = d.data.split('-').reverse().join('/');
             const situacaoLimpa = d.situacao ? d.situacao.trim() : "";
