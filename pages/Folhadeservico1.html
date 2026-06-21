@@ -14,9 +14,8 @@ document.documentElement.classList.add("portal-auth-pending");
 <meta http-equiv="Expires" content="0">
 <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard Folha de Serviços - CIOP / TCGL</title>
+    <title>Lançamento Folha de Serviços - CIOP / TCGL</title>
     <script src="../assets/js/loading.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="../assets/js/auth.js"></script>
     <style>
         :root {
@@ -1121,21 +1120,17 @@ h1 {
         }
 
 
-        /* Navegação do dashboard sem lançamento */
-        .filter-nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-self: start;
+        /* Página exclusiva de lançamento */
+        .launch-page-actions {
+            margin: 0 0 14px 0;
+            padding: 0;
+            gap: 10px;
         }
-        .btn-lancamento {
+        .btn-dashboard {
             background: linear-gradient(135deg, #ff6b00, #d95a00) !important;
         }
-        @media (min-width: 900px) {
-            .filter-head {
-                grid-template-columns: minmax(220px, 280px) 1fr minmax(110px, 160px);
-            }
+        .launch-card {
+            margin-bottom: 22px;
         }
 
 </style>
@@ -1163,109 +1158,104 @@ h1 {
 </div>
 <div class="container">
     
-    <div class="filter-wrapper">
-        <div class="filter-head">
-            <div class="filter-nav-actions">
-                <a href="../index.html" class="btn-portal">
-                    <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
-                    <span>Portal</span>
-                </a>
-                <a href="Folhadeservico_lancamento.html" class="btn-portal btn-lancamento">
-                    <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
-                    <span>Lançamento</span>
-                </a>
-            </div>
-            <div class="filter-title"><span class="section-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M7 12h10"/><path d="M10 19h4"/></svg></span><span>Filtros de Monitoramento</span></div>
-            <span class="filter-head-spacer" aria-hidden="true"></span>
+    <div class="launch-section-title"><span class="section-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span><span>Lançamento de Informações na Planilha</span></div>
+    <div class="launch-card">
+        <div class="launch-head launch-head-compact">
+            <div class="launch-help">Preencha os campos e clique em salvar para alimentar a aba da planilha em tempo real.</div>
         </div>
-        <div class="filter-grid">
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m10 15-2 2 2 2"/><path d="M8 17h7"/></svg></span><span>Data Início</span></label>
-                <input type="date" id="filtro-data-inicio" onchange="filtrarDashboard()">
-            </div>
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m14 15 2 2-2 2"/><path d="M9 17h7"/></svg></span><span>Data Fim</span></label>
-                <input type="date" id="filtro-data-fim" onchange="filtrarDashboard()">
-            </div>
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.7-4 4.3-6 8-6s6.3 2 8 6"/></svg></span><span>Analista</span></label>
-                <select id="filtro-analista" onchange="filtrarDashboard()">
-                    <option value="">Todos os Analistas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg></span><span>Ocorrência</span></label>
-                <select id="filtro-ocorrencia" onchange="filtrarDashboard()">
-                    <option value="">Todas as Ocorrências</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M9 18h4a5 5 0 0 0 0-10h-2"/></svg></span><span>Linha</span></label>
-                <select id="filtro-linha" onchange="filtrarDashboard()">
-                    <option value="">Todas as Linhas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 12 2 2 4-5"/><circle cx="12" cy="12" r="9"/></svg></span><span>Situação / Status</span></label>
-                <select id="filtro-situacao" onchange="filtrarDashboard()">
-                    <option value="">Todas as Situações</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <div class="kpi-grid">
-        <div class="kpi-card">
-            <span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/></svg></span>
-            <span class="kpi-content">
-                <span class="kpi-title">Total Ocorrências Filtradas</span>
-                <span class="kpi-value" id="kpi-total">0</span>
-            </span>
-        </div>
-        <div class="kpi-card">
-            <span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c1.2-3.3 3.2-5 6-5s4.8 1.7 6 5"/><path d="M16 11a3 3 0 1 0-.8-5.9"/><path d="M17 20h4c-.5-2.4-1.8-4-4-4.8"/></svg></span>
-            <span class="kpi-content">
-                <span class="kpi-title">Analistas Ativos</span>
-                <span class="kpi-value" id="kpi-media">0</span>
-            </span>
-        </div>
-        <div class="kpi-card">
-            <span class="kpi-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/></svg></span>
-            <span class="kpi-content">
-                <span class="kpi-title">Ocorrência mais Frequente</span>
-                <span class="kpi-value" id="kpi-frequente">Carregando...</span>
-            </span>
-        </div>
-    </div>
-
-    <div class="dashboard-grid">
-        
-        <div class="chart-card main-chart">
-            <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/><path d="M3 20h18"/></svg></span><span>Ranking dos Analistas</span></div>
-            <div class="chart-container">
-                <canvas id="chartAnalistas"></canvas>
-            </div>
-        </div>
-        
-        <div class="bottom-charts-row">
-            <div class="chart-card secondary-chart">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9h9"/><path d="M20.5 15A9 9 0 1 1 9 3.5"/></svg></span><span>Ocorrências</span></div>
-                <div class="chart-container">
-                    <canvas id="chartOcorrencias"></canvas>
+        <form id="form-lancamento" onsubmit="enviarLancamento(event)">
+            <div class="launch-grid">
+                <div class="launch-group">
+                    <label for="novo-data">Data</label>
+                    <input type="date" id="novo-data" name="data" required>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-hora">Hora</label>
+                    <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-ocorrencia">Ocorrência</label>
+                    <input type="text" id="novo-ocorrencia" name="ocorrencia" list="lista-ocorrencia" autocomplete="off" required><datalist id="lista-ocorrencia"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-analista">Analista</label>
+                    <input type="text" id="novo-analista" name="analista" list="lista-analista" autocomplete="off" required><datalist id="lista-analista"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-carro-sai">Carro que sai</label>
+                    <input type="text" id="novo-carro-sai" name="carro_sai" list="lista-carro-sai" autocomplete="off"><datalist id="lista-carro-sai"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mot-sai">Mot. que sai</label>
+                    <input type="text" id="novo-mot-sai" name="mot_sai" list="lista-mot-sai" autocomplete="off"><datalist id="lista-mot-sai"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-carro-entra">Carro que entra</label>
+                    <input type="text" id="novo-carro-entra" name="carro_entra" list="lista-carro-entra" autocomplete="off"><datalist id="lista-carro-entra"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mot-entra">Mot. que entra</label>
+                    <input type="text" id="novo-mot-entra" name="mot_entra" list="lista-mot-entra" autocomplete="off"><datalist id="lista-mot-entra"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-linha">Linha</label>
+                    <input type="text" id="novo-linha" name="linha" list="lista-linha" autocomplete="off"><datalist id="lista-linha"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-tabela">Tabela</label>
+                    <input type="text" id="novo-tabela" name="tabela">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-servico">Serviço</label>
+                    <input type="text" id="novo-servico" name="servico">
+                </div>
+                <div class="launch-group">
+                    <label for="novo-motivo-oficina">Motivo (somente oficina)</label>
+                    <input type="text" id="novo-motivo-oficina" name="motivo_oficina" list="lista-motivo-oficina" autocomplete="off"><datalist id="lista-motivo-oficina"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-local">Local</label>
+                    <input type="text" id="novo-local" name="local" list="lista-local" autocomplete="off"><datalist id="lista-local"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-mecanico">Mecânico</label>
+                    <input type="text" id="novo-mecanico" name="mecanico" list="lista-mecanico" autocomplete="off"><datalist id="lista-mecanico"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-situacao">Situação</label>
+                    <input type="text" id="novo-situacao" name="situacao" list="lista-situacao" autocomplete="off"><datalist id="lista-situacao"></datalist>
+                </div>
+                <div class="launch-group">
+                    <label for="novo-tempo-deslocamento">Tempo de deslocamento da oficina</label>
+                    <input type="text" id="novo-tempo-deslocamento" name="tempo_deslocamento" list="lista-tempo-deslocamento" autocomplete="off"><datalist id="lista-tempo-deslocamento"></datalist>
+                </div>
+                <div class="launch-group launch-full">
+                    <label for="novo-observacoes">Observações</label>
+                    <textarea id="novo-observacoes" name="observacoes"></textarea>
                 </div>
             </div>
-            
-            <div class="chart-card secondary-chart">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h13"/><path d="M4 12h16"/><path d="M4 18h9"/></svg></span><span>Status dos Serviços</span></div>
-                <div class="chart-container">
-                    <canvas id="chartSituacao"></canvas>
-                </div>
+            <div class="launch-actions">
+                <button type="button" class="btn-clear" onclick="limparLancamento()">Limpar</button>
+                <button type="submit" class="btn-launch" id="btn-salvar-lancamento">Salvar na planilha</button>
             </div>
-        </div>
+            <div id="msg-lancamento" class="launch-msg"></div>
+        </form>
+    </div>
+
+    
+    <div class="portal-return launch-page-actions">
+        <a href="../index.html" class="btn-portal">
+            <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
+            <span>Portal</span>
+        </a>
+        <a href="Folhadeservico_dashboard.html" class="btn-portal btn-dashboard">
+            <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/><path d="M3 20h18"/></svg></span>
+            <span>Dashboard</span>
+        </a>
     </div>
 
     <div class="table-card">
-        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Dados Detalhados</span></div>
+        <div class="chart-header table-title"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M9 4v16"/><path d="M15 4v16"/></svg></span><span>Últimos Lançamentos</span></div>
         <table>
             <thead>
                 <tr>
@@ -1281,7 +1271,7 @@ h1 {
             </thead>
             <tbody id="tabela-corpo">
                 <tr>
-                    <td colspan="8" class="loading">Buscando dados em tempo real do Google Sheets...</td>
+                    <td colspan="8" class="loading">Carregando lançamentos da planilha...</td>
                 </tr>
             </tbody>
         </table>
@@ -1299,9 +1289,6 @@ h1 {
     let dadosMestres = [];
     let opcoesPlanilha = {};
     let opcoesFormularioPermitidas = {};
-    let chartAnalistasInstance = null;
-    let chartOcorrenciasInstance = null;
-    let chartSituacaoInstance = null;
     const ordenacaoTabela = { key: "data", dir: "desc" };
     const camposFormularioComOpcoes = [
         { id: "novo-ocorrencia", key: "ocorrencia" },
@@ -1318,9 +1305,18 @@ h1 {
         { id: "novo-tempo-deslocamento", key: "tempo_deslocamento" }
     ];
 
+    window.onload = () => {
+        aplicarMascaraHora();
+        if (typeof window.portalAguardarUsuario === "function") {
+            window.portalAguardarUsuario(carregarFolhaServico);
+        } else {
+            carregarFolhaServico();
+        }
+    };
+
     function carregarFolhaServico() {
-        window.portalMostrarCarregando?.("Carregando folha de serviço");
-        return fetch(URL_DO_SCRIPT_GOOGLE + "?modo=dashboard")
+        window.portalMostrarCarregando?.("Carregando lançamento");
+        return fetch(URL_DO_SCRIPT_GOOGLE)
             .then(async response => {
                 const texto = await response.text();
                 let retorno;
@@ -1335,52 +1331,17 @@ h1 {
                 return retorno;
             })
             .then(retorno => {
-                if (Array.isArray(retorno)) {
-                    dadosMestres = retorno;
-                    opcoesPlanilha = {};
-                } else {
-                    dadosMestres = Array.isArray(retorno.dados) ? retorno.dados : [];
-                    opcoesPlanilha = retorno.opcoes || {};
-                }
-                gerarFiltrosDinamicos(dadosMestres);
-                inicializarGraficos(dadosMestres);
+                dadosMestres = Array.isArray(retorno) ? retorno : (Array.isArray(retorno.dados) ? retorno.dados : []);
+                opcoesPlanilha = retorno.opcoes || {};
+                preencherSelectsDoFormulario(dadosMestres);
                 renderizarTabela(dadosMestres);
                 preencherDataAtual();
             })
             .catch(error => {
                 console.error("Erro ao carregar dados:", error);
-                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha. Verifique se as permissões de implantação estão para 'Qualquer pessoa'.</td></tr>`;
+                document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha: ${error.message}</td></tr>`;
             })
             .finally(() => window.portalOcultarCarregando?.());
-    }
-
-    window.onload = () => {
-        aplicarMascaraHora();
-        if (typeof window.portalAguardarUsuario === "function") {
-            window.portalAguardarUsuario(carregarFolhaServico);
-        } else {
-            carregarFolhaServico();
-        }
-    };
-
-    function gerarFiltrosDinamicos(dados) {
-        const analistas = new Set();
-        const ocorrencias = new Set();
-        const linhas = new Set();
-        const situacoes = new Set();
-
-        dados.forEach(item => {
-            if(item.analista) analistas.add(item.analista);
-            if(item.ocorrencia) ocorrencias.add(item.ocorrencia);
-            if(item.linha) linhas.add(item.linha);
-            if(item.situacao) situacoes.add(item.situacao);
-        });
-
-        populateSelect('filtro-analista', analistas);
-        populateSelect('filtro-ocorrencia', ocorrencias);
-        populateSelect('filtro-linha', linhas);
-        populateSelect('filtro-situacao', situacoes);
-        preencherSelectsDoFormulario(dados);
     }
 
     function valoresOrdenados(set) {
@@ -1404,18 +1365,7 @@ h1 {
                 opt.value = val;
                 lista.appendChild(opt);
             });
-            return;
         }
-
-        const valorSelecionado = campo.value;
-        campo.innerHTML = campo.options[0].outerHTML;
-        valores.forEach(val => {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.innerText = val;
-            campo.appendChild(opt);
-        });
-        campo.value = valorSelecionado;
     }
 
     function preencherSelectsDoFormulario(dados) {
@@ -1437,6 +1387,16 @@ h1 {
         }
     }
 
+    function aplicarMascaraHora() {
+        const campoHora = document.getElementById("novo-hora");
+        if (!campoHora) return;
+        campoHora.addEventListener("input", () => {
+            let valor = campoHora.value.replace(/\D/g, "").slice(0, 4);
+            if (valor.length >= 3) valor = valor.slice(0, 2) + ":" + valor.slice(2);
+            campoHora.value = valor;
+        });
+    }
+
     function limparLancamento() {
         const form = document.getElementById("form-lancamento");
         if (form) form.reset();
@@ -1451,25 +1411,10 @@ h1 {
         msg.textContent = texto || "";
     }
 
-    function aplicarMascaraHora() {
-        const campoHora = document.getElementById("novo-hora");
-        if (!campoHora) return;
-
-        campoHora.addEventListener("input", () => {
-            let valor = campoHora.value.replace(/\D/g, "").slice(0, 4);
-            if (valor.length >= 3) {
-                valor = valor.slice(0, 2) + ":" + valor.slice(2);
-            }
-            campoHora.value = valor;
-        });
-    }
-
     function validarHoraPadrao(hora) {
         const valor = String(hora || "").trim();
         if (!valor) return "";
-        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(valor)) {
-            return "O campo HORA deve estar no padrão HH:MM, por exemplo 19:43.";
-        }
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(valor)) return "O campo HORA deve estar no padrão HH:MM, por exemplo 19:43.";
         return "";
     }
 
@@ -1517,24 +1462,20 @@ h1 {
             mostrarMensagemLancamento(erroValidacao, "erro");
             return;
         }
+
         mostrarMensagemLancamento("", "");
         btn.disabled = true;
         btn.textContent = "Salvando...";
         try {
             const corpo = new URLSearchParams();
             Object.keys(payload).forEach(key => corpo.append(key, payload[key] || ""));
-
-            const resposta = await fetch(URL_DO_SCRIPT_GOOGLE, {
-                method: "POST",
-                body: corpo
-            });
+            const resposta = await fetch(URL_DO_SCRIPT_GOOGLE, { method: "POST", body: corpo });
             const texto = await resposta.text();
             let retorno = {};
             try { retorno = JSON.parse(texto); } catch(e) { retorno = { ok: resposta.ok }; }
-            if (!resposta.ok || retorno.ok === false) {
-                throw new Error(retorno.erro || "Não foi possível salvar na planilha.");
-            }
-            mostrarMensagemLancamento("Lançamento salvo na planilha com sucesso.", "ok");
+            if (!resposta.ok || retorno.ok === false) throw new Error(retorno.erro || "Não foi possível salvar na planilha.");
+
+            mostrarMensagemLancamento(`Lançamento salvo com sucesso na linha ${retorno.linha || ""}.`, "ok");
             document.getElementById("form-lancamento").reset();
             preencherDataAtual();
             await carregarFolhaServico();
@@ -1547,155 +1488,9 @@ h1 {
         }
     }
 
-    function inicializarGraficos(dados) {
-        const total = dados.length || 1;
-
-        // 1. Contagem Analistas
-        const contagemAnalistas = {};
-        dados.forEach(d => { if(d.analista) contagemAnalistas[d.analista] = (contagemAnalistas[d.analista] || 0) + 1; });
-        
-        const analistasOrdenados = Object.keys(contagemAnalistas).map(key => {
-            return { nome: key, qtd: contagemAnalistas[key] };
-        }).sort((a, b) => b.qtd - a.qtd);
-
-        const labelsAnalistas = analistasOrdenados.map(item => item.nome);
-        const quantidadesAnalistas = analistasOrdenados.map(item => item.qtd);
-
-        // 2. Contagem Ocorrências
-        const contagemOcorrencias = {};
-        dados.forEach(d => { if(d.ocorrencia) contagemOcorrencias[d.ocorrencia] = (contagemOcorrencias[d.ocorrencia] || 0) + 1; });
-        const labelsOcorrencias = Object.keys(contagemOcorrencias);
-        const quantidadesOcorrencias = labelsOcorrencias.map(l => contagemOcorrencias[l]);
-
-        // 3. Contagem Situação (Modificado para estruturar a ordenação crescente)
-        const contagemSituacao = {};
-        dados.forEach(d => { 
-            const sit = d.situacao ? d.situacao.trim() : "Pendente";
-            contagemSituacao[sit] = (contagemSituacao[sit] || 0) + 1; 
-        });
-
-        // ORDENAÇÃO CRESCENTE (Do menor para o maior)
-        const situacaoOrdenada = Object.keys(contagemSituacao).map(key => {
-            return { label: key, qtd: contagemSituacao[key] };
-        }).sort((a, b) => a.qtd - b.qtd);
-
-        const labelsSituacao = situacaoOrdenada.map(item => item.label);
-        const quantidadesSituacao = situacaoOrdenada.map(item => item.qtd);
-
-        // Atualizar KPIs rápidos
-        document.getElementById('kpi-total').innerText = dados.length;
-        document.getElementById('kpi-media').innerText = labelsAnalistas.length;
-        
-        let maisFrequente = "-";
-        let maxVotos = 0;
-        for(let key in contagemOcorrencias){
-            if(contagemOcorrencias[key] > maxVotos){
-                maxVotos = contagemOcorrencias[key];
-                maisFrequente = key;
-            }
-        }
-        document.getElementById('kpi-frequente').innerText = maisFrequente + ` (${((maxVotos/total)*100).toFixed(0)}%)`;
-
-        // GRÁFICO 1: Analistas
-        const ctxA = document.getElementById('chartAnalistas').getContext('2d');
-        if(chartAnalistasInstance) chartAnalistasInstance.destroy();
-        chartAnalistasInstance = new Chart(ctxA, {
-            type: 'bar',
-            data: {
-                labels: labelsAnalistas,
-                datasets: [{
-                    label: 'Quantidade de Ocorrências',
-                    data: quantidadesAnalistas,
-                    backgroundColor: '#0b3a8a',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: c => ` Ocorrências: ${c.raw}` } }
-                },
-                scales: { 
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                    x: { ticks: { autoSkip: false } }
-                }
-            }
-        });
-
-        // GRÁFICO 2: Ocorrências (Mantido em CÍRCULO / DONUT)
-        const ctxO = document.getElementById('chartOcorrencias').getContext('2d');
-        if(chartOcorrenciasInstance) chartOcorrenciasInstance.destroy();
-        chartOcorrenciasInstance = new Chart(ctxO, {
-            type: 'doughnut',
-            data: {
-                labels: labelsOcorrencias,
-                datasets: [{
-                    data: quantidadesOcorrencias,
-                    backgroundColor: ['#ff6b00', '#06245c', '#667085', '#22c55e', '#a855f7', '#eab308']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
-                    tooltip: { 
-                        callbacks: { 
-                            label: c => {
-                                const qtd = c.raw;
-                                const pct = ((qtd / total) * 100).toFixed(1);
-                                return ` ${c.label}: ${qtd} (${pct}%)`;
-                            } 
-                        } 
-                    }
-                }
-            }
-        });
-
-        // GRÁFICO 3: Situação (Modificado para BARRAS LATERAIS FINAS, ORDEM CRESCENTE E COLORIDAS)
-        const ctxS = document.getElementById('chartSituacao').getContext('2d');
-        if(chartSituacaoInstance) chartSituacaoInstance.destroy();
-        chartSituacaoInstance = new Chart(ctxS, {
-            type: 'bar',
-            data: {
-                labels: labelsSituacao,
-                datasets: [{
-                    data: quantidadesSituacao,
-                    // Cores associadas dinamicamente à posição ou ao tipo para colorir as barras individualmente
-                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'].slice(0, labelsSituacao.length),
-                    borderRadius: 4,
-                    barThickness: 14 // Deixa as barras mais finas lateralmente
-                }]
-            },
-            options: {
-                indexAxis: 'y', // Inverte o eixo para tornar as barras horizontais (laterais)
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { 
-                        callbacks: { 
-                            label: c => {
-                                const qtd = c.raw;
-                                const pct = ((qtd / total) * 100).toFixed(1);
-                                return ` Total: ${qtd} (${pct}%)`;
-                            } 
-                        } 
-                    }
-                },
-                scales: {
-                    x: { beginAtZero: true, ticks: { stepSize: 1 } },
-                    y: { ticks: { font: { weight: 'bold' } } }
-                }
-            }
-        });
-    }
-
     function valorOrdenacaoTabela(item, key) {
         if (key === "data") return String(item.data || "");
-        return String(item[key] || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        return String(item[key] || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
     }
 
     function ordenarDadosTabela(dados) {
@@ -1721,20 +1516,15 @@ h1 {
         const tbody = document.getElementById('tabela-corpo');
         tbody.innerHTML = "";
         atualizarSetasTabela();
-        
         if(dados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum registro encontrado.</td></tr>`;
             return;
         }
-
-        ordenarDadosTabela(dados).forEach(d => {
+        ordenarDadosTabela(dados).slice(0, 80).forEach(d => {
             let dataFormatada = d.data || "";
-            if(d.data && d.data.includes('-')) {
-                dataFormatada = d.data.split('-').reverse().join('/');
-            }
+            if(d.data && d.data.includes('-')) dataFormatada = d.data.split('-').reverse().join('/');
             const situacaoLimpa = d.situacao ? d.situacao.trim() : "";
             const badgeClass = situacaoLimpa.toLowerCase() === "concluído" || situacaoLimpa.toLowerCase() === "concluido" ? "status-concluido" : "status-pendente";
-            
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${dataFormatada}</td>
@@ -1753,37 +1543,14 @@ h1 {
     document.querySelectorAll("th[data-sort]").forEach(th => {
         th.addEventListener("click", () => {
             const key = th.dataset.sort;
-            if (ordenacaoTabela.key === key) {
-                ordenacaoTabela.dir = ordenacaoTabela.dir === "asc" ? "desc" : "asc";
-            } else {
+            if (ordenacaoTabela.key === key) ordenacaoTabela.dir = ordenacaoTabela.dir === "asc" ? "desc" : "asc";
+            else {
                 ordenacaoTabela.key = key;
                 ordenacaoTabela.dir = key === "data" ? "desc" : "asc";
             }
-            filtrarDashboard();
+            renderizarTabela(dadosMestres);
         });
     });
-
-    function filtrarDashboard() {
-        const dInicio = document.getElementById('filtro-data-inicio').value;
-        const dFim = document.getElementById('filtro-data-fim').value;
-        const analista = document.getElementById('filtro-analista').value;
-        const ocorrencia = document.getElementById('filtro-ocorrencia').value;
-        const linha = document.getElementById('filtro-linha').value;
-        const situacao = document.getElementById('filtro-situacao').value;
-
-        const dadosFiltrados = dadosMestres.filter(item => {
-            if (dInicio && item.data < dInicio) return false;
-            if (dFim && item.data > dFim) return false;
-            if (analista && item.analista !== analista) return false;
-            if (ocorrencia && item.ocorrencia !== ocorrencia) return false;
-            if (linha && item.linha !== linha) return false;
-            if (situacao && item.situacao !== situacao) return false;
-            return true;
-        });
-
-        inicializarGraficos(dadosFiltrados);
-        renderizarTabela(dadosFiltrados);
-    }
 </script>
 </body>
 </html>
