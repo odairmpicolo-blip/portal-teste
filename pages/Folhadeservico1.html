@@ -1408,9 +1408,9 @@ h1 {
                         <input type="date" id="novo-data" name="data" required>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-hora" title="Hora">Hora</label>
+                        <label for="novo-hora" title="Hora">Hora <span class="req">*</span></label>
                         <div class="hora-row">
-                            <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM">
+                            <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM" required>
                             <button type="button" class="btn-hora-atual" onclick="preencherHoraAtual()">Agora</button>
                         </div>
                     </div>
@@ -1423,12 +1423,12 @@ h1 {
                         <select id="novo-analista" name="analista" required title="Analista"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-carro-sai" title="Carro que sai">Carro sai</label>
-                        <select id="novo-carro-sai" name="carro_sai" title="Carro que sai"><option value="">—</option></select>
+                        <label for="novo-carro-sai" title="Carro que sai">Carro sai <span class="req">*</span></label>
+                        <select id="novo-carro-sai" name="carro_sai" title="Carro que sai" required><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-mot-sai" title="Motorista que sai">Mot. sai</label>
-                        <select id="novo-mot-sai" name="mot_sai" title="Motorista que sai"><option value="">—</option></select>
+                        <label for="novo-mot-sai" title="Motorista que sai">Mot. sai <span class="req">*</span></label>
+                        <select id="novo-mot-sai" name="mot_sai" title="Motorista que sai" required><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
                         <label for="novo-carro-entra" title="Carro que entra">Carro entra</label>
@@ -1439,32 +1439,32 @@ h1 {
                         <select id="novo-mot-entra" name="mot_entra" title="Motorista que entra"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-linha" title="Linha">Linha</label>
-                        <select id="novo-linha" name="linha" title="Linha"><option value="">—</option></select>
+                        <label for="novo-linha" title="Linha">Linha <span class="req">*</span></label>
+                        <select id="novo-linha" name="linha" title="Linha" required><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-tabela" title="Tabela">Tabela</label>
-                        <input type="text" id="novo-tabela" name="tabela" placeholder="Ex.: 10" autocomplete="off">
+                        <label for="novo-tabela" title="Tabela">Tabela <span class="req">*</span></label>
+                        <input type="text" id="novo-tabela" name="tabela" placeholder="Ex.: 10" autocomplete="off" required>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-servico" title="Serviço">Serviço</label>
-                        <input type="text" id="novo-servico" name="servico" placeholder="Ex.: 9041005" autocomplete="off">
+                        <label for="novo-servico" title="Serviço">Serviço <span class="req">*</span></label>
+                        <input type="text" id="novo-servico" name="servico" placeholder="Ex.: 9041005" autocomplete="off" required>
                     </div>
                     <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-motivo-oficina" title="Motivo (somente oficina)">Motivo ofic.</label>
                         <select id="novo-motivo-oficina" name="motivo_oficina" title="Motivo (somente oficina)"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-local" title="Local">Local</label>
-                        <select id="novo-local" name="local" title="Local"><option value="">—</option></select>
+                        <label for="novo-local" title="Local">Local <span class="req">*</span></label>
+                        <select id="novo-local" name="local" title="Local" required><option value="">—</option></select>
                     </div>
                     <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-mecanico" title="Mecânico">Mecânico</label>
                         <select id="novo-mecanico" name="mecanico" title="Mecânico"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-situacao" title="Situação">Situação</label>
-                        <select id="novo-situacao" name="situacao" title="Situação"><option value="">—</option></select>
+                        <label for="novo-situacao" title="Situação">Situação <span class="req">*</span></label>
+                        <select id="novo-situacao" name="situacao" title="Situação" required><option value="">—</option></select>
                     </div>
                     <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-tempo-deslocamento" title="Tempo de deslocamento da oficina">Tempo ofic.</label>
@@ -1525,6 +1525,19 @@ h1 {
     const CACHE_STORAGE_KEY = "ciop_folha_lancamentos_recentes_v1";
     const LIMITE_LINHAS_RECENTES = 10;
     const CAMPOS_OCORRENCIA_OFICINA = ["novo-motivo-oficina", "novo-mecanico", "novo-tempo-deslocamento"];
+    const CAMPOS_OBRIGATORIOS = [
+        { id: "novo-data", key: "data", label: "Data" },
+        { id: "novo-hora", key: "hora", label: "Hora" },
+        { id: "novo-ocorrencia", key: "ocorrencia", label: "Ocorrência" },
+        { id: "novo-analista", key: "analista", label: "Analista" },
+        { id: "novo-carro-sai", key: "carro_sai", label: "Carro sai" },
+        { id: "novo-mot-sai", key: "mot_sai", label: "Mot. sai" },
+        { id: "novo-linha", key: "linha", label: "Linha" },
+        { id: "novo-tabela", key: "tabela", label: "Tabela" },
+        { id: "novo-servico", key: "servico", label: "Serviço" },
+        { id: "novo-local", key: "local", label: "Local" },
+        { id: "novo-situacao", key: "situacao", label: "Situação" }
+    ];
     const CHAVES_CAMPOS_SELECT = new Set([
         "ocorrencia", "analista", "carro_sai", "mot_sai", "carro_entra", "mot_entra",
         "linha", "motivo_oficina", "local", "mecanico", "situacao", "tempo_deslocamento"
@@ -1892,6 +1905,18 @@ h1 {
         msg.textContent = texto || "";
     }
 
+    function validarCamposObrigatorios(payload) {
+        const faltando = [];
+        CAMPOS_OBRIGATORIOS.forEach(function (campo) {
+            if (!String(payload[campo.key] || "").trim()) faltando.push(campo.label);
+        });
+        if (faltando.length === 0) return "";
+        if (faltando.length === 1) {
+            return `Preencha o campo obrigatório: ${faltando[0]}.`;
+        }
+        return "Preencha os campos obrigatórios: " + faltando.join(", ") + ".";
+    }
+
     function validarHoraPadrao(hora) {
         const valor = String(hora || "").trim();
         if (!valor) return "";
@@ -1940,6 +1965,13 @@ h1 {
         event.preventDefault();
         const btn = document.getElementById("btn-salvar-lancamento");
         const payload = coletarDadosLancamento();
+        const erroObrigatorios = validarCamposObrigatorios(payload);
+        if (erroObrigatorios) {
+            mostrarMensagemLancamento(erroObrigatorios, "erro");
+            const primeiro = CAMPOS_OBRIGATORIOS.find(c => !String(payload[c.key] || "").trim());
+            if (primeiro) document.getElementById(primeiro.id)?.focus();
+            return;
+        }
         const erroHora = validarHoraPadrao(payload.hora);
         if (erroHora) {
             mostrarMensagemLancamento(erroHora, "erro");
