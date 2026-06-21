@@ -1158,7 +1158,7 @@ h1 {
                 </div>
                 <div class="launch-group">
                     <label for="novo-hora">Hora</label>
-                    <input type="text" id="novo-hora" name="hora" placeholder="Ex.: 19:43">
+                    <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM">
                 </div>
                 <div class="launch-group">
                     <label for="novo-ocorrencia">Ocorrência</label>
@@ -1416,6 +1416,7 @@ h1 {
     }
 
     window.onload = () => {
+        aplicarMascaraHora();
         if (typeof window.portalAguardarUsuario === "function") {
             window.portalAguardarUsuario(carregarFolhaServico);
         } else {
@@ -1511,6 +1512,28 @@ h1 {
         msg.textContent = texto || "";
     }
 
+    function aplicarMascaraHora() {
+        const campoHora = document.getElementById("novo-hora");
+        if (!campoHora) return;
+
+        campoHora.addEventListener("input", () => {
+            let valor = campoHora.value.replace(/\D/g, "").slice(0, 4);
+            if (valor.length >= 3) {
+                valor = valor.slice(0, 2) + ":" + valor.slice(2);
+            }
+            campoHora.value = valor;
+        });
+    }
+
+    function validarHoraPadrao(hora) {
+        const valor = String(hora || "").trim();
+        if (!valor) return "";
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(valor)) {
+            return "O campo HORA deve estar no padrão HH:MM, por exemplo 19:43.";
+        }
+        return "";
+    }
+
     function validarOpcoesPadrao(payload) {
         for (const campo of camposFormularioComOpcoes) {
             const valor = String(payload[campo.key] || "").trim();
@@ -1545,6 +1568,11 @@ h1 {
         event.preventDefault();
         const btn = document.getElementById("btn-salvar-lancamento");
         const payload = coletarDadosLancamento();
+        const erroHora = validarHoraPadrao(payload.hora);
+        if (erroHora) {
+            mostrarMensagemLancamento(erroHora, "erro");
+            return;
+        }
         const erroValidacao = validarOpcoesPadrao(payload);
         if (erroValidacao) {
             mostrarMensagemLancamento(erroValidacao, "erro");
@@ -1573,7 +1601,7 @@ h1 {
             await carregarFolhaServico();
         } catch (erro) {
             console.error("Erro ao salvar lançamento:", erro);
-            mostrarMensagemLancamento("Erro ao salvar. Confira a implantação do Apps Script e as permissões da planilha.", "erro");
+            mostrarMensagemLancamento("Erro ao salvar: " + (erro.message || "Confira a implantação do Apps Script e as permissões da planilha."), "erro");
         } finally {
             btn.disabled = false;
             btn.textContent = "Salvar na planilha";
