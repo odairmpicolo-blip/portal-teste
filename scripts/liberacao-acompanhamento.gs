@@ -7,14 +7,14 @@
  * Saída de carros semanal: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
- * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&maquina=...][&limit=N][&incluir_colunas=1]
+ * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&data_de=...][&data_ate=...][&maquina=...][&limit=N][&incluir_colunas=1][&ultima_semana=0|1]
  * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD][&maquina=...]
  * GET  ?liberacao=1&recurso=comparacao&data=YYYY-MM-DD[&maquina=...]
  * GET  ?liberacao=1&recurso=resumo[&data=YYYY-MM-DD][&incluir_colunas=1]
  * POST ?liberacao=1  action=create|update|upsert  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-21-liberacao-v6";
+const LIBERACAO_VERSAO = "2026-06-21-liberacao-v7";
 const LIBERACAO_DIAS_JANELA = 7;
 const LIBERACAO_CHUNK_LINHAS = 800;
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
@@ -31,8 +31,15 @@ function montarRespostaLiberacaoGet_(params) {
   if (recurso === "acompanhamento") {
     const limit = parseInt(params.limit || "0", 10);
     const incluirColunas = String(params.incluir_colunas || "") === "1";
-    const ultimaSemana = String(params.ultima_semana || "1") !== "0";
-    const dados = lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, ultimaSemana);
+    const dataDe = normalizarDataIsoLiberacao_(params.data_de || "");
+    const dataAte = normalizarDataIsoLiberacao_(params.data_ate || "");
+    const ultimaSemana = String(params.ultima_semana || "1") !== "0" && !dataDe && !dataAte;
+    const janela = {
+      ultimaSemanaOnly: ultimaSemana,
+      dataDe: dataDe || (ultimaSemana ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : ""),
+      dataAte: dataAte
+    };
+    const dados = lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janela);
     const payload = {
       ok: true,
       dados: dados,
@@ -40,7 +47,8 @@ function montarRespostaLiberacaoGet_(params) {
         versao: LIBERACAO_VERSAO,
         recurso: recurso,
         ultima_semana: ultimaSemana,
-        data_inicio: ultimaSemana ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : ""
+        data_de: janela.dataDe,
+        data_ate: janela.dataAte
       }
     };
     if (incluirColunas) payload.colunas = lerColunasAcompanhamento_();
@@ -310,9 +318,21 @@ function isoDataDiasAtrasLiberacao_(dias) {
   return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
 }
 
-function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, ultimaSemanaOnly) {
-  ultimaSemanaOnly = ultimaSemanaOnly !== false;
-  const dataMinIso = ultimaSemanaOnly ? isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA) : "";
+function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janelaOpts) {
+  var ultimaSemanaOnly = true;
+  var dataMinIso = "";
+  var dataMaxIso = "";
+  if (janelaOpts && typeof janelaOpts === "object") {
+    ultimaSemanaOnly = janelaOpts.ultimaSemanaOnly !== false;
+    dataMinIso = janelaOpts.dataDe || "";
+    dataMaxIso = janelaOpts.dataAte || "";
+    if (dataMinIso || dataMaxIso) ultimaSemanaOnly = false;
+  } else {
+    ultimaSemanaOnly = janelaOpts !== false;
+  }
+  if (ultimaSemanaOnly && !dataMinIso) {
+    dataMinIso = isoDataDiasAtrasLiberacao_(LIBERACAO_DIAS_JANELA);
+  }
   const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
@@ -333,10 +353,11 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, ultimaSem
       const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], rowNum);
       const iso = item.data_iso || normalizarDataIsoLiberacao_(item.data);
 
-      if (ultimaSemanaOnly && dataMinIso && iso && iso < dataMinIso) {
+      if (dataMinIso && iso && iso < dataMinIso) {
         parar = true;
         break;
       }
+      if (dataMaxIso && iso && iso > dataMaxIso) continue;
       if (dataFiltro && iso !== dataFiltro) continue;
       if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
       dados.push(item);

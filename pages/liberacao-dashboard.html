@@ -6,56 +6,61 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Acompanhamento da Liberação - Portal CIOP</title>
+<title>Dashboard — Acompanhamento da Liberação | Portal CIOP</title>
 <style>
-:root{--blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--green:#15803d;--amber:#b45309}
+:root{--blue:#06245c;--blue2:#0b3a8a;--bg:#f5f7fb;--border:#dfe5ef;--text:#101828;--muted:#667085;--red:#dc2626;--rosa:#ec4899;--laranja:#f97316}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
-.header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:6px 20px;border-bottom:1px solid #e8edf6}
+.header{background:#fff;display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:8px 20px;border-bottom:1px solid #e8edf6}
 .header > a:first-child{justify-self:start;display:flex;align-items:center}
-.logo-ciop{height:40px;object-fit:contain}.logo-tcgl{height:45px;object-fit:contain}
+.logo-ciop{height:42px;object-fit:contain}.logo-tcgl{height:46px;object-fit:contain}
 .title-wrap{justify-self:center;text-align:center}
 h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppercase}
 .header-subtitle{margin-top:4px;color:var(--muted);font-size:11px;font-weight:700}
 .header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
-.ciop-session{display:flex;align-items:center;gap:6px;max-width:260px;padding:4px 6px;border:1px solid rgba(6,36,92,.12);border-radius:6px;background:#fff;color:var(--blue);font-size:11px}
+.ciop-session{display:flex;align-items:center;gap:6px;max-width:260px;padding:4px 8px;border:1px solid rgba(6,36,92,.12);border-radius:6px;background:#fff;color:var(--blue);font-size:11px}
 .ciop-session-user{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .ciop-session-profile{color:var(--muted);font-weight:600}
-.ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 7px;font-size:11px;font-weight:700;cursor:pointer}
-.container{max-width:100%;margin:22px auto 34px;padding:0 18px}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit}
+.ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
+.container{max-width:1400px;margin:20px auto 32px;padding:0 20px}
+.toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.toolbar-left{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;flex:1;min-width:0}
+.nav-actions{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.filters-inline{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;flex:1;min-width:280px}
+.filter-field{min-width:140px;flex:1;max-width:180px}
+.filter-field label{display:block;margin:0 0 4px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.filter-field input{width:100%;min-height:38px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fafbfd}
+.filter-field input:focus{outline:none;border-color:var(--blue2);background:#fff;box-shadow:0 0 0 3px rgba(11,58,138,.08)}
+.btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit}
 .btn-portal,.btn-primary{background:var(--blue);color:#fff}.btn-secondary{background:#e8edf6;color:var(--blue)}
 .btn-icon{display:inline-flex;width:16px;height:16px}.btn-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.status-line{color:var(--muted);font-size:12px;font-weight:700}
-.filters{display:grid;grid-template-columns:1.2fr repeat(5,1fr) auto;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 11px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:12px}
-.filters label{display:block;margin:0 0 3px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.filters input,.filters select{width:100%;min-height:34px;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
-.filters .btn-secondary{min-height:34px;padding:6px 12px;font-size:12px;width:100%}
-.panel,.table-card{background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.07);margin-bottom:14px;overflow:hidden}
-.panel-head,.table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.card-title{margin:0;color:var(--blue);font-size:15px;font-weight:900}
-.table-wrap{overflow:auto;max-height:420px}
-.table-wrap.wide{max-height:calc(100vh - 280px);min-height:320px}
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11px}
-table.resumo{min-width:900px}
-table.dados{min-width:2400px}
-thead th{position:sticky;top:0;z-index:2;background:#f8fafc;color:var(--blue);border-bottom:1px solid var(--border);padding:8px 7px;font-size:9px;text-transform:uppercase;text-align:center;white-space:nowrap}
-tbody td{border-bottom:1px solid #edf2f7;padding:7px 8px;text-align:center;white-space:nowrap}
-tbody tr:hover{background:#fff7ed}
-tbody tr.ativo{background:#ffedd5;font-weight:700}
-.num{font-weight:900;color:var(--blue)}
-.pct{color:var(--muted);font-size:10px}
-.base-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px}
-.base-card{border:1px solid var(--border);border-radius:8px;padding:10px;background:#fafbfd;min-height:120px}
-.base-card h3{margin:0 0 6px;font-size:10px;color:var(--blue);font-weight:900;line-height:1.25;text-transform:uppercase}
-.base-meta{display:flex;justify-content:space-between;gap:6px;font-size:10px;margin-bottom:6px}
-.grave{color:var(--red);font-weight:900}.orientar{color:var(--amber);font-weight:900}
-.base-list{font-size:10px;color:#344054;max-height:100px;overflow:auto;line-height:1.45}
-.empty{padding:24px;color:var(--muted);font-weight:800;text-align:center}
-@media(max-width:1180px){.base-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:720px){.header{grid-template-columns:1fr}.base-grid,.filters{grid-template-columns:1fr}h1{font-size:18px}}
+.status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:700;color:var(--muted)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;flex:0 0 auto}
+.status-dot.ok{background:#15803d}.status-dot.load{background:var(--laranja);animation:pulse 1s infinite}.status-dot.erro{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.group-section{margin-bottom:18px}
+.group-head{display:flex;align-items:center;gap:10px;margin:0 0 10px;padding:0 2px}
+.group-dot{width:12px;height:12px;border-radius:50%;flex:0 0 auto}
+.group-dot.rosa{background:var(--rosa)}.group-dot.laranja{background:var(--laranja)}.group-dot.vermelha{background:var(--red)}
+.group-title{margin:0;font-size:13px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.03em}
+.charts-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.chart-card{background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 28px rgba(16,24,40,.06);overflow:hidden;display:flex;flex-direction:column;min-height:280px}
+.chart-card.tone-rosa{border-top:4px solid var(--rosa)}.chart-card.tone-laranja{border-top:4px solid var(--laranja)}.chart-card.tone-vermelha{border-top:4px solid var(--red)}
+.chart-head{padding:12px 14px 8px;border-bottom:1px solid #edf2f7}
+.chart-title{margin:0;font-size:11px;font-weight:900;color:var(--blue);line-height:1.35;text-transform:uppercase}
+.chart-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.badge{font-size:9px;font-weight:900;text-transform:uppercase;padding:3px 8px;border-radius:999px;letter-spacing:.04em}
+.badge.orientar{background:#fff7ed;color:#c2410c}.badge.grave{background:#fef2f2;color:var(--red)}
+.chart-total{font-size:11px;font-weight:800;color:var(--muted)}
+.chart-body{flex:1;padding:8px 10px 12px;position:relative;min-height:200px}
+.chart-body canvas{width:100%!important;height:100%!important}
+.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-weight:700}
+.empty-page{padding:48px 24px;text-align:center;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--border);border-radius:8px}
+@media(max-width:960px){.charts-grid{grid-template-columns:1fr}.toolbar-left,.filters-inline{width:100%}.filter-field{max-width:none}}
+@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 </head>
@@ -64,7 +69,7 @@ tbody tr.ativo{background:#ffedd5;font-weight:700}
     <a href="https://mov1.com.br" target="_blank" rel="noopener"><img class="logo-ciop" src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></a>
     <div class="title-wrap">
         <h1>Acompanhamento da Liberação</h1>
-        <div class="header-subtitle">Dados da aba ACOMPANHAMENTO LIBERAÇÃO — histórico dos últimos 7 dias</div>
+        <div class="header-subtitle">Gráficos por categoria — aba ACOMPANHAMENTO LIBERAÇÃO</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -75,284 +80,304 @@ tbody tr.ativo{background:#ffedd5;font-weight:700}
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
     </div>
 </header>
+
 <main class="container">
-    <div class="topbar">
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg></span>Portal</a>
-            <a class="btn-secondary" href="liberacao-lancamento.html">Lançamento</a>
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="nav-actions">
+                <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg></span>Portal</a>
+                <a class="btn-secondary" href="liberacao-lancamento.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>Lançamento</a>
+            </div>
+            <div class="filters-inline" aria-label="Filtros de período">
+                <div class="filter-field"><label for="dataDe">De</label><input id="dataDe" type="date"></div>
+                <div class="filter-field"><label for="dataAte">Até</label><input id="dataAte" type="date"></div>
+            </div>
+            <button class="btn-primary" type="button" id="btnPdf"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></span>Gerar PDF</button>
         </div>
-        <div class="status-line" id="statusLine">Carregando...</div>
+        <div class="status-pill"><span class="status-dot load" id="statusDot"></span><span id="statusLine">Carregando...</span></div>
     </div>
 
-    <section class="filters" aria-label="Filtros">
-        <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
-        <div><label for="linhaFiltro">Linha</label><select id="linhaFiltro"><option value="">Todas</option></select></div>
-        <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas</option></select></div>
-        <div><label for="carroFiltro">Carro</label><select id="carroFiltro"><option value="">Todos</option></select></div>
-        <div><label for="motoristaFiltro">Motorista</label><select id="motoristaFiltro"><option value="">Todos</option></select></div>
-        <div><label for="buscaFiltro">Busca</label><input id="buscaFiltro" type="search" placeholder="Buscar..."></div>
-        <div style="align-self:end"><button class="btn-secondary" type="button" id="limparFiltros">Limpar</button></div>
-    </section>
-
-    <section class="panel" aria-label="Resumo do dia">
-        <div class="panel-head">
-            <h2 class="card-title">Resumo do dia selecionado</h2>
-            <span class="status-line" id="resumoInfo">—</span>
-        </div>
-        <div class="table-wrap">
-            <table class="resumo">
-                <thead><tr>
-                    <th>Data</th><th>Qt. saídas</th><th>No horário</th><th>%</th>
-                    <th>Atrasado</th><th>%</th><th>Adiantado</th><th>%</th><th>Total %</th>
-                </tr></thead>
-                <tbody id="resumoDiaCorpo"></tbody>
-            </table>
-        </div>
-    </section>
-
-    <section class="panel" aria-label="Histórico">
-        <div class="panel-head">
-            <h2 class="card-title">Qt. de acompanhamento realizado por dia</h2>
-            <span class="status-line">Fonte: lançamentos</span>
-        </div>
-        <div class="table-wrap">
-            <table class="resumo">
-                <thead><tr>
-                    <th>Data</th><th>Qt. saídas</th><th>No horário</th><th>%</th>
-                    <th>Atrasado</th><th>%</th><th>Adiantado</th><th>%</th><th>Total %</th>
-                </tr></thead>
-                <tbody id="historicoCorpo"></tbody>
-            </table>
-            <div class="empty" id="historicoEmpty" hidden>Sem histórico na planilha de lançamentos.</div>
-        </div>
-    </section>
-
-    <section class="panel" aria-label="Base de dados">
-        <div class="panel-head">
-            <h2 class="card-title">Base de dados — orientações por motorista</h2>
-            <span class="status-line" id="baseInfo">Dia selecionado</span>
-        </div>
-        <div class="base-grid" id="baseDadosGrid"></div>
-        <div class="empty" id="baseEmpty" hidden>Sem registros classificados para esta data.</div>
-    </section>
-
-    <section class="table-card" aria-label="Lançamentos">
-        <div class="table-head">
-            <h2 class="card-title">Tabela de lançamentos</h2>
-            <span class="status-line" id="tableInfo">0 registros</span>
-        </div>
-        <div class="table-wrap wide">
-            <table class="dados">
-                <thead id="tabelaHead"><tr></tr></thead>
-                <tbody id="tabelaCorpo"></tbody>
-            </table>
-            <div class="empty" id="emptyState" hidden>Nenhum registro para os filtros selecionados.</div>
-        </div>
-    </section>
+    <div id="chartsRoot"></div>
+    <div class="empty-page" id="pageEmpty" hidden>Nenhum registro no período selecionado.</div>
 </main>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
-const COLUNAS_PADRAO = [
-    { chave: "data", rotulo: "DATA" }, { chave: "maquina", rotulo: "MAQUINA" }, { chave: "linha", rotulo: "LINHA" },
-    { chave: "work_id", rotulo: "WORK-ID" }, { chave: "carro", rotulo: "CARRO" }, { chave: "motorista", rotulo: "MOTORISTA" },
-    { chave: "preparo", rotulo: "PREPARO" }, { chave: "horario_saida_da_garagem", rotulo: "HORÁRIO DE SAÍDA DA GARAGEM" },
-    { chave: "saida_real", rotulo: "SAÍDA REAL" }, { chave: "saiu_no_horario", rotulo: "SAIU NO HORÁRIO" },
-    { chave: "minutos_atrasado_garagem", rotulo: "MINUTOS ATRASADO GARAGEM" }, { chave: "minutos_adiantado_garagem", rotulo: "MINUTOS ADIANTADO GARAGEM" },
-    { chave: "saida_atrasado_adiantado", rotulo: "SAÍDA ATRASADO/ADIANTADO" }, { chave: "local_inicio", rotulo: "LOCAL INICIO" },
-    { chave: "trajeto_ocioso_correto", rotulo: "TRAJETO OCIOSO CORRETO?" }, { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INICIO" },
-    { chave: "inicio_real", rotulo: "INICIO REAL" }, { chave: "inicio_no_horario", rotulo: "INICÍO NO HORÁRIO" },
-    { chave: "observacoes", rotulo: "OBSERVAÇÕES" }, { chave: "minutos_atrasado_no_inicio", rotulo: "MINUTOS ATRASADO NO INICIO" },
-    { chave: "minutos_adiantado_no_inicio", rotulo: "MINUTOS ADIANTADO NO INICIO" }
-];
-const CATEGORIAS = [
-    { chave: "NO_HORARIO|ATRASADO", titulo: "SAIU NO HORÁRIO E INICIOU ATRASADO", gravidade: "ORIENTAR" },
-    { chave: "NO_HORARIO|ADIANTADO", titulo: "SAIU NO HORÁRIO E INICIOU ADIANTADO", gravidade: "ORIENTAR" },
-    { chave: "ATRASADO|NO_HORARIO", titulo: "SAIU ATRASADO E INICIOU NO HORÁRIO", gravidade: "ORIENTAR" },
-    { chave: "ATRASADO|ADIANTADO", titulo: "SAIU ATRASADO E INICIOU ADIANTADO", gravidade: "ORIENTAR" },
-    { chave: "ATRASADO|ATRASADO", titulo: "SAIU ATRASADO E INICIOU ATRASADO", gravidade: "GRAVE" },
-    { chave: "ADIANTADO|NO_HORARIO", titulo: "SAIU ADIANTADO E INICIOU NO HORÁRIO", gravidade: "GRAVE" },
-    { chave: "ADIANTADO|ATRASADO", titulo: "SAIU ADIANTADO E INICIOU ATRASADO", gravidade: "GRAVE" },
-    { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE" }
-];
-const state = { all: [], filtered: [], colunas: COLUNAS_PADRAO, resumo: null, historico: [], base: [] };
-const fields = {
-    data: document.getElementById("dataFiltro"),
-    linha: document.getElementById("linhaFiltro"),
-    maquina: document.getElementById("maquinaFiltro"),
-    carro: document.getElementById("carroFiltro"),
-    motorista: document.getElementById("motoristaFiltro"),
-    busca: document.getElementById("buscaFiltro")
-};
 
-function formatNumber(v){return Number(v||0).toLocaleString("pt-BR")}
-function formatPct(v){return String(Number(v||0).toFixed(2)).replace(".",",")+"%"}
-function escapeHtml(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function normalizeText(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()}
-function val(row,key){return row[key]!=null?row[key]:""}
-function dataIso(row){return row.data_iso||normalizarDataIso(val(row,"data"))}
-function brDate(iso){if(!iso)return "";const p=iso.split("-");return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso}
+const GRUPOS = [
+    {
+        id: "rosa", titulo: "Orientar — saída no horário", cor: "#ec4899", tone: "tone-rosa",
+        categorias: [
+            { chave: "NO_HORARIO|ATRASADO", titulo: "SAIU NO HORÁRIO E INICIOU ATRASADO", gravidade: "ORIENTAR" },
+            { chave: "NO_HORARIO|ADIANTADO", titulo: "SAIU NO HORÁRIO E INICIOU ADIANTADO", gravidade: "ORIENTAR" }
+        ]
+    },
+    {
+        id: "laranja", titulo: "Orientar — saída atrasada", cor: "#f97316", tone: "tone-laranja",
+        categorias: [
+            { chave: "ATRASADO|NO_HORARIO", titulo: "SAIU ATRASADO E INICIOU NO HORÁRIO", gravidade: "ORIENTAR" },
+            { chave: "ATRASADO|ADIANTADO", titulo: "SAIU ATRASADO E INICIOU ADIANTADO", gravidade: "ORIENTAR" }
+        ]
+    },
+    {
+        id: "vermelha", titulo: "Grave", cor: "#dc2626", tone: "tone-vermelha",
+        categorias: [
+            { chave: "ATRASADO|ATRASADO", titulo: "SAIU ATRASADO E INICIOU ATRASADO", gravidade: "GRAVE" },
+            { chave: "ADIANTADO|NO_HORARIO", titulo: "SAIU ADIANTADO E INICIOU NO HORÁRIO", gravidade: "GRAVE" },
+            { chave: "ADIANTADO|ATRASADO", titulo: "SAIU ADIANTADO E INICIOU ATRASADO", gravidade: "GRAVE" },
+            { chave: "ADIANTADO|ADIANTADO", titulo: "SAIU ADIANTADO E INICIOU ADIANTADO", gravidade: "GRAVE" }
+        ]
+    }
+];
+
+const CATEGORIAS = GRUPOS.flatMap(g => g.categorias.map(c => Object.assign({ cor: g.cor, tone: g.tone, grupo: g.id }, c)));
+const state = { dados: [], charts: {}, reloadTimer: null };
+
+function $(id){ return document.getElementById(id); }
+function escapeHtml(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function formatNumber(v){ return Number(v||0).toLocaleString("pt-BR"); }
+function brDate(iso){ if(!iso) return "—"; const p=iso.split("-"); return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : iso; }
+function isoDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function val(row,key){
+    if(row[key]!=null&&row[key]!=="") return row[key];
+    if(key==="saida_atrasado_adiantado") return row.saida_atrasado_adiantado||"";
+    if(key==="saiu_no_horario") return row.saiu_no_horaro||"";
+    return "";
+}
 function normalizarDataIso(v){
     if(!v) return "";
     const t=String(v).trim();
     if(/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0,10);
     const m=t.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-    return m?m[3]+"-"+m[2]+"-"+m[1]:"";
+    return m ? m[3]+"-"+m[2]+"-"+m[1] : "";
 }
+function dataIso(row){ return row.data_iso || normalizarDataIso(val(row,"data")); }
 function normalizarSituacao(v){
-    const t=normalizeText(v).toUpperCase();
+    const t=String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
     if(!t) return "";
-    if(t.includes("adiant")) return "ADIANTADO";
-    if(t.includes("atras")) return "ATRASADO";
-    if(t.includes("hor")||t==="SIM") return "NO_HORARIO";
-    if(t==="nao"||t==="não") return "ATRASADO";
+    if(t.includes("ADIANT")) return "ADIANTADO";
+    if(t.includes("ATRAS")) return "ATRASADO";
+    if(t.includes("HOR")||t==="SIM") return "NO_HORARIO";
     return "";
 }
-function situacaoSaida(row){return normalizarSituacao(val(row,"saida_atrasado_adiantado"))||normalizarSituacao(val(row,"saiu_no_horario"))}
-function situacaoInicio(row){return normalizarSituacao(val(row,"inicio_no_horario"))}
+function situacaoSaida(row){ return normalizarSituacao(val(row,"saida_atrasado_adiantado")) || normalizarSituacao(val(row,"saiu_no_horario")); }
+function situacaoInicio(row){ return normalizarSituacao(val(row,"inicio_no_horario")); }
+
+function setStatus(texto, tipo){
+    $("statusLine").textContent = texto;
+    $("statusDot").className = "status-dot" + (tipo ? " "+tipo : "");
+}
 
 async function apiGet(params){
-    const res = await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)),{cache:"no-store"});
+    const res = await fetch(API_URL+"?"+new URLSearchParams(Object.assign({liberacao:"1"},params)), {cache:"no-store"});
     const data = await res.json();
     if(!data.ok) throw new Error(data.erro||"Falha na API.");
     return data;
 }
 
-function calcularResumoDia(dados, dataIso){
-    let no=0,at=0,ad=0;
-    dados.forEach(r=>{const s=situacaoSaida(r);if(s==="NO_HORARIO")no++;else if(s==="ATRASADO")at++;else if(s==="ADIANTADO")ad++;});
-    const qt=dados.length,p=(n)=>qt?Math.round(n/qt*10000)/100:0;
-    return {data:dataIso,data_br:dataIso?brDate(dataIso):"",qt_saidas:qt,no_horario:no,pct_no_horario:p(no),atrasado:at,pct_atrasado:p(at),adiantado:ad,pct_adiantado:p(ad),total_pct:p(no+at+ad)};
+function montarHtmlGraficos(){
+    $("chartsRoot").innerHTML = GRUPOS.map(g => `
+        <section class="group-section" data-grupo="${g.id}">
+            <div class="group-head"><span class="group-dot ${g.id}"></span><h2 class="group-title">${escapeHtml(g.titulo)}</h2></div>
+            <div class="charts-grid">
+                ${g.categorias.map(c => `
+                    <article class="chart-card ${g.tone}" data-chave="${c.chave}">
+                        <div class="chart-head">
+                            <h3 class="chart-title">${escapeHtml(c.titulo)}</h3>
+                            <div class="chart-meta">
+                                <span class="badge ${c.gravidade==="GRAVE"?"grave":"orientar"}">${escapeHtml(c.gravidade)}</span>
+                                <span class="chart-total" id="total-${c.chave}">0 ocorrências</span>
+                            </div>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="chart-${c.chave}" aria-label="${escapeHtml(c.titulo)}"></canvas>
+                            <div class="chart-empty" id="empty-${c.chave}" hidden>Sem registros no período</div>
+                        </div>
+                    </article>
+                `).join("")}
+            </div>
+        </section>
+    `).join("");
 }
-function calcularHistorico(todos){
-    const map={};
-    todos.forEach(r=>{const iso=normalizarDataIso(val(r,"data"));if(!iso)return;if(!map[iso])map[iso]=[];map[iso].push(r);});
-    return Object.keys(map).sort((a,b)=>b.localeCompare(a)).map(iso=>calcularResumoDia(map[iso],iso));
-}
-function calcularBase(dados){
-    const map={};
-    CATEGORIAS.forEach(c=>map[c.chave]={titulo:c.titulo,gravidade:c.gravidade,motoristas:{}});
-    dados.forEach(r=>{
-        const s=situacaoSaida(r),i=situacaoInicio(r),mot=String(val(r,"motorista")).trim();
-        if(!s||!i||!mot||!map[s+"|"+i]) return;
-        map[s+"|"+i].motoristas[mot]=(map[s+"|"+i].motoristas[mot]||0)+1;
+
+function agregarPorCategoria(dados){
+    const mapa = {};
+    CATEGORIAS.forEach(c => mapa[c.chave] = {});
+    dados.forEach(row => {
+        const s = situacaoSaida(row), i = situacaoInicio(row), mot = String(val(row,"motorista")).trim();
+        if(!s || !i || !mot) return;
+        const chave = s+"|"+i;
+        if(!mapa[chave]) return;
+        mapa[chave][mot] = (mapa[chave][mot] || 0) + 1;
     });
-    return CATEGORIAS.map(c=>{
-        const item=map[c.chave];
-        const motoristas=Object.keys(item.motoristas).sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})).map(m=>({motorista:m,qtd:item.motoristas[m]}));
-        return {titulo:c.titulo,gravidade:c.gravidade,total:motoristas.reduce((a,x)=>a+x.qtd,0),motoristas};
+    return mapa;
+}
+
+function dadosGrafico(mapa, chave, limite){
+    const pares = Object.entries(mapa[chave] || {})
+        .sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0],"pt-BR",{numeric:true}))
+        .slice(0, limite || 12);
+    return {
+        labels: pares.map(p => p[0]),
+        values: pares.map(p => p[1]),
+        total: Object.values(mapa[chave] || {}).reduce((a,n) => a+n, 0)
+    };
+}
+
+function destruirGraficos(){
+    Object.values(state.charts).forEach(ch => { try { ch.destroy(); } catch(_){} });
+    state.charts = {};
+}
+
+function renderGraficos(){
+    destruirGraficos();
+    const mapa = agregarPorCategoria(state.dados);
+    let algumDado = false;
+
+    CATEGORIAS.forEach(cat => {
+        const info = dadosGrafico(mapa, cat.chave);
+        const canvas = $("chart-"+cat.chave);
+        const empty = $("empty-"+cat.chave);
+        const totalEl = $("total-"+cat.chave);
+        if(!canvas) return;
+
+        totalEl.textContent = formatNumber(info.total) + (info.total===1 ? " ocorrência" : " ocorrências");
+        if(!info.total){
+            empty.hidden = false;
+            canvas.style.display = "none";
+            return;
+        }
+        algumDado = true;
+        empty.hidden = true;
+        canvas.style.display = "block";
+        const altura = Math.max(180, Math.min(360, info.labels.length * 28 + 40));
+        canvas.parentElement.style.minHeight = altura + "px";
+
+        state.charts[cat.chave] = new Chart(canvas.getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: info.labels,
+                datasets: [{
+                    data: info.values,
+                    backgroundColor: cat.cor,
+                    borderRadius: 4,
+                    barThickness: 18
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx){ return formatNumber(ctx.raw) + " ocorrência(s)"; }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { size: 10 } },
+                        grid: { color: "#edf2f7" }
+                    },
+                    y: {
+                        ticks: { font: { size: 10, weight: "700" } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     });
-}
 
-function montarResumoLocal(data){
-    return apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",ultima_semana:"1"}).then(tab=>{
-        const todos=tab.dados||[];
-        const colunas=(tab.colunas&&tab.colunas.length)?tab.colunas:COLUNAS_PADRAO;
-        const dadosDia=data?todos.filter(r=>normalizarDataIso(val(r,"data"))===data):todos;
-        return {colunas,resumo:calcularResumoDia(dadosDia,data),historico:calcularHistorico(todos),base_dados:calcularBase(dadosDia),dados:dadosDia};
-    });
-}
-
-function linhaResumo(r, ativo){
-    return '<tr class="'+(ativo?"ativo":"")+'">'+
-        '<td>'+escapeHtml(r.data_br||r.data)+'</td>'+
-        '<td class="num">'+formatNumber(r.qt_saidas)+'</td>'+
-        '<td class="num">'+formatNumber(r.no_horario)+'</td><td class="pct">'+formatPct(r.pct_no_horario)+'</td>'+
-        '<td class="num">'+formatNumber(r.atrasado)+'</td><td class="pct">'+formatPct(r.pct_atrasado)+'</td>'+
-        '<td class="num">'+formatNumber(r.adiantado)+'</td><td class="pct">'+formatPct(r.pct_adiantado)+'</td>'+
-        '<td class="pct">'+formatPct(r.total_pct)+'</td></tr>';
-}
-
-function renderResumo(){
-    const r=state.resumo||{};
-    $("resumoDiaCorpo").innerHTML=r.qt_saidas!=null?linhaResumo(r,true):'<tr><td colspan="9" class="empty">Sem lançamentos nesta data.</td></tr>';
-    $("resumoInfo").textContent=(r.data_br||"")+" — "+formatNumber(r.qt_saidas||0)+" saídas";
-    const hist=state.historico||[];
-    $("historicoCorpo").innerHTML=hist.map(h=>linhaResumo(h, fields.data.value && h.data===fields.data.value)).join("");
-    $("historicoEmpty").hidden=hist.length>0;
-}
-
-function renderBase(){
-    const base=state.base||[];
-    const comTotal=base.filter(b=>b.total>0);
-    $("baseDadosGrid").innerHTML=comTotal.map(b=>'<article class="base-card"><h3>'+escapeHtml(b.titulo)+'</h3>'+
-        '<div class="base-meta"><span class="'+(b.gravidade==="GRAVE"?"grave":"orientar")+'">'+escapeHtml(b.gravidade)+'</span><span class="num">Qtd. '+formatNumber(b.total)+'</span></div>'+
-        '<div class="base-list">'+ (b.motoristas.length?b.motoristas.map(m=>escapeHtml(m.motorista)+' ('+m.qtd+')').join(", "):"—") +'</div></article>').join("");
-    $("baseEmpty").hidden=comTotal.length>0;
-    $("baseInfo").textContent=state.resumo?.data_br||"Dia selecionado";
-}
-
-function populateSelect(select, rows, key){
-    const prev=select.value;
-    const values=[...new Set(rows.map(r=>String(val(r,key)).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
-    select.innerHTML='<option value="">Todos</option>'+values.map(v=>'<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>').join("");
-    if(values.includes(prev)) select.value=prev;
-}
-
-function applyFilters(){
-    const data=fields.data.value, search=normalizeText(fields.busca.value);
-    state.filtered=state.all.filter(row=>{
-        if(data && dataIso(row)!==data) return false;
-        if(fields.linha.value && String(val(row,"linha"))!==fields.linha.value) return false;
-        if(fields.maquina.value && String(val(row,"maquina"))!==fields.maquina.value) return false;
-        if(fields.carro.value && String(val(row,"carro"))!==fields.carro.value) return false;
-        if(fields.motorista.value && String(val(row,"motorista"))!==fields.motorista.value) return false;
-        if(!search) return true;
-        return normalizeText(JSON.stringify(row)).includes(search);
-    });
-    renderTable();
-}
-
-function renderTable(){
-    const cols=state.colunas;
-    $("tabelaHead").innerHTML="<tr>"+cols.map(c=>'<th title="'+escapeHtml(c.rotulo)+'">'+escapeHtml(c.rotulo)+'</th>').join("")+"</tr>";
-    $("tabelaCorpo").innerHTML=state.filtered.map(row=>"<tr>"+cols.map(c=>'<td title="'+escapeHtml(val(row,c.chave))+'">'+escapeHtml(val(row,c.chave))+'</td>').join("")+"</tr>").join("");
-    $("emptyState").hidden=state.filtered.length>0;
-    $("tableInfo").textContent=formatNumber(state.filtered.length)+" registros";
+    $("pageEmpty").hidden = algumDado || state.dados.length > 0;
 }
 
 async function carregar(){
-    const data=fields.data.value;
-    $("statusLine").textContent="Carregando lançamentos...";
-    let res;
-    try {
-        res=await apiGet({recurso:"resumo",data,incluir_colunas:"1"});
-        if(!res.resumo && !res.dados) throw new Error("fallback");
-    } catch (_) {
-        res=await montarResumoLocal(data);
-    }
-    state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
-    state.all=res.dados||[];
-    state.resumo=res.resumo||calcularResumoDia(state.all,data);
-    state.historico=res.historico||calcularHistorico(state.all);
-    state.base=res.base_dados||calcularBase(state.all.filter(r=>!data||dataIso(r)===data));
-    populateSelect(fields.linha,state.all,"linha");
-    populateSelect(fields.maquina,state.all,"maquina");
-    populateSelect(fields.carro,state.all,"carro");
-    populateSelect(fields.motorista,state.all,"motorista");
-    renderResumo();
-    renderBase();
-    $("statusLine").textContent="Dashboard atualizado — últimos 7 dias ("+(state.resumo?.data_br||brDate(data))+")";
-    applyFilters();
+    const dataDe = $("dataDe").value;
+    const dataAte = $("dataAte").value;
+    if(!dataDe || !dataAte){ setStatus("Informe o período (de/até).","erro"); return; }
+    if(dataDe > dataAte){ setStatus("A data inicial não pode ser maior que a final.","erro"); return; }
+
+    setStatus("Carregando planilha...","load");
+    const res = await apiGet({
+        recurso: "acompanhamento",
+        data_de: dataDe,
+        data_ate: dataAte,
+        ultima_semana: "0"
+    });
+    state.dados = res.dados || [];
+    renderGraficos();
+    setStatus(formatNumber(state.dados.length) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
 }
 
-function $(id){return document.getElementById(id)}
-Object.values(fields).forEach(f=>f.addEventListener("input",()=>{
-    if(f===fields.data) carregar().catch(e=>$("statusLine").textContent=e.message);
-    else applyFilters();
-}));
-Object.values(fields).forEach(f=>f.addEventListener("change",()=>{
-    if(f===fields.data) carregar().catch(e=>$("statusLine").textContent=e.message);
-    else applyFilters();
-}));
-$("limparFiltros").addEventListener("click",()=>{
-    fields.linha.value=fields.maquina.value=fields.carro.value=fields.motorista.value=fields.busca.value="";
-    applyFilters();
-});
+function agendarRecarga(){
+    clearTimeout(state.reloadTimer);
+    state.reloadTimer = setTimeout(() => carregar().catch(e => setStatus(e.message,"erro")), 350);
+}
+
+async function gerarPdf(){
+    const dataDe = $("dataDe").value, dataAte = $("dataAte").value;
+    if(!window.jspdf){ setStatus("Biblioteca PDF indisponível.","erro"); return; }
+    if(!Object.keys(state.charts).length){ setStatus("Carregue os gráficos antes de gerar o PDF.","erro"); return; }
+
+    setStatus("Gerando PDF...","load");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const margin = 12, pageW = 210, contentW = pageW - margin * 2;
+    let y = margin;
+
+    function novaPagina(){ pdf.addPage(); y = margin; }
+    function cabecalhoPagina(){
+        pdf.setTextColor(6, 36, 92);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.text("Acompanhamento da Liberação", margin, y);
+        y += 7;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        pdf.setTextColor(102, 112, 133);
+        pdf.text("Período: " + brDate(dataDe) + " a " + brDate(dataAte), margin, y);
+        y += 8;
+    }
+
+    cabecalhoPagina();
+
+    for (const cat of CATEGORIAS){
+        const chart = state.charts[cat.chave];
+        if(!chart) continue;
+        const img = chart.toBase64Image("image/png", 2);
+        const imgH = 58;
+        if(y + imgH > 285) novaPagina();
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.setTextColor(6, 36, 92);
+        pdf.text(cat.titulo, margin, y);
+        y += 4;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7);
+        pdf.setTextColor(102, 112, 133);
+        pdf.text(cat.gravidade, margin, y);
+        y += 3;
+        pdf.addImage(img, "PNG", margin, y, contentW, imgH);
+        y += imgH + 8;
+    }
+
+    pdf.save("liberacao-" + dataDe + "-" + dataAte + ".pdf");
+    setStatus("PDF gerado · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
+}
 
 function iniciar(){
-    fields.data.value=new Date().toISOString().slice(0,10);
-    carregar().catch(e=>$("statusLine").textContent=e.message);
+    montarHtmlGraficos();
+    $("dataAte").value = new Date().toISOString().slice(0,10);
+    $("dataDe").value = isoDaysAgo(6);
+    $("dataDe").addEventListener("change", agendarRecarga);
+    $("dataAte").addEventListener("change", agendarRecarga);
+    $("btnPdf").addEventListener("click", () => gerarPdf().catch(e => setStatus(e.message,"erro")));
+    carregar().catch(e => setStatus(e.message,"erro"));
 }
+
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", iniciar, { once: true });
 </script>
