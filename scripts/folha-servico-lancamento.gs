@@ -1,16 +1,35 @@
 /**
  * Folha de Serviço — Web App (leitura + lançamento)
  *
- * Planilha CIOP: https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA
- * gid: 1013912232
+ * Planilha: https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA
+ * Lançamentos (dados): gid 1013912232
+ * Listas padronizadas: gid 665133219 (aba DADOS / referência)
  *
- * GET ?somente_opcoes=1  → { ok, opcoes } (listas padronizadas da validação de dados)
+ * GET ?somente_opcoes=1  → { ok, opcoes }
  * GET ?data=YYYY-MM-DD   → filtra registros por data
  * POST action=create|update
  */
 
 const SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
+const ABA_GID = 1013912232;
 const ABA_NOME = "FOLHA DE SERVIÇO";
+const LISTAS_GID = 665133219;
+
+/** Colunas da aba de listas (gid 665133219) */
+const COLUNAS_LISTAS = {
+  analista: 1,            // A — RG
+  mot_sai: 6,             // F — MOTORISTAS
+  mot_entra: 6,           // F
+  carro_sai: 7,           // G — CARROS
+  carro_entra: 7,         // G
+  linha: 8,               // H — LINHAS
+  ocorrencia: 12,         // L — MOTIVOS SERVIÇOS
+  local: 18,              // R — LOCAIS
+  motivo_oficina: 23,     // W — INFORMAÇÕES DA OFICINA
+  tempo_deslocamento: 24,   // X — TEMPO EM MIN DE SOS OFICINA
+  mecanico: 25,           // Y — MECÂNICOS
+  situacao: 26            // Z — SITUAÇAO
+};
 
 const CAMPOS_OPCOES = [
   "ocorrencia", "analista", "carro_sai", "mot_sai", "carro_entra", "mot_entra",
@@ -77,22 +96,24 @@ function montarRespostaLeitura_(params) {
 }
 
 function lerOpcoesPadronizadas_() {
-  const sheet = abrirAba_();
-  const cabecalho = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const sheet = abrirAbaListas_();
+  const lastRow = sheet.getLastRow();
   const opcoes = {};
-  CAMPOS_OPCOES.forEach(function (campo) { opcoes[campo] = []; });
-
-  for (let col = 0; col < cabecalho.length; col++) {
-    const chaveColuna = mapearColunaParaCampo_(cabecalho[col]);
-    if (!chaveColuna || !CAMPOS_OPCOES.includes(chaveColuna)) continue;
-    const lista = lerValidacaoColuna_(sheet, col + 1);
-    if (lista.length > 0) opcoes[chaveColuna] = lista;
-  }
+  const lidas = {};
 
   CAMPOS_OPCOES.forEach(function (campo) {
-    if (opcoes[campo].length === 0) {
-      opcoes[campo] = valoresUnicosColuna_(sheet, campo);
+    const col = COLUNAS_LISTAS[campo];
+    if (!col) {
+      opcoes[campo] = [];
+      return;
     }
+    if (!lidas[col]) {
+      lidas[col] = valoresUnicosColunaIndice_(sheet, col, lastRow);
+    }
+    opcoes[campo] = lidas[col].slice();
+  });
+
+  CAMPOS_OPCOES.forEach(function (campo) {
     opcoes[campo].sort(function (a, b) {
       return String(a).localeCompare(String(b), "pt-BR", { numeric: true });
     });
@@ -101,48 +122,23 @@ function lerOpcoesPadronizadas_() {
   return opcoes;
 }
 
-function lerValidacaoColuna_(sheet, colIndex) {
-  const cell = sheet.getRange(2, colIndex);
-  const rule = cell.getDataValidation();
-  if (!rule) return [];
-
-  const tipo = rule.getCriteriaType();
-  const valores = rule.getCriteriaValues();
-  if (!valores || valores.length === 0) return [];
-
-  if (tipo === SpreadsheetApp.DataValidationCriteria.VALUE_IN_LIST) {
-    return valores[0].map(String).map(function (v) { return v.trim(); }).filter(Boolean);
+function abrirAbaListas_() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheets = ss.getSheets();
+  for (let i = 0; i < sheets.length; i++) {
+    if (sheets[i].getSheetId() === LISTAS_GID) return sheets[i];
   }
-
-  if (tipo === SpreadsheetApp.DataValidationCriteria.VALUE_IN_RANGE) {
-    const range = valores[0];
-    if (!range) return [];
-    return range.getValues().flat().map(String).map(function (v) { return v.trim(); }).filter(Boolean);
-  }
-
-  return [];
+  throw new Error("Aba de listas gid " + LISTAS_GID + " não encontrada na planilha.");
 }
 
-function valoresUnicosColuna_(sheet, campo) {
-  const cabecalho = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  let colIndex = -1;
-  for (let i = 0; i < cabecalho.length; i++) {
-    if (mapearColunaParaCampo_(cabecalho[i]) === campo) {
-      colIndex = i + 1;
-      break;
-    }
-  }
-  if (colIndex < 0) return [];
-
-  const lastRow = sheet.getLastRow();
+function valoresUnicosColunaIndice_(sheet, colIndex, lastRow) {
   if (lastRow < 2) return [];
-
-  const inicio = Math.max(2, lastRow - 500);
-  const valores = sheet.getRange(inicio, colIndex, lastRow - inicio + 1, 1).getValues().flat();
+  const valores = sheet.getRange(2, colIndex, lastRow, colIndex).getValues().flat();
   const unicos = {};
   valores.forEach(function (v) {
-    const t = String(v || "").trim();
-    if (t) unicos[t] = true;
+    const t = String(v == null ? "" : v).trim();
+    if (!t || t === "-") return;
+    unicos[t] = true;
   });
   return Object.keys(unicos);
 }
@@ -185,9 +181,16 @@ function atualizarRegistro_(params) {
 
 function abrirAba_() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(ABA_NOME);
-  if (!sheet) throw new Error('Aba "' + ABA_NOME + '" não encontrada na planilha.');
-  return sheet;
+  const sheets = ss.getSheets();
+  for (let i = 0; i < sheets.length; i++) {
+    if (sheets[i].getSheetId() === ABA_GID) return sheets[i];
+  }
+
+  const porNome = ss.getSheetByName(ABA_NOME);
+  if (porNome) return porNome;
+
+  const nomes = sheets.map(function (s) { return s.getName(); }).join(", ");
+  throw new Error('Aba gid ' + ABA_GID + ' / "' + ABA_NOME + '" não encontrada. Abas: ' + nomes);
 }
 
 function linhaParaObjeto_(cabecalho, valores, rowNumber) {
