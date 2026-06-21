@@ -1303,6 +1303,9 @@ h1 {
             font-size: 12px;
             white-space: nowrap;
         }
+        .field-oficina-only.field-oficina-hidden {
+            display: none !important;
+        }
         @media (min-width: 1100px) {
             .launch-card.launch-compact-form {
                 padding: 12px 14px;
@@ -1420,10 +1423,6 @@ h1 {
                         <select id="novo-analista" name="analista" required title="Analista"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
-                        <label for="novo-situacao" title="Situação">Situação</label>
-                        <select id="novo-situacao" name="situacao" title="Situação"><option value="">—</option></select>
-                    </div>
-                    <div class="launch-group">
                         <label for="novo-carro-sai" title="Carro que sai">Carro sai</label>
                         <select id="novo-carro-sai" name="carro_sai" title="Carro que sai"><option value="">—</option></select>
                     </div>
@@ -1451,7 +1450,7 @@ h1 {
                         <label for="novo-servico" title="Serviço">Serviço</label>
                         <input type="text" id="novo-servico" name="servico" placeholder="Ex.: 9041005" autocomplete="off">
                     </div>
-                    <div class="launch-group">
+                    <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-motivo-oficina" title="Motivo (somente oficina)">Motivo ofic.</label>
                         <select id="novo-motivo-oficina" name="motivo_oficina" title="Motivo (somente oficina)"><option value="">—</option></select>
                     </div>
@@ -1459,11 +1458,15 @@ h1 {
                         <label for="novo-local" title="Local">Local</label>
                         <select id="novo-local" name="local" title="Local"><option value="">—</option></select>
                     </div>
-                    <div class="launch-group">
+                    <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-mecanico" title="Mecânico">Mecânico</label>
                         <select id="novo-mecanico" name="mecanico" title="Mecânico"><option value="">—</option></select>
                     </div>
                     <div class="launch-group">
+                        <label for="novo-situacao" title="Situação">Situação</label>
+                        <select id="novo-situacao" name="situacao" title="Situação"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group field-oficina-only field-oficina-hidden">
                         <label for="novo-tempo-deslocamento" title="Tempo de deslocamento da oficina">Tempo ofic.</label>
                         <select id="novo-tempo-deslocamento" name="tempo_deslocamento" title="Tempo de deslocamento da oficina"><option value="">—</option></select>
                     </div>
@@ -1521,6 +1524,7 @@ h1 {
     const TEMPO_LIMITE_OPCOES_MS = 45000;
     const CACHE_STORAGE_KEY = "ciop_folha_lancamentos_recentes_v1";
     const LIMITE_LINHAS_RECENTES = 10;
+    const CAMPOS_OCORRENCIA_OFICINA = ["novo-motivo-oficina", "novo-mecanico", "novo-tempo-deslocamento"];
     const CHAVES_CAMPOS_SELECT = new Set([
         "ocorrencia", "analista", "carro_sai", "mot_sai", "carro_entra", "mot_entra",
         "linha", "motivo_oficina", "local", "mecanico", "situacao", "tempo_deslocamento"
@@ -1669,7 +1673,42 @@ h1 {
 
     function inicializarPaginaLancamento() {
         aplicarCacheLocal();
+        configurarToggleOficina();
         sincronizarOpcoesPlanilha(false);
+    }
+
+    function normalizarTextoOcorrencia(valor) {
+        return String(valor || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toUpperCase();
+    }
+
+    function ocorrenciaExigeOficina(valor) {
+        const texto = normalizarTextoOcorrencia(valor);
+        return texto === "OFICINA" || texto === "BORRACHARIA";
+    }
+
+    function atualizarCamposOficina() {
+        const mostrar = ocorrenciaExigeOficina(document.getElementById("novo-ocorrencia")?.value);
+        CAMPOS_OCORRENCIA_OFICINA.forEach(id => {
+            const campo = document.getElementById(id);
+            const grupo = campo?.closest(".launch-group");
+            if (!grupo) return;
+            grupo.classList.toggle("field-oficina-hidden", !mostrar);
+            if (!mostrar && campo) campo.value = "";
+        });
+    }
+
+    function configurarToggleOficina() {
+        const select = document.getElementById("novo-ocorrencia");
+        if (!select) return;
+        if (select.dataset.oficinaToggle !== "1") {
+            select.dataset.oficinaToggle = "1";
+            select.addEventListener("change", atualizarCamposOficina);
+        }
+        atualizarCamposOficina();
     }
 
     function aplicarCacheLocal() {
@@ -1842,6 +1881,7 @@ h1 {
         const form = document.getElementById("form-lancamento");
         if (form) form.reset();
         preencherDataAtual();
+        atualizarCamposOficina();
         mostrarMensagemLancamento("", "");
     }
 
@@ -1879,7 +1919,8 @@ h1 {
         const ids = [
             "novo-data", "novo-hora", "novo-ocorrencia", "novo-analista", "novo-carro-sai", "novo-mot-sai",
             "novo-carro-entra", "novo-mot-entra", "novo-linha", "novo-tabela", "novo-servico",
-            "novo-motivo-oficina", "novo-observacoes", "novo-local", "novo-mecanico", "novo-situacao", "novo-tempo-deslocamento"
+            "novo-motivo-oficina", "novo-local", "novo-mecanico", "novo-situacao", "novo-tempo-deslocamento",
+            "novo-observacoes"
         ];
         const payload = {};
         ids.forEach(id => {
@@ -1887,6 +1928,11 @@ h1 {
             if (!el) return;
             payload[el.name] = (el.value || "").trim();
         });
+        if (!ocorrenciaExigeOficina(payload.ocorrencia)) {
+            payload.motivo_oficina = "";
+            payload.mecanico = "";
+            payload.tempo_deslocamento = "";
+        }
         return payload;
     }
 
@@ -1921,6 +1967,7 @@ h1 {
             mostrarMensagemLancamento(`Lançamento salvo com sucesso na linha ${retorno.linha || ""}.`, "ok");
             document.getElementById("form-lancamento").reset();
             preencherDataAtual();
+            atualizarCamposOficina();
             adicionarLancamentoAoCache(payload, retorno);
         } catch (erro) {
             console.error("Erro ao salvar lançamento:", erro);
