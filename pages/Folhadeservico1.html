@@ -982,6 +982,43 @@ h1 {
             color: #991b1b;
             border: 1px solid #fecaca;
         }
+        .table-edit-input {
+            width: 100%;
+            min-width: 86px;
+            height: 30px;
+            border: 1px solid #cfd8e8;
+            border-radius: 6px;
+            padding: 4px 6px;
+            color: #182230;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .table-edit-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .btn-table-action {
+            border: 1px solid rgba(6, 36, 92, 0.14);
+            border-radius: 6px;
+            min-height: 28px;
+            padding: 5px 8px;
+            background: #eef4ff;
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-table-action.primary {
+            color: #ffffff;
+            background: var(--blue);
+        }
+        .btn-table-action:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
         @media (max-width: 1100px) {
             .launch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -1203,11 +1240,11 @@ h1 {
                 </div>
                 <div class="launch-group">
                     <label for="novo-tabela">Tabela</label>
-                    <input type="text" id="novo-tabela" name="tabela">
+                    <input type="text" id="novo-tabela" name="tabela" list="lista-tabela" autocomplete="off"><datalist id="lista-tabela"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-servico">Serviço</label>
-                    <input type="text" id="novo-servico" name="servico">
+                    <input type="text" id="novo-servico" name="servico" list="lista-servico" autocomplete="off"><datalist id="lista-servico"></datalist>
                 </div>
                 <div class="launch-group">
                     <label for="novo-motivo-oficina">Motivo (somente oficina)</label>
@@ -1248,7 +1285,7 @@ h1 {
             <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
             <span>Portal</span>
         </a>
-        <a href="Folhadeservico_dashboard.html" class="btn-portal btn-dashboard">
+        <a href="Folhadeservico.html" class="btn-portal btn-dashboard">
             <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/><path d="M3 20h18"/></svg></span>
             <span>Dashboard</span>
         </a>
@@ -1267,11 +1304,12 @@ h1 {
                     <th data-sort="carro_sai"><span class="sort-label">Carro Sai <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="carro_entra"><span class="sort-label">Carro Entra <span class="sort-icon" aria-hidden="true">↕</span></span></th>
                     <th data-sort="situacao"><span class="sort-label">Situação <span class="sort-icon" aria-hidden="true">↕</span></span></th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabela-corpo">
                 <tr>
-                    <td colspan="8" class="loading">Carregando lançamentos da planilha...</td>
+                    <td colspan="9" class="loading">Carregando lançamentos da planilha...</td>
                 </tr>
             </tbody>
         </table>
@@ -1285,10 +1323,14 @@ h1 {
 
 <script>
     const URL_DO_SCRIPT_GOOGLE = "https://script.google.com/macros/s/AKfycbxZCBQvizRj0qQ3zgB_FHSwWWkpaozr0C2w6bQyi4YpLbutAI-SjODwZFVqqCkLjPNYaw/exec";
+    const URL_LEITURA_FALLBACK = "https://script.google.com/macros/s/AKfycbxLQZaotEpUGonwyu09JrhYK-0c8ELjjjadhJ3Dhz9sUB0Is3JTHIWOEDVR5JJ1D7hA/exec";
+    const TEMPO_LIMITE_LEITURA_MS = 12000;
+    const TEMPO_LIMITE_SALVAR_MS = 15000;
 
     let dadosMestres = [];
     let opcoesPlanilha = {};
     let opcoesFormularioPermitidas = {};
+    let linhaEditando = "";
     const ordenacaoTabela = { key: "data", dir: "desc" };
     const camposFormularioComOpcoes = [
         { id: "novo-ocorrencia", key: "ocorrencia" },
@@ -1298,12 +1340,33 @@ h1 {
         { id: "novo-carro-entra", key: "carro_entra" },
         { id: "novo-mot-entra", key: "mot_entra" },
         { id: "novo-linha", key: "linha" },
+        { id: "novo-tabela", key: "tabela" },
+        { id: "novo-servico", key: "servico" },
         { id: "novo-motivo-oficina", key: "motivo_oficina" },
         { id: "novo-local", key: "local" },
         { id: "novo-mecanico", key: "mecanico" },
         { id: "novo-situacao", key: "situacao" },
         { id: "novo-tempo-deslocamento", key: "tempo_deslocamento" }
     ];
+    const aliasesColunasPlanilha = {
+        data: ["data", "dt", "dia"],
+        hora: ["hora", "horario", "horário"],
+        ocorrencia: ["ocorrencia", "ocorrência", "tipo", "evento"],
+        analista: ["analista", "operador", "usuario", "usuário"],
+        carro_sai: ["carro_sai", "carro sai", "carro que sai", "veiculo sai", "veículo sai"],
+        mot_sai: ["mot_sai", "motorista sai", "mot. que sai", "mot que sai"],
+        carro_entra: ["carro_entra", "carro entra", "carro que entra", "veiculo entra", "veículo entra"],
+        mot_entra: ["mot_entra", "motorista entra", "mot. que entra", "mot que entra"],
+        linha: ["linha"],
+        tabela: ["tabela"],
+        servico: ["servico", "serviço"],
+        motivo_oficina: ["motivo_oficina", "motivo oficina", "motivo somente oficina", "motivo"],
+        observacoes: ["observacoes", "observações", "observacao", "observação", "obs"],
+        local: ["local"],
+        mecanico: ["mecanico", "mecânico"],
+        situacao: ["situacao", "situação", "status"],
+        tempo_deslocamento: ["tempo_deslocamento", "tempo deslocamento", "tempo de deslocamento da oficina"]
+    };
 
     window.onload = () => {
         aplicarMascaraHora();
@@ -1316,23 +1379,15 @@ h1 {
 
     function carregarFolhaServico() {
         window.portalMostrarCarregando?.("Carregando lançamento");
-        return fetch(URL_DO_SCRIPT_GOOGLE)
-            .then(async response => {
-                const texto = await response.text();
-                let retorno;
-                try {
-                    retorno = JSON.parse(texto);
-                } catch (e) {
-                    throw new Error("O Apps Script não retornou JSON válido. Verifique a implantação do Web App.");
-                }
-                if (!response.ok || retorno.ok === false) {
-                    throw new Error(retorno.erro || "Erro retornado pelo Apps Script.");
-                }
-                return retorno;
+        return carregarDadosPlanilha(URL_DO_SCRIPT_GOOGLE)
+            .catch(errorPrincipal => {
+                console.warn("Falha ao ler Apps Script principal. Usando leitura do dashboard:", errorPrincipal);
+                mostrarMensagemLancamento("Dados carregados em modo leitura. O envio depende da implantação do Apps Script de lançamento.", "erro");
+                return carregarDadosPlanilha(URL_LEITURA_FALLBACK);
             })
             .then(retorno => {
-                dadosMestres = Array.isArray(retorno) ? retorno : (Array.isArray(retorno.dados) ? retorno.dados : []);
-                opcoesPlanilha = retorno.opcoes || {};
+                dadosMestres = normalizarDados(extrairDadosRetorno(retorno));
+                opcoesPlanilha = normalizarOpcoes(retorno.opcoes || {});
                 preencherSelectsDoFormulario(dadosMestres);
                 renderizarTabela(dadosMestres);
                 preencherDataAtual();
@@ -1342,6 +1397,77 @@ h1 {
                 document.getElementById('tabela-corpo').innerHTML = `<tr><td colspan="8" style="color:red; text-align:center; padding:20px;">Erro ao ler a planilha: ${error.message}</td></tr>`;
             })
             .finally(() => window.portalOcultarCarregando?.());
+    }
+
+    async function carregarDadosPlanilha(url) {
+        const response = await fetchComTimeout(url, {}, TEMPO_LIMITE_LEITURA_MS);
+        const texto = await response.text();
+        let retorno;
+        try {
+            retorno = JSON.parse(texto);
+        } catch (e) {
+            throw new Error("O Apps Script não retornou JSON válido. Verifique a implantação do Web App.");
+        }
+        if (!response.ok || retorno.ok === false) {
+            throw new Error(retorno.erro || "Erro retornado pelo Apps Script.");
+        }
+        return retorno;
+    }
+
+    function fetchComTimeout(url, options = {}, timeoutMs = TEMPO_LIMITE_LEITURA_MS) {
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+        return fetch(url, { ...options, signal: controller.signal })
+            .catch(error => {
+                if (error.name === "AbortError") throw new Error("Tempo esgotado ao consultar o Apps Script.");
+                throw error;
+            })
+            .finally(() => window.clearTimeout(timer));
+    }
+
+    function extrairDadosRetorno(retorno) {
+        if (Array.isArray(retorno)) return retorno;
+        return retorno.dados || retorno.registros || retorno.linhas || retorno.rows || [];
+    }
+
+    function normalizarNomeCampo(valor) {
+        return String(valor || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+    }
+
+    function valorPorAliases(item, key) {
+        const aliases = new Set([key, ...(aliasesColunasPlanilha[key] || [])].map(normalizarNomeCampo));
+        for (const [nome, valor] of Object.entries(item || {})) {
+            if (aliases.has(normalizarNomeCampo(nome))) return valor;
+        }
+        return item ? item[key] : "";
+    }
+
+    function normalizarRegistro(item) {
+        const registro = { ...(item || {}) };
+        Object.keys(aliasesColunasPlanilha).forEach(key => {
+            const valor = valorPorAliases(item, key);
+            if (valor !== undefined && valor !== null) registro[key] = valor;
+        });
+        registro._row = registro._row || registro.rowNumber || registro.linhaPlanilha || registro.linha_planilha || "";
+        return registro;
+    }
+
+    function normalizarDados(dados) {
+        return Array.isArray(dados) ? dados.map(normalizarRegistro) : [];
+    }
+
+    function normalizarOpcoes(opcoes) {
+        const resultado = {};
+        camposFormularioComOpcoes.forEach(campo => {
+            const valores = valorPorAliases(opcoes, campo.key);
+            resultado[campo.key] = Array.isArray(valores) ? valores : [];
+        });
+        return resultado;
     }
 
     function valoresOrdenados(set) {
@@ -1423,6 +1549,7 @@ h1 {
             const valor = String(payload[campo.key] || "").trim();
             if (!valor) continue;
             const permitidas = opcoesFormularioPermitidas[campo.key] || [];
+            if (permitidas.length === 0) continue;
             const ok = permitidas.some(opcao => String(opcao).trim().toLowerCase() === valor.toLowerCase());
             if (!ok) {
                 const label = document.querySelector(`label[for="${campo.id}"]`);
@@ -1469,7 +1596,7 @@ h1 {
         try {
             const corpo = new URLSearchParams();
             Object.keys(payload).forEach(key => corpo.append(key, payload[key] || ""));
-            const resposta = await fetch(URL_DO_SCRIPT_GOOGLE, { method: "POST", body: corpo });
+            const resposta = await fetchComTimeout(URL_DO_SCRIPT_GOOGLE, { method: "POST", body: corpo }, TEMPO_LIMITE_SALVAR_MS);
             const texto = await resposta.text();
             let retorno = {};
             try { retorno = JSON.parse(texto); } catch(e) { retorno = { ok: resposta.ok }; }
@@ -1529,27 +1656,135 @@ h1 {
         const dadosHoje = dados.filter(d => String(d.data || "").slice(0, 10) === dataHoje);
 
         if(dadosHoje.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Nenhum lançamento encontrado para hoje.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--muted);">Nenhum lançamento encontrado para hoje.</td></tr>`;
             return;
         }
         ordenarDadosTabela(dadosHoje).forEach(d => {
-            let dataFormatada = d.data || "";
-            if(d.data && d.data.includes('-')) dataFormatada = d.data.split('-').reverse().join('/');
-            const situacaoLimpa = d.situacao ? d.situacao.trim() : "";
-            const badgeClass = situacaoLimpa.toLowerCase() === "concluído" || situacaoLimpa.toLowerCase() === "concluido" ? "status-concluido" : "status-pendente";
+            const rowKey = chaveLinhaPlanilha(d);
+            const editando = rowKey && String(rowKey) === String(linhaEditando);
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${dataFormatada}</td>
-                <td>${d.hora || ""}</td>
-                <td><strong>${d.analista || ""}</strong></td>
-                <td>${d.ocorrencia || ""}</td>
-                <td><span style="background:#e8edf6; padding:2px 6px; border-radius:4px; font-weight:bold;">${d.linha || ""}</span></td>
-                <td>${d.carro_sai || ""}</td>
-                <td>${d.carro_entra || ""}</td>
-                <td><span class="status-badge ${badgeClass}">${d.situacao || 'Pendente'}</span></td>
-            `;
+            tr.dataset.row = rowKey;
+            tr.innerHTML = editando ? linhaEditavel(d) : linhaSomenteLeitura(d);
             tbody.appendChild(tr);
         });
+    }
+
+    function chaveLinhaPlanilha(item) {
+        return item._row || item.rowNumber || item.linhaPlanilha || item.linha_planilha || "";
+    }
+
+    function escaparHtml(valor) {
+        return String(valor ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function dataParaInput(valor) {
+        const texto = String(valor || "").trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(texto)) return texto.slice(0, 10);
+        const partes = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+        if (partes) return `${partes[3]}-${partes[2]}-${partes[1]}`;
+        return "";
+    }
+
+    function dataParaTabela(valor) {
+        const texto = String(valor || "").trim();
+        if (texto.includes("-")) return texto.slice(0, 10).split("-").reverse().join("/");
+        return texto;
+    }
+
+    function opcoesDatalist(key) {
+        const valores = opcoesFormularioPermitidas[key] || [];
+        return valores.map(v => `<option value="${escaparHtml(v)}"></option>`).join("");
+    }
+
+    function inputTabela(key, valor, tipo = "text") {
+        const listId = `edit-list-${key}`;
+        const listAttr = tipo === "text" ? ` list="${listId}"` : "";
+        const datalist = tipo === "text" ? `<datalist id="${listId}">${opcoesDatalist(key)}</datalist>` : "";
+        return `<input class="table-edit-input" type="${tipo}" data-edit-key="${key}" value="${escaparHtml(valor || "")}"${listAttr}>${datalist}`;
+    }
+
+    function linhaSomenteLeitura(d) {
+        const rowKey = chaveLinhaPlanilha(d);
+        const situacaoLimpa = d.situacao ? d.situacao.trim() : "";
+        const badgeClass = situacaoLimpa.toLowerCase() === "concluído" || situacaoLimpa.toLowerCase() === "concluido" ? "status-concluido" : "status-pendente";
+        const disabled = rowKey ? "" : " disabled";
+        const titulo = rowKey ? "Editar lançamento" : "Atualize o Apps Script para habilitar edição";
+        return `
+            <td>${escaparHtml(dataParaTabela(d.data))}</td>
+            <td>${escaparHtml(d.hora || "")}</td>
+            <td><strong>${escaparHtml(d.analista || "")}</strong></td>
+            <td>${escaparHtml(d.ocorrencia || "")}</td>
+            <td><span style="background:#e8edf6; padding:2px 6px; border-radius:4px; font-weight:bold;">${escaparHtml(d.linha || "")}</span></td>
+            <td>${escaparHtml(d.carro_sai || "")}</td>
+            <td>${escaparHtml(d.carro_entra || "")}</td>
+            <td><span class="status-badge ${badgeClass}">${escaparHtml(d.situacao || "Pendente")}</span></td>
+            <td><div class="table-edit-actions"><button class="btn-table-action" type="button" onclick="editarLancamento('${escaparHtml(rowKey)}')"${disabled} title="${titulo}">Editar</button></div></td>
+        `;
+    }
+
+    function linhaEditavel(d) {
+        const rowKey = chaveLinhaPlanilha(d);
+        return `
+            <td>${inputTabela("data", dataParaInput(d.data), "date")}</td>
+            <td>${inputTabela("hora", d.hora || "")}</td>
+            <td>${inputTabela("analista", d.analista || "")}</td>
+            <td>${inputTabela("ocorrencia", d.ocorrencia || "")}</td>
+            <td>${inputTabela("linha", d.linha || "")}</td>
+            <td>${inputTabela("carro_sai", d.carro_sai || "")}</td>
+            <td>${inputTabela("carro_entra", d.carro_entra || "")}</td>
+            <td>${inputTabela("situacao", d.situacao || "")}</td>
+            <td><div class="table-edit-actions"><button class="btn-table-action primary" type="button" onclick="salvarEdicaoLancamento('${escaparHtml(rowKey)}')">Salvar</button><button class="btn-table-action" type="button" onclick="cancelarEdicaoLancamento()">Cancelar</button></div></td>
+        `;
+    }
+
+    function editarLancamento(rowKey) {
+        linhaEditando = String(rowKey || "");
+        renderizarTabela(dadosMestres);
+    }
+
+    function cancelarEdicaoLancamento() {
+        linhaEditando = "";
+        renderizarTabela(dadosMestres);
+    }
+
+    async function salvarEdicaoLancamento(rowKey) {
+        const tr = document.querySelector(`tr[data-row="${CSS.escape(String(rowKey))}"]`);
+        if (!tr) return;
+        const payload = { action: "update", _row: rowKey };
+        tr.querySelectorAll("[data-edit-key]").forEach(input => {
+            payload[input.dataset.editKey] = (input.value || "").trim();
+        });
+        const erroHora = validarHoraPadrao(payload.hora);
+        if (erroHora) {
+            mostrarMensagemLancamento(erroHora, "erro");
+            return;
+        }
+        const erroValidacao = validarOpcoesPadrao(payload);
+        if (erroValidacao) {
+            mostrarMensagemLancamento(erroValidacao, "erro");
+            return;
+        }
+        mostrarMensagemLancamento("", "");
+        try {
+            const corpo = new URLSearchParams();
+            Object.keys(payload).forEach(key => corpo.append(key, payload[key] || ""));
+            const resposta = await fetchComTimeout(URL_DO_SCRIPT_GOOGLE, { method: "POST", body: corpo }, TEMPO_LIMITE_SALVAR_MS);
+            const texto = await resposta.text();
+            let retorno = {};
+            try { retorno = JSON.parse(texto); } catch(e) { retorno = { ok: resposta.ok }; }
+            if (!resposta.ok || retorno.ok === false) throw new Error(retorno.erro || "Não foi possível atualizar a planilha.");
+            mostrarMensagemLancamento("Lançamento atualizado com sucesso.", "ok");
+            linhaEditando = "";
+            await carregarFolhaServico();
+        } catch (erro) {
+            console.error("Erro ao atualizar lançamento:", erro);
+            mostrarMensagemLancamento("Erro ao atualizar: " + (erro.message || "Confira o Apps Script."), "erro");
+        }
     }
 
     document.querySelectorAll("th[data-sort]").forEach(th => {
