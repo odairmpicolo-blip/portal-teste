@@ -83,6 +83,7 @@ tbody tr:hover td.cell-active{background:#fff!important}
 @media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
+<script src="../assets/js/loading.js"></script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 </head>
@@ -355,13 +356,18 @@ async function carregar(){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");return;}
     setStatus("Carregando planilha...","load");
-    const res=await apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",ultima_semana:"1"});
-    state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
-    state.todos=(res.dados||[]).map(r=>Object.assign({},r));
-    popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
-    aplicarFiltroMaquina();
-    renderTabela();
-    setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data),"ok");
+    window.portalMostrarCarregando?.("Carregando liberação");
+    try {
+        const res=await apiGet({recurso:"acompanhamento",data,incluir_colunas:"1",ultima_semana:"1"});
+        state.colunas=(res.colunas&&res.colunas.length)?res.colunas:COLUNAS_PADRAO;
+        state.todos=(res.dados||[]).map(r=>Object.assign({},r));
+        popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
+        aplicarFiltroMaquina();
+        renderTabela();
+        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data),"ok");
+    } finally {
+        window.portalOcultarCarregando?.();
+    }
 }
 
 $("dataFiltro").addEventListener("change",()=>carregar().catch(e=>setStatus(e.message,"erro")));

@@ -58,6 +58,7 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .chart-body.tone-laranja{background:linear-gradient(145deg,rgba(249,115,22,.22) 0%,rgba(249,115,22,.08) 42%,rgba(255,255,255,.92) 100%)}
 .chart-body.tone-vermelha{background:linear-gradient(145deg,rgba(220,38,38,.2) 0%,rgba(220,38,38,.07) 42%,rgba(255,255,255,.92) 100%)}
 .chart-body canvas{width:100%!important;height:100%!important}
+.chart-empty[hidden]{display:none!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-weight:700;background:rgba(255,255,255,.45);border-radius:0 0 16px 16px}
 .empty-page{padding:48px 24px;text-align:center;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--border);border-radius:16px}
 @media(max-width:1100px){.charts-grid.linha-quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -68,6 +69,7 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="../assets/js/loading.js"></script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 </head>
@@ -139,6 +141,7 @@ const CATEGORIAS = SECOES.flatMap(s => s.categorias.map(c => Object.assign({ gru
 const state = { dados: [], charts: {}, reloadTimer: null };
 
 function $(id){ return document.getElementById(id); }
+function idGrafico(chave){ return String(chave).replace(/\|/g, "-"); }
 function escapeHtml(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function formatNumber(v){ return Number(v||0).toLocaleString("pt-BR"); }
 function brDate(iso){ if(!iso) return "—"; const p=iso.split("-"); return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : iso; }
@@ -191,12 +194,12 @@ function montarHtmlGraficos(){
                             <h3 class="chart-title">${escapeHtml(c.titulo)}</h3>
                             <div class="chart-meta">
                                 <span class="badge ${c.gravidade==="GRAVE"?"grave":"orientar"}">${escapeHtml(c.gravidade)}</span>
-                                <span class="chart-total" id="total-${c.chave}">0 ocorrências</span>
+                                <span class="chart-total" id="total-${idGrafico(c.chave)}">0 ocorrências</span>
                             </div>
                         </div>
                         <div class="chart-body ${c.tone}">
-                            <canvas id="chart-${c.chave}" aria-label="${escapeHtml(c.titulo)}"></canvas>
-                            <div class="chart-empty" id="empty-${c.chave}" hidden>Sem registros no período</div>
+                            <canvas id="chart-${idGrafico(c.chave)}" aria-label="${escapeHtml(c.titulo)}"></canvas>
+                            <div class="chart-empty" id="empty-${idGrafico(c.chave)}" hidden>Sem registros no período</div>
                         </div>
                     </article>
                 `).join("")}
@@ -262,9 +265,10 @@ function renderGraficos(){
 
     CATEGORIAS.forEach(cat => {
         const info = dadosGrafico(mapa, cat.chave);
-        const canvas = $("chart-"+cat.chave);
-        const empty = $("empty-"+cat.chave);
-        const totalEl = $("total-"+cat.chave);
+        const gid = idGrafico(cat.chave);
+        const canvas = $("chart-"+gid);
+        const empty = $("empty-"+gid);
+        const totalEl = $("total-"+gid);
         if(!canvas) return;
 
         totalEl.textContent = formatNumber(info.total) + (info.total===1 ? " ocorrência" : " ocorrências");
@@ -356,15 +360,20 @@ async function carregar(){
     if(dataDe > dataAte){ setStatus("A data inicial não pode ser maior que a final.","erro"); return; }
 
     setStatus("Carregando planilha...","load");
-    const res = await apiGet({
-        recurso: "acompanhamento",
-        data_de: dataDe,
-        data_ate: dataAte,
-        ultima_semana: "0"
-    });
-    state.dados = res.dados || [];
-    renderGraficos();
-    setStatus(formatNumber(state.dados.length) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
+    window.portalMostrarCarregando?.("Carregando liberação");
+    try {
+        const res = await apiGet({
+            recurso: "acompanhamento",
+            data_de: dataDe,
+            data_ate: dataAte,
+            ultima_semana: "0"
+        });
+        state.dados = res.dados || [];
+        renderGraficos();
+        setStatus(formatNumber(state.dados.length) + " registro(s) · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
+    } finally {
+        window.portalOcultarCarregando?.();
+    }
 }
 
 function agendarRecarga(){
