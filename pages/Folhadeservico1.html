@@ -1,97 +1,109 @@
+Vou enviar o arquivo **COMPLETO SEM CORTES**. Copie e cole este código inteiro:
+
+```html
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lançamento Folha de Serviços - CIOP / TCGL</title>
-    
-    <!-- FUNÇÕES PADRÃO -->
-    <script>
-        window.portalMostrarCarregando = function(msg) { console.log('Carregando:', msg); };
-        window.portalOcultarCarregando = function() { console.log('Concluído'); };
-        window.portalAguardarUsuario = function(callback) {
-            setTimeout(function() {
-                var user = document.getElementById('usuarioLogado');
-                var perfil = document.getElementById('perfilUsuario');
-                if (user) user.textContent = 'Usuário';
-                if (perfil) perfil.textContent = 'Operador';
-                if (callback) callback();
-            }, 100);
-        };
-        window.logout = function() {
-            if (confirm('Deseja sair?')) window.location.href = '../index.html';
-        };
-    </script>
-    
-    <style>
-        :root {
-            --blue: #06245c;
-            --blue2: #0b3a8a;
-            --orange: #ff6b00;
-            --bg: #f5f7fb;
-            --border: #dfe5ef;
-            --text: #101828;
-            --muted: #667085;
-            --white: #ffffff;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: var(--bg);
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        
-        .header {
-            position: relative;
-            background: #ffffff;
-            padding: 10px 24px;
-            display: grid;
-            grid-template-columns: 190px 1fr minmax(300px, auto);
-            gap: 15px;
-            align-items: center;
-            border-bottom: 1px solid #e8edf6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .logo-ciop { height: 48px; object-fit: contain; justify-self: start; }
-        .logo-tcgl { height: 48px; object-fit: contain; justify-self: end; }
-        h1 {
-            margin: 0;
-            text-align: center;
-            color: #071f57;
-            font-size: 26px;
-            line-height: 1.05;
-            font-weight: 800;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lançamento Folha de Serviços - CIOP / TCGL</title>
 
-        .container {
-            max-width: 1400px;
-            margin: 30px auto;
-            padding: 0 20px;
-            width: 100%;
-            flex: 1;
-        }
+<script>
+window.portalMostrarCarregando = function(msg) { console.log('Carregando:', msg); };
+window.portalOcultarCarregando = function() { console.log('Concluído'); };
+window.portalAguardarUsuario = function(callback) {
+    setTimeout(function() {
+        var user = document.getElementById('usuarioLogado');
+        var perfil = document.getElementById('perfilUsuario');
+        if (user) user.textContent = 'Usuário';
+        if (perfil) perfil.textContent = 'Operador';
+        if (callback) callback();
+    }, 100);
+};
+window.logout = function() {
+    if (confirm('Deseja sair?')) window.location.href = '../index.html';
+};
+</script>
 
-        .filter-wrapper {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-        .filter-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--blue);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .filter-
+<style>
+:root {
+    --blue: #06245c;
+    --blue2: #0b3a8a;
+    --orange: #ff6b00;
+    --bg: #f5f7fb;
+    --border: #dfe5ef;
+    --text: #101828;
+    --muted: #667085;
+    --white: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    background: var(--bg);
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header {
+    position: relative;
+    background: #ffffff;
+    padding: 10px 24px;
+    display: grid;
+    grid-template-columns: 190px 1fr minmax(300px, auto);
+    gap: 15px;
+    align-items: center;
+    border-bottom: 1px solid #e8edf6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.logo-ciop { height: 48px; object-fit: contain; justify-self: start; }
+.logo-tcgl { height: 48px; object-fit: contain; justify-self: end; }
+h1 {
+    margin: 0;
+    text-align: center;
+    color: #071f57;
+    font-size: 26px;
+    line-height: 1.05;
+    font-weight: 800;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+    width: 100%;
+    flex: 1;
+}
+
+.filter-wrapper {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+.filter-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--blue);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.filter-group label {
+    font-size: 12px;
+    font-weight: bold;
+    color
