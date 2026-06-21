@@ -23,8 +23,14 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .ciop-session-profile{color:var(--muted);font-weight:600}
 .ciop-session .btn-logout{background:var(--red);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
 .container{max-width:100%;margin:20px auto 32px;padding:0 20px;flex:1;width:100%}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.nav-actions{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar-left{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;flex:1;min-width:0}
+.nav-actions{display:flex;gap:8px;flex-wrap:wrap;flex:0 0 auto}
+.filters-inline{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;flex:1;min-width:280px}
+.filter-field{min-width:150px;flex:1;max-width:200px}
+.filter-field label{display:block;margin:0 0 4px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.filter-field input,.filter-field select{width:100%;min-height:38px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fafbfd;transition:border-color .15s,background .15s}
+.filter-field input:focus,.filter-field select:focus{outline:none;border-color:var(--blue2);background:var(--white);box-shadow:0 0 0 3px rgba(11,58,138,.08)}
 .btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;text-decoration:none;border-radius:6px;font-size:12px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit;transition:background .15s,transform .15s}
 .btn-portal,.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.08)}
 .btn-portal:hover,.btn-primary:hover{background:var(--blue2)}
@@ -36,16 +42,6 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .status-dot.ok{background:var(--green)}.status-dot.load{background:var(--orange);animation:pulse 1s infinite}
 .status-dot.erro{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.filters{display:grid;grid-template-columns:1.1fr 1.1fr auto;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 14px;box-shadow:0 10px 28px rgba(16,24,40,.06);margin-bottom:12px}
-.filters label{display:block;margin:0 0 4px;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
-.filters input,.filters select{width:100%;min-height:36px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fafbfd;transition:border-color .15s,background .15s}
-.filters input:focus,.filters select:focus{outline:none;border-color:var(--blue2);background:var(--white)}
-.filters .btn-secondary{min-height:36px;width:100%;align-self:end}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
-.stat-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 14px;box-shadow:0 8px 20px rgba(16,24,40,.05)}
-.stat-label{font-size:10px;font-weight:900;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;margin-bottom:4px}
-.stat-value{font-size:22px;font-weight:900;color:var(--blue);line-height:1.1}
-.stat-hint{font-size:11px;color:var(--muted);margin-top:4px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;background:#f8fafc;border-top:1px solid var(--border);font-size:10px;color:var(--muted);font-weight:700}
 .legend-item{display:inline-flex;align-items:center;gap:6px}
 .legend-swatch{width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.08)}
@@ -56,7 +52,7 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .table-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff,#fafbfd)}
 .card-title{margin:0;color:var(--blue);font-size:15px;font-weight:900}
 .table-sub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
-.table-wrap{overflow:auto;max-height:calc(100vh - 360px);min-height:420px}
+.table-wrap{overflow:auto;max-height:calc(100vh - 260px);min-height:460px}
 table.planilha{width:100%;border-collapse:separate;border-spacing:0;font-size:11px;min-width:2600px}
 thead th{position:sticky;top:0;z-index:3;background:#f1f5f9;color:var(--blue);padding:9px 8px;font-size:9px;font-weight:900;text-transform:uppercase;text-align:center;white-space:nowrap;border-bottom:2px solid #dbe3ef;letter-spacing:.03em}
 thead th.col-fix{z-index:5;background:#e8eef6}
@@ -67,8 +63,10 @@ tbody tr:nth-child(even) td{background:#fafbfd}
 tbody tr:hover td{background:#fff7ed}
 tbody td.col-fix{background:#f8fafc;font-weight:700;color:var(--muted);font-size:10px}
 tbody tr:nth-child(even) td.col-fix{background:#f1f5f9}
-.cell-input,.cell-select{width:100%;min-width:76px;border:1px solid transparent;background:transparent;padding:7px 6px;font-size:11px;font-family:inherit;text-align:center;border-radius:0;transition:background .15s,border-color .15s}
-.cell-input:focus,.cell-select:focus{outline:none;border-color:var(--blue2);background:var(--white);box-shadow:inset 0 0 0 1px rgba(11,58,138,.15)}
+tbody td.cell-active{position:relative;z-index:2;box-shadow:inset 0 0 0 2px var(--blue2);background:#fff!important}
+tbody tr:hover td.cell-active{background:#fff!important}
+.cell-input,.cell-select{width:100%;min-width:76px;border:1px solid transparent;background:transparent;padding:7px 6px;font-size:11px;font-family:inherit;text-align:center;border-radius:0;transition:background .15s}
+.cell-input:focus,.cell-select:focus{outline:none;background:var(--white)}
 .cell-input.saving,.cell-select.saving{background:#fff7ed}
 .cell-input.saved,.cell-select.saved{background:#f0fdf4}
 .cell-input.erro,.cell-select.erro{background:#fef2f2}
@@ -81,7 +79,7 @@ tbody tr:nth-child(even) td.col-fix{background:#f1f5f9}
 .empty-title{font-size:15px;font-weight:900;color:var(--blue);margin-bottom:6px}
 .empty-text{font-size:12px;font-weight:600;line-height:1.5}
 .page-footer{text-align:center;padding:12px 20px 20px;font-size:11px;color:var(--muted);font-weight:600}
-@media(max-width:900px){.stats{grid-template-columns:1fr}.filters{grid-template-columns:1fr}}
+@media(max-width:900px){.toolbar-left,.filters-inline{width:100%}.filter-field{max-width:none}}
 @media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
@@ -106,31 +104,25 @@ tbody tr:nth-child(even) td.col-fix{background:#f1f5f9}
 </header>
 
 <main class="container">
-    <div class="topbar">
-        <div class="nav-actions">
-            <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg></span>Portal</a>
-            <a class="btn-secondary" href="liberacao-dashboard.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></span>Dashboard</a>
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="nav-actions">
+                <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg></span>Portal</a>
+                <a class="btn-secondary" href="liberacao-dashboard.html"><span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></span>Dashboard</a>
+            </div>
+            <div class="filters-inline" aria-label="Filtros">
+                <div class="filter-field"><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
+                <div class="filter-field"><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas as máquinas</option></select></div>
+            </div>
         </div>
         <div class="status-pill" id="statusPill"><span class="status-dot load" id="statusDot"></span><span id="statusLine">Carregando planilha...</span></div>
     </div>
-
-    <section class="filters" aria-label="Filtros">
-        <div><label for="dataFiltro">Data</label><input id="dataFiltro" type="date"></div>
-        <div><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas as máquinas</option></select></div>
-        <div><button class="btn-secondary" type="button" id="btnRecarregar">Atualizar dados</button></div>
-    </section>
-
-    <section class="stats" aria-label="Indicadores">
-        <article class="stat-card"><div class="stat-label">Registros exibidos</div><div class="stat-value" id="statRegistros">0</div><div class="stat-hint">Após filtros aplicados</div></article>
-        <article class="stat-card"><div class="stat-label">Data selecionada</div><div class="stat-value" id="statData" style="font-size:18px">—</div><div class="stat-hint">Formato dd/mm/aaaa</div></article>
-        <article class="stat-card"><div class="stat-label">Período carregado</div><div class="stat-value" style="font-size:16px">Últimos 7 dias</div><div class="stat-hint">Leitura otimizada da planilha</div></article>
-    </section>
 
     <section class="table-card" aria-label="Planilha de acompanhamento">
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Edite as células diretamente — os dados são sincronizados com o Google Sheets</div>
+                <div class="table-sub">Use as setas ← → ↑ ↓ ou Tab para navegar entre células · salvamento automático</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -148,6 +140,7 @@ tbody tr:nth-child(even) td.col-fix{background:#f1f5f9}
             <span class="legend-item"><span class="legend-swatch ok"></span>Salvo</span>
             <span class="legend-item"><span class="legend-swatch saving"></span>Salvando</span>
             <span class="legend-item"><span class="legend-swatch erro"></span>Erro ao salvar</span>
+            <span class="legend-item">Setas / Tab / Enter — navegar células</span>
         </div>
     </section>
 </main>
@@ -221,6 +214,72 @@ function syncBadge(row,i){
     return '<span class="sync-badge ok">Salvo</span>';
 }
 
+function marcarCelulaAtiva(el){
+    document.querySelectorAll("td.cell-active").forEach(td=>td.classList.remove("cell-active"));
+    el?.closest("td")?.classList.add("cell-active");
+}
+
+function indiceColuna(chave){
+    return state.colunas.findIndex(c=>c.chave===chave);
+}
+
+function focarCelula(rowIdx,colIdx){
+    if(colIdx<0||colIdx>=state.colunas.length||rowIdx<0||rowIdx>=state.dados.length) return false;
+    const chave=state.colunas[colIdx].chave;
+    const el=document.querySelector('[data-i="'+rowIdx+'"][data-k="'+chave+'"]');
+    if(!el) return false;
+    el.focus();
+    if(el.tagName==="INPUT") el.select();
+    marcarCelulaAtiva(el);
+    el.scrollIntoView({block:"nearest",inline:"nearest"});
+    return true;
+}
+
+function podeNavegarHorizontal(el,direcao){
+    if(el.tagName!=="INPUT") return true;
+    const pos=el.selectionStart??0;
+    const fim=el.selectionEnd??0;
+    if(pos!==fim) return false;
+    if(direcao==="right") return pos>=el.value.length;
+    if(direcao==="left") return pos<=0;
+    return true;
+}
+
+function onCellKeydown(e){
+    const el=e.target;
+    if(!el.matches(".cell-input,.cell-select")) return;
+    const rowIdx=Number(el.dataset.i);
+    const colIdx=indiceColuna(el.dataset.k);
+    if(isNaN(rowIdx)||colIdx<0) return;
+
+    let nextRow=rowIdx,nextCol=colIdx,mover=false;
+    if(e.key==="ArrowRight"&&podeNavegarHorizontal(el,"right")){nextCol++;mover=true;}
+    else if(e.key==="ArrowLeft"&&podeNavegarHorizontal(el,"left")){nextCol--;mover=true;}
+    else if(e.key==="ArrowDown"){nextRow++;mover=true;}
+    else if(e.key==="ArrowUp"){nextRow--;mover=true;}
+    else if(e.key==="Enter"&&!e.shiftKey){nextRow++;mover=true;}
+    else if(e.key==="Tab"){
+        e.preventDefault();
+        nextCol+=e.shiftKey?-1:1;
+        mover=true;
+    }
+    if(!mover) return;
+
+    e.preventDefault();
+    if(nextCol>=state.colunas.length){nextCol=0;nextRow++;}
+    if(nextCol<0){nextCol=state.colunas.length-1;nextRow--;}
+    focarCelula(nextRow,nextCol);
+}
+
+function bindCelulas(){
+    $("tabelaCorpo").querySelectorAll("input,select").forEach(el=>{
+        el.addEventListener("change",onCellChange);
+        el.addEventListener("blur",onCellChange);
+        el.addEventListener("focus",()=>marcarCelulaAtiva(el));
+        el.addEventListener("keydown",onCellKeydown);
+    });
+}
+
 function renderCelula(row, rowIdx, col){
     const chave=col.chave;
     const v=val(row,chave);
@@ -244,11 +303,7 @@ function renderTabela(){
     ).join("");
     $("emptyState").hidden=state.dados.length>0;
     $("tableInfo").textContent=formatNumber(state.dados.length)+" linha(s)";
-    $("statRegistros").textContent=formatNumber(state.dados.length);
-    $("tabelaCorpo").querySelectorAll("input,select").forEach(el=>{
-        el.addEventListener("change", onCellChange);
-        el.addEventListener("blur", onCellChange);
-    });
+    bindCelulas();
 }
 
 function onCellChange(e){
@@ -305,14 +360,12 @@ async function carregar(){
     state.todos=(res.dados||[]).map(r=>Object.assign({},r));
     popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
     aplicarFiltroMaquina();
-    $("statData").textContent=brDate(data);
     renderTabela();
     setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data),"ok");
 }
 
-$("btnRecarregar").addEventListener("click",()=>carregar().catch(e=>setStatus(e.message,"erro")));
 $("dataFiltro").addEventListener("change",()=>carregar().catch(e=>setStatus(e.message,"erro")));
-$("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderTabela();setStatus(formatNumber(state.dados.length)+" registro(s) filtrados","ok");});
+$("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderTabela();setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate($("dataFiltro").value),"ok");});
 
 function iniciar(){
     $("dataFiltro").value=new Date().toISOString().slice(0,10);
