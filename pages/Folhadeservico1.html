@@ -1230,6 +1230,109 @@ h1 {
             .hora-row { flex-direction: column; }
         }
 
+        /* Formulário compacto — até 2 linhas de campos no desktop */
+        .launch-compact-form { padding: 14px 16px; }
+        .launch-compact-grid {
+            display: grid;
+            grid-template-columns: repeat(8, minmax(0, 1fr));
+            gap: 8px 10px;
+            align-items: end;
+        }
+        .launch-compact-grid .launch-group label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.15;
+        }
+        .launch-compact-grid .launch-group input,
+        .launch-compact-grid .launch-group select {
+            min-height: 34px;
+            height: 34px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+        .launch-compact-grid .launch-group select {
+            padding-right: 28px;
+            background-position: right 6px center;
+            background-size: 10px;
+        }
+        .launch-compact-grid .hora-row input {
+            min-height: 34px;
+            height: 34px;
+            padding: 4px 6px;
+            font-size: 12px;
+        }
+        .launch-compact-grid .btn-hora-atual {
+            min-height: 34px;
+            height: 34px;
+            padding: 0 8px;
+            font-size: 10px;
+            border-radius: 6px;
+        }
+        .launch-obs-row {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        .launch-obs-row .launch-group textarea {
+            min-height: 34px;
+            height: 34px;
+            max-height: 72px;
+            padding: 6px 10px;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .launch-obs-row .launch-actions {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            flex-wrap: nowrap;
+        }
+        .launch-obs-row .btn-launch,
+        .launch-obs-row .btn-clear {
+            min-height: 34px;
+            height: 34px;
+            padding: 0 14px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        @media (min-width: 1100px) {
+            .launch-card.launch-compact-form {
+                padding: 12px 14px;
+            }
+            .launch-compact-grid {
+                gap: 6px 8px;
+            }
+        }
+        @media (max-width: 1099px) and (min-width: 700px) {
+            .launch-compact-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 699px) {
+            .launch-compact-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .launch-obs-row {
+                grid-template-columns: 1fr;
+            }
+            .launch-obs-row .launch-actions {
+                flex-direction: row;
+                justify-content: stretch;
+            }
+            .launch-obs-row .btn-launch,
+            .launch-obs-row .btn-clear {
+                flex: 1;
+            }
+        }
+
         /* Página exclusiva de lançamento */
         .launch-page-actions { margin: 0 0 14px 0; padding: 0; gap: 10px; }
         .btn-dashboard { background: linear-gradient(135deg, #ff6b00, #d95a00) !important; }
@@ -1294,118 +1397,87 @@ h1 {
             </div>
         </div>
 
-        <div class="launch-card">
+        <div class="launch-card launch-compact-form">
             <form id="form-lancamento" onsubmit="enviarLancamento(event)">
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">1</span> Registro</h2>
-                    <div class="form-section-grid cols-2">
-                        <div class="launch-group">
-                            <label for="novo-data">Data <span class="req">*</span></label>
-                            <input type="date" id="novo-data" name="data" required>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-hora">Hora</label>
-                            <div class="hora-row">
-                                <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM">
-                                <button type="button" class="btn-hora-atual" onclick="preencherHoraAtual()">Agora</button>
-                            </div>
+                <div class="launch-compact-grid">
+                    <div class="launch-group">
+                        <label for="novo-data" title="Data">Data <span class="req">*</span></label>
+                        <input type="date" id="novo-data" name="data" required>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-hora" title="Hora">Hora</label>
+                        <div class="hora-row">
+                            <input type="text" id="novo-hora" name="hora" inputmode="numeric" maxlength="5" placeholder="HH:MM">
+                            <button type="button" class="btn-hora-atual" onclick="preencherHoraAtual()">Agora</button>
                         </div>
                     </div>
-                </section>
-
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">2</span> Atendimento</h2>
-                    <div class="form-section-grid">
-                        <div class="launch-group">
-                            <label for="novo-ocorrencia">Ocorrência <span class="req">*</span></label>
-                            <select id="novo-ocorrencia" name="ocorrencia" required><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-analista">Analista <span class="req">*</span></label>
-                            <select id="novo-analista" name="analista" required><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-situacao">Situação</label>
-                            <select id="novo-situacao" name="situacao"><option value="">Selecione...</option></select>
-                        </div>
+                    <div class="launch-group">
+                        <label for="novo-ocorrencia" title="Ocorrência">Ocorrência <span class="req">*</span></label>
+                        <select id="novo-ocorrencia" name="ocorrencia" required title="Ocorrência"><option value="">—</option></select>
                     </div>
-                </section>
-
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">3</span> Troca de veículo</h2>
-                    <div class="form-section-grid">
-                        <div class="launch-group">
-                            <label for="novo-carro-sai">Carro que sai</label>
-                            <select id="novo-carro-sai" name="carro_sai"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-mot-sai">Mot. que sai</label>
-                            <select id="novo-mot-sai" name="mot_sai"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-carro-entra">Carro que entra</label>
-                            <select id="novo-carro-entra" name="carro_entra"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-mot-entra">Mot. que entra</label>
-                            <select id="novo-mot-entra" name="mot_entra"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-linha">Linha</label>
-                            <select id="novo-linha" name="linha"><option value="">Selecione...</option></select>
-                        </div>
+                    <div class="launch-group">
+                        <label for="novo-analista" title="Analista">Analista <span class="req">*</span></label>
+                        <select id="novo-analista" name="analista" required title="Analista"><option value="">—</option></select>
                     </div>
-                </section>
-
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">4</span> Serviço</h2>
-                    <div class="form-section-grid cols-2">
-                        <div class="launch-group">
-                            <label for="novo-tabela">Tabela</label>
-                            <input type="text" id="novo-tabela" name="tabela" placeholder="Ex.: 10" autocomplete="off">
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-servico">Serviço</label>
-                            <input type="text" id="novo-servico" name="servico" placeholder="Ex.: 9041005" autocomplete="off">
-                        </div>
+                    <div class="launch-group">
+                        <label for="novo-situacao" title="Situação">Situação</label>
+                        <select id="novo-situacao" name="situacao" title="Situação"><option value="">—</option></select>
                     </div>
-                </section>
-
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">5</span> Oficina</h2>
-                    <div class="form-section-grid">
-                        <div class="launch-group">
-                            <label for="novo-motivo-oficina">Motivo (somente oficina)</label>
-                            <select id="novo-motivo-oficina" name="motivo_oficina"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-local">Local</label>
-                            <select id="novo-local" name="local"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group">
-                            <label for="novo-mecanico">Mecânico</label>
-                            <select id="novo-mecanico" name="mecanico"><option value="">Selecione...</option></select>
-                        </div>
-                        <div class="launch-group span-2">
-                            <label for="novo-tempo-deslocamento">Tempo de deslocamento da oficina</label>
-                            <select id="novo-tempo-deslocamento" name="tempo_deslocamento"><option value="">Selecione...</option></select>
-                        </div>
+                    <div class="launch-group">
+                        <label for="novo-carro-sai" title="Carro que sai">Carro sai</label>
+                        <select id="novo-carro-sai" name="carro_sai" title="Carro que sai"><option value="">—</option></select>
                     </div>
-                </section>
-
-                <section class="form-section">
-                    <h2 class="form-section-title"><span class="form-section-num">6</span> Observações</h2>
-                    <div class="form-section-grid">
-                        <div class="launch-group span-3">
-                            <label for="novo-observacoes">Observações</label>
-                            <textarea id="novo-observacoes" name="observacoes" placeholder="Detalhes adicionais do atendimento..."></textarea>
-                        </div>
+                    <div class="launch-group">
+                        <label for="novo-mot-sai" title="Motorista que sai">Mot. sai</label>
+                        <select id="novo-mot-sai" name="mot_sai" title="Motorista que sai"><option value="">—</option></select>
                     </div>
-                </section>
+                    <div class="launch-group">
+                        <label for="novo-carro-entra" title="Carro que entra">Carro entra</label>
+                        <select id="novo-carro-entra" name="carro_entra" title="Carro que entra"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-mot-entra" title="Motorista que entra">Mot. entra</label>
+                        <select id="novo-mot-entra" name="mot_entra" title="Motorista que entra"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-linha" title="Linha">Linha</label>
+                        <select id="novo-linha" name="linha" title="Linha"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-tabela" title="Tabela">Tabela</label>
+                        <input type="text" id="novo-tabela" name="tabela" placeholder="Ex.: 10" autocomplete="off">
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-servico" title="Serviço">Serviço</label>
+                        <input type="text" id="novo-servico" name="servico" placeholder="Ex.: 9041005" autocomplete="off">
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-motivo-oficina" title="Motivo (somente oficina)">Motivo ofic.</label>
+                        <select id="novo-motivo-oficina" name="motivo_oficina" title="Motivo (somente oficina)"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-local" title="Local">Local</label>
+                        <select id="novo-local" name="local" title="Local"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-mecanico" title="Mecânico">Mecânico</label>
+                        <select id="novo-mecanico" name="mecanico" title="Mecânico"><option value="">—</option></select>
+                    </div>
+                    <div class="launch-group">
+                        <label for="novo-tempo-deslocamento" title="Tempo de deslocamento da oficina">Tempo ofic.</label>
+                        <select id="novo-tempo-deslocamento" name="tempo_deslocamento" title="Tempo de deslocamento da oficina"><option value="">—</option></select>
+                    </div>
+                </div>
 
-                <div class="launch-actions">
-                    <button type="button" class="btn-clear" onclick="limparLancamento()">Limpar formulário</button>
-                    <button type="submit" class="btn-launch" id="btn-salvar-lancamento">Salvar na planilha</button>
+                <div class="launch-obs-row">
+                    <div class="launch-group">
+                        <label for="novo-observacoes" title="Observações">Observações</label>
+                        <textarea id="novo-observacoes" name="observacoes" placeholder="Detalhes adicionais..." rows="1"></textarea>
+                    </div>
+                    <div class="launch-actions">
+                        <button type="button" class="btn-clear" onclick="limparLancamento()">Limpar</button>
+                        <button type="submit" class="btn-launch" id="btn-salvar-lancamento">Salvar</button>
+                    </div>
                 </div>
                 <div id="msg-lancamento" class="launch-msg"></div>
             </form>
@@ -1713,7 +1785,7 @@ h1 {
         const valorAtual = campo.value;
 
         if (campo.tagName === "SELECT") {
-            campo.innerHTML = '<option value="">Selecione...</option>';
+            campo.innerHTML = '<option value="">—</option>';
             valores.forEach(val => {
                 const opt = document.createElement("option");
                 opt.value = val;
@@ -1933,7 +2005,7 @@ h1 {
 
     function opcoesSelectHtml(key, valorSelecionado) {
         const valores = opcoesPlanilha[key] || [];
-        const opts = ['<option value="">Selecione...</option>'];
+        const opts = ['<option value="">—</option>'];
         valores.forEach(v => {
             const sel = String(v) === String(valorSelecionado || "") ? " selected" : "";
             opts.push(`<option value="${escaparHtml(v)}"${sel}>${escaparHtml(v)}</option>`);
