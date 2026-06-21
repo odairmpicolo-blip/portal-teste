@@ -61,6 +61,14 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 .chart-empty[hidden]{display:none!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-weight:700;background:rgba(255,255,255,.45);border-radius:0 0 16px 16px}
 .empty-page{padding:48px 24px;text-align:center;color:var(--muted);font-weight:700;background:#fff;border:1px solid var(--border);border-radius:16px}
+.pdf-sheet-header{display:none;text-align:center;padding:0 0 12px}
+.pdf-sheet-title{margin:0;color:var(--blue);font-size:20px;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
+.pdf-sheet-period{margin:4px 0 0;color:var(--muted);font-size:11px;font-weight:700}
+.pdf-exporting .pdf-sheet-header{display:block}
+.pdf-exporting .toolbar,.pdf-exporting .header,.pdf-exporting .status-pill{display:none!important}
+.pdf-exporting #pdfExport{background:var(--bg);padding:8px 0;width:1680px;max-width:none;margin:0 auto}
+.pdf-exporting .charts-grid,.pdf-exporting .charts-grid.linha-quatro{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.pdf-exporting .chart-card{min-height:240px}
 @media(max-width:1100px){.charts-grid.linha-quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:960px){.charts-grid,.charts-grid.linha-quatro{grid-template-columns:1fr}.toolbar-left,.filters-inline{width:100%}.filter-field{max-width:none}}
 @media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}h1{font-size:18px}}
@@ -69,6 +77,7 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="../assets/js/loading.js"></script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
@@ -105,7 +114,13 @@ h1{margin:0;color:var(--blue);font-size:22px;font-weight:900;text-transform:uppe
         <div class="status-pill"><span class="status-dot load" id="statusDot"></span><span id="statusLine">Carregando...</span></div>
     </div>
 
-    <div id="chartsRoot"></div>
+    <div id="pdfExport">
+        <div class="pdf-sheet-header" aria-hidden="true">
+            <h2 class="pdf-sheet-title">Acompanhamento da Liberação</h2>
+            <p class="pdf-sheet-period" id="pdfPeriodo"></p>
+        </div>
+        <div id="chartsRoot"></div>
+    </div>
     <div class="empty-page" id="pageEmpty" hidden>Nenhum registro no período selecionado.</div>
 </main>
 
@@ -384,52 +399,47 @@ function agendarRecarga(){
 async function gerarPdf(){
     const dataDe = $("dataDe").value, dataAte = $("dataAte").value;
     if(!window.jspdf){ setStatus("Biblioteca PDF indisponível.","erro"); return; }
-    if(!Object.keys(state.charts).length){ setStatus("Carregue os gráficos antes de gerar o PDF.","erro"); return; }
+    if(!window.html2canvas){ setStatus("Biblioteca de captura indisponível.","erro"); return; }
+    if(!$("chartsRoot")?.querySelector(".chart-card")){ setStatus("Carregue os gráficos antes de gerar o PDF.","erro"); return; }
 
     setStatus("Gerando PDF...","load");
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const margin = 12, pageW = 210, contentW = pageW - margin * 2;
-    let y = margin;
+    window.portalMostrarCarregando?.("Gerando PDF");
+    $("pdfPeriodo").textContent = "Período: " + brDate(dataDe) + " a " + brDate(dataAte);
+    document.body.classList.add("pdf-exporting");
 
-    function novaPagina(){ pdf.addPage(); y = margin; }
-    function cabecalhoPagina(){
-        pdf.setTextColor(6, 36, 92);
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(14);
-        pdf.text("Acompanhamento da Liberação", margin, y);
-        y += 7;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(10);
-        pdf.setTextColor(102, 112, 133);
-        pdf.text("Período: " + brDate(dataDe) + " a " + brDate(dataAte), margin, y);
-        y += 8;
+    try {
+        await new Promise(r => setTimeout(r, 120));
+        const alvo = $("pdfExport");
+        const canvas = await html2canvas(alvo, {
+            scale: 2,
+            backgroundColor: "#f5f7fb",
+            logging: false,
+            useCORS: true,
+            windowWidth: alvo.scrollWidth,
+            windowHeight: alvo.scrollHeight
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+        const pageW = 297, pageH = 210, margin = 4;
+        const availW = pageW - margin * 2;
+        const availH = pageH - margin * 2;
+        const imgRatio = canvas.width / canvas.height;
+        let drawW = availW;
+        let drawH = drawW / imgRatio;
+        if(drawH > availH){
+            drawH = availH;
+            drawW = drawH * imgRatio;
+        }
+        const x = (pageW - drawW) / 2;
+        const y = (pageH - drawH) / 2;
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, drawW, drawH);
+        pdf.save("liberacao-" + dataDe + "-" + dataAte + ".pdf");
+        setStatus("PDF gerado · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
+    } finally {
+        document.body.classList.remove("pdf-exporting");
+        window.portalOcultarCarregando?.();
     }
-
-    cabecalhoPagina();
-
-    for (const cat of CATEGORIAS){
-        const chart = state.charts[cat.chave];
-        if(!chart) continue;
-        const img = chart.toBase64Image("image/png", 2);
-        const imgH = 58;
-        if(y + imgH > 285) novaPagina();
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(8);
-        pdf.setTextColor(6, 36, 92);
-        pdf.text(cat.titulo, margin, y);
-        y += 4;
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7);
-        pdf.setTextColor(102, 112, 133);
-        pdf.text(cat.gravidade, margin, y);
-        y += 3;
-        pdf.addImage(img, "PNG", margin, y, contentW, imgH);
-        y += imgH + 8;
-    }
-
-    pdf.save("liberacao-" + dataDe + "-" + dataAte + ".pdf");
-    setStatus("PDF gerado · " + brDate(dataDe) + " a " + brDate(dataAte), "ok");
 }
 
 function iniciar(){
