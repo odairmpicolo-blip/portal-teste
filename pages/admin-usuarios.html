@@ -362,14 +362,25 @@ body.modal-open{overflow:hidden}
     box-shadow:0 12px 24px rgba(21,128,61,.24);
     filter:brightness(1.04);
 }
-.btn-new-user svg{
-    width:17px;
-    height:17px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:2.2;
-    stroke-linecap:round;
-    stroke-linejoin:round;
+.btn-new-user-secondary{
+    background:linear-gradient(135deg,var(--blue),var(--blue2));
+    box-shadow:0 8px 16px rgba(6,36,92,.16);
+}
+.btn-new-user-secondary:hover{
+    box-shadow:0 10px 20px rgba(6,36,92,.22);
+}
+.auth-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:4px 0 0;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+}
+.auth-option input{
+    width:auto;
+    margin:0;
 }
 @media(max-width:760px){
     .user-panel-head{
@@ -558,12 +569,11 @@ h1 {
                 </div>
                 <div class="user-panel-center">
                     <h2 class="panel-title">Gerenciar Usuários</h2>
-                    <span class="panel-title-note">Depois de criar o login no Firebase, informe o e-mail aqui para classificar o perfil no portal.</span>
+                    <span class="panel-title-note">Ao salvar, o login é criado automaticamente no Firebase. O usuário recebe e-mail para definir a senha.</span>
                 </div>
                 <div class="user-panel-actions">
-                    <a class="btn-new-user" href="https://console.firebase.google.com/project/portal-ciop/authentication/users" target="_blank" rel="noopener">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><circle cx="12" cy="12" r="9"/></svg>
-                        <span>Cadastrar novo usuário</span>
+                    <a class="btn-new-user btn-new-user-secondary" href="https://console.firebase.google.com/project/portal-ciop/authentication/users" target="_blank" rel="noopener">
+                        <span>Console Firebase</span>
                     </a>
                 </div>
             </div>
@@ -603,6 +613,10 @@ h1 {
                 <button class="btn btn-primary" type="button" onclick="classificarUsuario()">Salvar usuário</button>
                 <button class="btn btn-secondary" type="button" onclick="recarregarUsuarios()">Atualizar lista</button>
             </div>
+            <label class="auth-option full" for="classificarEnviarSenha">
+                <input id="classificarEnviarSenha" type="checkbox" checked>
+                Enviar e-mail para o usuário definir a senha (somente no primeiro cadastro no Firebase)
+            </label>
             <div class="user-search">
                 <label for="buscaUsuarios">Buscar usuários</label>
                 <input id="buscaUsuarios" type="search" placeholder="Buscar por nome, registro, e-mail, perfil ou cargo" oninput="filtrarUsuarios()" autocomplete="off">
@@ -629,7 +643,7 @@ h1 {
                 <div class="modal-header">
                     <div>
                         <h2 id="editarUsuarioTitulo">Editar usuário</h2>
-                        <p>Use o mesmo e-mail cadastrado no Firebase Authentication.</p>
+                        <p>Use o mesmo e-mail do login Firebase. Novos e-mails criam o acesso automaticamente.</p>
                     </div>
                     <button class="modal-close" type="button" onclick="fecharEditorUsuario()" aria-label="Fechar">×</button>
                 </div>
@@ -677,6 +691,7 @@ import {
     excluirUsuarioFirestore,
     normalizarCadastro
 } from "../assets/js/portal-firestore.js";
+import { garantirUsuarioFirebaseAuth } from "../assets/js/portal-auth-admin.js";
 
 const perfisDisponiveis = ["Administrador", "Supervisor", "Gerência", "Analista", "SAC", "Secretária"];
 const cargosDisponiveis = [
@@ -1125,6 +1140,11 @@ window.salvarEditorUsuario = async function () {
     status.textContent = "Salvando alterações...";
 
     try {
+        if (novoEmail !== emailAntigo) {
+            status.textContent = "Criando login no Firebase para o novo e-mail...";
+            await garantirUsuarioFirebaseAuth(novoEmail, { enviarLinkSenha: true });
+        }
+
         const ativo = user.ativo !== false;
         const usuario = await salvarUsuarioFirestore(novoEmail, { nome, perfil, registro, cargo, ativo });
         if (novoEmail !== emailAntigo) {
@@ -1134,7 +1154,9 @@ window.salvarEditorUsuario = async function () {
         usuariosEditados[usuario.email] = { ...usuario, ativo };
         renderUsuarios();
         window.fecharEditorUsuario();
-        atualizarStatus(novoEmail !== emailAntigo ? "Usuário atualizado com novo e-mail." : "Usuário atualizado no Firestore.");
+        atualizarStatus(novoEmail !== emailAntigo
+            ? "Usuário atualizado. Novo login criado no Firebase e e-mail de senha enviado, se necessário."
+            : "Usuário atualizado no portal.");
     } catch (error) {
         console.error(error);
         status.className = "status erro";
@@ -1189,7 +1211,20 @@ window.alternarAcesso = async function (emailParam) {
     }
 };
 
-window.classificarUsuario = function () {
+async function mensagemSalvamentoFirebaseAuth(email, criado, linkSenhaEnviado, atualizacao = false) {
+    if (criado && linkSenhaEnviado) {
+        return "Login criado no Firebase, perfil salvo no portal e e-mail de senha enviado.";
+    }
+    if (criado) {
+        return "Login criado no Firebase e perfil salvo no portal.";
+    }
+    if (atualizacao) {
+        return "Usuário atualizado no portal. O login já existia no Firebase.";
+    }
+    return "Perfil salvo no portal. O login já existia no Firebase.";
+}
+
+window.classificarUsuario = async function () {
     const email = document.getElementById("classificarEmail").value.trim().toLowerCase();
     const nome = document.getElementById("classificarNome").value.trim();
     const registro = document.getElementById("classificarRegistro").value.trim();
@@ -1227,12 +1262,29 @@ window.classificarUsuario = function () {
         }
     }
 
-    salvarUsuario(email, nome, perfil, registro, cargo, "Usuário salvo no Firestore.", usuarioExistente?.ativo !== false);
-    document.getElementById("classificarEmail").value = "";
-    document.getElementById("classificarNome").value = "";
-    document.getElementById("classificarRegistro").value = "";
-    document.getElementById("classificarCargo").value = "";
-    atualizarPerfilCadastroDisponivel();
+    status.className = "status";
+    status.textContent = "Criando login no Firebase...";
+
+    try {
+        const enviarLinkSenha = document.getElementById("classificarEnviarSenha")?.checked !== false;
+        const auth = await garantirUsuarioFirebaseAuth(email, { enviarLinkSenha });
+        const mensagem = await mensagemSalvamentoFirebaseAuth(
+            email,
+            auth.criado,
+            auth.linkSenhaEnviado,
+            Boolean(usuarioExistente)
+        );
+        await salvarUsuario(email, nome, perfil, registro, cargo, mensagem, usuarioExistente?.ativo !== false);
+        document.getElementById("classificarEmail").value = "";
+        document.getElementById("classificarNome").value = "";
+        document.getElementById("classificarRegistro").value = "";
+        document.getElementById("classificarCargo").value = "";
+        atualizarPerfilCadastroDisponivel();
+    } catch (error) {
+        console.error(error);
+        status.className = "status erro";
+        status.textContent = error.message || "Não foi possível criar o login no Firebase.";
+    }
 };
 
 
