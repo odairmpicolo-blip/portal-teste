@@ -449,18 +449,50 @@ function desenharGraficoAgentes(rows) {
     });
 }
 
+let pieResizeObserver = null;
+
+function prepararCanvasPie(canvas) {
+    const wrap = canvas?.parentElement;
+    const base = wrap ? Math.floor(Math.min(wrap.clientWidth, wrap.clientHeight)) : 160;
+    const size = Math.max(base, 96);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, size };
+}
+
+function observarResizePie() {
+    const wrap = byId("pieChart")?.parentElement;
+    if (!wrap || pieResizeObserver || typeof ResizeObserver === "undefined") return;
+    let timer = null;
+    pieResizeObserver = new ResizeObserver(() => {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+            const rows = getFiltered();
+            drawPie(groupSum(rows, "motivo"), rows.length);
+        }, 120);
+    });
+    pieResizeObserver.observe(wrap);
+}
+
 function drawPie(items, total) {
     const canvas = byId("pieChart");
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width;
-    const h = canvas.height;
-    const cx = w / 2;
-    const cy = h / 2;
-    const r = 62;
-    ctx.clearRect(0, 0, w, h);
+    if (!canvas) return;
+    const { ctx, size } = prepararCanvasPie(canvas);
+    const cx = size / 2;
+    const cy = size / 2;
+    const r = size * 0.38;
+    const rInner = size * 0.22;
+    ctx.clearRect(0, 0, size, size);
     if (!total) {
         ctx.fillStyle = "#667085";
         ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `700 ${Math.max(12, size * 0.08)}px Arial, Helvetica, sans-serif`;
         ctx.fillText("Sem dados", cx, cy);
         byId("legend").innerHTML = "";
         return;
@@ -477,11 +509,11 @@ function drawPie(items, total) {
         start += ang;
     });
     ctx.beginPath();
-    ctx.arc(cx, cy, 34, 0, Math.PI * 2);
+    ctx.arc(cx, cy, rInner, 0, Math.PI * 2);
     ctx.fillStyle = "#fff";
     ctx.fill();
     ctx.fillStyle = "#071f57";
-    ctx.font = "bold 16px Arial";
+    ctx.font = `bold ${Math.max(12, size * 0.1)}px Arial, Helvetica, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("100%", cx, cy);
@@ -603,6 +635,7 @@ function init() {
     if (dates.inicio) byId("dataInicio").value = dates.inicio;
     if (dates.fim) byId("dataFim").value = dates.fim;
     renderTableHead();
+    observarResizePie();
     ["dataInicio", "dataFim", "motivoFilter", "agenteFilter", "busca"].forEach((id) => {
         byId(id).addEventListener("input", render);
     });

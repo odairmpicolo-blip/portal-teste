@@ -23,6 +23,11 @@ document.documentElement.classList.add("portal-auth-pending");
 .period-years-row[hidden]{display:none!important}
 .period-years-row span{flex:1 1 0;text-align:center;min-width:28px}
 .chart-box-agent .chart-canvas-wrap{min-height:320px}
+.chart-box-motivos{display:flex;flex-direction:column;min-height:250px}
+.chart-box-motivos .chart-area-motivos{display:flex;flex:1;min-height:0;gap:10px;align-items:stretch}
+.chart-box-motivos .pie-wrap{flex:0 0 auto;height:100%;width:auto;max-width:46%;aspect-ratio:1;align-self:center;display:flex;align-items:center;justify-content:center;min-height:120px;min-width:100px}
+.chart-box-motivos .pie-wrap canvas{width:100%!important;height:100%!important;display:block}
+.chart-box-motivos .legend{flex:1;min-width:0;height:auto;max-height:none;overflow:auto;align-self:stretch}
 .chart-canvas-wrap{position:relative;flex:1;min-height:210px}
 .chart-canvas-wrap canvas{width:100%!important;height:100%!important}
 .chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#667085;font-size:12px;font-weight:700;background:rgba(255,255,255,.72)}
@@ -554,7 +559,7 @@ h1 {
 
 <section class="charts-grid-3">
 <div class="chart-box chart-box-agent"><h3>Total por agente</h3><div class="chart-canvas-wrap"><canvas id="agentChart" aria-label="Gráfico por agente"></canvas><div class="chart-empty" id="agentChartEmpty" hidden>Sem dados no período</div></div></div>
-<div class="chart-box comp"><h3>Motivos</h3><div class="chart-area"><canvas id="pieChart" width="160" height="160"></canvas><div class="legend" id="legend"></div></div></div>
+<div class="chart-box chart-box-motivos comp"><h3>Motivos</h3><div class="chart-area chart-area-motivos"><div class="pie-wrap"><canvas id="pieChart" aria-label="Gráfico de motivos"></canvas></div><div class="legend" id="legend"></div></div></div>
 <div class="chart-box"><h3 id="periodChartTitle">Autuações ano a ano</h3><div class="period-years-row" id="periodChartYears" hidden></div><div class="chart-canvas-wrap"><canvas id="periodChart" aria-label="Gráfico temporal de autuações"></canvas><div class="chart-empty" id="periodChartEmpty" hidden>Sem dados no período</div></div></div>
 </section>
 
