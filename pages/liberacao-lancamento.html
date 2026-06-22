@@ -208,6 +208,10 @@ const CAMPOS_SELECT = {
 const CAMPOS_DISPARO_FORMULA = new Set(["saida_real","inicio_real","horario_saida_da_garagem","horario_de_inicio"]);
 const TOLERANCIA_MIN = 5;
 const CAMPOS_HORA = new Set(["horario_saida_da_garagem","horario_de_inicio","saida_real","inicio_real"]);
+const LIBERACAO_DATA_BASE = "../assets/data/liberacao";
+const LIBERACAO_MANIFEST_URL = LIBERACAO_DATA_BASE + "/manifest.json";
+const LIBERACAO_ACOMPANHAMENTO_URL = LIBERACAO_DATA_BASE + "/acompanhamento-semana.json";
+let liberacaoManifest = null;
 const state = { colunas: COLUNAS_EXIBICAO, todos: [], dados: [], saveTimers: {}, saving: {}, sortKey: "horario_saida_da_garagem", sortDir: "asc" };
 
 function $(id){return document.getElementById(id)}
@@ -584,11 +588,61 @@ function popularMaquinas(lista){
     if(items.includes(prev)) sel.value=prev;
 }
 
+function normalizarDataIsoRow(row){
+    const br=String(row?.data||"").trim();
+    const p=br.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(p) return p[3]+"-"+p[1].padStart(2,"0")+"-"+p[2].padStart(2,"0");
+    return /^\d{4}-\d{2}-\d{2}$/.test(br)?br:"";
+}
+
+async function carregarManifestLiberacao(){
+    try{
+        const res=await fetch(LIBERACAO_MANIFEST_URL,{cache:"no-store"});
+        if(!res.ok) return null;
+        return await res.json();
+    }catch(_){
+        return null;
+    }
+}
+
+async function carregarSnapshotAcompanhamento(dataIso){
+    if(!liberacaoManifest) liberacaoManifest=await carregarManifestLiberacao();
+    try{
+        const res=await fetch(LIBERACAO_ACOMPANHAMENTO_URL,{cache:"no-store"});
+        if(!res.ok) return null;
+        const payload=await res.json();
+        if(!Array.isArray(payload.dados)||!payload.dados.length) return null;
+        const filtrados=payload.dados.filter(r=>normalizarDataIsoRow(r)===dataIso);
+        if(!filtrados.length) return null;
+        return { dados: filtrados, meta: payload.meta || {} };
+    }catch(_){
+        return null;
+    }
+}
+
 async function carregar(){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");return;}
-    setStatus("Carregando planilha...","load");
-    window.portalMostrarCarregando?.("Carregando liberação");
+
+    let mostrouSnapshot=false;
+    const snapshot=await carregarSnapshotAcompanhamento(data);
+    if(snapshot){
+        state.colunas=COLUNAS_EXIBICAO;
+        state.todos=snapshot.dados.map(r=>capturarValoresIniciais(Object.assign({},r)));
+        popularMaquinas([...new Set(state.todos.map(d=>String(d.maquina||"").trim()).filter(Boolean))]);
+        aplicarFiltroMaquina();
+        renderTabela();
+        const extra=liberacaoManifest?.atualizadoEm
+            ? " · snapshot: "+new Date(liberacaoManifest.atualizadoEm).toLocaleString("pt-BR")
+            : "";
+        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data)+" · arquivo JSON"+extra,"ok");
+        mostrouSnapshot=true;
+    }
+
+    if(!mostrouSnapshot){
+        setStatus("Carregando planilha...","load");
+        window.portalMostrarCarregando?.("Carregando liberação");
+    }
     try {
         const res=await apiGet({recurso:"acompanhamento",data,ultima_semana:"0"});
         state.colunas=COLUNAS_EXIBICAO;
@@ -597,7 +651,8 @@ async function carregar(){
         aplicarFiltroMaquina();
         renderTabela();
         const cacheTxt=res.meta&&res.meta.cache?" · cache":"";
-        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data)+cacheTxt,"ok");
+        const origem=mostrouSnapshot?" · atualizado":"";
+        setStatus(formatNumber(state.dados.length)+" registro(s) · "+brDate(data)+cacheTxt+origem,"ok");
     } finally {
         window.portalOcultarCarregando?.();
     }

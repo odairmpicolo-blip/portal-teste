@@ -1,4 +1,10 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
+const AUTUACOES_DATA_BASE = "../assets/data/autuacoes";
+const AUTUACOES_MANIFEST_URL = AUTUACOES_DATA_BASE + "/manifest.json";
+const AUTUACOES_SNAPSHOT_URL = AUTUACOES_DATA_BASE + "/dados.json";
+const SYNC_DIAS_RECENTES = 14;
+const CACHE_STORAGE_KEY = "portal_autuacoes_dashboard_v1";
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 let DATA = [];
 let periodChart = null;
 let agentChart = null;
@@ -297,7 +303,79 @@ function escapeHtml(s) {
 
 function montarUrlSemCache(url) {
     const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}atualizado=${Date.now()}`;
+    return url + sep + "_=" + Date.now();
+}
+
+function lerCacheAutuacoesLocal() {
+    try {
+        const raw = localStorage.getItem(CACHE_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.payload || !parsed?.ts) return null;
+        if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
+        return parsed.payload;
+    } catch (_) {
+        return null;
+    }
+}
+
+function salvarCacheAutuacoesLocal(payload) {
+    try {
+        localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify({ ts: Date.now(), payload }));
+    } catch (_) {}
+}
+
+function chaveRegistroAutuacao(row) {
+    return [
+        row?.data_iso || row?.data_br || "",
+        row?.notificacao || "",
+        row?.auto || "",
+        row?.ordem || ""
+    ].join("|");
+}
+
+function mesclarAutuacoes(base, novos) {
+    const mapa = new Map();
+    (base || []).forEach((row) => mapa.set(chaveRegistroAutuacao(row), row));
+    (novos || []).forEach((row) => mapa.set(chaveRegistroAutuacao(row), row));
+    return [...mapa.values()];
+}
+
+function isoDiasAtrasAutuacoes(dias) {
+    const d = new Date();
+    d.setDate(d.getDate() - dias);
+    return d.toISOString().slice(0, 10);
+}
+
+async function carregarSnapshotAutuacoes() {
+    try {
+        const res = await fetch(AUTUACOES_SNAPSHOT_URL, { cache: "no-store" });
+        if (!res.ok) return null;
+        const payload = await res.json();
+        const rows = normalizeRows(payload);
+        if (!rows.length) return null;
+        return { payload, rows };
+    } catch (_) {
+        return null;
+    }
+}
+
+async function sincronizarAutuacoesRecentes() {
+    const dataDe = isoDiasAtrasAutuacoes(SYNC_DIAS_RECENTES);
+    const dataAte = isoDiasAtrasAutuacoes(0);
+    const sep = API_URL.includes("?") ? "&" : "?";
+    const url = API_URL + sep + "data_de=" + encodeURIComponent(dataDe) + "&data_ate=" + encodeURIComponent(dataAte) + "&_=" + Date.now();
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    if (payload.status === "error") throw new Error(payload.message || "Erro na API");
+    return normalizeRows(payload);
+}
+
+function aplicarPayloadAutuacoes(payload, origem) {
+    DATA = normalizeRows(payload);
+    init();
+    if (origem) console.info("Autuações carregadas:", origem, DATA.length);
 }
 
 function uniqueSorted(key) {
@@ -822,30 +900,69 @@ function init() {
 }
 
 async function loadData() {
-    window.portalMostrarCarregando?.("Carregando autuações (pode levar até 1 minuto)");
-    if (!API_URL) {
+    const cacheLocal = lerCacheAutuacoesLocal();
+    let mostrouDados = false;
+
+    const snapshot = await carregarSnapshotAutuacoes();
+    if (snapshot?.rows?.length) {
+        DATA = snapshot.rows;
         init();
-        window.portalOcultarCarregando?.();
+        salvarCacheAutuacoesLocal(snapshot.payload);
+        console.info("Autuações carregadas: arquivo JSON", DATA.length);
+        mostrouDados = true;
+    } else if (cacheLocal) {
+        aplicarPayloadAutuacoes(cacheLocal, "cache local");
+        mostrouDados = true;
+    }
+
+    if (!API_URL) {
+        if (!mostrouDados) init();
         return;
     }
+
+    if (!mostrouDados) {
+        window.portalMostrarCarregando?.("Carregando autuações");
+    }
+
     try {
-        const response = await fetch(montarUrlSemCache(API_URL), { cache: "no-store" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const payload = await response.json();
-        if (payload.status === "error") throw new Error(payload.message || "Erro na API");
-        DATA = normalizeRows(payload);
+        const recentes = await sincronizarAutuacoesRecentes();
+        if (recentes.length) {
+            if (mostrouDados) {
+                DATA = mesclarAutuacoes(DATA, recentes);
+                init();
+                salvarCacheAutuacoesLocal({ status: "ok", data: DATA, data_de: snapshot?.payload?.data_de, data_ate: snapshot?.payload?.data_ate });
+                console.info("Autuações atualizadas: JSON + recentes", DATA.length);
+            } else {
+                const response = await fetch(montarUrlSemCache(API_URL), { cache: "no-store" });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const payload = await response.json();
+                if (payload.status === "error") throw new Error(payload.message || "Erro na API");
+                salvarCacheAutuacoesLocal(payload);
+                aplicarPayloadAutuacoes(payload, payload.cache ? "servidor (cache)" : "planilha");
+            }
+        } else if (!mostrouDados) {
+            const response = await fetch(montarUrlSemCache(API_URL), { cache: "no-store" });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            if (payload.status === "error") throw new Error(payload.message || "Erro na API");
+            salvarCacheAutuacoesLocal(payload);
+            aplicarPayloadAutuacoes(payload, payload.cache ? "servidor (cache)" : "planilha");
+        }
         if (!DATA.length) {
-            console.warn("API de autuações retornou vazio.", payload);
+            console.warn("Autuações retornou vazio.");
         }
     } catch (error) {
         console.error("Erro ao carregar dados do Google Sheets:", error);
-        const tbody = byId("tableBody");
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Não foi possível carregar as autuações. Confira se o Apps Script está publicado. (${escapeHtml(error.message)})</td></tr>`;
+        if (!mostrouDados) {
+            const tbody = byId("tableBody");
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Não foi possível carregar as autuações. Confira se o Apps Script está publicado. (${escapeHtml(error.message)})</td></tr>`;
+            }
+            init();
         }
+    } finally {
+        window.portalOcultarCarregando?.();
     }
-    init();
-    window.portalOcultarCarregando?.();
 }
 
 function limparFiltros() {
