@@ -310,16 +310,14 @@ h1{
 }
 
 .card{
-    --card-accent:var(--azul);
-    --card-soft:#eef4ff;
-    width:168px;
+    width:200px;
     max-width:100%;
-    flex:0 1 168px;
+    flex:0 1 200px;
     background:#fff;
     border-radius:8px;
     border:1px solid rgba(6,36,92,.12);
-    padding:clamp(12px, 4cqi, 18px) clamp(10px, 3.5cqi, 16px);
-    min-height:168px;
+    padding:clamp(14px, 4cqi, 20px) clamp(12px, 3.5cqi, 18px);
+    min-height:200px;
     aspect-ratio:1 / 1;
     text-decoration:none;
     color:inherit;
@@ -340,7 +338,7 @@ h1{
 .card:hover,
 .card:focus-visible{
     transform:translateY(-3px);
-    border-color:var(--card-accent);
+    border-color:var(--azul);
     box-shadow:0 16px 32px rgba(6,36,92,.15);
 }
 
@@ -358,11 +356,11 @@ h1{
 }
 
 .card-figure{
-    width:clamp(38px, 14cqi, 50px);
-    height:clamp(38px, 14cqi, 50px);
+    width:clamp(42px, 14cqi, 54px);
+    height:clamp(42px, 14cqi, 54px);
     border-radius:8px;
-    background:var(--card-soft);
-    color:var(--card-accent);
+    background:#eef4ff;
+    color:var(--azul);
     display:grid;
     place-items:center;
     flex:0 0 auto;
