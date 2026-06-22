@@ -1,9 +1,23 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
 let DATA = [];
-let monthChart = null;
+let periodChart = null;
 let agentChart = null;
+let sortState = { key: "data_iso", dir: "desc" };
 
 const COLORS = ["#1359c7", "#28a64a", "#ff6b00", "#7045b8", "#de1b1b", "#f6bf26", "#00a6a6", "#7a8b99", "#9b59b6", "#2c3e50", "#e67e22", "#16a085"];
+
+const TABLE_COLUMNS = [
+    { key: "ordem", label: "Ordem", type: "number" },
+    { key: "data_iso", label: "Data", type: "date", display: "data_br" },
+    { key: "notificacao", label: "Notificação Nº", type: "text" },
+    { key: "auto", label: "Auto Nº", type: "text" },
+    { key: "grupo", label: "Grupo", type: "text" },
+    { key: "artigo", label: "Artigo", type: "text" },
+    { key: "motivo", label: "Motivo", type: "text" },
+    { key: "agente", label: "Agente", type: "text" },
+    { key: "valor_tarifas", label: "Tarifas", type: "number" },
+    { key: "valor_reais", label: "Valor R$", type: "number", money: true }
+];
 
 function byId(id) { return document.getElementById(id); }
 
@@ -13,23 +27,6 @@ function pickValue(row, keys) {
         if (row && row[key] !== undefined && row[key] !== null && row[key] !== "") return row[key];
     }
     return "";
-}
-
-function normalizarCabecalho(valor) {
-    return String(valor || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim()
-        .toLowerCase();
-}
-
-function indicePorCabecalho(headers, candidatos) {
-    const mapa = headers.map(normalizarCabecalho);
-    for (const nome of candidatos) {
-        const idx = mapa.indexOf(normalizarCabecalho(nome));
-        if (idx >= 0) return idx;
-    }
-    return -1;
 }
 
 function parseNumero(valor) {
@@ -87,10 +84,8 @@ function normalizeRows(payload) {
         let date = parseDateValue(pickValue(row, ["data_iso", "DATA_ISO", "Data ISO", "date", "data", "DATA", "Data"]));
         if (!date.iso) date = parseDateValue(pickValue(row, ["data_br", "DATA_BR", "Data BR"]));
         const dataBr = date.br || pickValue(row, ["data_br", "DATA_BR", "Data BR"]);
-        const valorTarifas = parseNumero(pickValue(row, ["valor_tarifas", "valorTarifas", "tarifas", "Valor do auto em tarifas", "valor do auto em tarifas", "TARIFAS"]));
-        const valorReais = parseNumero(pickValue(row, ["valor_reais", "valorReais", "valor em R$", "Valor em R$", "VALOR R$", "valor_r$"]));
         return {
-            ordem: pickValue(row, ["ordem", "Ordem", "ORDEM"]) || index + 1,
+            ordem: Number(pickValue(row, ["ordem", "Ordem", "ORDEM"]) || index + 1),
             data_iso: date.iso,
             data_br: dataBr,
             notificacao: pickValue(row, ["notificacao", "Notificação", "Notificacao", "NOTIFICAÇÃO", "NOTIFICACAO", "Notificação Nº", "Notificacao Nº"]),
@@ -99,8 +94,8 @@ function normalizeRows(payload) {
             agente: pickValue(row, ["agente", "Agente", "AGENTE"]),
             grupo: pickValue(row, ["grupo", "Grupo", "GRUPO"]),
             artigo: pickValue(row, ["artigo", "Artigo", "ARTIGO"]),
-            valor_tarifas: valorTarifas,
-            valor_reais: valorReais
+            valor_tarifas: parseNumero(pickValue(row, ["valor_tarifas", "valorTarifas", "tarifas", "Valor do auto em tarifas", "valor do auto em tarifas", "TARIFAS"])),
+            valor_reais: parseNumero(pickValue(row, ["valor_reais", "valorReais", "valor em R$", "Valor em R$", "VALOR R$", "valor_r$"]))
         };
     }).filter((d) => d.data_iso || d.data_br || d.notificacao || d.auto || d.motivo || d.agente);
 }
@@ -140,6 +135,11 @@ function fillSelect(id, values) {
     });
 }
 
+function intervaloDatasBase() {
+    const dates = DATA.map((d) => d.data_iso).filter(Boolean).sort();
+    return { inicio: dates[0] || "", fim: dates[dates.length - 1] || "" };
+}
+
 function getFiltered() {
     const di = byId("dataInicio").value;
     const df = byId("dataFim").value;
@@ -152,9 +152,7 @@ function getFiltered() {
         if (motivo && d.motivo !== motivo) return false;
         if (agente && d.agente !== agente) return false;
         if (busca) {
-            const s = [
-                d.notificacao, d.auto, d.motivo, d.agente, d.data_br, d.grupo, d.artigo
-            ].join(" ").toLowerCase();
+            const s = [d.notificacao, d.auto, d.motivo, d.agente, d.data_br, d.grupo, d.artigo].join(" ").toLowerCase();
             if (!s.includes(busca)) return false;
         }
         return true;
@@ -174,25 +172,58 @@ function somaCampo(rows, key) {
     return rows.reduce((acc, row) => acc + Number(row[key] || 0), 0);
 }
 
-function labelMes(iso) {
-    if (!iso || iso.length < 7) return "Sem data";
-    const [y, m] = iso.split("-");
-    const dt = new Date(Number(y), Number(m) - 1, 1);
-    return dt.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "");
+function somaReaisPorAgente(rows, agente) {
+    if (!agente) return 0;
+    return rows.reduce((acc, row) => acc + (row.agente === agente ? Number(row.valor_reais || 0) : 0), 0);
 }
 
-function agruparPorMes(rows) {
+function nivelAgrupamentoTemporal() {
+    const base = intervaloDatasBase();
+    const inicio = byId("dataInicio").value || base.inicio;
+    const fim = byId("dataFim").value || base.fim;
+    const filtroPadrao = base.inicio && base.fim && inicio === base.inicio && fim === base.fim;
+
+    if (filtroPadrao) {
+        return { nivel: "year", titulo: "Autuações ano a ano" };
+    }
+    if (inicio.slice(0, 7) === fim.slice(0, 7)) {
+        return { nivel: "day", titulo: "Autuações dia a dia" };
+    }
+    if (inicio.slice(0, 4) === fim.slice(0, 4)) {
+        return { nivel: "month", titulo: "Autuações mês a mês" };
+    }
+    return { nivel: "year", titulo: "Autuações ano a ano" };
+}
+
+function chavePeriodo(dataIso, nivel) {
+    if (!dataIso) return "";
+    if (nivel === "year") return dataIso.slice(0, 4);
+    if (nivel === "month") return dataIso.slice(0, 7);
+    return dataIso;
+}
+
+function labelPeriodo(chave, nivel) {
+    if (!chave) return "Sem data";
+    if (nivel === "year") return chave;
+    if (nivel === "month") {
+        const [y, m] = chave.split("-");
+        const dt = new Date(Number(y), Number(m) - 1, 1);
+        return dt.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", "");
+    }
+    const [y, m, d] = chave.split("-");
+    return `${d}/${m}/${y.slice(2)}`;
+}
+
+function agruparPorPeriodo(rows, nivel) {
     const mapa = new Map();
     rows.forEach((row) => {
-        const chave = row.data_iso ? row.data_iso.slice(0, 7) : "0000-00";
-        if (!mapa.has(chave)) mapa.set(chave, { mes: chave, total: 0, valor: 0 });
-        const item = mapa.get(chave);
-        item.total += 1;
-        item.valor += Number(row.valor_reais || 0);
+        const chave = chavePeriodo(row.data_iso, nivel);
+        if (!chave) return;
+        mapa.set(chave, (mapa.get(chave) || 0) + 1);
     });
-    return [...mapa.values()]
-        .filter((item) => item.mes !== "0000-00")
-        .sort((a, b) => a.mes.localeCompare(b.mes));
+    return [...mapa.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([chave, total]) => ({ chave, total }));
 }
 
 function hexToRgb(hex) {
@@ -216,34 +247,42 @@ function gradienteColunas(chart, corBase) {
     return g;
 }
 
-function destruirGraficos() {
-    if (monthChart) { monthChart.destroy(); monthChart = null; }
-    if (agentChart) { agentChart.destroy(); agentChart = null; }
+function nomeAgenteCurto(nome) {
+    const partes = String(nome || "").trim().split(/\s+/).filter(Boolean);
+    if (partes.length <= 2) return partes.join(" ");
+    return `${partes[0]} ${partes[partes.length - 1]}`;
 }
 
-function desenharGraficoMes(rows) {
-    const canvas = byId("monthChart");
-    const empty = byId("monthChartEmpty");
+function desenharGraficoPeriodo(rows) {
+    const canvas = byId("periodChart");
+    const empty = byId("periodChartEmpty");
+    const titulo = byId("periodChartTitle");
     if (!canvas || typeof Chart === "undefined") return;
-    const dados = agruparPorMes(rows);
+
+    const cfg = nivelAgrupamentoTemporal();
+    if (titulo) titulo.textContent = cfg.titulo;
+
+    const dados = agruparPorPeriodo(rows, cfg.nivel);
     if (!dados.length) {
         empty.hidden = false;
         canvas.style.display = "none";
-        if (monthChart) { monthChart.destroy(); monthChart = null; }
+        if (periodChart) { periodChart.destroy(); periodChart = null; }
         return;
     }
+
     empty.hidden = true;
     canvas.style.display = "block";
-    const labels = dados.map((d) => labelMes(d.mes));
-    const valores = dados.map((d) => d.valor);
+    const labels = dados.map((d) => labelPeriodo(d.chave, cfg.nivel));
+    const valores = dados.map((d) => d.total);
     const cor = "#ff6b00";
-    if (monthChart) monthChart.destroy();
-    monthChart = new Chart(canvas.getContext("2d"), {
+
+    if (periodChart) periodChart.destroy();
+    periodChart = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: {
             labels,
             datasets: [{
-                label: "Total R$",
+                label: "Autuações",
                 data: valores,
                 backgroundColor(ctx) { return gradienteColunas(ctx.chart, cor); },
                 borderRadius: 10,
@@ -253,29 +292,32 @@ function desenharGraficoMes(rows) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 28 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label(ctx) { return formatMoeda(ctx.raw); }
+                        label(ctx) { return `${formatInt(ctx.raw)} autuação(ões)`; }
                     }
                 },
                 datalabels: {
                     anchor: "end",
                     align: "top",
+                    offset: 2,
                     color: "#071f57",
-                    font: { weight: "800", size: 10 },
-                    formatter(value) { return value > 0 ? formatMoeda(value).replace(/\s/g, "") : ""; }
+                    font: { weight: "900", size: 11 },
+                    formatter(value) { return formatInt(value); }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { weight: "700", size: 10 } } },
+                x: {
+                    position: "top",
+                    grid: { display: false },
+                    ticks: { font: { weight: "700", size: 10 }, maxRotation: 45, minRotation: 0 }
+                },
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        callback(value) { return formatMoeda(value).replace(/\s/g, ""); },
-                        font: { size: 10 }
-                    }
+                    ticks: { stepSize: 1, font: { size: 10 } }
                 }
             }
         },
@@ -287,18 +329,21 @@ function desenharGraficoAgentes(rows) {
     const canvas = byId("agentChart");
     const empty = byId("agentChartEmpty");
     if (!canvas || typeof Chart === "undefined") return;
-    const agentes = groupSum(rows, "agente").slice(0, 12);
+
+    const agentes = groupSum(rows, "agente").slice(0, 14);
     if (!agentes.length) {
         empty.hidden = false;
         canvas.style.display = "none";
         if (agentChart) { agentChart.destroy(); agentChart = null; }
         return;
     }
+
     empty.hidden = true;
     canvas.style.display = "block";
-    const labels = agentes.map(([nome]) => nome.split(" ").slice(0, 2).join(" "));
+    const labels = agentes.map(([nome]) => nomeAgenteCurto(nome));
     const valores = agentes.map(([, qtd]) => qtd);
     const cor = "#1359c7";
+
     if (agentChart) agentChart.destroy();
     agentChart = new Chart(canvas.getContext("2d"), {
         type: "bar",
@@ -309,12 +354,13 @@ function desenharGraficoAgentes(rows) {
                 data: valores,
                 backgroundColor(ctx) { return gradienteColunas(ctx.chart, cor); },
                 borderRadius: 10,
-                maxBarThickness: 46
+                maxBarThickness: 48
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 30 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -326,14 +372,22 @@ function desenharGraficoAgentes(rows) {
                 datalabels: {
                     anchor: "end",
                     align: "top",
+                    offset: 2,
                     color: "#071f57",
                     font: { weight: "900", size: 11 },
                     formatter(value) { return formatInt(value); }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { weight: "700", size: 10 }, maxRotation: 45, minRotation: 0 } },
-                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } }
+                x: {
+                    position: "top",
+                    grid: { display: false },
+                    ticks: { font: { weight: "700", size: 10 }, maxRotation: 45, minRotation: 0 }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                }
             }
         },
         plugins: typeof ChartDataLabels !== "undefined" ? [ChartDataLabels] : []
@@ -376,13 +430,70 @@ function drawPie(items, total) {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("100%", cx, cy);
-    byId("legend").innerHTML = items.map(([name, val], i) =>
+    byId("legend").innerHTML = items.slice(0, 10).map(([name, val], i) =>
         `<div class="legend-row"><span class="dot" style="background:${COLORS[i % COLORS.length]}"></span><span>${escapeHtml(name)}</span><b>${((val / total) * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</b></div>`
     ).join("");
 }
 
+function sortIcon(key) {
+    if (sortState.key !== key) return "↕";
+    return sortState.dir === "asc" ? "↑" : "↓";
+}
+
+function renderTableHead() {
+    const head = byId("tableHead");
+    if (!head) return;
+    head.innerHTML = `<tr>${TABLE_COLUMNS.map((col) =>
+        `<th class="sortable" data-sort="${col.key}" scope="col">${escapeHtml(col.label)} <span class="sort-indicator">${sortIcon(col.key)}</span></th>`
+    ).join("")}</tr>`;
+    head.querySelectorAll("th.sortable").forEach((th) => {
+        th.addEventListener("click", () => {
+            const key = th.dataset.sort;
+            if (sortState.key === key) {
+                sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+            } else {
+                sortState.key = key;
+                sortState.dir = colDefaultDir(key);
+            }
+            render();
+        });
+    });
+}
+
+function colDefaultDir(key) {
+    const col = TABLE_COLUMNS.find((c) => c.key === key);
+    if (!col) return "asc";
+    if (col.type === "number" || col.type === "date") return "desc";
+    return "asc";
+}
+
+function compareRows(a, b, col) {
+    const dir = sortState.dir === "asc" ? 1 : -1;
+    let va = a[col.key];
+    let vb = b[col.key];
+    if (col.type === "number") {
+        va = Number(va || 0);
+        vb = Number(vb || 0);
+        return (va - vb) * dir;
+    }
+    if (col.type === "date") {
+        va = String(va || "");
+        vb = String(vb || "");
+        return va.localeCompare(vb) * dir;
+    }
+    va = String(va || "").toLocaleLowerCase("pt-BR");
+    vb = String(vb || "").toLocaleLowerCase("pt-BR");
+    return va.localeCompare(vb, "pt-BR") * dir;
+}
+
+function sortRows(rows) {
+    const col = TABLE_COLUMNS.find((c) => c.key === sortState.key) || TABLE_COLUMNS[1];
+    return [...rows].sort((a, b) => compareRows(a, b, col));
+}
+
 function renderTable(rows) {
-    const htmlRows = rows.map((d) =>
+    const sorted = sortRows(rows);
+    const htmlRows = sorted.map((d) =>
         `<tr>
             <td>${d.ordem}</td>
             <td>${escapeHtml(d.data_br)}</td>
@@ -397,7 +508,12 @@ function renderTable(rows) {
         </tr>`
     ).join("");
     byId("tableBody").innerHTML = htmlRows ||
-        '<tr><td colspan="10" class="no-data">Sem dados para os filtros selecionados.</td></tr>';
+        `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Sem dados para os filtros selecionados.</td></tr>`;
+
+    byId("tableHead")?.querySelectorAll(".sort-indicator").forEach((el) => {
+        const th = el.closest("th");
+        if (th) el.textContent = sortIcon(th.dataset.sort);
+    });
 }
 
 function render() {
@@ -407,23 +523,20 @@ function render() {
     const mot = groupSum(rows, "motivo");
     const totalReais = somaCampo(rows, "valor_reais");
     const totalTarifas = somaCampo(rows, "valor_tarifas");
-    const ticketMedio = total ? totalReais / total : 0;
 
     byId("totalAutuacoes").textContent = formatInt(total);
-    byId("totalGastoReais").textContent = formatMoeda(totalReais);
-    byId("totalTarifas").textContent = formatTarifas(totalTarifas);
-    byId("ticketMedioReais").textContent = formatMoeda(ticketMedio);
-    byId("totalAgentes").textContent = formatInt(ag.length);
-    byId("totalMotivos").textContent = formatInt(mot.length);
-    byId("topMotivoValor").textContent = mot[0] ? formatInt(mot[0][1]) : "0";
-    byId("topMotivoNome").textContent = mot[0] ? mot[0][0] : "Sem dados";
     byId("topAgenteValor").textContent = ag[0] ? formatInt(ag[0][1]) : "0";
     byId("topAgenteNome").textContent = ag[0] ? ag[0][0] : "Sem dados";
+    byId("topAgenteReais").textContent = ag[0] ? formatMoeda(somaReaisPorAgente(rows, ag[0][0])) : formatMoeda(0);
+    byId("topMotivoValor").textContent = mot[0] ? formatInt(mot[0][1]) : "0";
+    byId("topMotivoNome").textContent = mot[0] ? mot[0][0] : "Sem dados";
+    byId("totalTarifas").textContent = formatTarifas(totalTarifas);
+    byId("totalGastoReais").textContent = formatMoeda(totalReais);
 
     renderTable(rows);
     drawPie(mot, total);
-    desenharGraficoMes(rows);
     desenharGraficoAgentes(rows);
+    desenharGraficoPeriodo(rows);
 }
 
 function init() {
@@ -431,11 +544,10 @@ function init() {
     byId("agenteFilter").innerHTML = '<option value="">Todos os agentes</option>';
     fillSelect("motivoFilter", uniqueSorted("motivo"));
     fillSelect("agenteFilter", uniqueSorted("agente"));
-    const dates = DATA.map((d) => d.data_iso).filter(Boolean).sort();
-    if (dates.length) {
-        byId("dataInicio").value = dates[0];
-        byId("dataFim").value = dates[dates.length - 1];
-    }
+    const dates = intervaloDatasBase();
+    if (dates.inicio) byId("dataInicio").value = dates.inicio;
+    if (dates.fim) byId("dataFim").value = dates.fim;
+    renderTableHead();
     ["dataInicio", "dataFim", "motivoFilter", "agenteFilter", "busca"].forEach((id) => {
         byId(id).addEventListener("input", render);
     });
@@ -443,7 +555,7 @@ function init() {
 }
 
 async function loadData() {
-    window.portalMostrarCarregando?.("Carregando autuações");
+    window.portalMostrarCarregando?.("Carregando autuações (pode levar até 1 minuto)");
     if (!API_URL) {
         init();
         window.portalOcultarCarregando?.();
@@ -455,17 +567,24 @@ async function loadData() {
         const payload = await response.json();
         if (payload.status === "error") throw new Error(payload.message || "Erro na API");
         DATA = normalizeRows(payload);
+        if (!DATA.length) {
+            console.warn("API de autuações retornou vazio.", payload);
+        }
     } catch (error) {
         console.error("Erro ao carregar dados do Google Sheets:", error);
+        const tbody = byId("tableBody");
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Não foi possível carregar as autuações. Confira se o Apps Script está publicado. (${escapeHtml(error.message)})</td></tr>`;
+        }
     }
     init();
     window.portalOcultarCarregando?.();
 }
 
 function limparFiltros() {
-    const dates = DATA.map((d) => d.data_iso).filter(Boolean).sort();
-    byId("dataInicio").value = dates[0] || "";
-    byId("dataFim").value = dates[dates.length - 1] || "";
+    const dates = intervaloDatasBase();
+    byId("dataInicio").value = dates.inicio || "";
+    byId("dataFim").value = dates.fim || "";
     byId("motivoFilter").value = "";
     byId("agenteFilter").value = "";
     byId("busca").value = "";
