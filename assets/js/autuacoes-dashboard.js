@@ -247,10 +247,56 @@ function gradienteColunas(chart, corBase) {
     return g;
 }
 
+function gradienteBarrasHorizontais(chart, corBase) {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return corBase;
+    const g = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+    g.addColorStop(0, rgbaHex(corBase, 0.35));
+    g.addColorStop(0.55, rgbaHex(corBase, 0.72));
+    g.addColorStop(1, corBase);
+    return g;
+}
+
+const pluginNomeAgenteAcima = {
+    id: "nomeAgenteAcima",
+    afterDatasetsDraw(chart) {
+        const meta = chart.getDatasetMeta(0);
+        if (!meta?.data?.length) return;
+        const { ctx, chartArea, data } = chart;
+        ctx.save();
+        ctx.fillStyle = "#071f57";
+        ctx.font = "700 10px Arial, Helvetica, sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        meta.data.forEach((bar, i) => {
+            const label = String(data.labels[i] || "");
+            if (!label) return;
+            const altura = Math.abs(bar.height || 0);
+            const yTopo = bar.y - altura / 2 - 4;
+            ctx.fillText(label, chartArea.left, yTopo);
+        });
+        ctx.restore();
+    }
+};
+
 function nomeAgenteCurto(nome) {
     const partes = String(nome || "").trim().split(/\s+/).filter(Boolean);
     if (partes.length <= 2) return partes.join(" ");
     return `${partes[0]} ${partes[partes.length - 1]}`;
+}
+
+function atualizarRotulosAno(dados, cfg) {
+    const el = byId("periodChartYears");
+    if (!el) return;
+    if (cfg.nivel === "year" && dados.length) {
+        el.hidden = false;
+        el.innerHTML = dados.map((d) =>
+            `<span>${escapeHtml(labelPeriodo(d.chave, cfg.nivel))}</span>`
+        ).join("");
+    } else {
+        el.hidden = true;
+        el.innerHTML = "";
+    }
 }
 
 function desenharGraficoPeriodo(rows) {
@@ -263,6 +309,8 @@ function desenharGraficoPeriodo(rows) {
     if (titulo) titulo.textContent = cfg.titulo;
 
     const dados = agruparPorPeriodo(rows, cfg.nivel);
+    atualizarRotulosAno(dados, cfg);
+
     if (!dados.length) {
         empty.hidden = false;
         canvas.style.display = "none";
@@ -275,6 +323,7 @@ function desenharGraficoPeriodo(rows) {
     const labels = dados.map((d) => labelPeriodo(d.chave, cfg.nivel));
     const valores = dados.map((d) => d.total);
     const cor = "#ff6b00";
+    const eAno = cfg.nivel === "year";
 
     if (periodChart) periodChart.destroy();
     periodChart = new Chart(canvas.getContext("2d"), {
@@ -292,7 +341,7 @@ function desenharGraficoPeriodo(rows) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 28 } },
+            layout: { padding: { top: eAno ? 8 : 28 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -311,7 +360,8 @@ function desenharGraficoPeriodo(rows) {
             },
             scales: {
                 x: {
-                    position: "top",
+                    display: !eAno,
+                    position: "bottom",
                     grid: { display: false },
                     ticks: { font: { weight: "700", size: 10 }, maxRotation: 45, minRotation: 0 }
                 },
@@ -345,6 +395,10 @@ function desenharGraficoAgentes(rows) {
     const cor = "#1359c7";
 
     if (agentChart) agentChart.destroy();
+    const pluginsChart = [];
+    if (typeof ChartDataLabels !== "undefined") pluginsChart.push(ChartDataLabels);
+    pluginsChart.push(pluginNomeAgenteAcima);
+
     agentChart = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: {
@@ -352,15 +406,16 @@ function desenharGraficoAgentes(rows) {
             datasets: [{
                 label: "Autuações",
                 data: valores,
-                backgroundColor(ctx) { return gradienteColunas(ctx.chart, cor); },
-                borderRadius: 10,
-                maxBarThickness: 48
+                backgroundColor(ctx) { return gradienteBarrasHorizontais(ctx.chart, cor); },
+                borderRadius: 8,
+                barThickness: 16
             }]
         },
         options: {
+            indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 30 } },
+            layout: { padding: { top: 4, right: 36, left: 4 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -371,8 +426,8 @@ function desenharGraficoAgentes(rows) {
                 },
                 datalabels: {
                     anchor: "end",
-                    align: "top",
-                    offset: 2,
+                    align: "end",
+                    offset: 4,
                     color: "#071f57",
                     font: { weight: "900", size: 11 },
                     formatter(value) { return formatInt(value); }
@@ -380,17 +435,17 @@ function desenharGraficoAgentes(rows) {
             },
             scales: {
                 x: {
-                    position: "top",
-                    grid: { display: false },
-                    ticks: { font: { weight: "700", size: 10 }, maxRotation: 45, minRotation: 0 }
+                    beginAtZero: true,
+                    grid: { color: "rgba(6,31,91,.06)" },
+                    ticks: { stepSize: 1, font: { size: 10 } }
                 },
                 y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1, font: { size: 10 } }
+                    grid: { display: false },
+                    ticks: { display: false }
                 }
             }
         },
-        plugins: typeof ChartDataLabels !== "undefined" ? [ChartDataLabels] : []
+        plugins: pluginsChart
     });
 }
 
