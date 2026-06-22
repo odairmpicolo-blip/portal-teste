@@ -519,7 +519,7 @@ function desenharGraficoAgentes(rows) {
     if (!canvas || typeof Chart === "undefined") return;
     configurarChartDefaults();
 
-    const agentes = groupSum(rows, "agente").slice(0, 14);
+    const agentes = groupSum(rows, "agente").slice(0, 10);
     if (!agentes.length) {
         empty.hidden = false;
         canvas.style.display = "none";
@@ -544,7 +544,7 @@ function desenharGraficoAgentes(rows) {
                 backgroundColor(ctx) { return gradienteNeonHorizontal(ctx.chart, ctx.dataIndex, totalAgentes); },
                 borderRadius: { topRight: 10, bottomRight: 10, topLeft: 4, bottomLeft: 4 },
                 borderSkipped: false,
-                barThickness: 24
+                barThickness: 20
             }]
         },
         options: {
