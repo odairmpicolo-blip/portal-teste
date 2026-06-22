@@ -16,23 +16,65 @@ document.documentElement.classList.add("portal-auth-pending");
 .card-highlight .card-title{color:#9a3412}
 .card-highlight .card-value{font-size:24px;line-height:1.05;color:#c2410c}
 .card-highlight .card-sub{color:#9a3412;font-weight:700}
-.charts-layout{display:flex;flex-direction:column;gap:10px;margin-bottom:10px;order:3}
-.charts-row-bottom{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-height:280px}
-.chart-box-wide{min-height:300px}
-.chart-box{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;box-shadow:0 2px 8px #0b1f3a0a;display:flex;flex-direction:column;min-height:250px}
-.chart-box h3{margin:0 0 4px;color:#071f57;font-size:15px}
-.period-years-row{display:flex;gap:4px;justify-content:space-between;margin:0 0 6px;padding:0 6px;color:#071f57;font-size:11px;font-weight:800;line-height:1.2}
+.charts-layout{display:flex;flex-direction:column;gap:14px;margin-bottom:12px;order:3}
+.charts-row-bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-height:300px}
+.chart-box-wide{min-height:340px}
+.chart-box{
+  background:linear-gradient(145deg,#fff 0%,#f8fbff 48%,#f3f7ff 100%);
+  border:1px solid rgba(6,36,92,.1);
+  border-radius:14px;
+  padding:14px 16px 12px;
+  box-shadow:0 12px 32px rgba(6,36,92,.08), inset 0 1px 0 rgba(255,255,255,.9);
+  display:flex;flex-direction:column;min-height:260px;
+  position:relative;overflow:hidden;
+}
+.chart-box::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#00d4ff,#1359c7 45%,#ff6b00);
+  opacity:.85;
+}
+.chart-box h3{
+  margin:0 0 10px;padding-bottom:8px;
+  color:#071f57;font-size:14px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;
+  border-bottom:1px solid rgba(6,36,92,.08);
+}
+.period-years-row{display:flex;gap:6px;justify-content:space-between;flex-wrap:wrap;margin:-2px 0 8px;padding:0 2px}
 .period-years-row[hidden]{display:none!important}
-.period-years-row span{flex:1 1 0;text-align:center;min-width:28px}
-.chart-box-agent .chart-canvas-wrap{min-height:320px}
-.chart-box-motivos{display:flex;flex-direction:column;min-height:250px}
-.chart-box-motivos .chart-area-motivos{display:flex;flex:1;min-height:0;gap:10px;align-items:stretch}
-.chart-box-motivos .pie-wrap{flex:0 0 auto;height:100%;width:auto;max-width:46%;aspect-ratio:1;align-self:center;display:flex;align-items:center;justify-content:center;min-height:120px;min-width:100px}
+.year-chip{
+  flex:1 1 0;text-align:center;min-width:36px;padding:4px 6px;border-radius:999px;
+  background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(19,89,199,.1));
+  border:1px solid rgba(0,212,255,.22);color:#071f57;font-size:10px;font-weight:800;
+  box-shadow:0 2px 8px rgba(0,212,255,.08);
+}
+.chart-box-agent .chart-canvas-wrap{min-height:340px;background:linear-gradient(180deg,rgba(6,36,92,.02),transparent 40%);border-radius:10px}
+.chart-box-period .chart-canvas-wrap{background:linear-gradient(180deg,rgba(255,107,0,.03),transparent 45%);border-radius:10px}
+.chart-box-motivos{display:flex;flex-direction:column;min-height:260px}
+.chart-box-motivos .chart-area-motivos{display:flex;flex:1;min-height:0;gap:12px;align-items:stretch}
+.chart-box-motivos .pie-wrap{
+  flex:0 0 auto;height:100%;width:auto;max-width:46%;aspect-ratio:1;align-self:center;
+  display:flex;align-items:center;justify-content:center;min-height:120px;min-width:100px;
+  filter:drop-shadow(0 8px 20px rgba(0,212,255,.12));
+}
 .chart-box-motivos .pie-wrap canvas{width:100%!important;height:100%!important;display:block}
-.chart-box-motivos .legend{flex:1;min-width:0;height:auto;max-height:none;overflow:auto;align-self:stretch}
-.chart-canvas-wrap{position:relative;flex:1;min-height:210px}
+.chart-box-motivos .legend{flex:1;min-width:0;height:auto;max-height:none;overflow:auto;align-self:stretch;padding-right:2px}
+.chart-box-motivos .legend-row{
+  display:grid;grid-template-columns:12px 1fr 56px 44px;gap:8px;align-items:center;
+  font-size:11px;margin-bottom:8px;padding:6px 8px;border-radius:8px;
+  background:rgba(255,255,255,.72);border:1px solid rgba(6,36,92,.06);
+}
+.chart-box-motivos .legend-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#253047;font-weight:600}
+.chart-box-motivos .legend-bar-wrap{height:6px;border-radius:999px;background:rgba(6,36,92,.08);overflow:hidden}
+.chart-box-motivos .legend-bar{display:block;height:100%;border-radius:999px;min-width:2px}
+.chart-box-motivos .legend-row b{color:#071f57;font-size:11px;text-align:right}
+.chart-box-motivos .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.chart-canvas-wrap{position:relative;flex:1;min-height:220px}
 .chart-canvas-wrap canvas{width:100%!important;height:100%!important}
-.chart-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#667085;font-size:12px;font-weight:700;background:rgba(255,255,255,.72)}
+.chart-empty{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#667085;font-size:12px;font-weight:700;
+  background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(248,251,255,.9));
+  border-radius:10px;
+}
 .chart-empty[hidden]{display:none!important}
 .card-sub-money{font-size:12px;color:#9a3412;font-weight:800;margin-top:2px}
 td.money{font-weight:800;color:#9a3412;white-space:nowrap}
