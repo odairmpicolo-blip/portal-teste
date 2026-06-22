@@ -570,7 +570,7 @@ h1 {
                 </div>
                 <div class="user-panel-center">
                     <h2 class="panel-title">Gerenciar Usuários</h2>
-                    <span class="panel-title-note">Ao salvar, o login é criado automaticamente no Firebase. O usuário recebe e-mail para definir a senha.</span>
+                    <span class="panel-title-note">Ao salvar, cria o login no Firebase e envia e-mail de senha. Ao excluir (admin), remove o perfil do portal; remova o login no Console Firebase.</span>
                 </div>
                 <div class="user-panel-actions">
                     <a class="btn-new-user btn-new-user-secondary" href="https://console.firebase.google.com/project/portal-ciop/authentication/users" target="_blank" rel="noopener">
@@ -982,7 +982,7 @@ function renderUsuarios() {
                 ? "Você não pode excluir o próprio usuário."
                 : (cadastroProtegidoDoDono
                     ? "Cadastro protegido. Apenas odair.marin@icloud.com pode excluir este usuário."
-                    : "Excluir usuário do portal e do Firebase");
+                    : "Excluir perfil do portal (login Firebase no Console)");
             colunaExcluir = bloqueado
                 ? "<td><div class=\"table-actions\"><button class=\"btn btn-secondary btn-excluir\" type=\"button\" disabled title=\"" + escapeAttr(titulo) + "\">Excluir</button></div></td>"
                 : "<td><div class=\"table-actions\"><button class=\"btn btn-danger btn-excluir\" type=\"button\" onclick=\"excluirUsuario('" + emailParam + "')\" title=\"" + escapeAttr(titulo) + "\">Excluir</button></div></td>";
@@ -1228,7 +1228,11 @@ window.excluirUsuario = async function (emailParam) {
     }
 
     const rotulo = user.nome ? user.nome + " (" + email + ")" : email;
-    if (!confirm("Deseja realmente excluir " + rotulo + "?\n\nIsso remove o perfil do portal e o login no Firebase.")) {
+    if (!confirm(
+        "Deseja realmente excluir " + rotulo + "?\n\n" +
+        "• Remove o perfil do portal (Firestore)\n" +
+        "• O login no Firebase Authentication deve ser removido manualmente no Console"
+    )) {
         return;
     }
 
@@ -1243,19 +1247,9 @@ window.excluirUsuario = async function (emailParam) {
             window.fecharEditorUsuario();
         }
         renderUsuarios();
-
-        if (resultado.modo === "somente-firestore") {
-            atualizarStatus(
-                "Perfil removido do portal. " + (resultado.aviso || "Exclua o login no Console Firebase se ainda existir."),
-                "erro"
-            );
-            return;
-        }
-
         atualizarStatus(
-            resultado.authRemovido
-                ? "Usuário excluído do portal e do Firebase Authentication."
-                : "Usuário excluído do portal. Login não existia no Firebase."
+            "Perfil removido do portal. Remova o login de " + email + " no Console Firebase: " +
+            (resultado.consoleAuthUrl || "https://console.firebase.google.com/project/portal-ciop/authentication/users")
         );
     } catch (error) {
         console.error(error);
