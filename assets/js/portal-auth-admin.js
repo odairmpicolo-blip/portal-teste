@@ -6,7 +6,8 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
-import { app as primaryApp, normalizarEmail } from "./portal-firestore.js";
+import { app as primaryApp, normalizarEmail, excluirUsuarioFirestore } from "./portal-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const SECONDARY_APP_NAME = "PortalAuthProvision";
 
@@ -75,4 +76,54 @@ export async function enviarLinkDefinicaoSenha(email) {
   const primaryAuth = getAuth(primaryApp);
   await sendPasswordResetEmail(primaryAuth, emailNorm);
   return emailNorm;
+}
+
+function mensagemErroExclusao(error) {
+  const code = String(error?.code || "");
+  if (code === "functions/permission-denied") {
+    return "Somente administradores podem excluir usuários.";
+  }
+  if (code === "functions/failed-precondition") {
+    return error.message || "Não foi possível excluir este usuário.";
+  }
+  if (code === "functions/unauthenticated") {
+    return "Sessão expirada. Entre novamente no portal.";
+  }
+  if (code === "functions/not-found" || code === "functions/unavailable") {
+    return "Serviço de exclusão ainda não está publicado no Firebase Functions.";
+  }
+  return error?.message || "Erro ao excluir usuário.";
+}
+
+/**
+ * Remove perfil do portal e login Firebase (via Cloud Function).
+ * Se a function não estiver publicada, remove apenas o Firestore.
+ */
+export async function excluirUsuarioPortalCompleto(email) {
+  const emailNorm = normalizarEmail(email);
+  if (!emailNorm) throw new Error("E-mail inválido.");
+
+  try {
+    const callable = httpsCallable(getFunctions(primaryApp), "excluirUsuarioPortal");
+    const result = await callable({ email: emailNorm });
+    return {
+      email: emailNorm,
+      authRemovido: result.data?.authRemovido !== false,
+      firestoreRemovido: true,
+      modo: "completo"
+    };
+  } catch (error) {
+    const code = String(error?.code || "");
+    if (code === "functions/not-found" || code === "functions/unavailable") {
+      await excluirUsuarioFirestore(emailNorm);
+      return {
+        email: emailNorm,
+        authRemovido: false,
+        firestoreRemovido: true,
+        modo: "somente-firestore",
+        aviso: "Perfil removido do portal. Exclua o login manualmente no Console Firebase até publicar a Cloud Function."
+      };
+    }
+    throw new Error(mensagemErroExclusao(error));
+  }
 }

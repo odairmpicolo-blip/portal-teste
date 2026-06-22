@@ -171,6 +171,7 @@ th{color:var(--blue);background:#f8fafc}
 }
 .table-actions{display:flex;gap:8px;align-items:center}
 .table-actions .btn{white-space:nowrap;padding:9px 12px}
+.btn-excluir{min-width:88px}
 .status{font-size:12px;font-weight:700;margin-top:10px}
 .ok{color:var(--green)}
 .erro{color:var(--red)}
@@ -632,9 +633,10 @@ h1 {
                         <th aria-sort="none"><button class="sort-btn" type="button" data-sort-btn="status" onclick="ordenarUsuarios('status')" aria-label="Ordenar por status"><span class="sort-label">Status</span><span class="sort-arrow" id="sort_status">↕</span></button></th>
                         <th>Editar</th>
                         <th>Acesso</th>
+                        <th id="colExcluirHeader" hidden>Excluir</th>
                     </tr>
                 </thead>
-                <tbody id="usuariosTabela"><tr><td colspan="8" class="no-data">Carregando usuários...</td></tr></tbody>
+                <tbody id="usuariosTabela"><tr><td colspan="9" class="no-data">Carregando usuários...</td></tr></tbody>
             </table>
         </section>
 
@@ -691,7 +693,7 @@ import {
     excluirUsuarioFirestore,
     normalizarCadastro
 } from "../assets/js/portal-firestore.js";
-import { garantirUsuarioFirebaseAuth } from "../assets/js/portal-auth-admin.js";
+import { garantirUsuarioFirebaseAuth, excluirUsuarioPortalCompleto } from "../assets/js/portal-auth-admin.js";
 
 const perfisDisponiveis = ["Administrador", "Supervisor", "Gerência", "Analista", "SAC", "Secretária"];
 const cargosDisponiveis = [
@@ -927,6 +929,16 @@ function atualizarCabecalhoOrdenacao() {
     });
 }
 
+function usuarioPodeExcluirUsuarios() {
+    return usuarioLogadoEhAdministrador() || usuarioLogadoEhDonoPerfil();
+}
+
+function aplicarColunaExclusaoAdmin() {
+    const pode = usuarioPodeExcluirUsuarios();
+    const col = document.getElementById("colExcluirHeader");
+    if (col) col.hidden = !pode;
+}
+
 function renderUsuarios() {
     const tbody = document.getElementById("usuariosTabela");
     atualizarPerfilCadastroDisponivel();
@@ -934,11 +946,14 @@ function renderUsuarios() {
     const ordenados = Object.entries(usuariosEditados)
         .filter(([email, user]) => usuarioCombinaComBusca(email, user))
         .sort(compararUsuarios);
+    aplicarColunaExclusaoAdmin();
+    const podeExcluir = usuarioPodeExcluirUsuarios();
+    const colspanVazio = podeExcluir ? 9 : 8;
     if (!ordenados.length) {
         const mensagem = filtroUsuarios
             ? "Nenhum usuário encontrado para a busca informada."
             : "Nenhum usuário cadastrado no portal.";
-        tbody.innerHTML = '<tr><td colspan="8" class="no-data">' + mensagem + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="' + colspanVazio + '" class="no-data">' + mensagem + '</td></tr>';
         return;
     }
     tbody.innerHTML = ordenados.map(([email, user]) => {
@@ -960,6 +975,18 @@ function renderUsuarios() {
         const botaoAcesso = cadastroProtegidoDoDono
             ? "<button class=\"btn btn-secondary\" type=\"button\" disabled title=\"Cadastro protegido. Apenas odair.marin@icloud.com pode alterar este usuário.\">" + acaoLabel + "</button>"
             : "<button class=\"btn " + acaoClass + "\" type=\"button\" onclick=\"alternarAcesso('" + emailParam + "')\">" + acaoLabel + "</button>";
+        let colunaExcluir = "";
+        if (podeExcluir) {
+            const bloqueado = ehProprioUsuario || cadastroProtegidoDoDono;
+            const titulo = ehProprioUsuario
+                ? "Você não pode excluir o próprio usuário."
+                : (cadastroProtegidoDoDono
+                    ? "Cadastro protegido. Apenas odair.marin@icloud.com pode excluir este usuário."
+                    : "Excluir usuário do portal e do Firebase");
+            colunaExcluir = bloqueado
+                ? "<td><div class=\"table-actions\"><button class=\"btn btn-secondary btn-excluir\" type=\"button\" disabled title=\"" + escapeAttr(titulo) + "\">Excluir</button></div></td>"
+                : "<td><div class=\"table-actions\"><button class=\"btn btn-danger btn-excluir\" type=\"button\" onclick=\"excluirUsuario('" + emailParam + "')\" title=\"" + escapeAttr(titulo) + "\">Excluir</button></div></td>";
+        }
         return "<tr>" +
             "<td>" + escapeHtml(registro || "-") + "</td>" +
             "<td>" + escapeHtml(user.nome) + "</td>" +
@@ -969,6 +996,7 @@ function renderUsuarios() {
             "<td><span class=\"status " + statusClass + "\">" + statusLabel + "</span></td>" +
             "<td><div class=\"table-actions\">" + botaoEditar + "</div></td>" +
             "<td><div class=\"table-actions\">" + botaoAcesso + "</div></td>" +
+            colunaExcluir +
             "</tr>";
     }).join("");
 }
@@ -1175,6 +1203,66 @@ document.addEventListener("keydown", (event) => {
         window.fecharEditorUsuario();
     }
 });
+
+window.excluirUsuario = async function (emailParam) {
+    if (!usuarioPodeExcluirUsuarios()) {
+        atualizarStatus("Somente administradores podem excluir usuários.", "erro");
+        return;
+    }
+
+    const email = normalizarEmailLocal(decodificarEmailParam(emailParam));
+    const user = usuariosEditados[email];
+    if (!user) {
+        atualizarStatus("Usuário não encontrado para exclusão.", "erro");
+        return;
+    }
+
+    if (usuarioEhLogado(email)) {
+        atualizarStatus("Você não pode excluir o próprio usuário.", "erro");
+        return;
+    }
+
+    if (usuarioEhDonoPerfil(email) && !usuarioEhLogado(email)) {
+        atualizarStatus("Cadastro protegido. Apenas odair.marin@icloud.com pode excluir este usuário.", "erro");
+        return;
+    }
+
+    const rotulo = user.nome ? user.nome + " (" + email + ")" : email;
+    if (!confirm("Deseja realmente excluir " + rotulo + "?\n\nIsso remove o perfil do portal e o login no Firebase.")) {
+        return;
+    }
+
+    const status = document.getElementById("cadastroStatus");
+    status.className = "status";
+    status.textContent = "Excluindo usuário...";
+
+    try {
+        const resultado = await excluirUsuarioPortalCompleto(email);
+        delete usuariosEditados[email];
+        if (usuarioEmEdicao === email) {
+            window.fecharEditorUsuario();
+        }
+        renderUsuarios();
+
+        if (resultado.modo === "somente-firestore") {
+            atualizarStatus(
+                "Perfil removido do portal. " + (resultado.aviso || "Exclua o login no Console Firebase se ainda existir."),
+                "erro"
+            );
+            return;
+        }
+
+        atualizarStatus(
+            resultado.authRemovido
+                ? "Usuário excluído do portal e do Firebase Authentication."
+                : "Usuário excluído do portal. Login não existia no Firebase."
+        );
+    } catch (error) {
+        console.error(error);
+        status.className = "status erro";
+        status.textContent = error.message || "Não foi possível excluir o usuário.";
+    }
+};
 
 window.alternarAcesso = async function (emailParam) {
     const id = normalizarEmailLocal(decodificarEmailParam(emailParam));
