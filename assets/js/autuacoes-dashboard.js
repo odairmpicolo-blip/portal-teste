@@ -257,23 +257,34 @@ function gradienteBarrasHorizontais(chart, corBase) {
     return g;
 }
 
-const pluginNomeAgenteAcima = {
-    id: "nomeAgenteAcima",
+function truncarTexto(ctx, texto, maxWidth) {
+    const t = String(texto || "");
+    if (!maxWidth || maxWidth <= 0 || ctx.measureText(t).width <= maxWidth) return t;
+    let curto = t;
+    while (curto.length > 3 && ctx.measureText(`${curto}…`).width > maxWidth) curto = curto.slice(0, -1);
+    return `${curto}…`;
+}
+
+const pluginNomeAgenteNaBarra = {
+    id: "nomeAgenteNaBarra",
     afterDatasetsDraw(chart) {
         const meta = chart.getDatasetMeta(0);
         if (!meta?.data?.length) return;
-        const { ctx, chartArea, data } = chart;
+        const { ctx, data } = chart;
         ctx.save();
-        ctx.fillStyle = "#071f57";
         ctx.font = "700 10px Arial, Helvetica, sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "bottom";
+        ctx.textBaseline = "middle";
         meta.data.forEach((bar, i) => {
             const label = String(data.labels[i] || "");
             if (!label) return;
-            const altura = Math.abs(bar.height || 0);
-            const yTopo = bar.y - altura / 2 - 4;
-            ctx.fillText(label, chartArea.left, yTopo);
+            const barLeft = Math.min(bar.x, bar.base);
+            const barRight = Math.max(bar.x, bar.base);
+            const barWidth = Math.max(barRight - barLeft, 0);
+            const pad = 8;
+            const texto = truncarTexto(ctx, label, Math.max(barWidth - pad * 2, 0));
+            ctx.textAlign = "left";
+            ctx.fillStyle = "#fff";
+            ctx.fillText(texto, barLeft + pad, bar.y);
         });
         ctx.restore();
     }
@@ -397,7 +408,7 @@ function desenharGraficoAgentes(rows) {
     if (agentChart) agentChart.destroy();
     const pluginsChart = [];
     if (typeof ChartDataLabels !== "undefined") pluginsChart.push(ChartDataLabels);
-    pluginsChart.push(pluginNomeAgenteAcima);
+    pluginsChart.push(pluginNomeAgenteNaBarra);
 
     agentChart = new Chart(canvas.getContext("2d"), {
         type: "bar",
@@ -408,14 +419,14 @@ function desenharGraficoAgentes(rows) {
                 data: valores,
                 backgroundColor(ctx) { return gradienteBarrasHorizontais(ctx.chart, cor); },
                 borderRadius: 8,
-                barThickness: 16
+                barThickness: 22
             }]
         },
         options: {
             indexAxis: "y",
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { top: 4, right: 36, left: 4 } },
+            layout: { padding: { top: 2, right: 40, left: 2 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
