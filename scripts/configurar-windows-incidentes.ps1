@@ -1,4 +1,4 @@
-# Configura tudo de uma vez no Windows: credenciais, teste e agendamento 03:00.
+# Configura tudo de uma vez no Windows: credenciais, teste e agendamento 04:00.
 # Uso (PowerShell):
 #   cd C:\Users\SEU_USUARIO\projetos\portal-teste
 #   powershell -ExecutionPolicy Bypass -File .\scripts\configurar-windows-incidentes.ps1
@@ -116,7 +116,7 @@ if (-not $PularTeste) {
     Write-Host "Teste concluido com sucesso!" -ForegroundColor Green
 }
 
-Write-Passo '5' 'Instalando agendamento (todo dia as 03:00)'
+Write-Passo '5' 'Instalando agendamento (todo dia as 04:00)'
 & (Join-Path $PortalTeste 'scripts\instalar-agendamento-incidentes.ps1')
 
 Write-Host ""
@@ -124,7 +124,7 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host "  CONFIGURACAO CONCLUIDA!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Horario: todo dia as 03:00"
+Write-Host "  Horario: todo dia as 04:00"
 Write-Host "  Log:     $env:LOCALAPPDATA\ciop-portal\logs\atualizar-incidentes.log"
 Write-Host "  Tarefa:  CIOP Portal - Atualizar Incidentes (taskschd.msc)"
 Write-Host ""

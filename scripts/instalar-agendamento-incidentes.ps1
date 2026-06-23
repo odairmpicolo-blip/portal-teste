@@ -1,4 +1,4 @@
-# Instala agendamento no Windows (Task Scheduler): todo dia as 03:00 e ao iniciar sessao.
+# Instala agendamento no Windows (Task Scheduler): todo dia as 04:00 e ao iniciar sessao.
 # Execute como Administrador apenas se o registro falhar; normalmente basta PowerShell do usuario.
 #Requires -Version 5.1
 
@@ -29,7 +29,7 @@ if (-not $nodeBin) {
 $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$Runner`" auto"
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arguments -WorkingDirectory $PortalRoot
 
-$triggerDaily = New-ScheduledTaskTrigger -Daily -At '03:00'
+$triggerDaily = New-ScheduledTaskTrigger -Daily -At '04:00'
 $triggerLogon = New-ScheduledTaskTrigger -AtLogOn
 
 $settings = New-ScheduledTaskSettingsSet `
@@ -55,7 +55,7 @@ Register-ScheduledTask `
 
 Write-Host ""
 Write-Host "Agendamento instalado no Windows."
-Write-Host "  Horario: todo dia as 03:00 (horario local do Windows)"
+Write-Host "  Horario: todo dia as 04:00 (horario local do Windows)"
 Write-Host "  Ao entrar: executa se ainda nao atualizou hoje"
 Write-Host "  Tarefa:  $TaskName"
 Write-Host "  Log:     $env:LOCALAPPDATA\ciop-portal\logs\atualizar-incidentes.log"

@@ -72,7 +72,33 @@ function Publish-PortalProd {
         }
         $stamp = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow, $TzId).ToString('dd/MM/yyyy HH:mm')
         git commit -m "Atualiza incidentes TCGL - $stamp" | Out-Null
-        git push | Out-Null
+        Invoke-GitPush -RepoRoot $prodRoot
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Invoke-GitPush {
+    param([string]$RepoRoot = $PortalRoot)
+    $env:GIT_TERMINAL_PROMPT = '0'
+    $env:GCM_INTERACTIVE = 'Never'
+    Push-Location $RepoRoot
+    try {
+        if ($env:CIOP_GITHUB_TOKEN) {
+            $remote = (git remote get-url origin 2>$null).Trim()
+            if ($remote -match 'github\.com[:/]([^/]+/[^/.]+)') {
+                $repo = $Matches[1]
+                $branch = (git branch --show-current 2>$null).Trim()
+                if (-not $branch) { $branch = 'main' }
+                $url = "https://x-access-token:$($env:CIOP_GITHUB_TOKEN)@github.com/$repo.git"
+                git push $url "HEAD:$branch" 2>&1 | Out-String | ForEach-Object { if ($_.Trim()) { Write-Log $_ } }
+                if ($LASTEXITCODE -ne 0) { throw "git push falhou em $RepoRoot" }
+                return
+            }
+        }
+        git push 2>&1 | Out-String | ForEach-Object { if ($_.Trim()) { Write-Log $_ } }
+        if ($LASTEXITCODE -ne 0) { throw "git push falhou em $RepoRoot" }
     }
     finally {
         Pop-Location
@@ -82,8 +108,14 @@ function Publish-PortalProd {
 function Invoke-Update {
     $nodeBin = if ($env:CIOP_NODE_BIN) { $env:CIOP_NODE_BIN } else { (Get-Command node -ErrorAction Stop).Source }
     $localScript = Join-Path $PortalRoot 'scripts\atualizar-incidentes-local.mjs'
+    $env:GIT_TERMINAL_PROMPT = '0'
+    $env:GCM_INTERACTIVE = 'Never'
     & $nodeBin $localScript 2>&1 | Out-File -FilePath $LogFile -Append -Encoding UTF8
-    return $LASTEXITCODE -eq 0
+    $code = $LASTEXITCODE
+    if ($code -ne 0) {
+        Write-Log "ERRO: script Node retornou codigo $code (verifique git push / CIOP_GITHUB_TOKEN)."
+    }
+    return $code -eq 0
 }
 
 New-Item -ItemType Directory -Force -Path $StateDir, $LogDir | Out-Null
@@ -128,5 +160,5 @@ if (Invoke-Update) {
     exit 0
 }
 
-Write-Log 'ERRO: falha na atualizacao apos 2 tentativas. Proxima execucao amanha as 03:00.'
+Write-Log 'ERRO: falha na atualizacao apos 2 tentativas. Proxima execucao amanha as 04:00.'
 exit 1
