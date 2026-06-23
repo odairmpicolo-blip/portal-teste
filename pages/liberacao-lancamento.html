@@ -118,6 +118,17 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 <link rel="stylesheet" href="../assets/css/portal-titulos.css">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
 <script src="../assets/js/loading.js"></script>
+<script>
+(function(){
+    var d=new Date();
+    var iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    window.__liberacaoPrecargaHojeIso=iso;
+    window.__liberacaoPrecargaHoje=fetch("../assets/data/liberacao/acompanhamento-dia-"+iso+".json",{cache:"no-store"})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(p){return p&&Array.isArray(p.dados)&&p.dados.length?p:null;})
+        .catch(function(){return null;});
+})();
+</script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 </head>
@@ -165,7 +176,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Edite qualquer célula · salva automaticamente · setas / Tab para navegar</div>
+                <div class="table-sub">Edite qualquer célula · salva automaticamente · sync colaborativo ~12 s · setas / Tab para navegar</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -240,14 +251,18 @@ const CAMPOS_HORA = new Set(["horario_saida_da_garagem","horario_de_inicio","sai
 const DIAS_JANELA = 7;
 const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const LIBERACAO_MODO_JSON_HIBRIDO = true;
-const INTERVALO_SYNC_HOJE_MS = 30000;
+const INTERVALO_SYNC_PLANILHA_MS = 12000;
+const INTERVALO_SYNC_JSON_MS = 30000;
+const INTERVALO_SYNC_JITTER_MS = 4000;
 const LIBERACAO_DATA_BASE = "../assets/data/liberacao";
 const LIBERACAO_MANIFEST_URL = LIBERACAO_DATA_BASE + "/manifest.json";
 const LIBERACAO_ACOMPANHAMENTO_URL = LIBERACAO_DATA_BASE + "/acompanhamento-semana.json";
 let liberacaoManifest = null;
 let carregamentoEmAndamento = false;
 let atualizacaoPlanilhaEmAndamento = false;
-let intervaloSyncHojeId = null;
+let planilhaHojeEmFlight = null;
+let intervaloSyncJsonId = null;
+let syncPlanilhaTimerId = null;
 let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
@@ -349,6 +364,31 @@ function assinaturaDia(dados,data){
     return (dados||[]).filter(r=>normalizarDataIsoRow(r)===data).map(r=>{
         return String(r._row||"")+":"+String(r.carro||"")+":"+String(r.motorista||"")+":"+String(r.saida_real||"")+":"+String(r.inicio_real||"");
     }).join("|");
+}
+function usuarioEditando(){
+    if(Object.keys(state.saveTimers).length) return true;
+    if(Object.values(state.saving).some(Boolean)) return true;
+    if(state.dados.some(r=>r._dirty)) return true;
+    const ativo=document.activeElement;
+    return !!(ativo&&ativo.matches(".cell-input,.cell-select"));
+}
+function obterPrecargaHoje(){
+    if(window.__liberacaoPrecargaHoje&&window.__liberacaoPrecargaHojeIso===isoHoje()) return window.__liberacaoPrecargaHoje;
+    return null;
+}
+function obterPlanilhaHoje(force){
+    if(force){
+        planilhaHojeEmFlight=carregarDiaRemoto(isoHoje(),true).finally(()=>{planilhaHojeEmFlight=null;});
+        return planilhaHojeEmFlight;
+    }
+    if(!planilhaHojeEmFlight){
+        planilhaHojeEmFlight=carregarDiaRemoto(isoHoje(),true).finally(()=>{planilhaHojeEmFlight=null;});
+    }
+    return planilhaHojeEmFlight;
+}
+function aplicarSyncHojeSeAlterou(alterou,origem){
+    if(!alterou||!ehDiaAtual($("dataFiltro").value)||usuarioEditando()) return;
+    aplicarFiltroData(isoHoje(),origem||"planilha · hoje");
 }
 function formatNumber(v){return Number(v||0).toLocaleString("pt-BR")}
 function normalizarMaquina(v){return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim()}
@@ -730,6 +770,7 @@ async function salvarLinha(i){
     }finally{
         state.saving[i]=false;
         document.querySelector(".sync-"+i).innerHTML=syncBadge(row,i);
+        if(!row._dirty&&!row._syncErro) setTimeout(()=>rodarSyncHojeSilencioso("planilha · hoje"),2500);
     }
 }
 
@@ -832,8 +873,10 @@ function mesclarSemana(base, novos){
     const mapa=new Map();
     (base||[]).forEach(r=>mapa.set(chaveLinhaLiberacao(r),Object.assign({},r)));
     (novos||[]).forEach(r=>{
-        const copia=Object.assign({},r);
-        mapa.set(chaveLinhaLiberacao(copia),copia);
+        const k=chaveLinhaLiberacao(r);
+        const existente=mapa.get(k);
+        if(existente&&existente._dirty) return;
+        mapa.set(k,Object.assign({},r));
     });
     return [...mapa.values()];
 }
@@ -859,10 +902,18 @@ function urlSnapshotDia(data){
     return LIBERACAO_DATA_BASE+"/acompanhamento-dia-"+data+".json";
 }
 
-async function carregarSnapshotDia(data){
+async function carregarSnapshotDia(data,bust){
     if(!data) return null;
+    if(!bust&&data===isoHoje()){
+        const precarga=obterPrecargaHoje();
+        if(precarga){
+            const payload=await precarga;
+            if(payload?.dados?.length) return payload;
+        }
+    }
     try{
-        const res=await fetch(urlSnapshotDia(data),{cache:"no-store"});
+        const url=urlSnapshotDia(data)+(bust?"?"+Date.now():"");
+        const res=await fetch(url,{cache:"no-store"});
         if(!res.ok) return null;
         const payload=await res.json();
         if(!Array.isArray(payload?.dados)||!payload.dados.length) return null;
@@ -888,24 +939,58 @@ async function carregarSnapshotSemana(dataDe,dataAteJanela,data){
     });
 }
 
-async function sincronizarDiaAtualPlanilha(silencioso){
+async function sincronizarDiaAtualPlanilha(silencioso,force){
+    if(carregamentoEmAndamento||atualizacaoPlanilhaEmAndamento) return false;
     const hoje=isoHoje();
-    const novos=await carregarDiaRemoto(hoje,true);
+    const assinaturaAntes=assinaturaDia(state.semana,hoje);
+    const novos=await obterPlanilhaHoje(!!force);
     if(!novos.length) return false;
     const {dataDe,amanha}=intervaloJanela();
     state.semana=mesclarSemana(state.semana,novos);
     state.semanaDataDe=state.semanaDataDe||dataDe;
     state.semanaDataAte=amanha;
     salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},!!silencioso);
-    return true;
+    return assinaturaAntes!==assinaturaDia(state.semana,hoje);
 }
 
 function syncDiaAtualEmBackground(origemBase){
     if(!ehDiaAtual($("dataFiltro").value)) return;
-    sincronizarDiaAtualPlanilha(true).then(ok=>{
-        if(!ok||$("dataFiltro").value!==isoHoje()) return;
-        aplicarFiltroData(isoHoje(),origemBase+" · planilha · hoje");
+    setTimeout(()=>rodarSyncHojeSilencioso(origemBase||"planilha · hoje"),1500);
+}
+
+function rodarSyncHojeSilencioso(origem){
+    if(document.hidden||!ehDiaAtual($("dataFiltro").value)||usuarioEditando()) return;
+    if(carregamentoEmAndamento||atualizacaoPlanilhaEmAndamento) return;
+    sincronizarDiaAtualPlanilha(true).then(alterou=>{
+        aplicarSyncHojeSeAlterou(alterou,origem||"planilha · hoje");
     }).catch(()=>{});
+}
+
+async function sincronizarJsonHoje(){
+    if(document.hidden||!ehDiaAtual($("dataFiltro").value)||usuarioEditando()) return;
+    const hoje=isoHoje();
+    const assinaturaAntes=assinaturaDia(state.semana,hoje);
+    try{
+        const snap=await carregarSnapshotDia(hoje,true);
+        if(!snap?.dados?.length) return;
+        const {dataDe,amanha}=intervaloJanela();
+        state.semana=mesclarSemana(state.semana,snap.dados);
+        state.semanaDataDe=state.semanaDataDe||dataDe;
+        state.semanaDataAte=amanha;
+        salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
+        if(assinaturaAntes!==assinaturaDia(state.semana,hoje)){
+            aplicarSyncHojeSeAlterou(true,"JSON · hoje");
+        }
+    }catch(_){}
+}
+
+function agendarProximoSyncPlanilha(){
+    if(syncPlanilhaTimerId) clearTimeout(syncPlanilhaTimerId);
+    const jitter=Math.floor(Math.random()*INTERVALO_SYNC_JITTER_MS);
+    syncPlanilhaTimerId=setTimeout(()=>{
+        rodarSyncHojeSilencioso("planilha · hoje");
+        agendarProximoSyncPlanilha();
+    },INTERVALO_SYNC_PLANILHA_MS+jitter);
 }
 
 async function carregarDiaRemoto(data,vivo){
@@ -1002,16 +1087,10 @@ async function iniciarCarregamento(forceRefresh=false){
             ?Promise.resolve(liberacaoManifest)
             :carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;return m;});
 
-        const planilhaHojePromise=ehDiaAtual(data)?carregarHojeVivo().catch(err=>{
-            console.warn("Planilha ao vivo:",err);
-            return [];
-        }):Promise.resolve([]);
-
-        const [snapDia,snapSemana,cache,dadosPlanilha]=await Promise.all([
+        const [snapDia,snapSemana,cache]=await Promise.all([
             carregarSnapshotDia(hoje),
             manifestPromise.then(()=>carregarSnapshotSemana(dataDe,amanha,data)),
-            Promise.resolve(lerCacheLiberacao()),
-            planilhaHojePromise
+            Promise.resolve(lerCacheLiberacao())
         ]);
 
         const fonte=escolherFonteJanela(cache,snapSemana,snapDia,data);
@@ -1020,16 +1099,11 @@ async function iniciarCarregamento(forceRefresh=false){
         let metaAte=fonte?.dataAte||amanha;
         let rotulo=fonte?.rotulo||"";
 
-        if(ehDiaAtual(data)&&dadosPlanilha.length){
-            semanaDados=mesclarSemana(semanaDados,dadosPlanilha);
-            rotulo=rotulo?rotulo+" · planilha":"planilha · hoje";
-        }
-
         if(semanaDados.length){
             aplicarSemanaCarregada(semanaDados,metaDe,metaAte);
             salvarCacheLiberacao(semanaDados,{data_de:metaDe,data_ate:metaAte});
             aplicarFiltroData(data,rotulo);
-            syncDiaAtualEmBackground(rotulo.split(" ·")[0]||rotulo);
+            if(ehDiaAtual(data)) syncDiaAtualEmBackground(rotulo.split(" ·")[0]||rotulo);
             return;
         }
     }
@@ -1106,7 +1180,7 @@ async function atualizarPlanilhaRemoto(){
     setStatus("Buscando hoje na planilha (tempo real)...","load");
     window.portalMostrarCarregando?.("Atualizando planilha");
     try{
-        const alterou=await sincronizarDiaAtualPlanilha(false);
+        const alterou=await sincronizarDiaAtualPlanilha(false,true);
         if(data===hoje){
             aplicarFiltroData(hoje,alterou?"planilha · hoje":"planilha · hoje");
         }else{
@@ -1148,15 +1222,13 @@ $("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderT
 $("btn-atualizar-planilha").addEventListener("click",()=>{atualizarPlanilhaRemoto().catch(()=>{});});
 
 function iniciarPollingHoje(){
-    if(intervaloSyncHojeId) clearInterval(intervaloSyncHojeId);
-    intervaloSyncHojeId=setInterval(()=>{
-        if(document.hidden||!ehDiaAtual($("dataFiltro").value)) return;
-        sincronizarDiaAtualPlanilha(true).then(alterou=>{
-            if(alterou&&$("dataFiltro").value===isoHoje()){
-                aplicarFiltroData(isoHoje(),"planilha · hoje");
-            }
-        }).catch(()=>{});
-    },INTERVALO_SYNC_HOJE_MS);
+    if(intervaloSyncJsonId) clearInterval(intervaloSyncJsonId);
+    if(syncPlanilhaTimerId) clearTimeout(syncPlanilhaTimerId);
+    intervaloSyncJsonId=setInterval(sincronizarJsonHoje,INTERVALO_SYNC_JSON_MS);
+    agendarProximoSyncPlanilha();
+    document.addEventListener("visibilitychange",()=>{
+        if(!document.hidden) rodarSyncHojeSilencioso("planilha · hoje");
+    });
 }
 
 function iniciar(){
@@ -1165,9 +1237,6 @@ function iniciar(){
     definirDataFiltroHoje();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
     aplicarCacheLocalLiberacao();
-    carregarHojeVivo().then(dados=>{
-        if(dados?.length) aplicarPlanilhaHoje(dados,"cache local");
-    }).catch(err=>console.warn("Planilha ao vivo (início):",err));
     iniciarCarregamento().catch(e=>setStatus(e.message,"erro"));
     iniciarPollingHoje();
 }

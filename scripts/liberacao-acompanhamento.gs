@@ -414,21 +414,31 @@ function lerAcompanhamentoDiaCompleto_(dataIso, limit, maquinaFiltro) {
 
   const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(normalizarChaveLiberacao_);
   const dados = [];
-  var row = 2;
+  var endRow = lastRow;
 
-  while (row <= lastRow) {
-    const endRow = Math.min(lastRow, row + LIBERACAO_CHUNK_LINHAS - 1);
-    const numRows = endRow - row + 1;
-    const valores = sheet.getRange(row, 1, numRows, lastCol).getValues();
-    for (var i = 0; i < valores.length; i++) {
-      const rowNum = row + i;
+  while (endRow >= 2) {
+    const startRow = Math.max(2, endRow - LIBERACAO_CHUNK_LINHAS + 1);
+    const numRows = endRow - startRow + 1;
+    const valores = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
+    var parar = false;
+
+    for (var i = valores.length - 1; i >= 0; i--) {
+      const rowNum = startRow + i;
       const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], rowNum);
       const iso = item.data_iso || normalizarDataIsoLiberacao_(item.data);
+
+      if (iso && iso < dataIso) {
+        parar = true;
+        break;
+      }
       if (iso !== dataIso) continue;
       if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
       dados.push(item);
+      if (limit > 0 && dados.length >= limit) return dados;
     }
-    row = endRow + 1;
+
+    if (parar) break;
+    endRow = startRow - 1;
   }
 
   if (limit > 0 && dados.length > limit) dados.splice(limit);
