@@ -1,0 +1,36 @@
+{
+  "versao": "2026-06-23-tabelas-v1",
+  "atualizadoEm": "2026-06-23T12:00:00.000Z",
+  "drivePastaId": "1TKryDACuyao1v2wE9GGSM0rws2oOnQu5",
+  "tipos": {
+    "uteis": { "rotulo": "Dias úteis", "total": 84 },
+    "sabado": { "rotulo": "Sábado", "total": 70 },
+    "domingo": { "rotulo": "Domingo", "total": 57 }
+  },
+  "tabelas": [
+    {
+      "id": "315-uteis",
+      "tipo": "uteis",
+      "linha": "315",
+      "titulo": "LINHA 315",
+      "arquivo": "exemplos/315-uteis.json",
+      "ordem": 1
+    },
+    {
+      "id": "420-sabado",
+      "tipo": "sabado",
+      "linha": "420",
+      "titulo": "LINHA 420",
+      "arquivo": "exemplos/420-sabado.json",
+      "ordem": 2
+    },
+    {
+      "id": "803-domingo",
+      "tipo": "domingo",
+      "linha": "803",
+      "titulo": "LINHA 803",
+      "arquivo": "exemplos/803-domingo.json",
+      "ordem": 3
+    }
+  ]
+}
