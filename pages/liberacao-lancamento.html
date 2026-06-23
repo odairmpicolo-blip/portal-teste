@@ -180,7 +180,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Edite apenas células vazias · salva automaticamente · atualização a cada 3 s · setas / Tab para navegar</div>
+                <div class="table-sub">Dados do JSON (API) · edite células vazias · JSON atualiza a cada 3 s · botão Atualizar = planilha ao vivo</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -864,7 +864,7 @@ async function salvarLinha(i){
         if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving","erro");el.classList.add("saved");});
         renderCorpoTabela();
-        if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>rodarSyncHojeSilencioso("planilha · hoje"),500);
+        if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
     }catch(err){
         row._syncErro=true;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
@@ -1077,7 +1077,6 @@ function rodarSyncHojeSilencioso(origem){
 function rodarSyncAutomatico(){
     if(!ehDiaAtual($("dataFiltro").value)) return;
     sincronizarJsonHoje();
-    rodarSyncHojeSilencioso("planilha · hoje");
 }
 
 async function sincronizarJsonHoje(){
@@ -1201,7 +1200,6 @@ async function iniciarCarregamento(forceRefresh=false){
         }
 
         if(state.dados.length){
-            if(ehDiaAtual(data)) complementarPlanilhaBackground("JSON");
             finalizarCarregamentoInicial(true);
             return;
         }
@@ -1214,22 +1212,15 @@ async function iniciarCarregamento(forceRefresh=false){
         }
 
         if(state.dados.length){
-            if(ehDiaAtual(data)) complementarPlanilhaBackground("JSON");
             finalizarCarregamentoInicial(true);
             return;
         }
     }
 
     if(ehDiaAtual(data)){
-        atualizarOverlayOperacao("Buscando lançamentos na planilha...");
-        setStatus("Buscando lançamentos na planilha...","load");
-        obterPlanilhaHoje(true,true).then(dadosPlanilha=>{
-            if(dadosPlanilha?.length) aplicarPlanilhaHoje(dadosPlanilha,"planilha · hoje");
-            else if(!state.dados.length) setStatus("Sem dados para hoje na planilha.","erro");
-        }).catch(err=>{
-            console.error("Planilha ao vivo:",err);
-            if(!state.dados.length) setStatus(err.message||"Falha ao buscar planilha.","erro");
-        }).finally(()=>finalizarCarregamentoInicial(state.dados.length>0));
+        encerrarOverlayAbertura();
+        setStatus("Sem JSON local. Use Atualizar ou aguarde o JSON da API (~3 min).","erro");
+        finalizarCarregamentoInicial(false);
         return;
     }
 

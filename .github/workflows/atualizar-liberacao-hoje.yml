@@ -2,9 +2,11 @@ name: Atualizar JSON liberação hoje
 
 on:
   schedule:
-    # A cada 5 minutos (UTC) — 1 chamada centralizada para todos os usuários
-    - cron: "*/5 * * * *"
+    # A cada 3 minutos (UTC) — API → JSON centralizado para todos os usuários
+    - cron: "*/3 * * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [folha-servico, liberacao]
 
 permissions:
   contents: write

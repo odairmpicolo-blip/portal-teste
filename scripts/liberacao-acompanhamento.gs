@@ -33,6 +33,33 @@ function invalidarCacheLiberacao_() {
   PropertiesService.getScriptProperties().setProperty("liberacao_cache_v", String(Date.now()));
 }
 
+function solicitarAtualizacaoJsonLiberacaoHoje_(origem) {
+  origem = origem || "liberacao";
+  try {
+    if (typeof solicitarAtualizacaoJsonPortal_ === "function") {
+      solicitarAtualizacaoJsonPortal_(origem);
+    }
+  } catch (errPortal) {}
+  var token = PropertiesService.getScriptProperties().getProperty("GITHUB_PAT");
+  if (!token) return;
+  try {
+    UrlFetchApp.fetch("https://api.github.com/repos/odairmpicolo-blip/portal-teste/dispatches", {
+      method: "post",
+      contentType: "application/json",
+      headers: {
+        Authorization: "Bearer " + token,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+      },
+      payload: JSON.stringify({
+        event_type: "liberacao",
+        client_payload: { origem: origem, ts: new Date().toISOString() }
+      }),
+      muteHttpExceptions: true
+    });
+  } catch (errFetch) {}
+}
+
 function cacheChaveLiberacao_(recurso, partes) {
   return "lib-" + LIBERACAO_VERSAO + "-" + versaoCacheLiberacao_() + "-" + recurso + "-" + partes.join("|");
 }
@@ -807,6 +834,7 @@ function criarAcompanhamentoLiberacao_(params) {
   });
   sheet.appendRow(linha);
   invalidarCacheLiberacao_();
+  try { solicitarAtualizacaoJsonLiberacaoHoje_("liberacao-create"); } catch (_) {}
   return { ok: true, linha: sheet.getLastRow(), acao: "create" };
 }
 
@@ -823,6 +851,7 @@ function atualizarAcompanhamentoLiberacao_(params) {
     sheet.getRange(row, idx + 1).setValue(valoresParams[chave]);
   });
   invalidarCacheLiberacao_();
+  try { solicitarAtualizacaoJsonLiberacaoHoje_("liberacao-update"); } catch (_) {}
   return { ok: true, linha: row, acao: "update" };
 }
 
