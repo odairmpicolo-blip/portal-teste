@@ -180,7 +180,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Edite qualquer célula · salva automaticamente · atualização a cada 3 s · setas / Tab para navegar</div>
+                <div class="table-sub">Edite apenas células vazias · salva automaticamente · atualização a cada 3 s · setas / Tab para navegar</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -199,6 +199,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
             <span class="legend-item"><span class="legend-swatch saving"></span>Salvando</span>
             <span class="legend-item"><span class="legend-swatch erro"></span>Erro ao salvar</span>
             <span class="legend-item"><span class="legend-swatch formula"></span>Calculado automaticamente</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#f8fafc;border-color:#cbd5e1"></span>Preenchido (não editável)</span>
             <span class="legend-item">Setas / Tab / Enter — navegar células editáveis</span>
         </div>
     </section>
@@ -527,13 +528,18 @@ function ehDiaAtual(data){
     return data===isoHoje();
 }
 
-function celulaEditavelPorChave(chave){
-    return CAMPOS_EDITAVEIS.has(chave);
+function celulaTemValorPreenchido(row,chave){
+    const v=String(val(row,chave)||"").trim();
+    return v!==""&&v!=="—"&&v!=="-";
 }
-
+function celulaEditavelPorChave(chave,row){
+    if(!CAMPOS_EDITAVEIS.has(chave)) return false;
+    if(row&&celulaTemValorPreenchido(row,chave)) return false;
+    return true;
+}
 function celulaEditavel(rowIdx,colIdx){
     if(rowIdx<0||rowIdx>=state.dados.length||colIdx<0||colIdx>=state.colunas.length) return false;
-    return celulaEditavelPorChave(state.colunas[colIdx].chave);
+    return celulaEditavelPorChave(state.colunas[colIdx].chave,state.dados[rowIdx]);
 }
 
 function setStatus(texto, tipo){
@@ -752,9 +758,12 @@ function renderCelula(row, rowIdx, col){
         return '<span class="cell-readonly cell-formula cell-locked" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'" aria-readonly="true" tabindex="-1" title="Calculado automaticamente — não editável">'+escapeHtml(v||"—")+'</span>';
     }
     const clsExtra=(col.texto?" cell-texto":"")+clsMaquina;
-    if(!celulaEditavelPorChave(chave)){
+    if(!celulaEditavelPorChave(chave,row)){
         const exibir=chave==="maquina"?textoMaquina:v;
-        return '<span class="cell-readonly'+clsExtra+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'" aria-readonly="true" tabindex="-1" title="Não editável">'+escapeHtml(exibir||"—")+'</span>';
+        const bloqueado=CAMPOS_EDITAVEIS.has(chave)&&celulaTemValorPreenchido(row,chave);
+        const clsLock=bloqueado?" cell-locked":"";
+        const titulo=bloqueado?"Preenchido na planilha — não editável":"Não editável";
+        return '<span class="cell-readonly'+clsExtra+clsLock+'" data-i="'+rowIdx+'" data-k="'+escapeHtml(chave)+'" aria-readonly="true" tabindex="-1" title="'+titulo+'">'+escapeHtml(exibir||"—")+'</span>';
     }
     if(CAMPOS_SELECT[chave]){
         const opts=CAMPOS_SELECT[chave].map(o=>'<option value="'+escapeHtml(o)+'"'+(o===v?" selected":"")+'>'+(o||"—")+'</option>').join("");
@@ -816,7 +825,7 @@ function onCellChange(e){
     const i=Number(el.dataset.i);
     const k=el.dataset.k;
     if(isNaN(i)||!k) return;
-    if(!celulaEditavelPorChave(k)||isColunaFormula(k)) return;
+    if(!celulaEditavelPorChave(k,state.dados[i])||isColunaFormula(k)) return;
     state.dados[i][k]=el.value.trim();
     if(CAMPOS_DISPARO_FORMULA.has(k)) atualizarCelulasFormula(i);
     state.dados[i]._dirty=true;
@@ -854,6 +863,7 @@ async function salvarLinha(i){
         if(idxSem>=0) state.semana[idxSem]=row;
         if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving","erro");el.classList.add("saved");});
+        renderCorpoTabela();
         if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>rodarSyncHojeSilencioso("planilha · hoje"),500);
     }catch(err){
         row._syncErro=true;
@@ -1184,16 +1194,20 @@ async function iniciarCarregamento(forceRefresh=false){
             complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},data);
         }
 
-        if(!state.dados.length) atualizarOverlayOperacao("Carregando lançamentos do dia...");
+        if(!state.dados.length) atualizarOverlayOperacao("Carregando lançamentos...");
         const snapDia=await carregarSnapshotDia(dataDia);
         if(snapDia?.dados?.length){
             complementarSemanaCarregada(escolherFonteJanela(cache,null,snapDia,data)||{dados:snapDia.dados,rotulo:"JSON · dia"},data);
         }
 
-        if(!state.dados.length){
-            atualizarOverlayOperacao("Carregando lançamentos da semana...");
-            setStatus("Carregando JSON da semana...","load");
+        if(state.dados.length){
+            if(ehDiaAtual(data)) complementarPlanilhaBackground("JSON");
+            finalizarCarregamentoInicial(true);
+            return;
         }
+
+        atualizarOverlayOperacao("Carregando lançamentos da semana...");
+        setStatus("Carregando JSON da semana...","load");
         const snapSemana=await carregarSnapshotSemana(dataDe,amanha,data);
         if(snapSemana?.dados?.length){
             complementarSemanaCarregada(escolherFonteJanela(cache,snapSemana,snapDia,data)||{dados:snapSemana.dados,rotulo:"arquivo JSON"},data);
@@ -1312,6 +1326,12 @@ function iniciar(){
     iniciarOverlayAbertura();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
     aplicarCacheLocalLiberacao();
+    const snapDiaPrecarga=carregarSnapshotDia(isoHoje());
+    snapDiaPrecarga.then(snap=>{
+        if(!snap?.dados?.length||state.dados.length) return;
+        const data=$("dataFiltro").value||isoHoje();
+        complementarSemanaCarregada({dados:snap.dados,rotulo:"JSON · dia"},data);
+    }).catch(()=>{});
     iniciarCarregamento().catch(e=>{
         setStatus(e.message,"erro");
         encerrarOverlayAbertura();
