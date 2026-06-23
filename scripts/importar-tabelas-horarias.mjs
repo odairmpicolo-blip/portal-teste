@@ -1,9 +1,13 @@
 /**
  * Importa arquivos Excel da pasta local para JSON do portal.
  *
- * 1. Baixe os arquivos da pasta Drive:
+ * 1. Copie da pasta local do Google Drive (recomendado):
+ *    python scripts/baixar-tabelas-horarias-drive.py --local
+ *    G:/Meu Drive/02 - TCGLL/Tabelas horárias
+ * 2. Ou baixe da web (pode ter limite do Google):
+ *    python scripts/baixar-tabelas-horarias-drive.py --drive
  *    https://drive.google.com/drive/folders/1TKryDACuyao1v2wE9GGSM0rws2oOnQu5
- * 2. Organize em:
+ * 3. Ou organize manualmente em:
  *    assets/import/tabelas-horarias/uteis/*.xlsx
  *    assets/import/tabelas-horarias/sabado/*.xlsx
  *    assets/import/tabelas-horarias/domingo/*.xlsx
@@ -49,11 +53,14 @@ function parseDataBr(texto) {
 
 function cel(v) {
   if (v == null) return "";
-  if (typeof v === "number" && v > 0 && v < 1) {
-    const totalMin = Math.round(v * 24 * 60);
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  if (typeof v === "number" && v > 0) {
+    const frac = v >= 1 ? v % 1 : v;
+    if (frac > 0) {
+      const totalMin = Math.round(frac * 24 * 60);
+      const h = Math.floor(totalMin / 60) % 24;
+      const m = totalMin % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
   }
   return String(v).trim();
 }
