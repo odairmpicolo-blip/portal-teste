@@ -1938,7 +1938,7 @@ h1 {
 
     async function carregarSnapshotAno(ano, bust) {
         try {
-            const res = await fetch(urlSnapshotAno(ano, bust));
+            const res = await fetch(urlSnapshotAno(ano, bust), { cache: "no-store" });
             if (!res.ok) return null;
             const payload = await res.json();
             const dados = normalizarLista(payload.dados || payload);
@@ -1979,9 +1979,11 @@ h1 {
         let alterou = false;
         if (novos.length) {
             dadosMestres = mesclarRegistros(dadosMestres, novos);
+            const cacheAtual = lerCacheLocal(ano);
             salvarCacheLocal(dadosMestres, {
                 ano,
                 total: dadosMestres.length,
+                total_planilha: cacheAtual?.meta?.total_planilha || dadosMestres.length,
                 versao: DASHBOARD_VERSAO,
                 origem: "json_incremental"
             }, ano);
@@ -2087,6 +2089,56 @@ h1 {
             try { localStorage.removeItem(key); } catch (_) {}
             try { sessionStorage.removeItem(key); } catch (_) {}
         });
+    }
+
+    function parseTimestamp(val) {
+        if (!val) return 0;
+        const n = Date.parse(val);
+        return Number.isNaN(n) ? 0 : n;
+    }
+
+    function escolherFonteLocal(cache, snapshot) {
+        const cacheOk = cache?.dados?.length > 0;
+        const snapOk = snapshot?.dados?.length > 0;
+        if (!cacheOk && !snapOk) return null;
+
+        if (cacheOk && !snapOk) {
+            return { origem: "cache", rotulo: "cache local", dados: cache.dados, meta: cache.meta || {} };
+        }
+        if (!cacheOk && snapOk) {
+            const extra = snapshot.meta?.snapshotEm
+                ? " · snapshot: " + new Date(snapshot.meta.snapshotEm).toLocaleString("pt-BR")
+                : "";
+            return { origem: "json", rotulo: "arquivo JSON" + extra, dados: snapshot.dados, meta: snapshot.meta || {} };
+        }
+
+        const cacheTs = cache.ts || 0;
+        const snapTs = parseTimestamp(snapshot.meta?.snapshotEm);
+        const cacheQtd = cache.dados.length;
+        const snapQtd = snapshot.dados.length;
+        const cacheTotalPlanilha = cache.meta?.total_planilha || cacheQtd;
+        const snapTotalPlanilha = snapshot.meta?.total_planilha || snapQtd;
+
+        const cacheMaisCompleto = cacheQtd > snapQtd;
+        const cacheMaisRecente = cacheTs > snapTs && cacheQtd >= snapQtd;
+        const cacheAlinhadoPlanilha = cacheTotalPlanilha > snapTotalPlanilha;
+
+        if (cacheMaisCompleto || cacheMaisRecente || cacheAlinhadoPlanilha) {
+            return { origem: "cache", rotulo: "cache local (sincronizado)", dados: cache.dados, meta: cache.meta || {} };
+        }
+
+        const extra = snapshot.meta?.snapshotEm
+            ? " · snapshot: " + new Date(snapshot.meta.snapshotEm).toLocaleString("pt-BR")
+            : "";
+        return { origem: "json", rotulo: "arquivo JSON" + extra, dados: snapshot.dados, meta: snapshot.meta || {} };
+    }
+
+    function devePersistirSnapshotNoCache(cache, snapshot) {
+        if (!snapshot?.dados?.length) return false;
+        if (!cache?.dados?.length) return true;
+        const cacheTs = cache.ts || 0;
+        const snapTs = parseTimestamp(snapshot.meta?.snapshotEm);
+        return snapshot.dados.length > cache.dados.length || snapTs > cacheTs;
     }
 
     function lerCacheLocal(ano) {
@@ -2232,33 +2284,25 @@ h1 {
         const anoInicial = ANO_TODOS;
         const cache = lerCacheLocal(anoInicial);
         const snapshot = await carregarSnapshotAno(anoInicial, false);
+        const fonte = escolherFonteLocal(cache, snapshot);
 
-        if (snapshot?.dados?.length) {
+        if (fonte) {
             anoCarregado = anoInicial;
-            aplicarDadosDashboard(snapshot.dados, "arquivo JSON", snapshot.meta || {});
-            salvarCacheLocal(snapshot.dados, snapshot.meta || {}, anoInicial);
+            aplicarDadosDashboard(fonte.dados, fonte.rotulo, fonte.meta || {});
+            if (fonte.origem === "json" && devePersistirSnapshotNoCache(cache, snapshot)) {
+                salvarCacheLocal(snapshot.dados, snapshot.meta || {}, anoInicial);
+            }
             sincronizarRegistrosRecentes(anoInicial).then((resultado) => {
                 if (resultado.alterou) {
-                    const extra = resultado.novos
-                        ? "JSON + " + resultado.novos + " novos"
-                        : "JSON atualizado";
-                    aplicarDadosDashboard(dadosMestres, extra, snapshot.meta || {});
+                    aplicarDadosDashboard(dadosMestres, "dados atualizados", fonte.meta || {});
                 }
             }).catch(() => {});
             iniciarSincronizacaoAutomatica();
             return;
         }
 
-        if (cache?.dados?.length) {
-            anoCarregado = anoInicial;
-            aplicarDadosDashboard(cache.dados, "cache local", cache.meta || {});
-            atualizarDadosRemotos("planilha", true, anoInicial);
-            iniciarSincronizacaoAutomatica();
-            return;
-        }
-        atualizarDadosRemotos("planilha", false, anoInicial).then(() => {
-            iniciarSincronizacaoAutomatica();
-        });
+        await atualizarDadosRemotos("planilha", false, anoInicial);
+        iniciarSincronizacaoAutomatica();
     }
 
     window.onload = () => window.portalAguardarUsuario?.(carregarFolhaServico);
