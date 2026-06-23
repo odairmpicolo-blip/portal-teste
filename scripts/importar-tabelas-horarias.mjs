@@ -3,16 +3,7 @@
  *
  * 1. Copie da pasta local do Google Drive (recomendado):
  *    python scripts/baixar-tabelas-horarias-drive.py --local
- *    G:/Meu Drive/02 - TCGLL/Tabelas horárias
- * 2. Ou baixe da web (pode ter limite do Google):
- *    python scripts/baixar-tabelas-horarias-drive.py --drive
- *    https://drive.google.com/drive/folders/1TKryDACuyao1v2wE9GGSM0rws2oOnQu5
- * 3. Ou organize manualmente em:
- *    assets/import/tabelas-horarias/uteis/*.xlsx
- *    assets/import/tabelas-horarias/sabado/*.xlsx
- *    assets/import/tabelas-horarias/domingo/*.xlsx
- * 3. Execute: npm install xlsx (na raiz do portal, uma vez)
- * 4. Execute: node scripts/importar-tabelas-horarias.mjs
+ * 2. Execute: node scripts/importar-tabelas-horarias.mjs
  */
 
 import fs from "node:fs";
@@ -36,15 +27,6 @@ function isoHoje() {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
 }
 
-function normalizarChave(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
-
 function parseDataBr(texto) {
   const m = String(texto || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!m) return "";
@@ -62,7 +44,25 @@ function cel(v) {
       return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
   }
-  return String(v).trim();
+  return String(v).replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+}
+
+function valorSignificativo(v) {
+  const s = cel(v);
+  return s && s !== "--:--" && s !== "|";
+}
+
+function linhaVazia(row) {
+  return !(row || []).some(c => valorSignificativo(c));
+}
+
+function ehSeparadorColuna(rows, linhasCab, col) {
+  return linhasCab.some(i => cel(rows[i]?.[col]) === "|");
+}
+
+function ehInicioSecaoVertical(row) {
+  const texto = (row || []).map(cel).join(" ");
+  return /^Carro\s+\d+/i.test(texto) && (row || []).some(c => cel(c) === "|");
 }
 
 function extrairMeta(rows) {
@@ -73,7 +73,7 @@ function extrairMeta(rows) {
     titulo: "TABELA HORÁRIA",
     subtitulo: ""
   };
-  for (let i = 0; i < Math.min(rows.length, 8); i++) {
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
     const row = rows[i] || [];
     const texto = row.map(cel).join(" ").toUpperCase();
     if (!meta.linha) {
@@ -93,14 +93,109 @@ function extrairMeta(rows) {
   return meta;
 }
 
-function acharLinhaCabecalho(rows) {
-  for (let i = 0; i < rows.length; i++) {
-    const labels = (rows[i] || []).map(cel).filter(Boolean);
-    if (labels.length >= 2 && labels.some(l => /hor|viagem|sa[ií]da|chegada|in[ií]cio/i.test(l))) {
-      return i;
+function acharCabecalhos(slice) {
+  for (let i = 0; i < slice.length; i++) {
+    const cells = (slice[i] || []).map(cel);
+    const subs = cells.filter(c => /^(cheg\.?|sa[ií]da)$/i.test(c));
+    if (subs.length >= 2) {
+      return {
+        idxSub: i,
+        idxHead: Math.max(0, i - 1),
+        idxTitulo: Math.max(0, i - 2)
+      };
     }
   }
-  return -1;
+  for (let i = 0; i < slice.length; i++) {
+    const labels = (slice[i] || []).map(cel).filter(Boolean);
+    if (labels.length >= 2 && labels.some(l => /hor|viagem|sa[ií]da|chegada|in[ií]cio/i.test(l))) {
+      return { idxSub: i, idxHead: i, idxTitulo: Math.max(0, i - 1) };
+    }
+  }
+  return null;
+}
+
+function montarRotuloColuna(rows, linhasCab, col) {
+  const partes = [];
+  for (const i of linhasCab) {
+    const v = cel(rows[i]?.[col]);
+    if (!v || v === "|") continue;
+    if (!partes.includes(v)) partes.push(v);
+  }
+  return partes.join("\n");
+}
+
+function tituloSecao(rows, linhasCab) {
+  const i = linhasCab[0];
+  const rotulos = [];
+  for (let c = 0; c < (rows[i] || []).length; c++) {
+    if (ehSeparadorColuna(rows, linhasCab, c)) continue;
+    const v = cel(rows[i]?.[c]);
+    if (v && !rotulos.includes(v)) rotulos.push(v);
+  }
+  if (rotulos.length === 1) return rotulos[0];
+  if (rotulos.length > 1) return rotulos.slice(0, 3).join(" · ");
+  const head = montarRotuloColuna(rows, linhasCab, 0);
+  return head || "Horários";
+}
+
+function podarColunas(colunas, linhas) {
+  return colunas.filter(col => linhas.some(row => valorSignificativo(row[col.chave])));
+}
+
+function extrairGrade(rows, ini, fim) {
+  const slice = rows.slice(ini, fim);
+  const cab = acharCabecalhos(slice);
+  if (!cab) return null;
+
+  const linhasCab = [cab.idxTitulo, cab.idxHead, cab.idxSub].filter((v, i, a) => a.indexOf(v) === i);
+  let maxCol = 0;
+  for (const r of slice) maxCol = Math.max(maxCol, ((r || []).length || 1) - 1);
+
+  const colunas = [];
+  for (let c = 0; c <= maxCol; c++) {
+    if (ehSeparadorColuna(slice, linhasCab, c)) continue;
+    const rotulo = montarRotuloColuna(slice, linhasCab, c);
+    if (!rotulo) continue;
+    colunas.push({
+      chave: `c_${c}`,
+      idx: c,
+      rotulo,
+      largura: Math.max(52, Math.min(160, rotulo.split("\n").reduce((m, l) => Math.max(m, l.length), 0) * 8 + 20)),
+      alinhamento: /obs|local|ponto|terminal|via|carro|aurora|articulado/i.test(rotulo) ? "esquerda" : "centro"
+    });
+  }
+
+  const linhas = [];
+  for (let r = cab.idxSub + 1; r < slice.length; r++) {
+    const row = slice[r] || [];
+    if (ehInicioSecaoVertical(row)) break;
+    if (linhaVazia(row)) continue;
+    const item = {};
+    colunas.forEach(col => { item[col.chave] = cel(row[col.idx]); });
+    if (!colunas.some(col => valorSignificativo(item[col.chave]))) continue;
+    linhas.push(item);
+  }
+
+  const colunasFinais = podarColunas(colunas, linhas);
+  if (!colunasFinais.length) return null;
+
+  return {
+    titulo: tituloSecao(slice, linhasCab),
+    colunas: colunasFinais,
+    linhas
+  };
+}
+
+function indicesSecoes(rows) {
+  const idx = [];
+  for (let i = 0; i < rows.length; i++) {
+    if (ehInicioSecaoVertical(rows[i])) idx.push(i);
+  }
+  if (!idx.length) {
+    const cab = acharCabecalhos(rows);
+    if (cab) idx.push(cab.idxTitulo);
+  }
+  return idx;
 }
 
 function planilhaParaJson(sheet, tipo, nomeArquivo) {
@@ -114,30 +209,26 @@ function planilhaParaJson(sheet, tipo, nomeArquivo) {
   meta.tipo = tipo;
   if (!meta.data_execucao) meta.data_execucao = isoHoje();
 
-  const idxHead = acharLinhaCabecalho(rows);
-  if (idxHead < 0) {
-    return { meta, colunas: [], linhas: [] };
+  const inicios = indicesSecoes(rows);
+  const secoes = [];
+
+  for (let s = 0; s < inicios.length; s++) {
+    const ini = inicios[s];
+    const fim = s + 1 < inicios.length ? inicios[s + 1] : rows.length;
+    const grade = extrairGrade(rows, ini, fim);
+    if (grade && grade.linhas.length) secoes.push(grade);
   }
 
-  const head = (rows[idxHead] || []).map(cel);
-  const colunas = head.map((rotulo, idx) => ({
-    chave: normalizarChave(rotulo) || `col_${idx + 1}`,
-    rotulo: rotulo || `Coluna ${idx + 1}`,
-    largura: Math.max(56, Math.min(180, String(rotulo || "").length * 9 + 24)),
-    alinhamento: /obs|local|ponto|terminal/i.test(rotulo) ? "esquerda" : "centro"
-  }));
-
-  const linhas = [];
-  for (let r = idxHead + 1; r < rows.length; r++) {
-    const row = rows[r] || [];
-    if (!row.some(c => cel(c))) continue;
-    const item = {};
-    colunas.forEach((col, idx) => { item[col.chave] = cel(row[idx]); });
-    if (Object.values(item).every(v => !v)) continue;
-    linhas.push(item);
+  if (!secoes.length) {
+    const grade = extrairGrade(rows, 0, rows.length);
+    if (grade) secoes.push(grade);
   }
 
-  return { meta, colunas, linhas };
+  if (secoes.length === 1) {
+    return { meta, colunas: secoes[0].colunas, linhas: secoes[0].linhas, secoes };
+  }
+
+  return { meta, secoes };
 }
 
 function listarArquivos(tipo) {
@@ -150,8 +241,7 @@ function main() {
   if (!fs.existsSync(importRoot)) {
     fs.mkdirSync(importRoot, { recursive: true });
     for (const tipo of TIPOS) fs.mkdirSync(path.join(importRoot, tipo), { recursive: true });
-    console.log("Pastas criadas em assets/import/tabelas-horarias/{uteis,sabado,domingo}");
-    console.log("Copie os Excel do Drive e execute novamente.");
+    console.log("Pastas criadas. Rode: python scripts/baixar-tabelas-horarias-drive.py --local");
     return;
   }
 
@@ -159,7 +249,7 @@ function main() {
   fs.mkdirSync(tabelasDir, { recursive: true });
 
   const manifest = {
-    versao: "2026-06-23-tabelas-v1",
+    versao: "2026-06-23-tabelas-v2",
     atualizadoEm: new Date().toISOString(),
     drivePastaId: "1TKryDACuyao1v2wE9GGSM0rws2oOnQu5",
     tipos: {
@@ -170,6 +260,7 @@ function main() {
     tabelas: []
   };
 
+  const vistos = new Set();
   let ordem = 0;
   for (const tipo of TIPOS) {
     const arquivos = listarArquivos(tipo);
@@ -183,15 +274,20 @@ function main() {
       payload.id = id;
       const rel = `tabelas/${id}.json`;
       fs.writeFileSync(path.join(outputRoot, rel), JSON.stringify(payload));
-      manifest.tabelas.push({
-        id,
-        tipo,
-        linha: String(linha),
-        titulo: `LINHA ${linha}`,
-        arquivo: rel,
-        ordem: ++ordem
-      });
-      console.log(`  -> ${rel} (${payload.linhas.length} linhas)`);
+      if (!vistos.has(id)) {
+        vistos.add(id);
+        manifest.tabelas.push({
+          id,
+          tipo,
+          linha: String(linha),
+          titulo: `LINHA ${linha}`,
+          arquivo: rel,
+          ordem: ++ordem
+        });
+      }
+      const qtd = payload.secoes?.length || 1;
+      const linhas = payload.linhas?.length || payload.secoes?.reduce((n, s) => n + s.linhas.length, 0) || 0;
+      console.log(`  -> ${rel} (${qtd} seção(ões), ${linhas} linhas)`);
     }
   }
 

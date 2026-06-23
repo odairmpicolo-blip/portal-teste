@@ -21,7 +21,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 .ciop-session-user{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .ciop-session-profile{color:var(--muted);font-weight:600}
 .btn-logout{background:#dc2626;color:#fff;border:0;border-radius:5px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer}
-.container{max-width:1280px;margin:20px auto 32px;padding:0 18px;flex:1;width:100%}
+.container{max-width:min(1680px,100%);margin:20px auto 32px;padding:0 18px;flex:1;width:100%}
 .toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .toolbar-left{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;flex:1}
 .btn-portal,.btn-primary,.btn-secondary{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border-radius:10px;border:0;font-size:13px;font-weight:800;text-decoration:none;cursor:pointer;font-family:inherit}
@@ -52,10 +52,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 .th-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;background:#eef4ff;border:1px solid #c7d7f4;color:var(--blue);font-size:12px;font-weight:800}
 .th-badge strong{font-size:14px}
 .secao{margin-bottom:16px}
-.secao-titulo{margin:0 0 8px;color:var(--blue2);font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.secao-titulo{margin:0 0 8px;color:var(--blue2);font-size:13px;font-weight:900;letter-spacing:.02em;white-space:pre-line;line-height:1.35}
 .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
 table.th-grid{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
-table.th-grid th{position:sticky;top:0;background:#f1f5f9;color:var(--blue);padding:10px 8px;font-size:10px;font-weight:900;text-transform:uppercase;border-bottom:2px solid #dbe3ef;white-space:nowrap}
+table.th-grid th{position:sticky;top:0;background:#f1f5f9;color:var(--blue);padding:10px 8px;font-size:10px;font-weight:900;border-bottom:2px solid #dbe3ef;white-space:pre-line;line-height:1.35;vertical-align:bottom}
 table.th-grid td{padding:9px 8px;border-bottom:1px solid #edf2f7;text-align:center;vertical-align:middle}
 table.th-grid tr:nth-child(even) td{background:#fafbfd}
 table.th-grid td.alin-esq{text-align:left}
@@ -135,6 +135,19 @@ function esc(v){
     return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
+function escTitulo(v){
+    return esc(v).replace(/\n/g, "<br>");
+}
+
+function valorUtil(v){
+    const s = String(v ?? "").trim();
+    return s && s !== "--:--" && s !== "|";
+}
+
+function podarColunas(colunas, linhas){
+    return (colunas || []).filter(col => (linhas || []).some(row => valorUtil(row[col.chave])));
+}
+
 function brDate(iso){
     if(!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "—";
     const p = iso.split("-");
@@ -191,17 +204,24 @@ function montarCabecalho(meta){
 }
 
 function montarGrid(colunas, linhas){
-    const cols = colunas || [];
-    const head = cols.map(c => '<th style="min-width:' + (c.largura || 72) + 'px">' + esc(c.rotulo || c.chave) + '</th>').join("");
+    const cols = podarColunas(colunas, linhas);
+    if(!cols.length) return '<div class="viewer-empty" style="padding:16px">Sem horários nesta seção.</div>';
+    const head = cols.map(c => '<th style="min-width:' + (c.largura || 72) + 'px">' + escTitulo(c.rotulo || c.chave) + '</th>').join("");
     const body = (linhas || []).map(row => '<tr>' + cols.map(c => {
         const cls = c.alinhamento === "esquerda" ? " alin-esq" : "";
-        return '<td class="' + cls + '">' + esc(row?.[c.chave] ?? "") + '</td>';
+        return '<td class="' + cls + '">' + escTitulo(row?.[c.chave] ?? "") + '</td>';
     }).join("") + '</tr>').join("");
     return '<div class="table-wrap"><table class="th-grid"><thead><tr>' + head + '</tr></thead><tbody>' + (body || '<tr><td colspan="' + cols.length + '">Sem horários cadastrados.</td></tr>') + '</tbody></table></div>';
 }
 
 function montarSecoes(secoes){
-    return (secoes || []).map(sec => '<div class="secao"><h4 class="secao-titulo">' + esc(sec.titulo || "Horários") + '</h4>' + montarGrid(sec.colunas, sec.linhas) + '</div>').join("");
+    const multi = (secoes || []).length > 1;
+    return (secoes || []).map(sec => {
+        const titulo = multi && sec.titulo
+            ? '<h4 class="secao-titulo">' + escTitulo(sec.titulo) + '</h4>'
+            : '';
+        return '<div class="secao">' + titulo + montarGrid(sec.colunas, sec.linhas) + '</div>';
+    }).join("");
 }
 
 function renderViewer(payload){

@@ -1,6 +1,6 @@
 {
-  "versao": "2026-06-23-tabelas-v1",
-  "atualizadoEm": "2026-06-23T03:34:48.681Z",
+  "versao": "2026-06-23-tabelas-v2",
+  "atualizadoEm": "2026-06-23T03:49:04.899Z",
   "drivePastaId": "1TKryDACuyao1v2wE9GGSM0rws2oOnQu5",
   "tipos": {
     "uteis": {
@@ -1330,20 +1330,12 @@
       "ordem": 164
     },
     {
-      "id": "112-domingo",
-      "tipo": "domingo",
-      "linha": "112",
-      "titulo": "LINHA 112",
-      "arquivo": "tabelas/112-domingo.json",
-      "ordem": 165
-    },
-    {
       "id": "121-domingo",
       "tipo": "domingo",
       "linha": "121",
       "titulo": "LINHA 121",
       "arquivo": "tabelas/121-domingo.json",
-      "ordem": 166
+      "ordem": 165
     },
     {
       "id": "301-domingo",
@@ -1351,7 +1343,7 @@
       "linha": "301",
       "titulo": "LINHA 301",
       "arquivo": "tabelas/301-domingo.json",
-      "ordem": 167
+      "ordem": 166
     },
     {
       "id": "302-domingo",
@@ -1359,7 +1351,7 @@
       "linha": "302",
       "titulo": "LINHA 302",
       "arquivo": "tabelas/302-domingo.json",
-      "ordem": 168
+      "ordem": 167
     },
     {
       "id": "303-domingo",
@@ -1367,7 +1359,7 @@
       "linha": "303",
       "titulo": "LINHA 303",
       "arquivo": "tabelas/303-domingo.json",
-      "ordem": 169
+      "ordem": 168
     },
     {
       "id": "307-domingo",
@@ -1375,7 +1367,7 @@
       "linha": "307",
       "titulo": "LINHA 307",
       "arquivo": "tabelas/307-domingo.json",
-      "ordem": 170
+      "ordem": 169
     },
     {
       "id": "308-domingo",
@@ -1383,7 +1375,7 @@
       "linha": "308",
       "titulo": "LINHA 308",
       "arquivo": "tabelas/308-domingo.json",
-      "ordem": 171
+      "ordem": 170
     },
     {
       "id": "309-domingo",
@@ -1391,7 +1383,7 @@
       "linha": "309",
       "titulo": "LINHA 309",
       "arquivo": "tabelas/309-domingo.json",
-      "ordem": 172
+      "ordem": 171
     },
     {
       "id": "311-domingo",
@@ -1399,7 +1391,7 @@
       "linha": "311",
       "titulo": "LINHA 311",
       "arquivo": "tabelas/311-domingo.json",
-      "ordem": 173
+      "ordem": 172
     },
     {
       "id": "313-domingo",
@@ -1407,7 +1399,7 @@
       "linha": "313",
       "titulo": "LINHA 313",
       "arquivo": "tabelas/313-domingo.json",
-      "ordem": 174
+      "ordem": 173
     },
     {
       "id": "314-domingo",
@@ -1415,7 +1407,7 @@
       "linha": "314",
       "titulo": "LINHA 314",
       "arquivo": "tabelas/314-domingo.json",
-      "ordem": 175
+      "ordem": 174
     },
     {
       "id": "315-domingo",
@@ -1423,7 +1415,7 @@
       "linha": "315",
       "titulo": "LINHA 315",
       "arquivo": "tabelas/315-domingo.json",
-      "ordem": 176
+      "ordem": 175
     },
     {
       "id": "360-domingo",
@@ -1431,7 +1423,7 @@
       "linha": "360",
       "titulo": "LINHA 360",
       "arquivo": "tabelas/360-domingo.json",
-      "ordem": 177
+      "ordem": 176
     },
     {
       "id": "400-domingo",
@@ -1439,7 +1431,7 @@
       "linha": "400",
       "titulo": "LINHA 400",
       "arquivo": "tabelas/400-domingo.json",
-      "ordem": 178
+      "ordem": 177
     },
     {
       "id": "401-domingo",
@@ -1447,7 +1439,7 @@
       "linha": "401",
       "titulo": "LINHA 401",
       "arquivo": "tabelas/401-domingo.json",
-      "ordem": 179
+      "ordem": 178
     },
     {
       "id": "404-domingo",
@@ -1455,7 +1447,7 @@
       "linha": "404",
       "titulo": "LINHA 404",
       "arquivo": "tabelas/404-domingo.json",
-      "ordem": 180
+      "ordem": 179
     },
     {
       "id": "405-domingo",
@@ -1463,7 +1455,7 @@
       "linha": "405",
       "titulo": "LINHA 405",
       "arquivo": "tabelas/405-domingo.json",
-      "ordem": 181
+      "ordem": 180
     },
     {
       "id": "406-domingo",
@@ -1471,7 +1463,7 @@
       "linha": "406",
       "titulo": "LINHA 406",
       "arquivo": "tabelas/406-domingo.json",
-      "ordem": 182
+      "ordem": 181
     },
     {
       "id": "407-domingo",
@@ -1479,7 +1471,7 @@
       "linha": "407",
       "titulo": "LINHA 407",
       "arquivo": "tabelas/407-domingo.json",
-      "ordem": 183
+      "ordem": 182
     },
     {
       "id": "410-domingo",
@@ -1487,7 +1479,7 @@
       "linha": "410",
       "titulo": "LINHA 410",
       "arquivo": "tabelas/410-domingo.json",
-      "ordem": 184
+      "ordem": 183
     },
     {
       "id": "412-domingo",
@@ -1495,7 +1487,7 @@
       "linha": "412",
       "titulo": "LINHA 412",
       "arquivo": "tabelas/412-domingo.json",
-      "ordem": 185
+      "ordem": 184
     },
     {
       "id": "413-domingo",
@@ -1503,7 +1495,7 @@
       "linha": "413",
       "titulo": "LINHA 413",
       "arquivo": "tabelas/413-domingo.json",
-      "ordem": 186
+      "ordem": 185
     },
     {
       "id": "414-domingo",
@@ -1511,7 +1503,7 @@
       "linha": "414",
       "titulo": "LINHA 414",
       "arquivo": "tabelas/414-domingo.json",
-      "ordem": 187
+      "ordem": 186
     },
     {
       "id": "415-domingo",
@@ -1519,7 +1511,7 @@
       "linha": "415",
       "titulo": "LINHA 415",
       "arquivo": "tabelas/415-domingo.json",
-      "ordem": 188
+      "ordem": 187
     },
     {
       "id": "417-domingo",
@@ -1527,7 +1519,7 @@
       "linha": "417",
       "titulo": "LINHA 417",
       "arquivo": "tabelas/417-domingo.json",
-      "ordem": 189
+      "ordem": 188
     },
     {
       "id": "419-domingo",
@@ -1535,7 +1527,7 @@
       "linha": "419",
       "titulo": "LINHA 419",
       "arquivo": "tabelas/419-domingo.json",
-      "ordem": 190
+      "ordem": 189
     },
     {
       "id": "420-domingo",
@@ -1543,7 +1535,7 @@
       "linha": "420",
       "titulo": "LINHA 420",
       "arquivo": "tabelas/420-domingo.json",
-      "ordem": 191
+      "ordem": 190
     },
     {
       "id": "421-domingo",
@@ -1551,7 +1543,7 @@
       "linha": "421",
       "titulo": "LINHA 421",
       "arquivo": "tabelas/421-domingo.json",
-      "ordem": 192
+      "ordem": 191
     },
     {
       "id": "423-domingo",
@@ -1559,7 +1551,7 @@
       "linha": "423",
       "titulo": "LINHA 423",
       "arquivo": "tabelas/423-domingo.json",
-      "ordem": 193
+      "ordem": 192
     },
     {
       "id": "428-domingo",
@@ -1567,7 +1559,7 @@
       "linha": "428",
       "titulo": "LINHA 428",
       "arquivo": "tabelas/428-domingo.json",
-      "ordem": 194
+      "ordem": 193
     },
     {
       "id": "430-domingo",
@@ -1575,7 +1567,7 @@
       "linha": "430",
       "titulo": "LINHA 430",
       "arquivo": "tabelas/430-domingo.json",
-      "ordem": 195
+      "ordem": 194
     },
     {
       "id": "444-domingo",
@@ -1583,7 +1575,7 @@
       "linha": "444",
       "titulo": "LINHA 444",
       "arquivo": "tabelas/444-domingo.json",
-      "ordem": 196
+      "ordem": 195
     },
     {
       "id": "501-domingo",
@@ -1591,7 +1583,7 @@
       "linha": "501",
       "titulo": "LINHA 501",
       "arquivo": "tabelas/501-domingo.json",
-      "ordem": 197
+      "ordem": 196
     },
     {
       "id": "502-domingo",
@@ -1599,7 +1591,7 @@
       "linha": "502",
       "titulo": "LINHA 502",
       "arquivo": "tabelas/502-domingo.json",
-      "ordem": 198
+      "ordem": 197
     },
     {
       "id": "803-domingo",
@@ -1607,7 +1599,7 @@
       "linha": "803",
       "titulo": "LINHA 803",
       "arquivo": "tabelas/803-domingo.json",
-      "ordem": 199
+      "ordem": 198
     },
     {
       "id": "900-domingo",
@@ -1615,7 +1607,7 @@
       "linha": "900",
       "titulo": "LINHA 900",
       "arquivo": "tabelas/900-domingo.json",
-      "ordem": 200
+      "ordem": 199
     },
     {
       "id": "904-domingo",
@@ -1623,7 +1615,7 @@
       "linha": "904",
       "titulo": "LINHA 904",
       "arquivo": "tabelas/904-domingo.json",
-      "ordem": 201
+      "ordem": 200
     }
   ]
 }
