@@ -2,9 +2,11 @@ name: Atualizar snapshots JSON do portal
 
 on:
   schedule:
-    # A cada 3 horas (UTC)
-    - cron: "0 */3 * * *"
+    # A cada 30 minutos (UTC)
+    - cron: "*/30 * * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [folha-servico]
 
 permissions:
   contents: write
