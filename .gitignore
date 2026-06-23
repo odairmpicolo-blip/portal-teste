@@ -1,4 +1,4 @@
-backup-*/
-*.backup-*.html
-assets/data/incidentes-tcgl.partial.json
-.DS_Store
+node_modules/
+assets/import/tabelas-horarias/_drive/
+assets/import/tabelas-horarias/**/*.xlsx
+scripts/baixar-tabelas-horarias.log
