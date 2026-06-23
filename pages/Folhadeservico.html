@@ -1346,6 +1346,7 @@ h1 {
     const FOLHA_MODO_JSON_HIBRIDO = true;
     const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
     const SYNC_MARGEM_ANTERIORES = 10;
+    const RECONCILIAR_TAIL_LIMITE = SYNC_MARGEM_ANTERIORES;
     const JSON_UPDATE_COOLDOWN_MS = 15 * 60 * 1000;
     const JSON_REFRESH_POLL_MS = 15 * 1000;
     const JSON_REFRESH_TIMEOUT_MS = 12 * 60 * 1000;
@@ -2078,6 +2079,89 @@ h1 {
         }
     }
 
+    async function buscarUltimosLancamentosPlanilha(limite) {
+        const n = Math.max(1, Math.min(limite || RECONCILIAR_TAIL_LIMITE, 100));
+        const url = URL_DO_SCRIPT_GOOGLE + "?somente_recentes=1&limit=" + n;
+        const raw = await fetchComTimeout(url);
+        if (raw?.ok === false) throw new Error(raw.erro || "somente_recentes indisponível");
+        return normalizarLista(raw);
+    }
+
+    function aplicarReconciliacaoTail(dados, recentes, maxRowPlanilha) {
+        const mapaRecentes = new Map();
+        (recentes || []).forEach((item) => {
+            const reg = normalizarRegistro(item);
+            const row = chaveLinhaPlanilha(reg);
+            if (row >= 2) mapaRecentes.set(row, reg);
+        });
+        if (!mapaRecentes.size) return dados || [];
+
+        const rowsRecentes = [...mapaRecentes.keys()];
+        const minRow = Math.min(...rowsRecentes);
+        const maxRow = Math.max(...rowsRecentes);
+        const maxRowEfetivo = maxRowPlanilha > 0 ? maxRowPlanilha : maxRow;
+
+        let lista = deduplicarRegistros(dados || []);
+        lista = lista.filter((item) => {
+            const row = chaveLinhaPlanilha(item);
+            if (row < 2) return true;
+            if (row > maxRowEfetivo) return false;
+            if (row >= minRow && row <= maxRow && !mapaRecentes.has(row)) return false;
+            return true;
+        });
+
+        return mesclarRegistros(lista, [...mapaRecentes.values()]);
+    }
+
+    async function reconciliarUltimosLancamentosPlanilha(silencioso) {
+        if (!FOLHA_MODO_JSON_HIBRIDO) return { alterou: false };
+
+        const limite = RECONCILIAR_TAIL_LIMITE;
+        if (!silencioso) {
+            setLoadStatus(
+                "Verificando últimos " + limite + " lançamentos na planilha (edições e exclusões)...",
+                "load"
+            );
+        }
+
+        try {
+            const recentes = await buscarUltimosLancamentosPlanilha(limite);
+            if (!recentes.length) return { alterou: false };
+
+            const totalPlanilha = await buscarTotalPlanilha(ANO_TODOS);
+            const maxRowPlanilha = totalPlanilha > 0 ? totalPlanilha + 1 : 0;
+
+            const assinaturasAntes = snapshotAssinaturas(dadosMestres);
+            const qtdAntes = deduplicarRegistros(dadosMestres).length;
+
+            dadosMestres = aplicarReconciliacaoTail(dadosMestres, recentes, maxRowPlanilha);
+            dadosMestres = deduplicarRegistros(dadosMestres);
+
+            const alterou = snapshotAssinaturas(dadosMestres) !== assinaturasAntes
+                || dadosMestres.length !== qtdAntes;
+
+            if (alterou) {
+                await salvarCacheLocal(dadosMestres, {
+                    ano: ANO_TODOS,
+                    total: dadosMestres.length,
+                    total_planilha: totalPlanilha || dadosMestres.length,
+                    versao: DASHBOARD_VERSAO,
+                    origem: "reconciliar_tail"
+                }, ANO_TODOS);
+                aplicarDadosDashboard(
+                    dadosMestres,
+                    "últimos lançamentos verificados",
+                    (await obterCacheLocal(ANO_TODOS))?.meta || {}
+                );
+            }
+
+            return { alterou, removidos: qtdAntes - dadosMestres.length };
+        } catch (error) {
+            console.warn("Reconciliação dos últimos lançamentos:", error);
+            return { alterou: false, erro: error };
+        }
+    }
+
     function sufixoCacheJson(bust) {
         if (bust) return "?ts=" + Date.now();
         const versao = folhaManifest?.atualizadoEm || folhaManifest?.versao || "";
@@ -2129,7 +2213,15 @@ h1 {
 
         const bust = !silencioso || obterMarcaManifesto() !== marcaAntes;
         const snapshot = await carregarSnapshotTodosDireto(bust);
-        if (!snapshot?.dados?.length) return null;
+
+        if (!snapshot?.dados?.length) {
+            await reconciliarUltimosLancamentosPlanilha(silencioso);
+            if (dadosMestres.length) {
+                const metaTail = (await obterCacheLocal(ANO_TODOS))?.meta || lerCacheMeta(ANO_TODOS) || {};
+                setLoadStatus(statusLinhaSnapshot(metaTail), "ok");
+            }
+            return null;
+        }
 
         const cache = await obterCacheLocal(ANO_TODOS);
         const fonte = escolherFonteLocal(cache, snapshot);
@@ -2149,7 +2241,9 @@ h1 {
             aplicarDadosDashboard(fonte.dados, "arquivo JSON", fonte.meta || {});
         }
 
-        const metaExibir = fonte.meta || {};
+        await reconciliarUltimosLancamentosPlanilha(silencioso);
+
+        const metaExibir = (await obterCacheLocal(ANO_TODOS))?.meta || fonte.meta || {};
         if (silencioso) {
             setLoadStatus(statusLinhaSnapshot(metaExibir), "ok");
         } else {
@@ -2338,6 +2432,7 @@ h1 {
                 const marcaInicial = obterMarcaManifesto()
                     || String(lerCacheMeta(ANO_TODOS)?.snapshotEm || lerCacheMeta(ANO_TODOS)?.atualizadoEm || "");
                 await solicitarAtualizacaoJson("dashboard_manual", true);
+                await reconciliarUltimosLancamentosPlanilha(false);
                 await aguardarNovoSnapshotJson(marcaInicial);
                 await refrescarJsonFolhaEmBackground(false);
             } catch (error) {
