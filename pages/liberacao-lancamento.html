@@ -271,6 +271,7 @@ let intervaloSyncJsonId = null;
 let syncPlanilhaTimerId = null;
 let carregamentoInicial = true;
 let overlayOperacaoNivel = 0;
+let overlayAberturaAtivo = false;
 let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
@@ -389,15 +390,36 @@ function obterPrecargaSemana(){
 }
 function finalizarCarregamentoInicial(exibiu){
     carregamentoInicial=false;
-    ocultarOverlaySeIdle();
-    if(!exibiu&&!state.dados.length) $("emptyState").hidden=false;
+    if(state.dados.length>0){
+        encerrarOverlayAbertura();
+        $("emptyState").hidden=true;
+        return;
+    }
+    if(!exibiu&&overlayAberturaAtivo){
+        $("emptyState").hidden=true;
+        return;
+    }
+    encerrarOverlayAbertura();
+    $("emptyState").hidden=false;
+}
+function complementarSemanaCarregada(fonte,data){
+    if(!fonte?.dados?.length) return false;
+    const {dataDe,amanha}=intervaloJanela();
+    const metaDe=fonte.dataDe||state.semanaDataDe||dataDe;
+    const metaAte=fonte.dataAte||state.semanaDataAte||amanha;
+    if(state.semana.length){
+        state.semana=mesclarSemana(state.semana,fonte.dados);
+    }else{
+        state.semana=fonte.dados.slice();
+    }
+    state.semanaDataDe=metaDe;
+    state.semanaDataAte=metaAte;
+    salvarCacheLiberacao(state.semana,{data_de:metaDe,data_ate:metaAte},true);
+    aplicarFiltroData(data,fonte.rotulo||"arquivo JSON");
+    return state.dados.length>0;
 }
 function aplicarFonteCarregada(fonte,data){
-    if(!fonte?.dados?.length) return false;
-    aplicarSemanaCarregada(fonte.dados,fonte.dataDe,fonte.dataAte);
-    salvarCacheLiberacao(fonte.dados,{data_de:fonte.dataDe,data_ate:fonte.dataAte},true);
-    aplicarFiltroData(data,fonte.rotulo||"arquivo JSON");
-    return true;
+    return complementarSemanaCarregada(fonte,data);
 }
 function obterPlanilhaHoje(force, vivo){
     const aoVivo=vivo!==undefined?!!vivo:!!force;
@@ -535,10 +557,28 @@ function ocultarOverlayOperacao(){
     if(overlayOperacaoNivel===0) window.portalOcultarCarregando?.();
 }
 function ocultarOverlaySeIdle(){
-    if(!carregamentoInicial&&!temSalvamentoAtivo()&&overlayOperacaoNivel>0){
+    if(!carregamentoInicial&&!temSalvamentoAtivo()&&overlayOperacaoNivel>0&&!overlayAberturaAtivo){
         overlayOperacaoNivel=0;
         window.portalOcultarCarregando?.();
     }
+}
+function iniciarOverlayAbertura(){
+    if(state.dados.length>0||overlayAberturaAtivo) return;
+    overlayAberturaAtivo=true;
+    mostrarOverlayOperacao("Carregando lançamentos...");
+}
+function encerrarOverlayAbertura(){
+    if(!overlayAberturaAtivo) return;
+    overlayAberturaAtivo=false;
+    ocultarOverlayOperacao();
+}
+function complementarPlanilhaBackground(origem){
+    if(!ehDiaAtual($("dataFiltro").value)) return;
+    setTimeout(()=>{
+        obterPlanilhaHoje(false,false).then(dados=>{
+            if(dados?.length) aplicarPlanilhaHoje(dados,origem||"planilha");
+        }).catch(()=>{});
+    },300);
 }
 
 async function apiGet(params){
@@ -845,9 +885,7 @@ function aplicarCacheLocalLiberacao(){
     const hoje=isoHoje();
     const cache=lerCacheLiberacao();
     if(!cache?.dados?.length||!dataDentroDaJanela(hoje,cache.data_de,cache.data_ate)) return false;
-    aplicarSemanaCarregada(cache.dados,cache.data_de,cache.data_ate);
-    aplicarFiltroData(hoje,"cache local");
-    return true;
+    return complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},hoje);
 }
 
 function escolherFonteJanela(cache,snapSemana,snapDia,data){
@@ -897,6 +935,7 @@ function aplicarFiltroData(data,origem){
     requestAnimationFrame(()=>{
         renderTabela();
         setStatus(texto,"ok");
+        if(state.dados.length>0) encerrarOverlayAbertura();
     });
 }
 
@@ -1136,36 +1175,40 @@ async function iniciarCarregamento(forceRefresh=false){
     const {dataDe,amanha}=intervaloJanela();
     const hoje=isoHoje();
     const cache=lerCacheLiberacao();
-    let exibiu=state.dados.length>0;
+    const dataDia=ehDiaAtual(data)?hoje:data;
+
+    if(!forceRefresh&&!state.dados.length) iniciarOverlayAbertura();
 
     if(!forceRefresh){
-        if(!exibiu) setStatus("Carregando JSON do dia...","load");
+        if(!state.dados.length&&cache?.dados?.length&&dataDentroDaJanela(data,cache.data_de,cache.data_ate)){
+            complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},data);
+        }
 
-        const dataDia=ehDiaAtual(data)?hoje:data;
+        if(!state.dados.length) atualizarOverlayOperacao("Carregando lançamentos do dia...");
         const snapDia=await carregarSnapshotDia(dataDia);
         if(snapDia?.dados?.length){
-            exibiu=aplicarFonteCarregada(escolherFonteJanela(cache,null,snapDia,data),data)||exibiu;
+            complementarSemanaCarregada(escolherFonteJanela(cache,null,snapDia,data)||{dados:snapDia.dados,rotulo:"JSON · dia"},data);
         }
 
-        if(!exibiu) setStatus("Carregando JSON da semana...","load");
+        if(!state.dados.length){
+            atualizarOverlayOperacao("Carregando lançamentos da semana...");
+            setStatus("Carregando JSON da semana...","load");
+        }
         const snapSemana=await carregarSnapshotSemana(dataDe,amanha,data);
         if(snapSemana?.dados?.length){
-            exibiu=aplicarFonteCarregada(escolherFonteJanela(cache,snapSemana,snapDia,data),data)||exibiu;
-        }else if(!exibiu&&cache?.dados?.length&&dataDentroDaJanela(data,cache.data_de,cache.data_ate)){
-            aplicarSemanaCarregada(cache.dados,cache.data_de,cache.data_ate);
-            aplicarFiltroData(data,"cache local");
-            exibiu=true;
+            complementarSemanaCarregada(escolherFonteJanela(cache,snapSemana,snapDia,data)||{dados:snapSemana.dados,rotulo:"arquivo JSON"},data);
         }
 
-        if(exibiu){
-            if(ehDiaAtual(data)) syncDiaAtualEmBackground("JSON");
+        if(state.dados.length){
+            if(ehDiaAtual(data)) complementarPlanilhaBackground("JSON");
             finalizarCarregamentoInicial(true);
             return;
         }
     }
 
     if(ehDiaAtual(data)){
-        setStatus("Sem JSON local · buscando planilha em segundo plano...","load");
+        atualizarOverlayOperacao("Buscando lançamentos na planilha...");
+        setStatus("Buscando lançamentos na planilha...","load");
         obterPlanilhaHoje(true,true).then(dadosPlanilha=>{
             if(dadosPlanilha?.length) aplicarPlanilhaHoje(dadosPlanilha,"planilha · hoje");
             else if(!state.dados.length) setStatus("Sem dados para hoje na planilha.","erro");
@@ -1177,20 +1220,19 @@ async function iniciarCarregamento(forceRefresh=false){
     }
 
     try{
+        if(!state.dados.length) atualizarOverlayOperacao("Carregando liberação...");
         setStatus("Buscando JSON da semana...","load");
         const snapSemana=await carregarSnapshotSemana(dataDe,amanha,data);
         if(snapSemana?.dados?.length){
-            aplicarSemanaCarregada(snapSemana.dados,snapSemana.data_de||dataDe,snapSemana.data_ate||amanha);
-            aplicarFiltroData(data,"arquivo JSON");
+            complementarSemanaCarregada({dados:snapSemana.dados,dataDe:snapSemana.data_de||dataDe,dataAte:snapSemana.data_ate||amanha,rotulo:"arquivo JSON"},data);
             finalizarCarregamentoInicial(true);
             return;
         }
+        atualizarOverlayOperacao("Buscando planilha...");
         setStatus("Buscando planilha...","load");
         const dados=await carregarSemanaRemotoFallback(dataDe,amanha);
         if(dados.length){
-            aplicarSemanaCarregada(dados,dataDe,amanha);
-            salvarCacheLiberacao(dados,{data_de:dataDe,data_ate:amanha});
-            aplicarFiltroData(data,"planilha · semana");
+            complementarSemanaCarregada({dados,dataDe:dataDe,dataAte:amanha,rotulo:"planilha · semana"},data);
             finalizarCarregamentoInicial(true);
         }else{
             setStatus("Sem dados para "+rotuloData(data)+".","erro");
@@ -1267,9 +1309,13 @@ function iniciar(){
     initEventosTabela();
     configurarLimitesFiltroData();
     definirDataFiltroHoje();
+    iniciarOverlayAbertura();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
     aplicarCacheLocalLiberacao();
-    iniciarCarregamento().catch(e=>setStatus(e.message,"erro"));
+    iniciarCarregamento().catch(e=>{
+        setStatus(e.message,"erro");
+        encerrarOverlayAbertura();
+    });
     iniciarPollingHoje();
 }
 if(window.portalUsuarioValidado) iniciar();
