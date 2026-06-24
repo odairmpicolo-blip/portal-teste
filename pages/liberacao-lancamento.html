@@ -280,6 +280,7 @@ let syncPlanilhaTimerId = null;
 let planilhaHojeComplementada=false;
 let overlayOperacaoNivel = 0;
 let overlayAberturaAtivo = false;
+let carregamentoInicial = true;
 let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
@@ -1027,12 +1028,12 @@ function aplicarSemanaCarregada(dados,dataDe,dataAte){
     state.semanaDataAte=dataAte;
 }
 
-function aplicarCacheLocalLiberacao(){
+function aplicarCacheLocalLiberacao(data){
+    const dataAlvo=data||$("dataFiltro").value||isoHoje();
     const {dataDe,amanha}=intervaloJanela();
-    const hoje=isoHoje();
     const cache=lerCacheLiberacao();
-    if(!cache?.dados?.length||!dataDentroDaJanela(hoje,cache.data_de,cache.data_ate)) return false;
-    return complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},hoje);
+    if(!cache?.dados?.length||!dataDentroDaJanela(dataAlvo,cache.data_de,cache.data_ate)) return false;
+    return complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},dataAlvo);
 }
 
 function escolherFonteJanela(cache,snapSemana,snapDia,data){
@@ -1417,12 +1418,6 @@ async function iniciarCarregamento(forceRefresh=false){
             finalizarCarregamentoInicial(true);
             return;
         }
-        if(LIBERACAO_FASE2){
-            encerrarOverlayAbertura();
-            setStatus("Sem dados no Firestore/JSON. Use Atualizar para buscar a planilha.","erro");
-            finalizarCarregamentoInicial(false);
-            return;
-        }
         try{
             atualizarOverlayOperacao("Buscando lançamentos na planilha...");
             const dadosPlanilha=await obterPlanilhaHoje(true,false);
@@ -1433,7 +1428,7 @@ async function iniciarCarregamento(forceRefresh=false){
             }
         }catch(_){}
         encerrarOverlayAbertura();
-        setStatus("Sem JSON local. Use Atualizar ou aguarde o JSON da API (~3 min).","erro");
+        setStatus("Sem dados no Firestore/JSON. Use Atualizar ou aguarde o JSON da API.","erro");
         finalizarCarregamentoInicial(false);
         return;
     }
@@ -1643,7 +1638,7 @@ async function aplicarPrecargaInicial(){
     const data=$("dataFiltro").value||isoHoje();
     const {dataDe,amanha}=intervaloJanela();
 
-    aplicarCacheLocalLiberacao();
+    aplicarCacheLocalLiberacao(data);
     if(state.dados.length) return;
 
     if(await carregarFirestoreRapido(data,dataDe,amanha)) return;
@@ -1670,14 +1665,20 @@ async function iniciar(){
     initEventosTabela();
     configurarLimitesFiltroData();
     definirDataFiltroHoje();
+    renderTabela();
     meuEmailLiberacao=String(window.portalUsuario?.email||"").toLowerCase();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
-    await aplicarPrecargaInicial();
-    if(state.dados.length){
-        finalizarCarregamentoInicial(true);
-    }else{
-        iniciarOverlayAbertura();
-        await iniciarCarregamento(false);
+    try{
+        await aplicarPrecargaInicial();
+        if(!state.dados.length){
+            iniciarOverlayAbertura();
+            await iniciarCarregamento(false);
+        }
+    }catch(err){
+        console.error("Erro ao carregar liberação:",err);
+        setStatus(err.message||"Erro ao carregar lançamentos.","erro");
+    }finally{
+        finalizarCarregamentoInicial(state.dados.length>0);
     }
     if(ehDiaAtual($("dataFiltro").value)&&!LIBERACAO_FASE2) complementarPlanilhaBackground("planilha · hoje");
     iniciarPollingHoje();
