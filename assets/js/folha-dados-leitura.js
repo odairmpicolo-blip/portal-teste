@@ -44,6 +44,24 @@ function filtrarPeriodo(dados, dataDe, dataAte) {
   });
 }
 
+const JANELA_PLANILHA_DIAS = 45;
+
+function isoDataLocal(offsetDias = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDias);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Interseção do período pedido com a janela recente (planilha é fonte viva). */
+function janelaPlanilhaRecente(dataDe, dataAte) {
+  const hoje = isoDataLocal(0);
+  const limite = isoDataLocal(-JANELA_PLANILHA_DIAS);
+  const de = dataDe > limite ? dataDe : limite;
+  const ate = dataAte < hoje ? dataAte : hoje;
+  if (ate < de) return null;
+  return { de, ate };
+}
+
 function withTimeout(promise, ms) {
   return Promise.race([
     promise,
@@ -133,14 +151,20 @@ export async function carregarDadosFolhaPeriodo(dataDe, dataAte, { onProgress } 
   if (firestore.length) origens.push("Firestore");
   if (json.length) origens.push("JSON");
 
-  if (!dados.length) {
-    onProgress?.("Buscando na planilha...");
+  const janelaPlanilha = janelaPlanilhaRecente(dataDe, dataAte);
+  const buscarPlanilha = !dados.length || janelaPlanilha;
+  if (buscarPlanilha) {
+    const alvo = janelaPlanilha || { de: dataDe, ate: dataAte };
+    onProgress?.("Complementando com planilha...");
     try {
-      const planilha = await withTimeout(carregarDadosApi(dataDe, dataAte), 120000);
+      const planilha = await withTimeout(carregarDadosApi(alvo.de, alvo.ate), 120000);
       tentativas.push(`planilha: ${planilha.length}`);
       if (planilha.length) {
-        dados = filtrarPeriodo(planilha, dataDe, dataAte);
-        if (dados.length) origens.push("planilha");
+        dados = mesclarLinhas([
+          dados,
+          filtrarPeriodo(planilha, dataDe, dataAte)
+        ]);
+        origens.push("planilha");
       }
     } catch (err) {
       tentativas.push(`planilha: ${err.message === "timeout" ? "timeout" : "erro"}`);

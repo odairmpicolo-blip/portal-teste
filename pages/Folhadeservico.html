@@ -2600,7 +2600,7 @@ h1 {
         if (!FOLHA_USAR_FIRESTORE) return;
         try {
             const base = resolverBasePortal();
-            const mod = await import(base + "/assets/js/folha-dados-leitura.js?v=20260624");
+            const mod = await import(base + "/assets/js/folha-dados-leitura.js?v=20260624b");
             const isoLocal = (offset) => {
                 const d = new Date();
                 d.setDate(d.getDate() + offset);

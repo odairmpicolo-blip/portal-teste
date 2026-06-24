@@ -73,11 +73,16 @@ function sanitizarLinha(row, dataIso) {
 }
 
 async function fetchJson(url, timeoutMs = TIMEOUT_MS) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(timeoutMs),
+    redirect: "follow"
+  });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const text = await response.text();
   if (/^\s*</.test(text)) throw new Error("Resposta HTML da API.");
-  return JSON.parse(text);
+  const payload = JSON.parse(text);
+  if (payload?.ok === false) throw new Error(payload.erro || "Resposta inválida da API.");
+  return payload;
 }
 
 async function buscarDiaPlanilha(dataIso) {
