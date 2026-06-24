@@ -42,8 +42,8 @@ function isoDiasAtras(dias) {
   return isoDataLocal(-dias);
 }
 
-async function fetchJson(url, timeoutMs = TIMEOUT_MS) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+async function fetchJson(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!response.ok) throw new Error(`HTTP ${response.status} ao acessar ${url}`);
   return response.json();
 }
@@ -109,14 +109,14 @@ async function atualizarAutuacoes() {
   });
 }
 
-async function buscarLiberacaoGraficos(dataDe, dataAte, timeoutMs = TIMEOUT_MS) {
+async function buscarLiberacaoGraficos(dataDe, dataAte) {
   const url = `${LIBERACAO_URL}?${new URLSearchParams({
     liberacao: "1",
     recurso: "graficos",
     data_de: dataDe,
     data_ate: dataAte
   })}`;
-  const res = await fetchJson(url, timeoutMs);
+  const res = await fetchJson(url);
   if (!res.ok) throw new Error(res.erro || "Falha nos gráficos de liberação");
   return {
     ok: true,
@@ -147,52 +147,6 @@ async function buscarLiberacaoAcompanhamento(dataDe, dataAte) {
   };
 }
 
-async function buscarLiberacaoDia(data, timeoutMs = TIMEOUT_MS) {
-  const url = `${LIBERACAO_URL}?${new URLSearchParams({
-    liberacao: "1",
-    recurso: "acompanhamento",
-    data,
-    limit: "0"
-  })}`;
-  const res = await fetchJson(url, timeoutMs);
-  if (!res.ok) throw new Error(res.erro || "Falha no acompanhamento do dia");
-  return {
-    ok: true,
-    data,
-    data_de: data,
-    data_ate: data,
-    dados: res.dados || [],
-    meta: res.meta || {}
-  };
-}
-
-async function atualizarLiberacaoSomenteHoje() {
-  const dir = path.join(portalRoot, "assets", "data", "liberacao");
-  const hoje = isoHoje();
-  const atualizadoEm = new Date().toISOString();
-  const arquivo = `acompanhamento-dia-${hoje}.json`;
-
-  console.log(`Baixando liberação hoje (${hoje})...`);
-  const payload = await buscarLiberacaoDia(hoje);
-  escreverJson(path.join(dir, arquivo), {
-    ...payload,
-    total: payload.dados.length,
-    atualizadoEm
-  });
-
-  const manifestPath = path.join(dir, "manifest.json");
-  let manifest = {};
-  try {
-    manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  } catch (_) {
-    /* manifest ausente — recriado abaixo */
-  }
-  manifest.atualizadoEm = atualizadoEm;
-  manifest.dias = manifest.dias || {};
-  manifest.dias[hoje] = arquivo;
-  escreverJson(manifestPath, manifest);
-}
-
 async function atualizarLiberacao() {
   const dir = path.join(portalRoot, "assets", "data", "liberacao");
   const hoje = isoHoje();
@@ -204,12 +158,9 @@ async function atualizarLiberacao() {
   ];
 
   const graficosManifest = {};
-  const timeoutGraficos = Number(process.env.LIBERACAO_GRAFICOS_TIMEOUT_MS || 0) || Math.max(TIMEOUT_MS, 300000);
-
   for (const preset of presetsGraficos) {
     console.log(`Baixando liberação gráficos (${preset.id}: ${preset.data_de} a ${preset.data_ate})...`);
-    const timeout = preset.id === "30d" ? timeoutGraficos : TIMEOUT_MS;
-    const payload = await buscarLiberacaoGraficos(preset.data_de, preset.data_ate, timeout);
+    const payload = await buscarLiberacaoGraficos(preset.data_de, preset.data_ate);
     escreverJson(path.join(dir, preset.arquivo), {
       ...payload,
       atualizadoEm
@@ -273,13 +224,6 @@ async function atualizarLiberacao() {
 }
 
 async function main() {
-  const modo = process.argv[2];
-  if (modo === "--liberacao-hoje") {
-    console.log("Atualizando JSON de liberação (hoje)...");
-    await atualizarLiberacaoSomenteHoje();
-    console.log("Concluído.");
-    return;
-  }
   console.log("Atualizando snapshots JSON (pontualidade, autuações, liberação)...");
   await atualizarPontualidade();
   await atualizarAutuacoes();

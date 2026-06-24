@@ -8,7 +8,7 @@
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
  * GET  ?liberacao=1&recurso=graficos&data_de=...&data_ate=...
- * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&data_de=...][&data_ate=...][&maquina=...][&limit=N][&incluir_colunas=1][&ultima_semana=0|1][&vivo=1]
+ * GET  ?liberacao=1&recurso=acompanhamento[&data=YYYY-MM-DD][&data_de=...][&data_ate=...][&maquina=...][&limit=N][&incluir_colunas=1][&ultima_semana=0|1]
  * GET  ?liberacao=1&recurso=saida_carros[&data=YYYY-MM-DD][&maquina=...]
  * GET  ?liberacao=1&recurso=comparacao&data=YYYY-MM-DD[&maquina=...]
  * GET  ?liberacao=1&recurso=resumo[&data=YYYY-MM-DD][&incluir_colunas=1]
@@ -33,33 +33,6 @@ function invalidarCacheLiberacao_() {
   PropertiesService.getScriptProperties().setProperty("liberacao_cache_v", String(Date.now()));
 }
 
-function solicitarAtualizacaoJsonLiberacaoHoje_(origem) {
-  origem = origem || "liberacao";
-  try {
-    if (typeof solicitarAtualizacaoJsonPortal_ === "function") {
-      solicitarAtualizacaoJsonPortal_(origem);
-    }
-  } catch (errPortal) {}
-  var token = PropertiesService.getScriptProperties().getProperty("GITHUB_PAT");
-  if (!token) return;
-  try {
-    UrlFetchApp.fetch("https://api.github.com/repos/odairmpicolo-blip/portal-teste/dispatches", {
-      method: "post",
-      contentType: "application/json",
-      headers: {
-        Authorization: "Bearer " + token,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28"
-      },
-      payload: JSON.stringify({
-        event_type: "liberacao",
-        client_payload: { origem: origem, ts: new Date().toISOString() }
-      }),
-      muteHttpExceptions: true
-    });
-  } catch (errFetch) {}
-}
-
 function cacheChaveLiberacao_(recurso, partes) {
   return "lib-" + LIBERACAO_VERSAO + "-" + versaoCacheLiberacao_() + "-" + recurso + "-" + partes.join("|");
 }
@@ -81,14 +54,6 @@ function gravarCacheLiberacao_(chave, obj) {
 }
 
 function montarJanelaLeituraLiberacao_(dataFiltro, dataDe, dataAte, ultimaSemanaFlag) {
-  if (dataFiltro) {
-    return {
-      ultimaSemanaOnly: false,
-      dataDe: dataFiltro,
-      dataAte: dataFiltro,
-      dataFiltro: dataFiltro
-    };
-  }
   var dataDeNorm = normalizarDataIsoLiberacao_(dataDe || "");
   var dataAteNorm = normalizarDataIsoLiberacao_(dataAte || "");
   var hojeIso = isoDataDiasAtrasLiberacao_(0);
@@ -119,7 +84,6 @@ function montarRespostaLiberacaoGet_(params) {
   if (recurso === "acompanhamento") {
     const limit = parseInt(params.limit || "0", 10);
     const incluirColunas = String(params.incluir_colunas || "") === "1";
-    const vivo = String(params.vivo || "") === "1";
     const dataDe = normalizarDataIsoLiberacao_(params.data_de || "");
     const dataAte = normalizarDataIsoLiberacao_(params.data_ate || "");
     const ultimaSemana = String(params.ultima_semana || "1") !== "0" && !dataDe && !dataAte && !dataFiltro;
@@ -127,13 +91,11 @@ function montarRespostaLiberacaoGet_(params) {
     const cacheKey = cacheChaveLiberacao_("acomp", [
       dataFiltro, janela.dataDe, janela.dataAte, maquinaFiltro, String(limit), incluirColunas ? "1" : "0"
     ]);
-    if (!vivo) {
-      const emCache = lerCacheLiberacao_(cacheKey);
-      if (emCache) {
-        emCache.meta = emCache.meta || {};
-        emCache.meta.cache = true;
-        return emCache;
-      }
+    const emCache = lerCacheLiberacao_(cacheKey);
+    if (emCache) {
+      emCache.meta = emCache.meta || {};
+      emCache.meta.cache = true;
+      return emCache;
     }
 
     const dados = lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janela);
@@ -433,49 +395,7 @@ function isoDataDiasAtrasLiberacao_(dias) {
   return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
 }
 
-function lerAcompanhamentoDiaCompleto_(dataIso, limit, maquinaFiltro) {
-  const sheet = abrirAbaPorGid_(LIBERACAO_SPREADSHEET_ID, LIBERACAO_ACOMPANHAMENTO_GID);
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  if (lastRow < 2) return [];
-
-  const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(normalizarChaveLiberacao_);
-  const dados = [];
-  var endRow = lastRow;
-
-  while (endRow >= 2) {
-    const startRow = Math.max(2, endRow - LIBERACAO_CHUNK_LINHAS + 1);
-    const numRows = endRow - startRow + 1;
-    const valores = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
-    var parar = false;
-
-    for (var i = valores.length - 1; i >= 0; i--) {
-      const rowNum = startRow + i;
-      const item = linhaAcompanhamentoParaObjeto_(cabecalho, valores[i], rowNum);
-      const iso = item.data_iso || normalizarDataIsoLiberacao_(item.data);
-
-      if (iso && iso < dataIso) {
-        parar = true;
-        break;
-      }
-      if (iso !== dataIso) continue;
-      if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
-      dados.push(item);
-      if (limit > 0 && dados.length >= limit) return dados;
-    }
-
-    if (parar) break;
-    endRow = startRow - 1;
-  }
-
-  if (limit > 0 && dados.length > limit) dados.splice(limit);
-  return dados;
-}
-
 function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janelaOpts) {
-  if (dataFiltro) {
-    return lerAcompanhamentoDiaCompleto_(dataFiltro, limit, maquinaFiltro);
-  }
   var ultimaSemanaOnly = true;
   var dataMinIso = "";
   var dataMaxIso = "";
@@ -834,7 +754,6 @@ function criarAcompanhamentoLiberacao_(params) {
   });
   sheet.appendRow(linha);
   invalidarCacheLiberacao_();
-  try { solicitarAtualizacaoJsonLiberacaoHoje_("liberacao-create"); } catch (_) {}
   return { ok: true, linha: sheet.getLastRow(), acao: "create" };
 }
 
@@ -851,7 +770,6 @@ function atualizarAcompanhamentoLiberacao_(params) {
     sheet.getRange(row, idx + 1).setValue(valoresParams[chave]);
   });
   invalidarCacheLiberacao_();
-  try { solicitarAtualizacaoJsonLiberacaoHoje_("liberacao-update"); } catch (_) {}
   return { ok: true, linha: row, acao: "update" };
 }
 

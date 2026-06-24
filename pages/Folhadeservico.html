@@ -18,8 +18,6 @@ document.documentElement.classList.add("portal-auth-pending");
     <script src="../assets/js/loading.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="../assets/css/portal-senha.css">
 <link rel="stylesheet" href="../assets/css/portal-titulos.css">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
@@ -707,18 +705,6 @@ document.documentElement.classList.add("portal-auth-pending");
             gap: 8px;
             min-width: 0;
         }
-        .load-banner-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            width: 100%;
-        }
-        .load-banner-actions .btn-atualizar-servicos,
-        .load-banner-actions .btn-pdf-oficina {
-            flex: 1 1 0;
-            width: auto;
-            min-width: 0;
-        }
         .btn-atualizar-servicos {
             display: inline-flex;
             align-items: center;
@@ -753,115 +739,6 @@ document.documentElement.classList.add("portal-auth-pending");
             stroke-linecap: round;
             stroke-linejoin: round;
             flex: 0 0 auto;
-        }
-        .analytics-section-head {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .btn-pdf-oficina {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border: 1px solid #c7d7f5;
-            border-radius: 8px;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
-            color: var(--blue);
-            font-size: 11px;
-            font-weight: 800;
-            line-height: 1.2;
-            cursor: pointer;
-            font-family: inherit;
-            white-space: nowrap;
-            transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
-        }
-        .btn-pdf-oficina:hover:not(:disabled) {
-            background: #e8f0ff;
-            border-color: #9bb8ef;
-        }
-        .btn-pdf-oficina:disabled { opacity: 0.55; cursor: not-allowed; }
-        .btn-pdf-oficina svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-        .pdf-oficina-scratch {
-            position: fixed;
-            left: -10000px;
-            top: 0;
-            width: 1120px;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        body.pdf-exporting-oficina .pdf-oficina-scratch {
-            left: 0;
-            visibility: visible;
-            z-index: 9999;
-            padding: 12px;
-            background: #eef2f7;
-        }
-        .pdf-oficina-charts {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-        }
-        .pdf-doc {
-            background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .pdf-doc-header {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-            padding: 18px 22px 0;
-        }
-        .pdf-doc-brand {
-            display: grid;
-            grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
-            align-items: center;
-            gap: 18px;
-        }
-        .pdf-doc-brand .logo-ciop { justify-self: start; height: 44px; object-fit: contain; }
-        .pdf-doc-brand .logo-tcgl { justify-self: end; height: 48px; object-fit: contain; }
-        .pdf-doc-brand-center { text-align: center; min-width: 320px; }
-        .pdf-doc-title-art {
-            display: block;
-            width: min(340px, 100%);
-            height: 40px;
-            margin: 0 auto;
-            object-fit: contain;
-        }
-        .pdf-doc-period {
-            margin: 8px 0 0;
-            font-size: 12px;
-            font-weight: 800;
-            color: #475467;
-        }
-        .pdf-doc-accent {
-            height: 4px;
-            margin-top: 14px;
-            background: linear-gradient(90deg, var(--blue) 0%, var(--blue2) 55%, var(--orange) 100%);
-        }
-        .pdf-doc-body { padding: 16px 22px 18px; }
-        body.pdf-exporting-oficina .pdf-oficina-charts .chart-card {
-            min-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-        }
-        body.pdf-exporting-oficina .pdf-oficina-charts .chart-header {
-            font-size: 11px;
-            font-weight: 800;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f1f5f9;
-            margin-bottom: 6px;
-        }
-        body.pdf-exporting-oficina .pdf-oficina-charts .chart-container {
-            min-height: 240px;
-        }
-        body.pdf-exporting-oficina .pdf-oficina-charts .chart-container img {
-            width: 100%;
-            height: auto;
-            display: block;
         }
         .load-banner.ok { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
         .load-banner.erro { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
@@ -1028,68 +905,18 @@ document.documentElement.classList.add("portal-auth-pending");
         }
 
         /* Filtros compactos em uma única linha (desktop) */
-        @media (min-width: 1100px) {
+        @media (min-width: 1000px) {
             .container {
                 max-width: 1680px;
             }
 
             .filter-wrapper {
-                padding: 14px 16px;
+                padding: 16px 18px;
                 margin-bottom: 20px;
             }
-
-            .filter-wrapper .filter-grid {
-                flex-wrap: nowrap;
-                gap: 8px 10px;
-                align-items: flex-end;
-            }
-
-            .filter-wrapper .filter-group--data {
-                flex: 0 0 118px;
-                width: 118px;
-                max-width: 118px;
-            }
-
-            .filter-wrapper .filter-group--select {
-                flex: 1 1 0;
-                min-width: 0;
-                max-width: none;
-            }
-
-            .filter-wrapper .filter-group label {
-                gap: 4px;
-                font-size: 10px;
-                line-height: 1.15;
-            }
-
-            .filter-wrapper .filter-label-icon svg {
-                width: 13px;
-                height: 13px;
-            }
-
-            .filter-wrapper .filter-group input,
-            .filter-wrapper .filter-group select {
-                font-size: 12px;
-                min-height: 32px;
-                padding: 5px 8px;
-            }
-
-            .filter-wrapper .filter-group--data input {
-                padding: 5px 6px;
-            }
-
-            .filter-wrapper .filter-group--select select {
-                padding-right: 28px;
-            }
         }
 
-        @media (min-width: 1000px) {
-            .filter-head .load-banner {
-                max-width: min(400px, 44vw);
-            }
-        }
-
-        @media (min-width: 700px) and (max-width: 1099px) {
+        @media (min-width: 700px) and (max-width: 999px) {
             .filter-group--data {
                 flex: 0 0 calc(50% - 5px);
                 width: calc(50% - 5px);
@@ -1133,7 +960,7 @@ document.documentElement.classList.add("portal-auth-pending");
             justify-self: end;
             align-self: center;
             margin: 0;
-            max-width: min(400px, 44vw);
+            max-width: min(320px, 42vw);
             padding: 8px 12px;
             font-size: 12px;
         }
@@ -1338,38 +1165,25 @@ h1 {
                     <span class="load-dot" id="load-dot"></span>
                     <span id="load-message">Preparando dashboard...</span>
                 </div>
-                <div class="load-banner-actions">
-                    <button type="button" class="btn-atualizar-servicos" id="btn-atualizar-servicos" onclick="atualizarServicosNaoExibidos()" title="Buscar na planilha serviços que ainda não estão na página">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-                        <span>Atualizar</span>
-                    </button>
-                    <button type="button" class="btn-pdf-oficina" id="btn-pdf-oficina" title="Gerar PDF dos gráficos de Oficina e Borracharia">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
-                        <span>PDF Oficina</span>
-                    </button>
-                </div>
+                <button type="button" class="btn-atualizar-servicos" id="btn-atualizar-servicos" onclick="atualizarServicosNaoExibidos()" title="Buscar na planilha serviços que ainda não estão na página">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                    <span>Atualizar</span>
+                </button>
             </div>
         </div>
-        <div id="pdfOficinaScratch" class="pdf-oficina-scratch" aria-hidden="true"></div>
         <div class="filter-grid">
             <div class="filter-group filter-group--data">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m10 15-2 2 2 2"/><path d="M8 17h7"/></svg></span><span>De</span></label>
+                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m10 15-2 2 2 2"/><path d="M8 17h7"/></svg></span><span>Data de</span></label>
                 <input type="date" id="filtro-data-de" onchange="filtrarDashboard()">
             </div>
             <div class="filter-group filter-group--data">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m14 15 2 2-2 2"/><path d="M9 17h7"/></svg></span><span>Até</span></label>
+                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="m14 15 2 2-2 2"/><path d="M9 17h7"/></svg></span><span>Data até</span></label>
                 <input type="date" id="filtro-data-ate" onchange="filtrarDashboard()">
             </div>
             <div class="filter-group filter-group--select">
                 <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.7-4 4.3-6 8-6s6.3 2 8 6"/></svg></span><span>Analista</span></label>
                 <select id="filtro-analista" onchange="filtrarDashboard()">
                     <option value="">Todos os Analistas</option>
-                </select>
-            </div>
-            <div class="filter-group filter-group--select">
-                <label><span class="filter-label-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c1.2-3.3 3.2-5 6-5s4.8 1.7 6 5"/><path d="M16 11a3 3 0 1 0-.8-5.9"/><path d="M17 20h4c-.5-2.4-1.8-4-4-4.8"/></svg></span><span>Motorista</span></label>
-                <select id="filtro-mot-sai" onchange="filtrarDashboard()">
-                    <option value="">Todos os Motoristas</option>
                 </select>
             </div>
             <div class="filter-group filter-group--select">
@@ -1428,10 +1242,8 @@ h1 {
 
     <section class="analytics-section" aria-label="Análises operacionais">
         <div class="analytics-section-head">
-            <div>
-                <h2>Análises Operacionais</h2>
-                <p>Indicadores detalhados conforme os filtros aplicados</p>
-            </div>
+            <h2>Análises Operacionais</h2>
+            <p>Indicadores detalhados conforme os filtros aplicados</p>
         </div>
         <div class="analytics-grid">
             <div class="chart-card accent-coral chart-wide">
@@ -1452,18 +1264,6 @@ h1 {
             </div>
         </div>
         <div class="analytics-grid-5">
-            <div class="chart-card accent-sky">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="10" rx="2"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>Carros com Mais Problemas (Oficina / Borracharia)</span></div>
-                <div class="chart-container"><canvas id="chartCarrosProblemas"></canvas></div>
-            </div>
-            <div class="chart-card accent-sky">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span>Maiores Problemas de Oficina</span></div>
-                <div class="chart-container"><canvas id="chartProblemasOficina"></canvas></div>
-            </div>
-            <div class="chart-card accent-teal">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Carros com Mais Borracharia</span></div>
-                <div class="chart-container"><canvas id="chartCarrosBorracharia"></canvas></div>
-            </div>
             <div class="chart-card accent-blue">
                 <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15h16"/><path d="m10 11 4 4 4-4"/><path d="M12 3v12"/></svg></span><span>Linhas com Mais Atrasos</span></div>
                 <div class="chart-container"><canvas id="chartLinhasAtrasos"></canvas></div>
@@ -1475,6 +1275,14 @@ h1 {
             <div class="chart-card accent-indigo">
                 <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Período de Mais Ocorrências</span></div>
                 <div class="chart-container"><canvas id="chartPeriodo"></canvas></div>
+            </div>
+            <div class="chart-card accent-sky">
+                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="10" rx="2"/><path d="M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></span><span>Carros com Mais Problemas</span></div>
+                <div class="chart-container"><canvas id="chartCarrosProblemas"></canvas></div>
+            </div>
+            <div class="chart-card accent-sky">
+                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span>Maiores Problemas de Oficina</span></div>
+                <div class="chart-container"><canvas id="chartProblemasOficina"></canvas></div>
             </div>
             <div class="chart-card accent-coral">
                 <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2h4"/><path d="M12 14v8"/><path d="M4.5 10A7.5 7.5 0 0 1 19.5 10"/><path d="m8 22 4-2 4 2"/></svg></span><span>Linhas com Mais Colisão</span></div>
@@ -2101,11 +1909,10 @@ h1 {
         const dDe = document.getElementById("filtro-data-de")?.value || "";
         const dAte = document.getElementById("filtro-data-ate")?.value || "";
         const analista = document.getElementById("filtro-analista")?.value || "";
-        const motSai = document.getElementById("filtro-mot-sai")?.value || "";
         const ocorrencia = document.getElementById("filtro-ocorrencia")?.value || "";
         const linha = document.getElementById("filtro-linha")?.value || "";
         const situacao = document.getElementById("filtro-situacao")?.value || "";
-        return !!(dDe || dAte || analista || motSai || ocorrencia || linha || situacao);
+        return !!(dDe || dAte || analista || ocorrencia || linha || situacao);
     }
 
     function atualizarBannerRegistros(qtd) {
@@ -2624,15 +2431,8 @@ h1 {
             try {
                 const marcaInicial = obterMarcaManifesto()
                     || String(lerCacheMeta(ANO_TODOS)?.snapshotEm || lerCacheMeta(ANO_TODOS)?.atualizadoEm || "");
-                const disparo = await solicitarAtualizacaoJson("dashboard_manual", true);
+                await solicitarAtualizacaoJson("dashboard_manual", true);
                 await reconciliarUltimosLancamentosPlanilha(false);
-                if (disparo?.status === "erro_github" || disparo?.ok === false && disparo?.status !== "debounced") {
-                    setLoadStatus(
-                        "Falha ao disparar atualização JSON: "
-                        + (disparo?.detalhe || disparo?.erro || disparo?.mensagem || "verifique GITHUB_PAT no Apps Script"),
-                        "erro"
-                    );
-                }
                 await aguardarNovoSnapshotJson(marcaInicial);
                 await refrescarJsonFolhaEmBackground(false);
             } catch (error) {
@@ -2756,18 +2556,13 @@ h1 {
     }
 
     async function solicitarAtualizacaoJson(origem, forcar) {
-        if (!forcar && Date.now() - ultimaSolicitacaoJson < JSON_UPDATE_COOLDOWN_MS) return null;
+        if (!forcar && Date.now() - ultimaSolicitacaoJson < JSON_UPDATE_COOLDOWN_MS) return;
         ultimaSolicitacaoJson = Date.now();
         try {
             const url = URL_DO_SCRIPT_GOOGLE + "?atualizar_json=1&origem=" + encodeURIComponent(origem || "dashboard");
-            const res = await fetchComTimeout(url);
-            if (res?.ok === false) {
-                console.warn("Atualização JSON:", res.erro || res.detalhe || res);
-            }
-            return res;
+            await fetchComTimeout(url);
         } catch (error) {
             console.warn("Falha ao solicitar atualização do JSON:", error);
-            return { ok: false, erro: error.message || String(error) };
         }
     }
 
@@ -3314,29 +3109,6 @@ h1 {
     iniciarPreloadFolhaServico();
     window.onload = () => window.portalAguardarUsuario?.(carregarFolhaServico);
 
-    function motoristaQueSai(item) {
-        return pickCampo(item, "mot_que_sai", "mot_sai", "motorista");
-    }
-
-    function ordenarOpcoesFiltro(valores) {
-        return [...valores]
-            .map((item) => String(item || "").trim())
-            .filter(Boolean)
-            .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
-    }
-
-    function coletarMotoristasUnicos(dados) {
-        const mapa = new Map();
-        (dados || []).forEach((item) => {
-            const mot = motoristaQueSai(item);
-            if (!mot) return;
-            const limpo = mot.trim();
-            const chave = normTexto(limpo);
-            if (!mapa.has(chave)) mapa.set(chave, limpo);
-        });
-        return ordenarOpcoesFiltro([...mapa.values()]);
-    }
-
     function gerarFiltrosDinamicos(dados) {
         const analistas = new Set();
         const ocorrencias = new Set();
@@ -3351,7 +3123,6 @@ h1 {
         });
 
         populateSelect('filtro-analista', analistas);
-        populateSelect('filtro-mot-sai', coletarMotoristasUnicos(dados));
         populateSelect('filtro-ocorrencia', ocorrencias);
         populateSelect('filtro-linha', linhas);
         populateSelect('filtro-situacao', situacoes);
@@ -3401,10 +3172,7 @@ h1 {
         const select = document.getElementById(id);
         const valorSelecionado = select.value;
         select.innerHTML = select.options[0].outerHTML;
-        const valores = set instanceof Set
-            ? ordenarOpcoesFiltro([...set])
-            : ordenarOpcoesFiltro(set);
-        valores.forEach(val => {
+        Array.from(set).sort().forEach(val => {
             const opt = document.createElement('option');
             opt.value = val;
             opt.innerText = val;
@@ -3674,15 +3442,6 @@ h1 {
             corTema: corOficina
         });
 
-        const carrosBorracharia = topContagem(contarPor(dados, d => d.carro, item =>
-            ocorrenciaEh(item.ocorrencia, "BORRACHARIA")), 8);
-        criarGraficoAnalytics("chartCarrosBorracharia", {
-            labels: carrosBorracharia.length ? carrosBorracharia.map(i => i.label) : ["Sem dados"],
-            values: carrosBorracharia.length ? carrosBorracharia.map(i => i.qtd) : [0],
-            horizontal: true,
-            corTema: corBorracharia
-        });
-
         const linhasColisao = topContagem(contarPor(dados, d => d.linha, item =>
             ocorrenciaEh(item.ocorrencia, "COLISAO", "COLISÃO")), 8);
         criarGraficoAnalytics("chartLinhasColisao", {
@@ -3733,7 +3492,6 @@ h1 {
         const dDe = document.getElementById("filtro-data-de")?.value || "";
         const dAte = document.getElementById("filtro-data-ate")?.value || "";
         const analista = document.getElementById("filtro-analista").value;
-        const motSai = document.getElementById("filtro-mot-sai").value;
         const ocorrencia = document.getElementById("filtro-ocorrencia").value;
         const linha = document.getElementById("filtro-linha").value;
         const situacao = document.getElementById("filtro-situacao").value;
@@ -3743,7 +3501,6 @@ h1 {
             if (dDe && iso && iso < dDe) return false;
             if (dAte && iso && iso > dAte) return false;
             if (analista && item.analista !== analista) return false;
-            if (motSai && normTexto(motoristaQueSai(item)) !== normTexto(motSai)) return false;
             if (ocorrencia && item.ocorrencia !== ocorrencia) return false;
             if (linha && item.linha !== linha) return false;
             if (situacao && item.situacao !== situacao) return false;
@@ -3758,167 +3515,6 @@ h1 {
             atualizarBannerRegistros(dadosFiltrados.length);
         });
     }
-
-    const PDF_OFICINA_CHART_IDS = [
-        "chartCarrosProblemas",
-        "chartProblemasOficina",
-        "chartCarrosBorracharia"
-    ];
-    const PDF_TITULO_ARTE_SRC = "../assets/img/folha-servico-titulo-servicos-ciop.png";
-
-    function formatarDataFiltroPdf(iso) {
-        if (!iso) return "—";
-        const p = String(iso).split("-");
-        return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : iso;
-    }
-
-    function textoPeriodoPdf() {
-        const de = document.getElementById("filtro-data-de")?.value || "";
-        const ate = document.getElementById("filtro-data-ate")?.value || "";
-        if (!de && !ate) return "—";
-        if (de && ate && de === ate) return formatarDataFiltroPdf(de);
-        return formatarDataFiltroPdf(de) + " a " + formatarDataFiltroPdf(ate);
-    }
-
-    function imagemChartParaPdf(canvas) {
-        if (!canvas) return "";
-        try {
-            return canvas.toDataURL("image/png");
-        } catch (_err) {
-            const chart = window.Chart?.getChart(canvas);
-            return chart ? chart.toBase64Image() : "";
-        }
-    }
-
-    function montarPdfScratch() {
-        const scratch = document.getElementById("pdfOficinaScratch");
-        if (!scratch) return null;
-        scratch.innerHTML =
-            "<div class=\"pdf-doc\">" +
-            "<header class=\"pdf-doc-header\">" +
-            "<div class=\"pdf-doc-brand\">" +
-            "<img class=\"logo-ciop\" src=\"../assets/img/CIOP Sem Fundo.png\" alt=\"CIOP\">" +
-            "<div class=\"pdf-doc-brand-center\">" +
-            "<img class=\"pdf-doc-title-art\" src=\"" + PDF_TITULO_ARTE_SRC + "\" alt=\"Serviços CIOP\">" +
-            "<p class=\"pdf-doc-period\" id=\"pdfOficinaPeriodo\"></p>" +
-            "</div>" +
-            "<img class=\"logo-tcgl\" src=\"../assets/img/LOGO_TCGL-removebg-preview.png\" alt=\"TCGL\">" +
-            "</div>" +
-            "<div class=\"pdf-doc-accent\"></div>" +
-            "</header>" +
-            "<div class=\"pdf-doc-body\">" +
-            "<div class=\"pdf-oficina-charts\" id=\"pdfOficinaChartsClone\"></div>" +
-            "</div>" +
-            "</div>";
-
-        const periodo = scratch.querySelector("#pdfOficinaPeriodo");
-        if (periodo) periodo.textContent = textoPeriodoPdf();
-
-        const row = scratch.querySelector("#pdfOficinaChartsClone");
-        PDF_OFICINA_CHART_IDS.forEach((id) => {
-            const canvas = document.getElementById(id);
-            if (!canvas || !row) return;
-            const card = canvas.closest(".chart-card");
-            if (!card) return;
-            const clone = card.cloneNode(true);
-            const container = clone.querySelector(".chart-container");
-            if (!container) return;
-            const imgSrc = imagemChartParaPdf(canvas);
-            container.innerHTML = "";
-            if (imgSrc) {
-                const img = document.createElement("img");
-                img.src = imgSrc;
-                img.alt = "";
-                container.appendChild(img);
-            }
-            row.appendChild(clone);
-        });
-
-        return scratch.querySelector(".pdf-doc");
-    }
-
-    async function gerarPdfOficinaBorracharia() {
-        if (!window.jspdf) {
-            setLoadStatus("Biblioteca PDF indisponível.", "erro");
-            return;
-        }
-        if (!window.html2canvas) {
-            setLoadStatus("Biblioteca de captura indisponível.", "erro");
-            return;
-        }
-        const faltando = PDF_OFICINA_CHART_IDS.filter((id) => !document.getElementById(id));
-        if (faltando.length) {
-            setLoadStatus("Carregue os gráficos antes de gerar o PDF.", "erro");
-            return;
-        }
-
-        const btn = document.getElementById("btn-pdf-oficina");
-        if (btn) btn.disabled = true;
-        setLoadStatus("Gerando PDF Oficina / Borracharia...", "load");
-        window.portalMostrarCarregando?.("Gerando PDF");
-
-        const de = document.getElementById("filtro-data-de")?.value || "";
-        const ate = document.getElementById("filtro-data-ate")?.value || "";
-        const alvo = montarPdfScratch();
-        if (!alvo) {
-            setLoadStatus("Falha ao montar o PDF.", "erro");
-            if (btn) btn.disabled = false;
-            return;
-        }
-
-        document.body.classList.add("pdf-exporting-oficina");
-
-        try {
-            await new Promise((resolve) => setTimeout(resolve, 280));
-            const canvas = await html2canvas(alvo, {
-                scale: 2,
-                backgroundColor: "#eef2f7",
-                logging: false,
-                useCORS: true,
-                windowWidth: alvo.scrollWidth,
-                windowHeight: alvo.scrollHeight
-            });
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-            const pageW = 297;
-            const pageH = 210;
-            const margin = 8;
-            const availW = pageW - margin * 2;
-            const availH = pageH - margin * 2;
-            const imgRatio = canvas.width / canvas.height;
-            let drawW = availW;
-            let drawH = drawW / imgRatio;
-            if (drawH > availH) {
-                drawH = availH;
-                drawW = drawH * imgRatio;
-            }
-            const x = margin + (availW - drawW) / 2;
-            const y = margin + (availH - drawH) / 2;
-
-            pdf.setFillColor(238, 242, 247);
-            pdf.rect(0, 0, pageW, pageH, "F");
-            pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, drawW, drawH);
-
-            const nomeDe = de || "inicio";
-            const nomeAte = ate || "fim";
-            pdf.save("folha-oficina-borracharia-" + nomeDe + "-" + nomeAte + ".pdf");
-            setLoadStatus("PDF Oficina / Borracharia gerado.", "ok");
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            setLoadStatus("Erro ao gerar PDF: " + (error.message || "falha na captura"), "erro");
-        } finally {
-            document.body.classList.remove("pdf-exporting-oficina");
-            const scratch = document.getElementById("pdfOficinaScratch");
-            if (scratch) scratch.innerHTML = "";
-            if (btn) btn.disabled = false;
-            window.portalOcultarCarregando?.();
-        }
-    }
-
-    document.getElementById("btn-pdf-oficina")?.addEventListener("click", () => {
-        gerarPdfOficinaBorracharia().catch(() => {});
-    });
 </script>
 </body>
 </html>
