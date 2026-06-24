@@ -92,6 +92,16 @@ service cloud.firestore {
       }
     }
 
+    match /pontualidadeCenarios/{cenario} {
+      allow read: if signedIn();
+      allow create, update, delete: if false;
+
+      match /dias/{dataIso} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+    }
+
     match /avisos/{avisoId} {
       allow read: if signedIn() && (
         podePostarAviso() ||

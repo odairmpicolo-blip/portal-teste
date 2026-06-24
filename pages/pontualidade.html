@@ -1046,6 +1046,7 @@ const CENARIOS = {
     }
 };
 let cenarioAtual = 'padrao';
+const PONTUALIDADE_USAR_FIRESTORE = true;
 let rawData = [];
 const PONTUALIDADE_DATA_BASE = '../assets/data/pontualidade';
 const PONTUALIDADE_MANIFEST_URL = PONTUALIDADE_DATA_BASE + '/manifest.json';
@@ -1191,27 +1192,45 @@ async function buscarPontualidadeApi(cenario) {
 
 async function loadDashboardData() {
     const cenario = CENARIOS[cenarioAtual];
-    let mostrouSnapshot = false;
+    window.portalMostrarCarregando?.('Carregando pontualidade - ' + cenario.nome);
 
     if (!pontualidadeManifest) pontualidadeManifest = await carregarManifestPontualidade();
-    const snapshot = await carregarSnapshotPontualidade(cenarioAtual);
-    if (snapshot?.rows?.length) {
-        rawData = snapshot.rows;
-        mostrouSnapshot = true;
-        initFilters();
-        renderDashboard();
-        const extra = pontualidadeManifest?.atualizadoEm
-            ? ' · snapshot: ' + new Date(pontualidadeManifest.atualizadoEm).toLocaleString('pt-BR')
-            : '';
-        document.getElementById('dashboardSubtitle').innerText = cenario.nome + ' · arquivo JSON' + extra;
-    }
-
-    if (!mostrouSnapshot) {
-        window.portalMostrarCarregando?.('Carregando pontualidade - ' + cenario.nome);
-        document.getElementById('dashboardSubtitle').innerText = 'Carregando ' + cenario.nome + '...';
-    }
 
     try {
+        if (PONTUALIDADE_USAR_FIRESTORE) {
+            const mod = await import('../assets/js/pontualidade-dados-leitura.js?v=20260624');
+            const res = await mod.carregarDadosPontualidade(cenarioAtual, {
+                onProgress: (msg) => window.portalMostrarCarregando?.(msg)
+            });
+            if (res.dados?.length) {
+                rawData = res.dados;
+                initFilters();
+                renderDashboard();
+                const extra = pontualidadeManifest?.atualizadoEm
+                    ? ' · snapshot: ' + new Date(pontualidadeManifest.atualizadoEm).toLocaleString('pt-BR')
+                    : '';
+                document.getElementById('dashboardSubtitle').innerText =
+                    cenario.nome + ' · ' + (res.origem || 'Firestore/JSON/planilha') + extra;
+                console.info('Pontualidade carregada:', res.origem, rawData.length, res.tentativas?.join(' · '));
+                return;
+            }
+        }
+
+        let mostrouSnapshot = false;
+        const snapshot = await carregarSnapshotPontualidade(cenarioAtual);
+        if (snapshot?.rows?.length) {
+            rawData = snapshot.rows;
+            mostrouSnapshot = true;
+            initFilters();
+            renderDashboard();
+            const extra = pontualidadeManifest?.atualizadoEm
+                ? ' · snapshot: ' + new Date(pontualidadeManifest.atualizadoEm).toLocaleString('pt-BR')
+                : '';
+            document.getElementById('dashboardSubtitle').innerText = cenario.nome + ' · arquivo JSON' + extra;
+        } else {
+            document.getElementById('dashboardSubtitle').innerText = 'Carregando ' + cenario.nome + '...';
+        }
+
         const novos = await buscarPontualidadeApi(cenarioAtual);
         if (novos.length) {
             rawData = mostrouSnapshot ? mesclarPontualidade(rawData, novos) : novos;
@@ -1228,7 +1247,7 @@ async function loadDashboardData() {
         }
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        if (!mostrouSnapshot) {
+        if (!rawData.length) {
             rawData = [];
             document.getElementById('dashboardSubtitle').innerText = 'Erro ao carregar ' + cenario.nome + ': ' + error.message;
             initFilters();
