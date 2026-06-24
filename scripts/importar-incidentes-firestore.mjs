@@ -13,7 +13,8 @@ import path from "node:path";
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "portal-ciop";
 const COLECAO = "incidentesDias";
 const SUB = "linhas";
-const BATCH_SIZE = 400;
+const BATCH_SIZE = 100;
+const PAUSA_MS = 350;
 const portalRoot = process.env.PORTAL_ROOT || process.cwd();
 const SNAPSHOT_JSON = path.join(portalRoot, "assets", "data", "incidentes-tcgl.json");
 
@@ -74,13 +75,34 @@ async function inicializarFirestore() {
   return { adminDb: admin.firestore(), FieldValue: admin.firestore.FieldValue };
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function commitBatchComRetry(batch, ops) {
+  if (ops === 0) return;
+  for (let tentativa = 0; tentativa < 8; tentativa++) {
+    try {
+      await batch.commit();
+      await sleep(PAUSA_MS);
+      return;
+    } catch (err) {
+      const msg = String(err?.message || err);
+      if (tentativa >= 7 || !/RESOURCE_EXHAUSTED|quota|429|DEADLINE/i.test(msg)) throw err;
+      const espera = Math.min(30000, 1000 * (2 ** tentativa));
+      console.warn(`Firestore limitado — aguardando ${espera}ms (tentativa ${tentativa + 1})...`);
+      await sleep(espera);
+    }
+  }
+}
+
 async function gravarDiaFirestore(adminDb, FieldValue, dataIso, linhas) {
   let batch = adminDb.batch();
   let ops = 0;
   let total = 0;
   const commitBatch = async () => {
     if (ops === 0) return;
-    await batch.commit();
+    await commitBatchComRetry(batch, ops);
     batch = adminDb.batch();
     ops = 0;
   };
@@ -120,8 +142,11 @@ async function main() {
   const linhas = payload.incidentes || [];
   console.log(`Importando ${linhas.length} incidente(s)...`);
   let total = 0;
+  let dias = 0;
   for (const [dataIso, regs] of agruparPorDia(linhas)) {
+    dias++;
     total += await gravarDiaFirestore(adminDb, FieldValue, dataIso, regs);
+    if (dias % 20 === 0) console.log(`Progresso: ${total} linha(s) em ${dias} dia(s)...`);
   }
   console.log(`Concluído: ${total} linha(s).`);
 }
