@@ -72,6 +72,21 @@ table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="../assets/js/loading.js"></script>
+<script>
+(function(){
+    var base="../assets/data/liberacao/";
+    var d=new Date();
+    var iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    window.__liberacaoPrecargaHojeIso=iso;
+    window.__liberacaoPrecargaHoje=fetch(base+"acompanhamento-dia-"+iso+".json",{cache:"no-store"})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(p){return p&&Array.isArray(p.dados)&&p.dados.length?p:null;})
+        .catch(function(){return null;});
+    window.__liberacaoPrecargaSemana=fetch(base+"acompanhamento-semana.json",{cache:"no-store"})
+        .then(function(r){return r.ok?r.json():null;})
+        .catch(function(){return null;});
+})();
+</script>
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 </head>
@@ -142,14 +157,10 @@ table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
 <footer class="page-footer">Portal CIOP · Relatório Acompanhamento da Liberação · TCGL</footer>
 
 <script type="module">
-import { carregarJanelaLiberacaoFirestore, carregarDiaLiberacaoFirestore, listarDatasIsoJanela } from "../assets/js/liberacao-firestore.js";
+import { carregarDadosLiberacaoPeriodo, normalizarDataIsoRow } from "../assets/js/liberacao-dados-leitura.js";
 import { exportarCsv, exportarExcel, exportarPdf } from "../assets/js/liberacao-relatorio-export.js";
 
-const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const DIAS_JANELA = 7;
-const LIBERACAO_DATA_BASE = "../assets/data/liberacao";
-const LIBERACAO_ACOMPANHAMENTO_URL = LIBERACAO_DATA_BASE + "/acompanhamento-semana.json";
-const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const SAIU_SIM_MIN = -10;
 const SAIU_SIM_MAX = 3;
 const INICIO_NO_HORARIO_MIN = -1;
@@ -188,13 +199,6 @@ function brDate(iso){
     if(!iso) return "—";
     const p=iso.split("-");
     return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:iso;
-}
-function normalizarDataIsoRow(row){
-    if(row?.data_iso) return row.data_iso;
-    const br=String(row?.data||"").trim();
-    const p=br.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if(p) return `${p[3]}-${p[1].padStart(2,"0")}-${p[2].padStart(2,"0")}`;
-    return /^\d{4}-\d{2}-\d{2}$/.test(br)?br:"";
 }
 function val(row,key){
     if(row[key]!=null&&row[key]!=="") return row[key];
@@ -309,116 +313,6 @@ function ordenarLinhas(dados){
         return String(ha).localeCompare(String(hb));
     });
 }
-async function apiGet(params){
-    const url=`${API_URL}?${new URLSearchParams({liberacao:"1",recurso:"acompanhamento",...params,_:String(Date.now())})}`;
-    const res=await fetch(url,{cache:"no-store",redirect:"follow"});
-    const texto=await res.text();
-    let data;
-    try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha."); }
-    if(!data.ok) throw new Error(data.erro||"Erro ao buscar dados.");
-    return data.dados||[];
-}
-async function carregarSnapshotDia(data){
-    if(!data) return [];
-    try{
-        const res=await fetch(`${LIBERACAO_DATA_BASE}/acompanhamento-dia-${data}.json?t=${Date.now()}`,{cache:"no-store"});
-        if(!res.ok) return [];
-        const payload=await res.json();
-        return Array.isArray(payload?.dados)?payload.dados:[];
-    }catch(_){
-        return [];
-    }
-}
-function lerCacheLocal(dataDe,dataAte){
-    try{
-        const raw=localStorage.getItem(CACHE_STORAGE_KEY);
-        if(!raw) return [];
-        const parsed=JSON.parse(raw);
-        if(!Array.isArray(parsed.dados)) return [];
-        return parsed.dados.filter(row=>{
-            const iso=normalizarDataIsoRow(row);
-            return iso&&iso>=dataDe&&iso<=dataAte;
-        });
-    }catch(_){
-        return [];
-    }
-}
-async function carregarDadosJson(dataDe,dataAte){
-    const dias=listarDatasIsoJanela(dataDe,dataAte);
-    const dados=[];
-    for(const dia of dias){
-        const parte=await carregarSnapshotDia(dia);
-        if(parte.length) dados.push(...parte);
-    }
-    if(dados.length) return dados;
-    try{
-        const res=await fetch(`${LIBERACAO_ACOMPANHAMENTO_URL}?t=${Date.now()}`,{cache:"no-store"});
-        if(!res.ok) return [];
-        const payload=await res.json();
-        if(!Array.isArray(payload?.dados)) return [];
-        return payload.dados.filter(row=>{
-            const iso=normalizarDataIsoRow(row);
-            return iso&&iso>=dataDe&&iso<=dataAte;
-        });
-    }catch(_){
-        return [];
-    }
-}
-async function carregarDadosFirestore(dataDe,dataAte){
-    let dados=[];
-    try{
-        const fs=await carregarJanelaLiberacaoFirestore(dataDe,dataAte);
-        if(fs?.dados?.length) dados=fs.dados;
-    }catch(err){
-        console.warn("Firestore janela:",err);
-    }
-    if(!dados.length){
-        const dias=listarDatasIsoJanela(dataDe,dataAte);
-        for(const dia of dias){
-            try{
-                const parte=await carregarDiaLiberacaoFirestore(dia);
-                if(parte?.dados?.length) dados.push(...parte.dados);
-            }catch(err){
-                console.warn("Firestore dia",dia,err);
-            }
-        }
-    }
-    return dados;
-}
-async function carregarDadosApi(dataDe,dataAte){
-    if(dataDe===dataAte){
-        return await apiGet({data:dataDe,limit:"0",vivo:"1"});
-    }
-    return await apiGet({data_de:dataDe,data_ate:dataAte,ultima_semana:"0",vivo:"1"});
-}
-async function carregarDados(dataDe,dataAte){
-    let origem="";
-    let dados=await carregarDadosFirestore(dataDe,dataAte);
-    if(dados.length) origem="Firestore";
-    if(!dados.length){
-        dados=lerCacheLocal(dataDe,dataAte);
-        if(dados.length) origem="cache local";
-    }
-    if(!dados.length){
-        dados=await carregarDadosJson(dataDe,dataAte);
-        if(dados.length) origem="JSON";
-    }
-    if(!dados.length){
-        dados=await carregarDadosApi(dataDe,dataAte);
-        if(dados.length) origem="planilha";
-    }
-    return { dados, origem };
-}
-function metaExportacao(dataDe,dataAte){
-    const agora=new Date().toLocaleString("pt-BR");
-    const periodo=dataDe===dataAte?brDate(dataDe):`${brDate(dataDe)} a ${brDate(dataAte)}`;
-    return {
-        titulo:"Acompanhamento da Liberação",
-        periodo,
-        geradoEm:agora,
-        arquivoBase:`liberacao-${dataDe}${dataAte!==dataDe?"_"+dataAte:""}`
-    };
-}
 async function gerarRelatorio(){
     const dataDe=$("dataDe").value;
     const dataAte=$("dataAte").value;
@@ -430,14 +324,17 @@ async function gerarRelatorio(){
     toggleExport(false);
 
     try{
-        const { dados: bruto, origem }=await carregarDados(dataDe,dataAte);
-        state.bruto=bruto;
-        const filtrados=ordenarLinhas(filtrarLinhas(bruto,dataDe,dataAte));
+        const resultado=await carregarDadosLiberacaoPeriodo(dataDe,dataAte,{
+            onProgress:(msg)=>setStatus(msg,"load")
+        });
+        state.bruto=resultado.dados;
+        const filtrados=ordenarLinhas(filtrarLinhas(resultado.dados,dataDe,dataAte));
         state.linhas=filtrados.map(linhaParaRelatorio);
         renderTabela();
-        const origemTxt=origem?` · ${origem}`:"";
+        const origemTxt=resultado.origem?` · ${resultado.origem}`:"";
         if(!state.linhas.length){
-            setStatus(`Nenhum registro entre ${brDate(dataDe)} e ${brDate(dataAte)}.`,"erro");
+            const debug=resultado.tentativas?.length?` (${resultado.tentativas.join(" · ")})`:"";
+            setStatus(`Nenhum registro entre ${brDate(dataDe)} e ${brDate(dataAte)}.${debug}`,"erro");
         }else{
             setStatus(`${state.linhas.length.toLocaleString("pt-BR")} registro(s) · ${brDate(dataDe)} a ${brDate(dataAte)}${origemTxt}`,"ok");
         }
@@ -449,6 +346,16 @@ async function gerarRelatorio(){
     }finally{
         window.portalOcultarCarregando?.();
     }
+}
+function metaExportacao(dataDe,dataAte){
+    const agora=new Date().toLocaleString("pt-BR");
+    const periodo=dataDe===dataAte?brDate(dataDe):`${brDate(dataDe)} a ${brDate(dataAte)}`;
+    return {
+        titulo:"Acompanhamento da Liberação",
+        periodo,
+        geradoEm:agora,
+        arquivoBase:`liberacao-${dataDe}${dataAte!==dataDe?"_"+dataAte:""}`
+    };
 }
 function exportar(tipo){
     if(!state.linhas.length) return;
