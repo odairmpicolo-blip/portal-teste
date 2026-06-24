@@ -25,13 +25,15 @@ jobs:
 
       - name: Importar autuações
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ runner.temp }}/firebase-sa.json
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_SA_PATH: ${{ runner.temp }}/firebase-sa.json
           PORTAL_JSON_TIMEOUT_MS: 180000
           AUTUACOES_IMPORT_JANELA: 14
         run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+          if [ -z "${FIREBASE_SERVICE_ACCOUNT_JSON}" ]; then
             echo "Configure o secret FIREBASE_SERVICE_ACCOUNT."
             exit 1
           fi
-          printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "${FIREBASE_SERVICE_ACCOUNT_JSON}" > "${FIREBASE_SA_PATH}"
+          export FIREBASE_SERVICE_ACCOUNT="${FIREBASE_SA_PATH}"
           npm run import-autuacoes-firestore
