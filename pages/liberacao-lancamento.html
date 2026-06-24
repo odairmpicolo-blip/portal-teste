@@ -180,7 +180,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Dados do Firestore (1 semana) · save na planilha · JSON/planilha como fallback</div>
+                <div class="table-sub">Firestore em tempo real · save na planilha + sync Firestore · JSON/planilha como fallback</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -207,7 +207,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 <footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
 
 <script type="module">
-import { carregarJanelaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
+import { carregarJanelaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
 
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_EXIBICAO = [
@@ -258,6 +258,7 @@ const DIAS_JANELA = 7;
 const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const LIBERACAO_MODO_JSON_HIBRIDO = true;
 const LIBERACAO_USAR_FIRESTORE = true;
+const LIBERACAO_TEMPO_REAL = true;
 const INTERVALO_SYNC_PLANILHA_MS = 3000;
 const INTERVALO_SYNC_JSON_MS = 30000;
 const INTERVALO_SYNC_JITTER_MS = 500;
@@ -278,6 +279,9 @@ let overlayAberturaAtivo = false;
 let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
+let liberacaoFirestoreUnsub = null;
+let meuEmailLiberacao = "";
+const ultimoSaveFirestorePorRow = {};
 const state = {
     colunas: COLUNAS_EXIBICAO,
     semana: [],
@@ -887,6 +891,11 @@ async function salvarLinha(i){
     });
     try{
         await apiPost(payload);
+        if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_TEMPO_REAL&&meuEmailLiberacao){
+            salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao)
+                .then(()=>{ultimoSaveFirestorePorRow[String(row._row)]=Date.now();})
+                .catch(err=>console.warn("Firestore save:",err));
+        }
         row._dirty=false;
         row._syncErro=false;
         const idxSem=state.semana.findIndex(r=>r._row===row._row);
@@ -1403,6 +1412,69 @@ function iniciarPollingHoje(){
     });
 }
 
+function deveIgnorarEcoFirestore(linha){
+    const id=String(linha?._row||"");
+    const por=String(linha?.atualizadoPor||"").toLowerCase();
+    if(!por||por!==meuEmailLiberacao) return false;
+    return Date.now()-(ultimoSaveFirestorePorRow[id]||0)<4000;
+}
+
+function aplicarLinhaFirestoreRemota(rowRemota){
+    if(!rowRemota?._row) return;
+    const dataIso=normalizarDataIsoRow(rowRemota);
+    const rowId=String(rowRemota._row);
+    const idxSem=state.semana.findIndex(r=>String(r._row)===rowId);
+    if(idxSem>=0){
+        if(state.semana[idxSem]._dirty) return;
+        state.semana[idxSem]=mesclarLinhaLiberacao(state.semana[idxSem],rowRemota);
+    }else{
+        state.semana.push(Object.assign({},rowRemota));
+    }
+    if(state.semanaDataDe&&state.semanaDataAte){
+        salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
+    }
+
+    const dataFiltro=$("dataFiltro").value;
+    if(dataIso!==dataFiltro) return;
+
+    const maquina=$("maquinaFiltro").value;
+    if(maquina&&normalizarMaquina(rowRemota.maquina)!==normalizarMaquina(maquina)) return;
+
+    const idx=state.dados.findIndex(r=>String(r._row)===rowId);
+    if(idx<0) return;
+    if(state.dados[idx]._dirty||state.saving[idx]) return;
+
+    const mesclada=mesclarLinhaLiberacao(state.dados[idx],rowRemota);
+    aplicarFormulasLinha(mesclada);
+    state.dados[idx]=mesclada;
+    const idxTodos=state.todos.findIndex(r=>String(r._row)===rowId);
+    if(idxTodos>=0&&!state.todos[idxTodos]._dirty) state.todos[idxTodos]=mesclada;
+    atualizarLinhaPosSalvar(idx);
+    const agora=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    setStatus(formatNumber(state.dados.length)+" registro(s) · "+rotuloData(dataFiltro)+" · tempo real · "+agora,"ok");
+}
+
+function pararListenerFirestore(){
+    if(liberacaoFirestoreUnsub){
+        liberacaoFirestoreUnsub();
+        liberacaoFirestoreUnsub=null;
+    }
+}
+
+function iniciarListenerFirestore(){
+    if(!LIBERACAO_USAR_FIRESTORE||!LIBERACAO_TEMPO_REAL) return;
+    pararListenerFirestore();
+    const {dataDe,amanha}=intervaloJanela();
+    liberacaoFirestoreUnsub=observarJanelaLiberacaoFirestore(dataDe,amanha,{
+        onLinha:(evt)=>{
+            if(evt.tipo==="removed") return;
+            if(deveIgnorarEcoFirestore(evt.linha)) return;
+            aplicarLinhaFirestoreRemota(evt.linha);
+        },
+        onErro:(err)=>console.warn("Listener Firestore liberação:",err)
+    });
+}
+
 async function carregarSemanaFirestore(dataDe,dataAte,data){
     if(!LIBERACAO_USAR_FIRESTORE) return null;
     try{
@@ -1452,6 +1524,7 @@ async function iniciar(){
     initEventosTabela();
     configurarLimitesFiltroData();
     definirDataFiltroHoje();
+    meuEmailLiberacao=String(window.portalUsuario?.email||"").toLowerCase();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
     await aplicarPrecargaInicial();
     if(state.dados.length){
@@ -1465,6 +1538,7 @@ async function iniciar(){
         encerrarOverlayAbertura();
     });
     iniciarPollingHoje();
+    iniciarListenerFirestore();
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", ()=>{iniciar();}, { once: true });

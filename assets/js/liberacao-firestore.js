@@ -4,6 +4,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   serverTimestamp,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -48,6 +49,41 @@ export function listarDatasIsoJanela(dataDe, dataAte) {
   return out;
 }
 
+function docParaLinha(item, dataIso) {
+  return sanitizarLinha(Object.assign({ _row: item.id }, item.data()), dataIso);
+}
+
+export function observarJanelaLiberacaoFirestore(dataDe, dataAte, { onLinha, onErro } = {}) {
+  const dias = listarDatasIsoJanela(dataDe, dataAte);
+  if (!dias.length) return () => {};
+
+  const primos = new Map();
+  const unsubs = dias.map((dataIso) => {
+    primos.set(dataIso, true);
+    const linhasRef = collection(db, COLECAO_LIBERACAO_DIAS, dataIso, SUBCOLECAO_LINHAS);
+    return onSnapshot(
+      linhasRef,
+      (snap) => {
+        if (primos.get(dataIso)) {
+          primos.set(dataIso, false);
+          return;
+        }
+        snap.docChanges().forEach((change) => {
+          if (change.type === "removed") {
+            onLinha?.({ tipo: "removed", dataIso, rowId: change.doc.id });
+            return;
+          }
+          const linha = docParaLinha(change.doc, dataIso);
+          if (linha) onLinha?.({ tipo: change.type, dataIso, linha });
+        });
+      },
+      (err) => onErro?.(err)
+    );
+  });
+
+  return () => unsubs.forEach((fn) => fn());
+}
+
 export async function carregarDiaLiberacaoFirestore(dataIso) {
   if (!dataIso) return null;
   const diaRef = doc(db, COLECAO_LIBERACAO_DIAS, dataIso);
@@ -57,7 +93,7 @@ export async function carregarDiaLiberacaoFirestore(dataIso) {
 
   const dados = [];
   linhasSnap.forEach((item) => {
-    const linha = sanitizarLinha(Object.assign({ _row: item.id }, item.data()), dataIso);
+    const linha = docParaLinha(item, dataIso);
     if (linha) dados.push(linha);
   });
   if (!dados.length) return null;
@@ -99,7 +135,7 @@ export async function carregarJanelaLiberacaoFirestore(dataDe, dataAte) {
   };
 }
 
-/** Reservado para Fase 2 — save direto no Firestore. */
+/** Save no Firestore para tempo real entre usuários (planilha continua como persistência principal). */
 export async function salvarLinhaLiberacaoFirestore(row, email) {
   const dataIso = normalizarDataIsoRow(row);
   const id = String(row?._row || "").trim();
