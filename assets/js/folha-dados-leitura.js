@@ -2,6 +2,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 import { app } from "./portal-firestore.js";
 import {
   carregarDiaFolhaFirestore,
+  carregarHistoricoFolhaFirestore,
   carregarJanelaFolhaFirestore,
   listarDatasIsoJanela,
   normalizarDataIsoRow
@@ -106,6 +107,34 @@ async function carregarDadosFirestore(dataDe, dataAte) {
   return filtrarPeriodo(dados, dataDe, dataAte);
 }
 
+async function carregarHistoricoFirestore(onProgress) {
+  await aguardarAuthFirestore();
+  const res = await carregarHistoricoFolhaFirestore({ onProgress });
+  return res?.dados || [];
+}
+
+async function complementarPlanilha(dados, dataDe, dataAte, onProgress) {
+  const tentativas = [];
+  const origens = [];
+  const janelaPlanilha = janelaPlanilhaRecente(dataDe, dataAte);
+  const buscarPlanilha = !dados.length || janelaPlanilha;
+  if (!buscarPlanilha) return { dados, origens, tentativas };
+
+  const alvo = janelaPlanilha || { de: dataDe, ate: dataAte };
+  onProgress?.("Complementando com planilha...");
+  try {
+    const planilha = await withTimeout(carregarDadosApi(alvo.de, alvo.ate), 120000);
+    tentativas.push(`planilha: ${planilha.length}`);
+    if (planilha.length) {
+      dados = mesclarLinhas([dados, filtrarPeriodo(planilha, dataDe, dataAte)]);
+      origens.push("planilha");
+    }
+  } catch (err) {
+    tentativas.push(`planilha: ${err.message === "timeout" ? "timeout" : "erro"}`);
+  }
+  return { dados, origens, tentativas };
+}
+
 async function apiGet(params) {
   const url = `${FOLHA_API_URL}?${new URLSearchParams({ ...params, _: String(Date.now()) })}`;
   const res = await fetch(url, { cache: "no-store", redirect: "follow" });
@@ -151,25 +180,43 @@ export async function carregarDadosFolhaPeriodo(dataDe, dataAte, { onProgress } 
   if (firestore.length) origens.push("Firestore");
   if (json.length) origens.push("JSON");
 
-  const janelaPlanilha = janelaPlanilhaRecente(dataDe, dataAte);
-  const buscarPlanilha = !dados.length || janelaPlanilha;
-  if (buscarPlanilha) {
-    const alvo = janelaPlanilha || { de: dataDe, ate: dataAte };
-    onProgress?.("Complementando com planilha...");
-    try {
-      const planilha = await withTimeout(carregarDadosApi(alvo.de, alvo.ate), 120000);
-      tentativas.push(`planilha: ${planilha.length}`);
-      if (planilha.length) {
-        dados = mesclarLinhas([
-          dados,
-          filtrarPeriodo(planilha, dataDe, dataAte)
-        ]);
-        origens.push("planilha");
-      }
-    } catch (err) {
-      tentativas.push(`planilha: ${err.message === "timeout" ? "timeout" : "erro"}`);
-    }
-  }
+  const complemento = await complementarPlanilha(dados, dataDe, dataAte, onProgress);
+  dados = complemento.dados;
+  tentativas.push(...complemento.tentativas);
+  complemento.origens.forEach((o) => { if (!origens.includes(o)) origens.push(o); });
+
+  return {
+    dados,
+    origem: origens.join(" · ") || "",
+    tentativas
+  };
+}
+
+/** Histórico completo para o dashboard (Firestore → JSON → planilha). */
+export async function carregarDadosFolhaDashboard({ onProgress } = {}) {
+  const hoje = isoDataLocal(0);
+  const inicio = "2020-01-01";
+  onProgress?.("Consultando Firestore e JSON...");
+  const [fsRes, jsonRes] = await Promise.allSettled([
+    withTimeout(carregarHistoricoFirestore(onProgress), 90000),
+    withTimeout(carregarJsonTodos(inicio, hoje), 25000)
+  ]);
+
+  const firestore = fsRes.status === "fulfilled" ? fsRes.value : [];
+  const json = jsonRes.status === "fulfilled" ? jsonRes.value : [];
+  const tentativas = [
+    `Firestore: ${firestore.length}`,
+    `JSON: ${json.length}`
+  ];
+  const origens = [];
+  if (firestore.length) origens.push("Firestore");
+  if (json.length) origens.push("JSON");
+
+  let dados = mesclarLinhas([json, firestore]);
+  const complemento = await complementarPlanilha(dados, inicio, hoje, onProgress);
+  dados = complemento.dados;
+  tentativas.push(...complemento.tentativas);
+  complemento.origens.forEach((o) => { if (!origens.includes(o)) origens.push(o); });
 
   return {
     dados,

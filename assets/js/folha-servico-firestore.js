@@ -100,6 +100,40 @@ export async function carregarJanelaFolhaFirestore(dataDe, dataAte) {
   };
 }
 
+/** Carrega todo o histórico shardado por dia (somente leitura). */
+export async function carregarHistoricoFolhaFirestore({ onProgress } = {}) {
+  const diasSnap = await getDocs(collection(db, COLECAO_FOLHA_DIAS));
+  if (diasSnap.empty) return { dados: [], total: 0, diasComDados: 0, origem: "firestore" };
+
+  const dados = [];
+  const docs = diasSnap.docs.sort((a, b) => a.id.localeCompare(b.id));
+  const LOTE = 25;
+
+  for (let i = 0; i < docs.length; i += LOTE) {
+    onProgress?.(`Firestore: ${Math.min(i + LOTE, docs.length)}/${docs.length} dias`);
+    const chunk = docs.slice(i, i + LOTE);
+    const partes = await Promise.all(
+      chunk.map((diaDoc) => getDocs(collection(diaDoc.ref, SUBCOLECAO_LINHAS)).catch(() => null))
+    );
+    partes.forEach((linhasSnap, idx) => {
+      if (!linhasSnap) return;
+      const dataIso = chunk[idx].id;
+      linhasSnap.forEach((item) => {
+        const linha = docParaLinha(item, dataIso);
+        if (linha) dados.push(linha);
+      });
+    });
+  }
+
+  return {
+    ok: dados.length > 0,
+    dados,
+    total: dados.length,
+    diasComDados: docs.length,
+    origem: "firestore"
+  };
+}
+
 export async function salvarLinhaFolhaFirestore(row, email) {
   const dataIso = normalizarDataIsoRow(row);
   const id = String(row?._row || "").trim();
