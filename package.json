@@ -6,13 +6,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "atualizar-terminais-planilha": "node scripts/atualizar-terminais-planilha.mjs",
-    "import-terminais-firestore": "node scripts/importar-terminais-firestore.mjs",
-    "import-incidentes-firestore": "node scripts/importar-incidentes-firestore.mjs",
-    "import-autuacoes-firestore": "node scripts/importar-autuacoes-firestore.mjs",
-    "import-folha-servico-firestore": "node scripts/importar-folha-servico-firestore.mjs",
-    "import-pontualidade-firestore": "node scripts/importar-pontualidade-firestore.mjs",
-    "import-liberacao-firestore": "node scripts/importar-liberacao-firestore.mjs",
-    "import-firestore-dsql": "cd backend && npm run import:firestore-dsql",
     "import-planilha-dsql": "cd backend && npm run import:planilha-dsql --"
   },
   "repository": {
