@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "import-liberacao-firestore": "node scripts/importar-liberacao-firestore.mjs",
-    "import-folha-servico-firestore": "node scripts/importar-folha-servico-firestore.mjs"
+    "import-folha-servico-firestore": "node scripts/importar-folha-servico-firestore.mjs",
+    "import-autuacoes-firestore": "node scripts/importar-autuacoes-firestore.mjs"
   },
   "repository": {
     "type": "git",

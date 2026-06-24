@@ -1,4 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
+const AUTUACOES_USAR_FIRESTORE = true;
 const AUTUACOES_DATA_BASE = "../assets/data/autuacoes";
 const AUTUACOES_MANIFEST_URL = AUTUACOES_DATA_BASE + "/manifest.json";
 const AUTUACOES_SNAPSHOT_URL = AUTUACOES_DATA_BASE + "/dados.json";
@@ -985,46 +986,46 @@ function init() {
 
 async function loadData() {
     const cacheLocal = lerCacheAutuacoesLocal();
-    let mostrouDados = false;
-
-    const snapshot = await carregarSnapshotAutuacoes();
-    if (snapshot?.rows?.length) {
-        DATA = snapshot.rows;
-        init();
-        salvarCacheAutuacoesLocal(snapshot.payload);
-        console.info("Autuações carregadas: arquivo JSON", DATA.length);
-        mostrouDados = true;
-    } else if (cacheLocal) {
-        aplicarPayloadAutuacoes(cacheLocal, "cache local");
-        mostrouDados = true;
-    }
-
-    if (!API_URL) {
-        if (!mostrouDados) init();
-        return;
-    }
-
-    if (!mostrouDados) {
-        window.portalMostrarCarregando?.("Carregando autuações");
-    }
+    window.portalMostrarCarregando?.("Carregando autuações");
 
     try {
-        const recentes = await sincronizarAutuacoesRecentes();
-        if (recentes.length) {
-            if (mostrouDados) {
-                DATA = mesclarAutuacoes(DATA, recentes);
+        if (AUTUACOES_USAR_FIRESTORE) {
+            const mod = await import("./autuacoes-dados-leitura.js?v=20260624");
+            const res = await mod.carregarDadosAutuacoes({
+                onProgress: (msg) => window.portalMostrarCarregando?.(msg)
+            });
+            if (res.dados?.length) {
+                DATA = normalizeRows(res.dados);
                 init();
-                salvarCacheAutuacoesLocal({ status: "ok", data: DATA, data_de: snapshot?.payload?.data_de, data_ate: snapshot?.payload?.data_ate });
-                console.info("Autuações atualizadas: JSON + recentes", DATA.length);
-            } else {
-                const response = await fetch(montarUrlAutuacoes(), { cache: "no-store" });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const payload = await response.json();
-                if (payload.status === "error") throw new Error(payload.message || "Erro na API");
+                const payload = res.payload || { status: "ok", data: DATA, total: DATA.length };
                 salvarCacheAutuacoesLocal(payload);
-                aplicarPayloadAutuacoes(payload, payload.cache ? "servidor (cache)" : "planilha");
+                console.info("Autuações carregadas:", res.origem || "Firestore/JSON/planilha", DATA.length, res.tentativas?.join(" · "));
+                return;
             }
-        } else if (!mostrouDados) {
+        }
+
+        const snapshot = await carregarSnapshotAutuacoes();
+        if (snapshot?.rows?.length) {
+            DATA = snapshot.rows;
+            init();
+            salvarCacheAutuacoesLocal(snapshot.payload);
+            console.info("Autuações carregadas: arquivo JSON", DATA.length);
+        } else if (cacheLocal) {
+            aplicarPayloadAutuacoes(cacheLocal, "cache local");
+        }
+
+        if (!API_URL) {
+            if (!DATA.length) init();
+            return;
+        }
+
+        const recentes = await sincronizarAutuacoesRecentes();
+        if (recentes.length && DATA.length) {
+            DATA = mesclarAutuacoes(DATA, recentes);
+            init();
+            salvarCacheAutuacoesLocal({ status: "ok", data: DATA });
+            console.info("Autuações atualizadas: JSON + recentes", DATA.length);
+        } else if (!DATA.length) {
             const response = await fetch(montarUrlAutuacoes(), { cache: "no-store" });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
@@ -1032,15 +1033,13 @@ async function loadData() {
             salvarCacheAutuacoesLocal(payload);
             aplicarPayloadAutuacoes(payload, payload.cache ? "servidor (cache)" : "planilha");
         }
-        if (!DATA.length) {
-            console.warn("Autuações retornou vazio.");
-        }
+        if (!DATA.length) console.warn("Autuações retornou vazio.");
     } catch (error) {
-        console.error("Erro ao carregar dados do Google Sheets:", error);
-        if (!mostrouDados) {
+        console.error("Erro ao carregar autuações:", error);
+        if (!DATA.length) {
             const tbody = byId("tableBody");
             if (tbody) {
-                tbody.innerHTML = `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Não foi possível carregar as autuações. Confira se o Apps Script está publicado. (${escapeHtml(error.message)})</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${TABLE_COLUMNS.length}" class="no-data">Não foi possível carregar as autuações. (${escapeHtml(error.message)})</td></tr>`;
             }
             init();
         }
