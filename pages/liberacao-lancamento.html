@@ -209,7 +209,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 <footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
 
 <script type="module">
-import { carregarJanelaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore, marcarSyncPlanilhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
+import { carregarJanelaLiberacaoFirestore, carregarDiaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore, marcarSyncPlanilhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
 
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_EXIBICAO = [
@@ -284,6 +284,7 @@ let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
 let liberacaoFirestoreUnsub = null;
+let semanaFirestoreBackground = null;
 let meuEmailLiberacao = "";
 const ultimoSaveFirestorePorRow = {};
 const filaSyncPlanilha = [];
@@ -1078,11 +1079,10 @@ function aplicarFiltroData(data,origem){
     aplicarFiltroMaquina();
     const agora=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     const texto=formatNumber(state.dados.length)+" registro(s) · "+rotuloData(data)+" · "+origem+" · "+agora;
-    requestAnimationFrame(()=>{
-        renderTabela();
-        setStatus(texto,"ok");
-        if(state.dados.length>0) encerrarOverlayAbertura();
-    });
+    renderTabela();
+    setStatus(texto,"ok");
+    if(state.dados.length>0) encerrarOverlayAbertura();
+    else if(!carregamentoInicial) $("emptyState").hidden=false;
 }
 
 async function carregarManifestLiberacao(){
@@ -1377,9 +1377,9 @@ async function iniciarCarregamento(forceRefresh=false){
         }
 
         if(!state.dados.length){
-            const fs=await carregarSemanaFirestore(dataDe,amanha,data);
-            if(fs?.dados?.length){
-                complementarSemanaCarregada({dados:fs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · semana"},data);
+            if(await carregarFirestoreRapido(data,dataDe,amanha)){
+                finalizarCarregamentoInicial(true);
+                return;
             }
         }
 
@@ -1413,6 +1413,16 @@ async function iniciarCarregamento(forceRefresh=false){
     }
 
     if(ehDiaAtual(data)){
+        if(state.dados.length){
+            finalizarCarregamentoInicial(true);
+            return;
+        }
+        if(LIBERACAO_FASE2){
+            encerrarOverlayAbertura();
+            setStatus("Sem dados no Firestore/JSON. Use Atualizar para buscar a planilha.","erro");
+            finalizarCarregamentoInicial(false);
+            return;
+        }
         try{
             atualizarOverlayOperacao("Buscando lançamentos na planilha...");
             const dadosPlanilha=await obterPlanilhaHoje(true,false);
@@ -1492,12 +1502,20 @@ async function carregar(forceRefresh=false){
     await iniciarCarregamento(forceRefresh);
 }
 
-$("dataFiltro").addEventListener("change",()=>{
+$("dataFiltro").addEventListener("change",async ()=>{
     const data=$("dataFiltro").value;
     const {dataDe,amanha}=intervaloJanela();
     if(state.semana.length&&state.semanaDataDe===dataDe&&state.semanaDataAte===amanha&&dataDentroDaJanela(data,dataDe,amanha)){
-        aplicarFiltroData(data,"memória");
-        return;
+        const temDia=state.semana.some(r=>normalizarDataIsoRow(r)===data);
+        if(temDia){
+            aplicarFiltroData(data,"memória");
+            return;
+        }
+        const diaFs=await carregarDiaFirestore(data);
+        if(diaFs?.dados?.length){
+            complementarSemanaCarregada({dados:diaFs.dados,dataDe:data,dataAte:data,rotulo:"Firestore · dia"},data);
+            return;
+        }
     }
     carregar().catch(e=>setStatus(e.message,"erro"));
 });
@@ -1578,6 +1596,37 @@ function iniciarListenerFirestore(){
     });
 }
 
+async function carregarDiaFirestore(data){
+    if(!LIBERACAO_USAR_FIRESTORE||!data) return null;
+    try{
+        return await carregarDiaLiberacaoFirestore(data);
+    }catch(err){
+        console.warn("Firestore dia indisponível:",err);
+        return null;
+    }
+}
+
+function complementarSemanaFirestoreBackground(dataDe,dataAte,data){
+    if(!LIBERACAO_USAR_FIRESTORE||semanaFirestoreBackground) return;
+    semanaFirestoreBackground=carregarJanelaLiberacaoFirestore(dataDe,dataAte)
+        .then(res=>{
+            if(res?.dados?.length){
+                complementarSemanaCarregada({dados:res.dados,dataDe,dataAte,rotulo:"Firestore · semana"},data||$("dataFiltro").value);
+            }
+        })
+        .catch(err=>console.warn("Firestore semana (background):",err))
+        .finally(()=>{semanaFirestoreBackground=null;});
+}
+
+async function carregarFirestoreRapido(data,dataDe,dataAte){
+    if(!LIBERACAO_USAR_FIRESTORE) return false;
+    const dia=await carregarDiaFirestore(data);
+    if(!dia?.dados?.length) return false;
+    complementarSemanaCarregada({dados:dia.dados,dataDe:data,dataAte:data,rotulo:"Firestore · dia"},data);
+    complementarSemanaFirestoreBackground(dataDe,dataAte,data);
+    return true;
+}
+
 async function carregarSemanaFirestore(dataDe,dataAte,data){
     if(!LIBERACAO_USAR_FIRESTORE) return null;
     try{
@@ -1594,16 +1643,10 @@ async function aplicarPrecargaInicial(){
     const data=$("dataFiltro").value||isoHoje();
     const {dataDe,amanha}=intervaloJanela();
 
-    if(LIBERACAO_USAR_FIRESTORE){
-        const fs=await carregarSemanaFirestore(dataDe,amanha,data);
-        if(fs?.dados?.length){
-            complementarSemanaCarregada({dados:fs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · semana"},data);
-            return;
-        }
-    }
-
     aplicarCacheLocalLiberacao();
     if(state.dados.length) return;
+
+    if(await carregarFirestoreRapido(data,dataDe,amanha)) return;
 
     const snapDia=await (obterPrecargaHoje()||carregarSnapshotDia(data)).catch(()=>null);
     if(snapDia?.dados?.length){
@@ -1634,12 +1677,9 @@ async function iniciar(){
         finalizarCarregamentoInicial(true);
     }else{
         iniciarOverlayAbertura();
+        await iniciarCarregamento(false);
     }
-    if(ehDiaAtual($("dataFiltro").value)) complementarPlanilhaBackground("planilha · hoje");
-    iniciarCarregamento().catch(e=>{
-        setStatus(e.message,"erro");
-        encerrarOverlayAbertura();
-    });
+    if(ehDiaAtual($("dataFiltro").value)&&!LIBERACAO_FASE2) complementarPlanilhaBackground("planilha · hoje");
     iniciarPollingHoje();
     iniciarListenerFirestore();
     reprocessarSyncPlanilhaPendentes();
