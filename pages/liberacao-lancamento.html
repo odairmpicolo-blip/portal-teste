@@ -180,7 +180,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Dados do JSON (API) · colunas de lançamento sempre editáveis · JSON atualiza a cada 3 s · botão Atualizar = planilha ao vivo</div>
+                <div class="table-sub">Dados do Firestore (1 semana) · save na planilha · JSON/planilha como fallback</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -206,7 +206,9 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 
 <footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
 
-<script>
+<script type="module">
+import { carregarJanelaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
+
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_EXIBICAO = [
     { chave: "data", rotulo: "DATA", largura: 76 },
@@ -255,6 +257,7 @@ const CAMPOS_HORA = new Set(["horario_saida_da_garagem","horario_de_inicio","sai
 const DIAS_JANELA = 7;
 const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const LIBERACAO_MODO_JSON_HIBRIDO = true;
+const LIBERACAO_USAR_FIRESTORE = true;
 const INTERVALO_SYNC_PLANILHA_MS = 3000;
 const INTERVALO_SYNC_JSON_MS = 30000;
 const INTERVALO_SYNC_JITTER_MS = 500;
@@ -1262,6 +1265,18 @@ async function iniciarCarregamento(forceRefresh=false){
             complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},data);
         }
 
+        if(!state.dados.length){
+            const fs=await carregarSemanaFirestore(dataDe,amanha,data);
+            if(fs?.dados?.length){
+                complementarSemanaCarregada({dados:fs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · semana"},data);
+            }
+        }
+
+        if(state.dados.length){
+            finalizarCarregamentoInicial(true);
+            return;
+        }
+
         if(!state.dados.length) atualizarOverlayOperacao("Carregando lançamentos...");
         const snapDia=await carregarSnapshotDia(dataDia);
         if(snapDia?.dados?.length){
@@ -1388,8 +1403,30 @@ function iniciarPollingHoje(){
     });
 }
 
+async function carregarSemanaFirestore(dataDe,dataAte,data){
+    if(!LIBERACAO_USAR_FIRESTORE) return null;
+    try{
+        const res=await carregarJanelaLiberacaoFirestore(dataDe,dataAte);
+        if(!res?.dados?.length) return null;
+        return res;
+    }catch(err){
+        console.warn("Firestore liberação indisponível:",err);
+        return null;
+    }
+}
+
 async function aplicarPrecargaInicial(){
     const data=$("dataFiltro").value||isoHoje();
+    const {dataDe,amanha}=intervaloJanela();
+
+    if(LIBERACAO_USAR_FIRESTORE){
+        const fs=await carregarSemanaFirestore(dataDe,amanha,data);
+        if(fs?.dados?.length){
+            complementarSemanaCarregada({dados:fs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · semana"},data);
+            return;
+        }
+    }
+
     aplicarCacheLocalLiberacao();
     if(state.dados.length) return;
 
@@ -1399,7 +1436,6 @@ async function aplicarPrecargaInicial(){
         return;
     }
 
-    const {dataDe,amanha}=intervaloJanela();
     const snapSem=await (obterPrecargaSemana()||null);
     if(snapSem?.dados?.length&&snapshotCobreData(snapSem,data)){
         const intervalo=metaSnapshot(snapSem);

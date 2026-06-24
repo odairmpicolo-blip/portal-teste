@@ -33,6 +33,25 @@ service cloud.firestore {
       return lista is list && perfilAtual() in lista;
     }
 
+    function perfilLiberacao() {
+      return signedIn() && (
+        bootstrapGestor() ||
+        perfilAtual() in ['Administrador', 'Supervisor', 'Analista']
+      );
+    }
+
+    match /liberacaoDias/{dataIso} {
+      allow read: if perfilLiberacao();
+      allow create, update: if false;
+      allow delete: if gestor();
+
+      match /linhas/{linhaId} {
+        allow read: if perfilLiberacao();
+        allow create, update: if false;
+        allow delete: if gestor();
+      }
+    }
+
     match /avisos/{avisoId} {
       allow read: if signedIn() && (
         podePostarAviso() ||
