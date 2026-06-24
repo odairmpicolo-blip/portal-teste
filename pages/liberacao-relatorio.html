@@ -78,12 +78,18 @@ table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
     var d=new Date();
     var iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     window.__liberacaoPrecargaHojeIso=iso;
-    window.__liberacaoPrecargaHoje=fetch(base+"acompanhamento-dia-"+iso+".json",{cache:"no-store"})
-        .then(function(r){return r.ok?r.json():null;})
-        .then(function(p){return p&&Array.isArray(p.dados)&&p.dados.length?p:null;})
-        .catch(function(){return null;});
     window.__liberacaoPrecargaSemana=fetch(base+"acompanhamento-semana.json",{cache:"no-store"})
         .then(function(r){return r.ok?r.json():null;})
+        .catch(function(){return null;});
+    window.__liberacaoPrecargaHoje=fetch(base+"manifest.json",{cache:"no-store"})
+        .then(function(r){return r.ok?r.json():null;})
+        .then(function(m){
+            var arquivo=m&&m.dias&&m.dias[iso];
+            if(!arquivo) return null;
+            return fetch(base+arquivo,{cache:"no-store"})
+                .then(function(r){return r.ok?r.json():null;})
+                .then(function(p){return p&&Array.isArray(p.dados)&&p.dados.length?p:null;});
+        })
         .catch(function(){return null;});
 })();
 </script>
@@ -157,8 +163,8 @@ table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
 <footer class="page-footer">Portal CIOP · Relatório Acompanhamento da Liberação · TCGL</footer>
 
 <script type="module">
-import { carregarDadosLiberacaoPeriodo, normalizarDataIsoRow } from "../assets/js/liberacao-dados-leitura.js";
-import { exportarCsv, exportarExcel, exportarPdf } from "../assets/js/liberacao-relatorio-export.js";
+import { carregarDadosLiberacaoPeriodo, normalizarDataIsoRow } from "../assets/js/liberacao-dados-leitura.js?v=20260624a";
+import { exportarCsv, exportarExcel, exportarPdf } from "../assets/js/liberacao-relatorio-export.js?v=20260624b";
 
 const DIAS_JANELA = 7;
 const SAIU_SIM_MIN = -10;
