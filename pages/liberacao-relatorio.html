@@ -24,6 +24,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 .toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:14px;flex-wrap:wrap}
 .toolbar-left{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;flex:1;min-width:0}
 .nav-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-icon{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
+.btn-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn-portal,.btn-primary,.btn-secondary,.btn-export{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;text-decoration:none;border-radius:10px;font-size:14px;font-weight:800;padding:8px 14px;border:0;cursor:pointer;font-family:inherit;transition:background .15s,transform .15s}
 .btn-portal,.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.08)}
 .btn-portal:hover,.btn-primary:hover{background:var(--blue2)}
@@ -52,6 +54,13 @@ table.relatorio tbody tr:nth-child(even) td{background:#fafbfd}
 table.relatorio tbody tr:hover td{background:#fff7ed}
 table.relatorio td.col-texto,table.relatorio th.col-texto{text-align:left}
 table.relatorio td.col-formula{color:#1d4ed8;background:#f8fbff;font-weight:700}
+table.relatorio td.cell-div-neg{background:#fef2f2!important;color:#b91c1c!important;font-weight:800}
+table.relatorio td.cell-div-warn{background:#fffbeb!important;color:#b45309!important;font-weight:800}
+table.relatorio td.cell-div-ok{background:#f0fdf4!important;color:#15803d!important;font-weight:700}
+table.relatorio tbody tr:nth-child(even) td.cell-div-neg{background:#fee2e2!important}
+table.relatorio tbody tr:nth-child(even) td.cell-div-warn{background:#fef3c7!important}
+table.relatorio tbody tr:nth-child(even) td.cell-div-ok{background:#dcfce7!important}
+table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
 .empty{padding:48px 24px;text-align:center;color:var(--muted)}
 .empty-title{font-size:16px;font-weight:900;color:var(--blue);margin-bottom:6px}
 .page-footer{padding:14px;text-align:center;color:var(--muted);font-size:11px;font-weight:700;border-top:1px solid var(--border);background:var(--white)}
@@ -89,14 +98,12 @@ table.relatorio td.col-formula{color:#1d4ed8;background:#f8fbff;font-weight:700}
     <div class="toolbar">
         <div class="toolbar-left">
             <div class="nav-actions">
-                <a class="btn-portal" href="../index.html">Portal</a>
-                <a class="btn-secondary" href="relatorios.html">Relatórios</a>
-                <a class="btn-secondary" href="liberacao-lancamento.html">Lançamento</a>
+                <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>Portal</a>
+                <a class="btn-secondary" href="relatorios.html"><span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3Z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h3"/></svg></span>Relatórios</a>
             </div>
             <div class="filters-inline" aria-label="Filtros">
                 <div class="filter-field"><label for="dataDe">Data de</label><input id="dataDe" type="date"></div>
                 <div class="filter-field"><label for="dataAte">Data até</label><input id="dataAte" type="date"></div>
-                <div class="filter-field"><label for="maquinaFiltro">Máquina</label><select id="maquinaFiltro"><option value="">Todas</option></select></div>
             </div>
             <button type="button" class="btn-primary" id="btnGerar">Gerar relatório</button>
         </div>
@@ -140,6 +147,9 @@ import { exportarCsv, exportarExcel, exportarPdf } from "../assets/js/liberacao-
 
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const DIAS_JANELA = 7;
+const LIBERACAO_DATA_BASE = "../assets/data/liberacao";
+const LIBERACAO_ACOMPANHAMENTO_URL = LIBERACAO_DATA_BASE + "/acompanhamento-semana.json";
+const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const SAIU_SIM_MIN = -10;
 const SAIU_SIM_MAX = 3;
 const INICIO_NO_HORARIO_MIN = -1;
@@ -166,15 +176,14 @@ const state = { linhas: [], bruto: [] };
 
 function $(id){ return document.getElementById(id); }
 function escapeHtml(v){ return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-function isoHoje(){
+function isoDataLocal(offsetDias=0){
     const d=new Date();
+    d.setDate(d.getDate()+offsetDias);
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
-function isoDiasAtras(n){
-    const d=new Date();
-    d.setDate(d.getDate()-n);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
+function isoHoje(){ return isoDataLocal(0); }
+function isoAmanha(){ return isoDataLocal(1); }
+function isoDiasAtras(n){ return isoDataLocal(-(n||0)); }
 function brDate(iso){
     if(!iso) return "—";
     const p=iso.split("-");
@@ -224,8 +233,19 @@ function aplicarFormulasLinha(row){
     if(diffInicio!=null) row.inicio_no_horario=situacaoInicioHorario(diffInicio);
     return row;
 }
-function normalizarMaquina(v){
-    return String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+function classesDivergencia(row){
+    const classes={};
+    const snh=String(val(row,"saiu_no_horario")||"").trim().toUpperCase();
+    if(snh==="NÃO") classes.saiu_no_horario="cell-div-neg";
+    else if(snh==="SIM") classes.saiu_no_horario="cell-div-ok";
+    const inh=String(val(row,"inicio_no_horario")||"").trim().toUpperCase();
+    if(inh==="ATRASADO") classes.inicio_no_horario="cell-div-neg";
+    else if(inh==="ADIANTADO") classes.inicio_no_horario="cell-div-warn";
+    else if(inh==="NO HORÁRIO") classes.inicio_no_horario="cell-div-ok";
+    const toc=String(val(row,"trajeto_ocioso_correto")||"").trim().toUpperCase();
+    if(toc==="NÃO") classes.trajeto_ocioso_correto="cell-div-neg";
+    else if(toc==="SIM") classes.trajeto_ocioso_correto="cell-div-ok";
+    return classes;
 }
 function linhaParaRelatorio(row){
     const copia=aplicarFormulasLinha(Object.assign({},row));
@@ -235,7 +255,11 @@ function linhaParaRelatorio(row){
         if(col.chave==="data") out.data=brDate(dataIso);
         else out[col.chave]=String(val(copia,col.chave)||"").trim()||"—";
     });
+    out._classes=classesDivergencia(copia);
     return out;
+}
+function linhasExportacao(){
+    return state.linhas.map(({ _classes, ...rest }) => rest);
 }
 function setStatus(texto,tipo){
     $("statusLine").textContent=texto;
@@ -260,26 +284,21 @@ function renderTabela(){
         return;
     }
     $("emptyState").hidden=true;
-    corpo.innerHTML=state.linhas.map(row=>`<tr>${COLUNAS.map(col=>{
-        const cls=(col.texto?" col-texto":"")+(col.formula?" col-formula":"");
-        return `<td class="${cls.trim()}">${escapeHtml(row[col.chave])}</td>`;
-    }).join("")}</tr>`).join("");
+    corpo.innerHTML=state.linhas.map(row=>{
+        const rowDiv=Object.keys(row._classes||{}).some(k=>row._classes[k]?.includes("div-neg")||row._classes[k]?.includes("div-warn"));
+        return `<tr${rowDiv?' class="row-div"':""}>${COLUNAS.map(col=>{
+            const divCls=row._classes?.[col.chave]||"";
+            const cls=(col.texto?" col-texto":"")+(col.formula?" col-formula":"")+(divCls?` ${divCls}`:"");
+            return `<td class="${cls.trim()}">${escapeHtml(row[col.chave])}</td>`;
+        }).join("")}</tr>`;
+    }).join("");
     $("tableInfo").textContent=`${state.linhas.length.toLocaleString("pt-BR")} linha(s)`;
     toggleExport(true);
 }
-function popularMaquinas(dados){
-    const sel=$("maquinaFiltro");
-    const prev=sel.value;
-    const items=[...new Set(dados.map(r=>String(r.maquina||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
-    sel.innerHTML='<option value="">Todas</option>'+items.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
-    if(items.includes(prev)) sel.value=prev;
-}
-function filtrarLinhas(dados,dataDe,dataAte,maquina){
+function filtrarLinhas(dados,dataDe,dataAte){
     return dados.filter(row=>{
         const iso=normalizarDataIsoRow(row);
-        if(!iso||iso<dataDe||iso>dataAte) return false;
-        if(maquina&&normalizarMaquina(row.maquina)!==normalizarMaquina(maquina)) return false;
-        return true;
+        return iso&&iso>=dataDe&&iso<=dataAte;
     });
 }
 function ordenarLinhas(dados){
@@ -292,18 +311,66 @@ function ordenarLinhas(dados){
 }
 async function apiGet(params){
     const url=`${API_URL}?${new URLSearchParams({liberacao:"1",recurso:"acompanhamento",...params,_:String(Date.now())})}`;
-    const res=await fetch(url);
-    const data=await res.json();
+    const res=await fetch(url,{cache:"no-store",redirect:"follow"});
+    const texto=await res.text();
+    let data;
+    try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha."); }
     if(!data.ok) throw new Error(data.erro||"Erro ao buscar dados.");
     return data.dados||[];
 }
-async function carregarDados(dataDe,dataAte){
+async function carregarSnapshotDia(data){
+    if(!data) return [];
+    try{
+        const res=await fetch(`${LIBERACAO_DATA_BASE}/acompanhamento-dia-${data}.json?t=${Date.now()}`,{cache:"no-store"});
+        if(!res.ok) return [];
+        const payload=await res.json();
+        return Array.isArray(payload?.dados)?payload.dados:[];
+    }catch(_){
+        return [];
+    }
+}
+function lerCacheLocal(dataDe,dataAte){
+    try{
+        const raw=localStorage.getItem(CACHE_STORAGE_KEY);
+        if(!raw) return [];
+        const parsed=JSON.parse(raw);
+        if(!Array.isArray(parsed.dados)) return [];
+        return parsed.dados.filter(row=>{
+            const iso=normalizarDataIsoRow(row);
+            return iso&&iso>=dataDe&&iso<=dataAte;
+        });
+    }catch(_){
+        return [];
+    }
+}
+async function carregarDadosJson(dataDe,dataAte){
+    const dias=listarDatasIsoJanela(dataDe,dataAte);
+    const dados=[];
+    for(const dia of dias){
+        const parte=await carregarSnapshotDia(dia);
+        if(parte.length) dados.push(...parte);
+    }
+    if(dados.length) return dados;
+    try{
+        const res=await fetch(`${LIBERACAO_ACOMPANHAMENTO_URL}?t=${Date.now()}`,{cache:"no-store"});
+        if(!res.ok) return [];
+        const payload=await res.json();
+        if(!Array.isArray(payload?.dados)) return [];
+        return payload.dados.filter(row=>{
+            const iso=normalizarDataIsoRow(row);
+            return iso&&iso>=dataDe&&iso<=dataAte;
+        });
+    }catch(_){
+        return [];
+    }
+}
+async function carregarDadosFirestore(dataDe,dataAte){
     let dados=[];
     try{
         const fs=await carregarJanelaLiberacaoFirestore(dataDe,dataAte);
         if(fs?.dados?.length) dados=fs.dados;
     }catch(err){
-        console.warn("Firestore:",err);
+        console.warn("Firestore janela:",err);
     }
     if(!dados.length){
         const dias=listarDatasIsoJanela(dataDe,dataAte);
@@ -311,17 +378,36 @@ async function carregarDados(dataDe,dataAte){
             try{
                 const parte=await carregarDiaLiberacaoFirestore(dia);
                 if(parte?.dados?.length) dados.push(...parte.dados);
-            }catch(_){}
-        }
-    }
-    if(!dados.length){
-        if(dataDe===dataAte){
-            dados=await apiGet({data:dataDe,limit:"0",vivo:"1"});
-        }else{
-            dados=await apiGet({data_de:dataDe,data_ate:dataAte,ultima_semana:"0"});
+            }catch(err){
+                console.warn("Firestore dia",dia,err);
+            }
         }
     }
     return dados;
+}
+async function carregarDadosApi(dataDe,dataAte){
+    if(dataDe===dataAte){
+        return await apiGet({data:dataDe,limit:"0",vivo:"1"});
+    }
+    return await apiGet({data_de:dataDe,data_ate:dataAte,ultima_semana:"0",vivo:"1"});
+}
+async function carregarDados(dataDe,dataAte){
+    let origem="";
+    let dados=await carregarDadosFirestore(dataDe,dataAte);
+    if(dados.length) origem="Firestore";
+    if(!dados.length){
+        dados=lerCacheLocal(dataDe,dataAte);
+        if(dados.length) origem="cache local";
+    }
+    if(!dados.length){
+        dados=await carregarDadosJson(dataDe,dataAte);
+        if(dados.length) origem="JSON";
+    }
+    if(!dados.length){
+        dados=await carregarDadosApi(dataDe,dataAte);
+        if(dados.length) origem="planilha";
+    }
+    return { dados, origem };
 }
 function metaExportacao(dataDe,dataAte){
     const agora=new Date().toLocaleString("pt-BR");
@@ -336,7 +422,6 @@ function metaExportacao(dataDe,dataAte){
 async function gerarRelatorio(){
     const dataDe=$("dataDe").value;
     const dataAte=$("dataAte").value;
-    const maquina=$("maquinaFiltro").value;
     if(!dataDe||!dataAte){ setStatus("Informe data de e data até.","erro"); return; }
     if(dataAte<dataDe){ setStatus("Data até não pode ser anterior à data de.","erro"); return; }
 
@@ -345,14 +430,17 @@ async function gerarRelatorio(){
     toggleExport(false);
 
     try{
-        const bruto=await carregarDados(dataDe,dataAte);
+        const { dados: bruto, origem }=await carregarDados(dataDe,dataAte);
         state.bruto=bruto;
-        popularMaquinas(bruto);
-        const filtrados=ordenarLinhas(filtrarLinhas(bruto,dataDe,dataAte,maquina));
+        const filtrados=ordenarLinhas(filtrarLinhas(bruto,dataDe,dataAte));
         state.linhas=filtrados.map(linhaParaRelatorio);
         renderTabela();
-        const maqTxt=maquina?` · ${maquina}`:"";
-        setStatus(`${state.linhas.length.toLocaleString("pt-BR")} registro(s) · ${brDate(dataDe)} a ${brDate(dataAte)}${maqTxt}`,"ok");
+        const origemTxt=origem?` · ${origem}`:"";
+        if(!state.linhas.length){
+            setStatus(`Nenhum registro entre ${brDate(dataDe)} e ${brDate(dataAte)}.`,"erro");
+        }else{
+            setStatus(`${state.linhas.length.toLocaleString("pt-BR")} registro(s) · ${brDate(dataDe)} a ${brDate(dataAte)}${origemTxt}`,"ok");
+        }
         $("tableSub").textContent=`Portal CIOP · TCGL · ${metaExportacao(dataDe,dataAte).periodo}`;
     }catch(err){
         state.linhas=[];
@@ -365,21 +453,23 @@ async function gerarRelatorio(){
 function exportar(tipo){
     if(!state.linhas.length) return;
     const meta=metaExportacao($("dataDe").value,$("dataAte").value);
-    if(tipo==="csv") exportarCsv(COLUNAS,state.linhas,meta);
-    else if(tipo==="xlsx") exportarExcel(COLUNAS,state.linhas,meta);
-    else exportarPdf(COLUNAS,state.linhas,meta,{
+    const linhas=linhasExportacao();
+    if(tipo==="csv") exportarCsv(COLUNAS,linhas,meta);
+    else if(tipo==="xlsx") exportarExcel(COLUNAS,linhas,meta);
+    else exportarPdf(COLUNAS,linhas,meta,{
         logoCiop:"../assets/img/CIOP Sem Fundo.png",
         logoTcgl:"../assets/img/LOGO_TCGL-removebg-preview.png"
     }).catch(err=>setStatus(err.message,"erro"));
 }
 
 function configurarFiltros(){
-    const hoje=isoHoje();
     const min=isoDiasAtras(DIAS_JANELA);
-    $("dataDe").min=min;
-    $("dataDe").max=hoje;
-    $("dataAte").min=min;
-    $("dataAte").max=isoDiasAtras(-1);
+    const amanha=isoAmanha();
+    const hoje=isoHoje();
+    ["dataDe","dataAte"].forEach(id=>{
+        $(id).min=min;
+        $(id).max=amanha;
+    });
     $("dataDe").value=hoje;
     $("dataAte").value=hoje;
 }
@@ -392,12 +482,6 @@ function iniciar(){
     $("btnCsv").addEventListener("click",()=>exportar("csv"));
     $("btnExcel").addEventListener("click",()=>exportar("xlsx"));
     $("btnPdf").addEventListener("click",()=>exportar("pdf"));
-    $("maquinaFiltro").addEventListener("change",()=>{
-        if(!state.bruto.length) return;
-        const dataDe=$("dataDe").value, dataAte=$("dataAte").value;
-        state.linhas=ordenarLinhas(filtrarLinhas(state.bruto,dataDe,dataAte,$("maquinaFiltro").value)).map(linhaParaRelatorio);
-        renderTabela();
-    });
     gerarRelatorio();
 }
 

@@ -171,6 +171,15 @@ async function carregarImagemBase64(url) {
   });
 }
 
+function estiloDivergenciaPdf(chave, valor) {
+  const v = String(valor ?? "").trim().toUpperCase();
+  if (chave === "saiu_no_horario" && v === "NÃO") return { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: "bold" };
+  if (chave === "inicio_no_horario" && v === "ATRASADO") return { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: "bold" };
+  if (chave === "inicio_no_horario" && v === "ADIANTADO") return { fillColor: [254, 243, 199], textColor: [180, 83, 9], fontStyle: "bold" };
+  if (chave === "trajeto_ocioso_correto" && v === "NÃO") return { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: "bold" };
+  return null;
+}
+
 export async function exportarPdf(colunas, linhas, meta, assets) {
   if (!window.jspdf?.jsPDF) throw new Error("Biblioteca PDF indisponível.");
   const { jsPDF } = window.jspdf;
@@ -228,6 +237,13 @@ export async function exportarPdf(colunas, linhas, meta, assets) {
       cellWidth: c.pdfWidth || "auto",
       halign: c.chave === "observacoes" || c.chave === "local_inicio" ? "left" : "center"
     }])),
+    didParseCell: (data) => {
+      if (data.section !== "body") return;
+      const col = colunas[data.column.index];
+      if (!col) return;
+      const estilo = estiloDivergenciaPdf(col.chave, data.cell.raw);
+      if (estilo) Object.assign(data.cell.styles, estilo);
+    },
     didDrawPage: (data) => {
       const pg = doc.internal.getNumberOfPages();
       doc.setFontSize(8);

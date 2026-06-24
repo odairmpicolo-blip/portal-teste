@@ -24,6 +24,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .btn-portal{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none;border-radius:10px;font-size:14px;font-weight:800;padding:8px 14px;background:var(--blue);color:#fff}
 .btn-portal:hover{background:var(--blue2)}
+.btn-icon{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
+.btn-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .intro{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:20px;box-shadow:0 10px 28px rgba(16,24,40,.06)}
 .intro h2{margin:0 0 6px;color:var(--blue);font-size:18px;font-weight:900}
 .intro p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;font-weight:600}
@@ -71,7 +73,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 
 <main class="container">
     <div class="toolbar">
-        <a class="btn-portal" href="../index.html">← Portal</a>
+        <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>Portal</a>
     </div>
 
     <section class="intro">
