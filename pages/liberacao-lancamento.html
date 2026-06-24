@@ -377,6 +377,12 @@ function salvarCacheLiberacao(dados,meta,deferir){
 function dataDentroDaJanela(data,dataDe,dataAte){
     return data&&dataDe&&dataAte&&data>=dataDe&&data<=dataAte;
 }
+function semanaTemDia(data){
+    return (state.semana||[]).some(r=>normalizarDataIsoRow(r)===data);
+}
+function dadosExibidosDaData(data){
+    return state.dados.length>0&&state.dados.every(r=>normalizarDataIsoRow(r)===data);
+}
 function parseTimestamp(v){
     const n=Date.parse(v||"");
     return Number.isFinite(n)?n:0;
@@ -1360,9 +1366,14 @@ async function iniciarCarregamento(forceRefresh=false){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");finalizarCarregamentoInicial(false);return;}
 
-    if(!forceRefresh&&state.dados.length){
+    if(!forceRefresh&&dadosExibidosDaData(data)){
         finalizarCarregamentoInicial(true);
         return;
+    }
+
+    if(forceRefresh||!dadosExibidosDaData(data)){
+        state.dados=[];
+        state.todos=[];
     }
 
     const {dataDe,amanha}=intervaloJanela();
@@ -1487,32 +1498,45 @@ async function carregar(forceRefresh=false){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");return;}
 
-    const {dataDe,amanha}=intervaloJanela();
-
-    if(!forceRefresh&&state.semana.length&&state.semanaDataDe===dataDe&&state.semanaDataAte===amanha){
+    if(!forceRefresh&&semanaTemDia(data)){
         aplicarFiltroData(data,"memória");
         return;
     }
 
-    await iniciarCarregamento(forceRefresh);
+    await iniciarCarregamento(true);
 }
 
-$("dataFiltro").addEventListener("change",async ()=>{
+async function aoMudarDataFiltro(){
     const data=$("dataFiltro").value;
-    const {dataDe,amanha}=intervaloJanela();
-    if(state.semana.length&&state.semanaDataDe===dataDe&&state.semanaDataAte===amanha&&dataDentroDaJanela(data,dataDe,amanha)){
-        const temDia=state.semana.some(r=>normalizarDataIsoRow(r)===data);
-        if(temDia){
-            aplicarFiltroData(data,"memória");
-            return;
-        }
-        const diaFs=await carregarDiaFirestore(data);
-        if(diaFs?.dados?.length){
-            complementarSemanaCarregada({dados:diaFs.dados,dataDe:data,dataAte:data,rotulo:"Firestore · dia"},data);
-            return;
-        }
+    if(!data) return;
+
+    if(semanaTemDia(data)){
+        aplicarFiltroData(data,"memória");
+        return;
     }
-    carregar().catch(e=>setStatus(e.message,"erro"));
+
+    setStatus("Carregando "+rotuloData(data)+"...","load");
+    const diaFs=await carregarDiaFirestore(data);
+    if(diaFs?.dados?.length){
+        const {dataDe,amanha}=intervaloJanela();
+        complementarSemanaCarregada({dados:diaFs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · dia"},data);
+        return;
+    }
+
+    const snapDia=await carregarSnapshotDia(data).catch(()=>null);
+    if(snapDia?.dados?.length){
+        const {dataDe,amanha}=intervaloJanela();
+        complementarSemanaCarregada({dados:snapDia.dados,dataDe,dataAte:amanha,rotulo:"JSON · dia"},data);
+        return;
+    }
+
+    state.dados=[];
+    state.todos=[];
+    await iniciarCarregamento(true);
+}
+
+$("dataFiltro").addEventListener("change",()=>{
+    aoMudarDataFiltro().catch(e=>setStatus(e.message,"erro"));
 });
 $("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderTabela();setStatus(formatNumber(state.dados.length)+" registro(s) · "+rotuloData($("dataFiltro").value),"ok");});
 $("btn-atualizar-planilha").addEventListener("click",()=>{atualizarPlanilhaRemoto().catch(()=>{});});
@@ -1617,7 +1641,7 @@ async function carregarFirestoreRapido(data,dataDe,dataAte){
     if(!LIBERACAO_USAR_FIRESTORE) return false;
     const dia=await carregarDiaFirestore(data);
     if(!dia?.dados?.length) return false;
-    complementarSemanaCarregada({dados:dia.dados,dataDe:data,dataAte:data,rotulo:"Firestore · dia"},data);
+    complementarSemanaCarregada({dados:dia.dados,dataDe,dataAte,rotulo:"Firestore · dia"},data);
     complementarSemanaFirestoreBackground(dataDe,dataAte,data);
     return true;
 }
