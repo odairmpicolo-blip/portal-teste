@@ -4,6 +4,7 @@ import {
   carregarSnapshotTerminaisFirestore,
   reidratarSnapshotTerminais
 } from "./terminais-firestore.js";
+import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
 
 export const TERMINAIS_JSON_URL = "../assets/data/terminais-agora.json";
 
@@ -40,6 +41,12 @@ async function carregarFirestore() {
   return reidratarSnapshotTerminais(res.payload);
 }
 
+async function carregarAws() {
+  const snap = await carregarSnapshotAws("/terminais/atual", { timeoutMs: 12000 });
+  if (!snap?.payload) return null;
+  return reidratarSnapshotTerminais(snap.payload);
+}
+
 function escolherSnapshot(candidatos) {
   const validos = candidatos.filter((item) => item?.REGISTROS?.length);
   if (!validos.length) return null;
@@ -51,22 +58,26 @@ function escolherSnapshot(candidatos) {
   return validos[0];
 }
 
-/** Fluxo único de leitura: Firestore → JSON. */
+/** Fluxo único de leitura: AWS → Firestore → JSON. */
 export async function carregarDadosTerminais({ onProgress } = {}) {
-  onProgress?.("Consultando Firestore e JSON...");
-  const [fsRes, jsonRes] = await Promise.allSettled([
+  onProgress?.("Consultando AWS, Firestore e JSON...");
+  const [awsRes, fsRes, jsonRes] = await Promise.allSettled([
+    withTimeout(carregarAws(), 20000),
     withTimeout(carregarFirestore(), 30000),
     withTimeout(carregarJsonSnapshot(), 15000)
   ]);
 
+  const aws = awsRes.status === "fulfilled" ? awsRes.value : null;
   const firestore = fsRes.status === "fulfilled" ? fsRes.value : null;
   const json = jsonRes.status === "fulfilled" ? jsonRes.value : null;
   const snapshot = escolherSnapshot([
+    aws ? { ...aws, _origem: "AWS" } : null,
     firestore ? { ...firestore, _origem: "Firestore" } : null,
     json ? { ...json, _origem: "JSON" } : null
   ]);
 
   const origens = [];
+  if (aws?.REGISTROS?.length) origens.push("AWS");
   if (firestore?.REGISTROS?.length) origens.push("Firestore");
   if (json?.REGISTROS?.length) origens.push("JSON");
 
@@ -74,6 +85,7 @@ export async function carregarDadosTerminais({ onProgress } = {}) {
     payload: snapshot,
     origem: snapshot?._origem || origens.join(" · ") || "",
     tentativas: [
+      `AWS: ${aws?.REGISTROS?.length || 0}`,
       `Firestore: ${firestore?.REGISTROS?.length || 0}`,
       `JSON: ${json?.REGISTROS?.length || 0}`
     ]

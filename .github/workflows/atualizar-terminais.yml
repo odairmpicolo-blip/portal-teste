@@ -49,3 +49,14 @@ jobs:
           printf '%s' "${FIREBASE_SERVICE_ACCOUNT_JSON}" > "${FIREBASE_SA_PATH}"
           export FIREBASE_SERVICE_ACCOUNT="${FIREBASE_SA_PATH}"
           npm run import-terminais-firestore
+
+      - name: Importar terminais na API AWS
+        env:
+          PORTAL_AWS_API_URL: ${{ secrets.PORTAL_AWS_API_URL }}
+          PORTAL_API_KEY: ${{ secrets.PORTAL_API_KEY }}
+        run: |
+          if [ -z "$PORTAL_AWS_API_URL" ] || [ -z "$PORTAL_API_KEY" ]; then
+            echo "PORTAL_AWS_API_URL / PORTAL_API_KEY não configurados — import AWS ignorado."
+            exit 0
+          fi
+          node scripts/importar-terminais-aws.mjs

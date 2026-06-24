@@ -5,11 +5,6 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "import-liberacao-firestore": "node scripts/importar-liberacao-firestore.mjs",
-    "import-folha-servico-firestore": "node scripts/importar-folha-servico-firestore.mjs",
-    "import-autuacoes-firestore": "node scripts/importar-autuacoes-firestore.mjs",
-    "import-pontualidade-firestore": "node scripts/importar-pontualidade-firestore.mjs",
-    "import-incidentes-firestore": "node scripts/importar-incidentes-firestore.mjs",
     "atualizar-terminais-planilha": "node scripts/atualizar-terminais-planilha.mjs",
     "import-terminais-firestore": "node scripts/importar-terminais-firestore.mjs"
   },

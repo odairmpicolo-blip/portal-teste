@@ -1536,7 +1536,6 @@ h1 {
     const FOLHA_DATA_BASE = resolverBasePortal() + "/assets/data/folha-servico";
     const FOLHA_MANIFEST_URL = FOLHA_DATA_BASE + "/manifest.json";
     const FOLHA_MODO_JSON_HIBRIDO = true;
-    const FOLHA_USAR_FIRESTORE = true;
     const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
     const SYNC_MARGEM_ANTERIORES = 10;
     const RECONCILIAR_TAIL_LIMITE = SYNC_MARGEM_ANTERIORES;
@@ -2595,72 +2594,18 @@ h1 {
         }
     }
 
-    async function mesclarFirestoreNoDashboard(silencioso) {
-        if (!FOLHA_USAR_FIRESTORE) return false;
-        try {
-            const base = resolverBasePortal();
-            const mod = await import(base + "/assets/js/folha-dados-leitura.js?v=20260624c");
-            if (!silencioso) {
-                setLoadStatus("Consultando Firestore...", "load");
-            }
-            const { dados, origem, tentativas } = await mod.carregarDadosFolhaDashboard({
-                onProgress: (msg) => {
-                    if (!silencioso) setLoadStatus(msg, "load");
-                }
-            });
-            if (!dados?.length) return false;
-            dadosMestres = mesclarRegistros(
-                dadosMestres.length ? dadosMestres : [],
-                normalizarLista(dados)
-            );
-            aplicarDadosDashboard(
-                dadosMestres,
-                origem ? "Firestore · " + origem : "Firestore",
-                { origem: "firestore", tentativas }
-            );
-            await salvarCacheLocal(dadosMestres, {
-                ano: ANO_TODOS,
-                total: dadosMestres.length,
-                origem: "firestore_merge",
-                versao: DASHBOARD_VERSAO
-            }, ANO_TODOS);
-            console.info("Folha Firestore:", origem, dadosMestres.length, tentativas?.join(" · "));
-            return true;
-        } catch (err) {
-            console.warn("Firestore folha:", err);
-            return false;
-        }
-    }
-
-    async function tentarCargaInicialFirestore() {
-        if (!FOLHA_USAR_FIRESTORE) return false;
-        setLoadStatus("Carregando histórico do Firestore...", "load");
-        const ok = await mesclarFirestoreNoDashboard(false);
-        if (!ok || !dadosMestres.length) return false;
-        anoCarregado = ANO_TODOS;
-        finalizarCargaFolhaServico(ANO_TODOS);
-        return true;
-    }
-
     function finalizarCargaFolhaServico(ano) {
         if (FOLHA_MODO_JSON_HIBRIDO) {
-            const posFirestore = () => {
-                if (dadosMestres.length) {
-                    setLoadStatus(
-                        montarTextoRegistros(dadosMestres.length, filtrosAtivos()) + " · atualizando em segundo plano...",
-                        "load"
-                    );
-                }
-                refrescarJsonFolhaEmBackground(true).catch((error) => {
-                    console.warn("Refresh JSON em segundo plano:", error);
-                    if (dadosMestres.length) atualizarBannerRegistros(filtrarDadosAtuais().length);
-                }).finally(() => iniciarSincronizacaoAutomatica());
-            };
-            if (FOLHA_USAR_FIRESTORE) {
-                mesclarFirestoreNoDashboard(true).finally(posFirestore);
-            } else {
-                posFirestore();
+            if (dadosMestres.length) {
+                setLoadStatus(
+                    montarTextoRegistros(dadosMestres.length, filtrosAtivos()) + " · atualizando em segundo plano...",
+                    "load"
+                );
             }
+            refrescarJsonFolhaEmBackground(true).catch((error) => {
+                console.warn("Refresh JSON em segundo plano:", error);
+                if (dadosMestres.length) atualizarBannerRegistros(filtrarDadosAtuais().length);
+            }).finally(() => iniciarSincronizacaoAutomatica());
             return;
         }
         reconciliarSeAtrasado(ano).finally(() => {
@@ -2690,7 +2635,6 @@ h1 {
                 }
                 await aguardarNovoSnapshotJson(marcaInicial);
                 await refrescarJsonFolhaEmBackground(false);
-                await mesclarFirestoreNoDashboard(false);
             } catch (error) {
                 console.warn("Atualização manual (JSON):", error);
                 setLoadStatus(
@@ -3321,9 +3265,6 @@ h1 {
             }
 
             setLoadStatus("Baixando arquivo JSON...", "load");
-            if (FOLHA_USAR_FIRESTORE && await tentarCargaInicialFirestore()) {
-                return;
-            }
             await refrescarJsonFolhaEmBackground(false);
             if (dadosMestres.length) {
                 finalizarCargaFolhaServico(anoInicial);

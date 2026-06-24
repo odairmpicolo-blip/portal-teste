@@ -1,4 +1,5 @@
 node_modules/
+backend/.env
 .secrets/
 assets/import/tabelas-horarias/_drive/
 assets/import/tabelas-horarias/**/*.xlsx

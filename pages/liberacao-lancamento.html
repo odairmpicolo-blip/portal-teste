@@ -105,8 +105,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 .sync-badge{display:inline-flex;align-items:center;justify-content:center;min-width:68px;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
 .sync-badge.ok{background:#dcfce7;color:var(--green)}
 .sync-badge.saving{background:#ffedd5;color:var(--amber)}
-.sync-badge.pending{background:#e0e7ff;color:#3730a3}
-.sync-badge.dirty{background:#fef3c7;color:#92400e}
+.sync-badge.dirty{background:#e0e7ff;color:#3730a3}
 .sync-badge.erro{background:#fee2e2;color:var(--red)}
 .empty{padding:48px 24px;color:var(--muted);text-align:center}
 .empty-title{font-size:15px;font-weight:900;color:var(--blue);margin-bottom:6px}
@@ -181,7 +180,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Firestore · save instantâneo · planilha em background · tempo real</div>
+                <div class="table-sub">Dados do JSON (API) · colunas de lançamento sempre editáveis · JSON atualiza a cada 3 s · botão Atualizar = planilha ao vivo</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -196,9 +195,8 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
             </div>
         </div>
         <div class="legend" aria-hidden="true">
-            <span class="legend-item"><span class="legend-swatch ok"></span>Salvo (Firestore)</span>
+            <span class="legend-item"><span class="legend-swatch ok"></span>Salvo</span>
             <span class="legend-item"><span class="legend-swatch saving"></span>Salvando</span>
-            <span class="legend-item"><span class="legend-swatch" style="background:#e0e7ff"></span>Planilha pendente</span>
             <span class="legend-item"><span class="legend-swatch erro"></span>Erro ao salvar</span>
             <span class="legend-item"><span class="legend-swatch formula"></span>Calculado automaticamente</span>
             <span class="legend-item">Setas / Tab / Enter — navegar células editáveis</span>
@@ -208,9 +206,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 
 <footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
 
-<script type="module">
-import { carregarJanelaLiberacaoFirestore, carregarDiaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore, marcarSyncPlanilhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
-
+<script>
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_EXIBICAO = [
     { chave: "data", rotulo: "DATA", largura: 76 },
@@ -259,10 +255,6 @@ const CAMPOS_HORA = new Set(["horario_saida_da_garagem","horario_de_inicio","sai
 const DIAS_JANELA = 7;
 const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const LIBERACAO_MODO_JSON_HIBRIDO = true;
-const LIBERACAO_USAR_FIRESTORE = true;
-const LIBERACAO_TEMPO_REAL = true;
-const LIBERACAO_FASE2 = true;
-const MAX_TENTATIVAS_PLANILHA = 4;
 const INTERVALO_SYNC_PLANILHA_MS = 3000;
 const INTERVALO_SYNC_JSON_MS = 30000;
 const INTERVALO_SYNC_JITTER_MS = 500;
@@ -280,17 +272,9 @@ let syncPlanilhaTimerId = null;
 let planilhaHojeComplementada=false;
 let overlayOperacaoNivel = 0;
 let overlayAberturaAtivo = false;
-let carregamentoInicial = true;
 let eventosTabelaIniciados = false;
 let cabecalhoRenderizado = false;
 let cacheGravacaoTimer = null;
-let liberacaoFirestoreUnsub = null;
-let semanaFirestoreBackground = null;
-let meuEmailLiberacao = "";
-const ultimoSaveFirestorePorRow = {};
-const filaSyncPlanilha = [];
-let processandoFilaPlanilha = false;
-const rowsSyncPlanilhaEnfileirados = new Set();
 const state = {
     colunas: COLUNAS_EXIBICAO,
     semana: [],
@@ -376,12 +360,6 @@ function salvarCacheLiberacao(dados,meta,deferir){
 }
 function dataDentroDaJanela(data,dataDe,dataAte){
     return data&&dataDe&&dataAte&&data>=dataDe&&data<=dataAte;
-}
-function semanaTemDia(data){
-    return (state.semana||[]).some(r=>normalizarDataIsoRow(r)===data);
-}
-function dadosExibidosDaData(data){
-    return state.dados.length>0&&state.dados.every(r=>normalizarDataIsoRow(r)===data);
 }
 function parseTimestamp(v){
     const n=Date.parse(v||"");
@@ -620,14 +598,22 @@ function complementarPlanilhaBackground(origem){
 async function apiGet(params){
     const p=Object.assign({liberacao:"1"},params);
     if(p.vivo==="1") p._=String(Date.now());
-    const res=await fetch(API_URL+"?"+new URLSearchParams(p),{cache:"no-store"});
-    const data=await res.json();
+    const res=await fetch(API_URL+"?"+new URLSearchParams(p),{cache:"no-store",redirect:"follow"});
+    const texto=await res.text();
+    let data;
+    try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha."); }
     if(!data.ok) throw new Error(data.erro||"Erro na leitura.");
     return data;
 }
 async function apiPost(payload){
-    const res=await fetch(API_URL,{method:"POST",body:new URLSearchParams(Object.assign({liberacao:"1"},payload))});
-    const data=await res.json();
+    const res=await fetch(API_URL,{
+        method:"POST",
+        body:new URLSearchParams(Object.assign({liberacao:"1"},payload)),
+        redirect:"follow"
+    });
+    const texto=await res.text();
+    let data;
+    try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha ao salvar."); }
     if(!data.ok) throw new Error(data.erro||"Erro ao salvar.");
     return data;
 }
@@ -693,87 +679,7 @@ function syncBadge(row,i){
     if(state.saving[i]) return '<span class="sync-badge saving">Salvando</span>';
     if(row._syncErro) return '<span class="sync-badge erro">Erro</span>';
     if(row._dirty) return '<span class="sync-badge dirty">Alterado</span>';
-    if(LIBERACAO_FASE2&&row._syncPlanilha==="pending") return '<span class="sync-badge pending">Planilha…</span>';
-    if(LIBERACAO_FASE2&&row._syncPlanilha==="erro") return '<span class="sync-badge erro">Planilha</span>';
     return '<span class="sync-badge ok">Salvo</span>';
-}
-
-function montarPayloadPlanilha(row){
-    const payload={action:"update",_row:row._row};
-    CAMPOS_EDITAVEIS.forEach(chave=>{payload[chave]=val(row,chave)||"";});
-    CAMPOS_FORMULA_PLANILHA.forEach(k=>{payload[k]=val(row,k)||"";});
-    return payload;
-}
-
-function indiceLinhaPorRow(rowId){
-    return state.dados.findIndex(r=>String(r._row)===String(rowId));
-}
-
-function atualizarBadgeLinhaPorRow(rowId){
-    const idx=indiceLinhaPorRow(rowId);
-    if(idx<0) return;
-    const syncEl=document.querySelector(".sync-"+idx);
-    if(syncEl) syncEl.innerHTML=syncBadge(state.dados[idx],idx);
-}
-
-function enfileirarSyncPlanilha(row,payload){
-    const rowId=String(row._row);
-    if(rowsSyncPlanilhaEnfileirados.has(rowId)) return;
-    rowsSyncPlanilhaEnfileirados.add(rowId);
-    filaSyncPlanilha.push({rowId,payload:payload||montarPayloadPlanilha(row),tentativas:0});
-    processarFilaSyncPlanilha();
-}
-
-async function processarFilaSyncPlanilha(){
-    if(processandoFilaPlanilha) return;
-    processandoFilaPlanilha=true;
-    while(filaSyncPlanilha.length){
-        const job=filaSyncPlanilha.shift();
-        const idx=indiceLinhaPorRow(job.rowId);
-        const row=idx>=0?state.dados[idx]:state.semana.find(r=>String(r._row)===String(job.rowId));
-        if(!row){
-            rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
-            continue;
-        }
-        try{
-            await apiPost(job.payload);
-            row._syncPlanilha="ok";
-            row._syncPlanilhaErro=false;
-            rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
-            const idxSem=state.semana.findIndex(r=>String(r._row)===String(job.rowId));
-            if(idxSem>=0) state.semana[idxSem]._syncPlanilha="ok";
-            if(LIBERACAO_USAR_FIRESTORE&&meuEmailLiberacao){
-                marcarSyncPlanilhaLiberacaoFirestore(row,meuEmailLiberacao,"ok").catch(()=>{});
-            }
-            if(state.semana.length){
-                salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
-            }
-            atualizarBadgeLinhaPorRow(job.rowId);
-            if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
-        }catch(err){
-            job.tentativas++;
-            if(job.tentativas<MAX_TENTATIVAS_PLANILHA){
-                filaSyncPlanilha.unshift(job);
-                await new Promise(r=>setTimeout(r,1500*job.tentativas));
-            }else{
-                row._syncPlanilha="erro";
-                row._syncPlanilhaErro=err.message||"Erro na planilha";
-                rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
-                atualizarBadgeLinhaPorRow(job.rowId);
-                console.warn("Sync planilha falhou:",job.rowId,err);
-            }
-        }
-    }
-    processandoFilaPlanilha=false;
-}
-
-function reprocessarSyncPlanilhaPendentes(){
-    if(!LIBERACAO_FASE2) return;
-    state.semana.forEach(row=>{
-        if(row._syncPlanilha!=="pending"&&row._syncPlanilha!=="erro") return;
-        if(rowsSyncPlanilhaEnfileirados.has(String(row._row))) return;
-        enfileirarSyncPlanilha(row);
-    });
 }
 
 function marcarCelulaAtiva(el){
@@ -977,38 +883,22 @@ async function salvarLinha(i){
     aplicarFormulasLinha(row);
     state.saving[i]=true;
     document.querySelector(".sync-"+i).innerHTML=syncBadge(row,i);
-    const payload=montarPayloadPlanilha(row);
+    const payload={action:"update",_row:row._row};
+    CAMPOS_EDITAVEIS.forEach(chave=>{
+        payload[chave]=val(row,chave)||"";
+    });
+    CAMPOS_FORMULA_PLANILHA.forEach(k=>{
+        payload[k]=val(row,k)||"";
+    });
     try{
-        if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_FASE2&&meuEmailLiberacao){
-            await salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao,{syncPlanilha:"pending"});
-            ultimoSaveFirestorePorRow[String(row._row)]=Date.now();
-            row._dirty=false;
-            row._syncErro=false;
-            row._syncPlanilha="pending";
-            const idxSem=state.semana.findIndex(r=>r._row===row._row);
-            if(idxSem>=0){
-                state.semana[idxSem]=Object.assign({},row);
-                state.semana[idxSem]._syncPlanilha="pending";
-            }
-            if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
-            atualizarLinhaPosSalvar(i);
-            enfileirarSyncPlanilha(row,payload);
-        }else{
-            await apiPost(payload);
-            if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_TEMPO_REAL&&meuEmailLiberacao){
-                salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao)
-                    .then(()=>{ultimoSaveFirestorePorRow[String(row._row)]=Date.now();})
-                    .catch(err=>console.warn("Firestore save:",err));
-            }
-            row._dirty=false;
-            row._syncErro=false;
-            row._syncPlanilha="ok";
-            const idxSem=state.semana.findIndex(r=>r._row===row._row);
-            if(idxSem>=0) state.semana[idxSem]=row;
-            if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
-            atualizarLinhaPosSalvar(i);
-            if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
-        }
+        await apiPost(payload);
+        row._dirty=false;
+        row._syncErro=false;
+        const idxSem=state.semana.findIndex(r=>r._row===row._row);
+        if(idxSem>=0) state.semana[idxSem]=row;
+        if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
+        atualizarLinhaPosSalvar(i);
+        if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
     }catch(err){
         row._syncErro=true;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
@@ -1034,12 +924,12 @@ function aplicarSemanaCarregada(dados,dataDe,dataAte){
     state.semanaDataAte=dataAte;
 }
 
-function aplicarCacheLocalLiberacao(data){
-    const dataAlvo=data||$("dataFiltro").value||isoHoje();
+function aplicarCacheLocalLiberacao(){
     const {dataDe,amanha}=intervaloJanela();
+    const hoje=isoHoje();
     const cache=lerCacheLiberacao();
-    if(!cache?.dados?.length||!dataDentroDaJanela(dataAlvo,cache.data_de,cache.data_ate)) return false;
-    return complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},dataAlvo);
+    if(!cache?.dados?.length||!dataDentroDaJanela(hoje,cache.data_de,cache.data_ate)) return false;
+    return complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},hoje);
 }
 
 function escolherFonteJanela(cache,snapSemana,snapDia,data){
@@ -1086,10 +976,11 @@ function aplicarFiltroData(data,origem){
     aplicarFiltroMaquina();
     const agora=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
     const texto=formatNumber(state.dados.length)+" registro(s) · "+rotuloData(data)+" · "+origem+" · "+agora;
-    renderTabela();
-    setStatus(texto,"ok");
-    if(state.dados.length>0) encerrarOverlayAbertura();
-    else if(!carregamentoInicial) $("emptyState").hidden=false;
+    requestAnimationFrame(()=>{
+        renderTabela();
+        setStatus(texto,"ok");
+        if(state.dados.length>0) encerrarOverlayAbertura();
+    });
 }
 
 async function carregarManifestLiberacao(){
@@ -1249,10 +1140,6 @@ function rodarSyncHojeSilencioso(origem){
 
 function rodarSyncAutomatico(){
     if(!ehDiaAtual($("dataFiltro").value)) return;
-    if(LIBERACAO_FASE2){
-        reprocessarSyncPlanilhaPendentes();
-        return;
-    }
     sincronizarJsonHoje();
 }
 
@@ -1272,8 +1159,6 @@ async function sincronizarJsonHoje(){
         const filledDepois=contarLancamentosDia(mesclado,hoje);
         if(filledDepois<filledState) return;
         state.semana=mesclado;
-        state.semanaDataDe=state.semanaDataDe||dataDe;
-        state.semanaDataAte=amanha;
         salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
         if(assinaturaAntes!==assinaturaDia(state.semana,hoje)){
             aplicarSyncHojeSeAlterou(true,"JSON · hoje");
@@ -1366,14 +1251,9 @@ async function iniciarCarregamento(forceRefresh=false){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");finalizarCarregamentoInicial(false);return;}
 
-    if(!forceRefresh&&dadosExibidosDaData(data)){
+    if(!forceRefresh&&state.dados.length){
         finalizarCarregamentoInicial(true);
         return;
-    }
-
-    if(forceRefresh||!dadosExibidosDaData(data)){
-        state.dados=[];
-        state.todos=[];
     }
 
     const {dataDe,amanha}=intervaloJanela();
@@ -1386,18 +1266,6 @@ async function iniciarCarregamento(forceRefresh=false){
     if(!forceRefresh){
         if(!state.dados.length&&cache?.dados?.length&&dataDentroDaJanela(data,cache.data_de,cache.data_ate)){
             complementarSemanaCarregada({dados:cache.dados,dataDe:cache.data_de,dataAte:cache.data_ate,rotulo:"cache local"},data);
-        }
-
-        if(!state.dados.length){
-            if(await carregarFirestoreRapido(data,dataDe,amanha)){
-                finalizarCarregamentoInicial(true);
-                return;
-            }
-        }
-
-        if(state.dados.length){
-            finalizarCarregamentoInicial(true);
-            return;
         }
 
         if(!state.dados.length) atualizarOverlayOperacao("Carregando lançamentos...");
@@ -1425,10 +1293,6 @@ async function iniciarCarregamento(forceRefresh=false){
     }
 
     if(ehDiaAtual(data)){
-        if(state.dados.length){
-            finalizarCarregamentoInicial(true);
-            return;
-        }
         try{
             atualizarOverlayOperacao("Buscando lançamentos na planilha...");
             const dadosPlanilha=await obterPlanilhaHoje(true,false);
@@ -1439,7 +1303,7 @@ async function iniciarCarregamento(forceRefresh=false){
             }
         }catch(_){}
         encerrarOverlayAbertura();
-        setStatus("Sem dados no Firestore/JSON. Use Atualizar ou aguarde o JSON da API.","erro");
+        setStatus("Sem JSON local. Use Atualizar ou aguarde o JSON da API (~3 min).","erro");
         finalizarCarregamentoInicial(false);
         return;
     }
@@ -1498,45 +1362,24 @@ async function carregar(forceRefresh=false){
     const data=$("dataFiltro").value;
     if(!data){setStatus("Informe a data.","erro");return;}
 
-    if(!forceRefresh&&semanaTemDia(data)){
+    const {dataDe,amanha}=intervaloJanela();
+
+    if(!forceRefresh&&state.semana.length&&state.semanaDataDe===dataDe&&state.semanaDataAte===amanha){
         aplicarFiltroData(data,"memória");
         return;
     }
 
-    await iniciarCarregamento(true);
-}
-
-async function aoMudarDataFiltro(){
-    const data=$("dataFiltro").value;
-    if(!data) return;
-
-    if(semanaTemDia(data)){
-        aplicarFiltroData(data,"memória");
-        return;
-    }
-
-    setStatus("Carregando "+rotuloData(data)+"...","load");
-    const diaFs=await carregarDiaFirestore(data);
-    if(diaFs?.dados?.length){
-        const {dataDe,amanha}=intervaloJanela();
-        complementarSemanaCarregada({dados:diaFs.dados,dataDe,dataAte:amanha,rotulo:"Firestore · dia"},data);
-        return;
-    }
-
-    const snapDia=await carregarSnapshotDia(data).catch(()=>null);
-    if(snapDia?.dados?.length){
-        const {dataDe,amanha}=intervaloJanela();
-        complementarSemanaCarregada({dados:snapDia.dados,dataDe,dataAte:amanha,rotulo:"JSON · dia"},data);
-        return;
-    }
-
-    state.dados=[];
-    state.todos=[];
-    await iniciarCarregamento(true);
+    await iniciarCarregamento(forceRefresh);
 }
 
 $("dataFiltro").addEventListener("change",()=>{
-    aoMudarDataFiltro().catch(e=>setStatus(e.message,"erro"));
+    const data=$("dataFiltro").value;
+    const {dataDe,amanha}=intervaloJanela();
+    if(state.semana.length&&state.semanaDataDe===dataDe&&state.semanaDataAte===amanha&&dataDentroDaJanela(data,dataDe,amanha)){
+        aplicarFiltroData(data,"memória");
+        return;
+    }
+    carregar().catch(e=>setStatus(e.message,"erro"));
 });
 $("maquinaFiltro").addEventListener("change",()=>{aplicarFiltroMaquina();renderTabela();setStatus(formatNumber(state.dados.length)+" registro(s) · "+rotuloData($("dataFiltro").value),"ok");});
 $("btn-atualizar-planilha").addEventListener("click",()=>{atualizarPlanilhaRemoto().catch(()=>{});});
@@ -1551,121 +1394,10 @@ function iniciarPollingHoje(){
     });
 }
 
-function deveIgnorarEcoFirestore(linha){
-    const id=String(linha?._row||"");
-    const por=String(linha?.atualizadoPor||"").toLowerCase();
-    if(!por||por!==meuEmailLiberacao) return false;
-    return Date.now()-(ultimoSaveFirestorePorRow[id]||0)<4000;
-}
-
-function aplicarLinhaFirestoreRemota(rowRemota){
-    if(!rowRemota?._row) return;
-    const dataIso=normalizarDataIsoRow(rowRemota);
-    const rowId=String(rowRemota._row);
-    const idxSem=state.semana.findIndex(r=>String(r._row)===rowId);
-    if(idxSem>=0){
-        if(state.semana[idxSem]._dirty) return;
-        state.semana[idxSem]=mesclarLinhaLiberacao(state.semana[idxSem],rowRemota);
-    }else{
-        state.semana.push(Object.assign({},rowRemota));
-    }
-    if(state.semanaDataDe&&state.semanaDataAte){
-        salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
-    }
-
-    const dataFiltro=$("dataFiltro").value;
-    if(dataIso!==dataFiltro) return;
-
-    const maquina=$("maquinaFiltro").value;
-    if(maquina&&normalizarMaquina(rowRemota.maquina)!==normalizarMaquina(maquina)) return;
-
-    const idx=state.dados.findIndex(r=>String(r._row)===rowId);
-    if(idx<0) return;
-    if(state.dados[idx]._dirty||state.saving[idx]) return;
-
-    const mesclada=mesclarLinhaLiberacao(state.dados[idx],rowRemota);
-    if(rowRemota._syncPlanilha) mesclada._syncPlanilha=rowRemota._syncPlanilha;
-    aplicarFormulasLinha(mesclada);
-    state.dados[idx]=mesclada;
-    const idxTodos=state.todos.findIndex(r=>String(r._row)===rowId);
-    if(idxTodos>=0&&!state.todos[idxTodos]._dirty) state.todos[idxTodos]=mesclada;
-    atualizarLinhaPosSalvar(idx);
-    const agora=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-    setStatus(formatNumber(state.dados.length)+" registro(s) · "+rotuloData(dataFiltro)+" · tempo real · "+agora,"ok");
-}
-
-function pararListenerFirestore(){
-    if(liberacaoFirestoreUnsub){
-        liberacaoFirestoreUnsub();
-        liberacaoFirestoreUnsub=null;
-    }
-}
-
-function iniciarListenerFirestore(){
-    if(!LIBERACAO_USAR_FIRESTORE||!LIBERACAO_TEMPO_REAL) return;
-    pararListenerFirestore();
-    const {dataDe,amanha}=intervaloJanela();
-    liberacaoFirestoreUnsub=observarJanelaLiberacaoFirestore(dataDe,amanha,{
-        onLinha:(evt)=>{
-            if(evt.tipo==="removed") return;
-            if(deveIgnorarEcoFirestore(evt.linha)) return;
-            aplicarLinhaFirestoreRemota(evt.linha);
-        },
-        onErro:(err)=>console.warn("Listener Firestore liberação:",err)
-    });
-}
-
-async function carregarDiaFirestore(data){
-    if(!LIBERACAO_USAR_FIRESTORE||!data) return null;
-    try{
-        return await carregarDiaLiberacaoFirestore(data);
-    }catch(err){
-        console.warn("Firestore dia indisponível:",err);
-        return null;
-    }
-}
-
-function complementarSemanaFirestoreBackground(dataDe,dataAte,data){
-    if(!LIBERACAO_USAR_FIRESTORE||semanaFirestoreBackground) return;
-    semanaFirestoreBackground=carregarJanelaLiberacaoFirestore(dataDe,dataAte)
-        .then(res=>{
-            if(res?.dados?.length){
-                complementarSemanaCarregada({dados:res.dados,dataDe,dataAte,rotulo:"Firestore · semana"},data||$("dataFiltro").value);
-            }
-        })
-        .catch(err=>console.warn("Firestore semana (background):",err))
-        .finally(()=>{semanaFirestoreBackground=null;});
-}
-
-async function carregarFirestoreRapido(data,dataDe,dataAte){
-    if(!LIBERACAO_USAR_FIRESTORE) return false;
-    const dia=await carregarDiaFirestore(data);
-    if(!dia?.dados?.length) return false;
-    complementarSemanaCarregada({dados:dia.dados,dataDe,dataAte,rotulo:"Firestore · dia"},data);
-    complementarSemanaFirestoreBackground(dataDe,dataAte,data);
-    return true;
-}
-
-async function carregarSemanaFirestore(dataDe,dataAte,data){
-    if(!LIBERACAO_USAR_FIRESTORE) return null;
-    try{
-        const res=await carregarJanelaLiberacaoFirestore(dataDe,dataAte);
-        if(!res?.dados?.length) return null;
-        return res;
-    }catch(err){
-        console.warn("Firestore liberação indisponível:",err);
-        return null;
-    }
-}
-
 async function aplicarPrecargaInicial(){
     const data=$("dataFiltro").value||isoHoje();
-    const {dataDe,amanha}=intervaloJanela();
-
-    aplicarCacheLocalLiberacao(data);
+    aplicarCacheLocalLiberacao();
     if(state.dados.length) return;
-
-    if(await carregarFirestoreRapido(data,dataDe,amanha)) return;
 
     const snapDia=await (obterPrecargaHoje()||carregarSnapshotDia(data)).catch(()=>null);
     if(snapDia?.dados?.length){
@@ -1673,6 +1405,7 @@ async function aplicarPrecargaInicial(){
         return;
     }
 
+    const {dataDe,amanha}=intervaloJanela();
     const snapSem=await (obterPrecargaSemana()||null);
     if(snapSem?.dados?.length&&snapshotCobreData(snapSem,data)){
         const intervalo=metaSnapshot(snapSem);
@@ -1689,25 +1422,19 @@ async function iniciar(){
     initEventosTabela();
     configurarLimitesFiltroData();
     definirDataFiltroHoje();
-    renderTabela();
-    meuEmailLiberacao=String(window.portalUsuario?.email||"").toLowerCase();
     carregarManifestLiberacao().then(m=>{if(m)liberacaoManifest=m;});
-    try{
-        await aplicarPrecargaInicial();
-        if(!state.dados.length){
-            iniciarOverlayAbertura();
-            await iniciarCarregamento(false);
-        }
-    }catch(err){
-        console.error("Erro ao carregar liberação:",err);
-        setStatus(err.message||"Erro ao carregar lançamentos.","erro");
-    }finally{
-        finalizarCarregamentoInicial(state.dados.length>0);
+    await aplicarPrecargaInicial();
+    if(state.dados.length){
+        finalizarCarregamentoInicial(true);
+    }else{
+        iniciarOverlayAbertura();
     }
-    if(ehDiaAtual($("dataFiltro").value)&&!LIBERACAO_FASE2) complementarPlanilhaBackground("planilha · hoje");
+    if(ehDiaAtual($("dataFiltro").value)) complementarPlanilhaBackground("planilha · hoje");
+    iniciarCarregamento().catch(e=>{
+        setStatus(e.message,"erro");
+        encerrarOverlayAbertura();
+    });
     iniciarPollingHoje();
-    iniciarListenerFirestore();
-    reprocessarSyncPlanilhaPendentes();
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", ()=>{iniciar();}, { once: true });

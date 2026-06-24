@@ -1,6 +1,7 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { app } from "./portal-firestore.js";
 import { carregarTodosAutuacoesFirestore } from "./autuacoes-firestore.js";
+import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
 
 export const AUTUACOES_API_URL = "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
 export const AUTUACOES_DATA_BASE = "../assets/data/autuacoes";
@@ -99,28 +100,40 @@ async function carregarPlanilhaCompleta() {
   return { payload, rows: Array.isArray(payload?.data) ? payload.data : [] };
 }
 
+async function carregarAws() {
+  const snap = await carregarSnapshotAws("/snapshots/autuacoes", { timeoutMs: 12000 });
+  if (!snap?.payload) return { payload: null, rows: [] };
+  const rows = Array.isArray(snap.payload?.data) ? snap.payload.data : [];
+  return { payload: snap.payload, rows };
+}
+
 /**
- * Fluxo único de leitura: Firestore → JSON → planilha (recente ou completa).
+ * Fluxo único de leitura: AWS → Firestore → JSON → planilha (recente ou completa).
  * Somente consulta — dados vêm da planilha via import/admin.
  */
 export async function carregarDadosAutuacoes({ onProgress } = {}) {
   const tentativas = [];
   const origens = [];
 
-  onProgress?.("Consultando Firestore e JSON...");
-  const [fsRes, jsonRes] = await Promise.allSettled([
+  onProgress?.("Consultando AWS, Firestore e JSON...");
+  const [awsRes, fsRes, jsonRes] = await Promise.allSettled([
+    withTimeout(carregarAws(), 15000),
     withTimeout(carregarFirestore(), 45000),
     withTimeout(carregarJsonSnapshot(), 20000)
   ]);
 
+  const awsPack = awsRes.status === "fulfilled" ? awsRes.value : { payload: null, rows: [] };
+  const aws = awsPack.rows || [];
   const firestore = fsRes.status === "fulfilled" ? fsRes.value : [];
   const jsonPayload = jsonRes.status === "fulfilled" ? jsonRes.value : { payload: null, rows: [] };
   const json = jsonPayload.rows || [];
 
+  tentativas.push(`AWS: ${aws.length}`);
   tentativas.push(`Firestore: ${firestore.length}`);
   tentativas.push(`JSON: ${json.length}`);
 
-  let dados = mesclarLinhas([json, firestore]);
+  let dados = mesclarLinhas([json, firestore, aws]);
+  if (aws.length) origens.push("AWS");
   if (firestore.length) origens.push("Firestore");
   if (json.length) origens.push("JSON");
 

@@ -5,6 +5,7 @@ import {
   idIncidente,
   normalizarDataIsoIncidente
 } from "./incidentes-firestore.js";
+import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
 
 export const INCIDENTES_JSON_URL = "../assets/data/incidentes-tcgl.json";
 
@@ -71,26 +72,38 @@ function montarPayload(basePayload, incidentes) {
   return payload;
 }
 
-/** Fluxo único de leitura: Firestore → JSON. */
+async function carregarAws() {
+  const snap = await carregarSnapshotAws("/snapshots/incidentes", { timeoutMs: 12000 });
+  if (!snap?.payload) return { payload: null, incidentes: [] };
+  const incidentes = Array.isArray(snap.payload?.incidentes) ? snap.payload.incidentes : [];
+  return { payload: snap.payload, incidentes };
+}
+
+/** Fluxo único de leitura: AWS → Firestore → JSON. */
 export async function carregarDadosIncidentes({ onProgress } = {}) {
-  onProgress?.("Consultando Firestore e JSON...");
-  const [fsRes, jsonRes] = await Promise.allSettled([
+  onProgress?.("Consultando AWS, Firestore e JSON...");
+  const [awsRes, fsRes, jsonRes] = await Promise.allSettled([
+    withTimeout(carregarAws(), 15000),
     withTimeout(carregarFirestore(onProgress), 90000),
     withTimeout(carregarJsonSnapshot(), 20000)
   ]);
 
+  const awsPack = awsRes.status === "fulfilled" ? awsRes.value : { payload: null, incidentes: [] };
+  const aws = awsPack.incidentes || [];
   const firestore = fsRes.status === "fulfilled" ? fsRes.value : [];
   const jsonPack = jsonRes.status === "fulfilled" ? jsonRes.value : { payload: null, incidentes: [] };
   const json = jsonPack.incidentes || [];
   const tentativas = [
+    `AWS: ${aws.length}`,
     `Firestore: ${firestore.length}`,
     `JSON: ${json.length}`
   ];
   const origens = [];
+  if (aws.length) origens.push("AWS");
   if (firestore.length) origens.push("Firestore");
   if (json.length) origens.push("JSON");
 
-  const incidentes = mesclarIncidentes([json, firestore]);
+  const incidentes = mesclarIncidentes([json, firestore, aws]);
   const payload = montarPayload(jsonPack.payload, incidentes);
 
   return {

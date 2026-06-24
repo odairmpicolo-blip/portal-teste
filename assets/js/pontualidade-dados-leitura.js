@@ -1,6 +1,7 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { app } from "./portal-firestore.js";
 import { carregarCenarioPontualidadeFirestore, normalizarDataIso } from "./pontualidade-firestore.js";
+import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
 
 export const PONTUALIDADE_DATA_BASE = "../assets/data/pontualidade";
 export const PONTUALIDADE_MANIFEST_URL = `${PONTUALIDADE_DATA_BASE}/manifest.json`;
@@ -96,25 +97,36 @@ async function carregarPlanilha(cenario) {
   return normalizarLinhasPontualidade(payload);
 }
 
-/** Fluxo único de leitura por cenário: Firestore → JSON → planilha. */
+async function carregarAws(cenario) {
+  const snap = await carregarSnapshotAws(`/snapshots/pontualidade/${encodeURIComponent(cenario)}`, { timeoutMs: 12000 });
+  if (!snap?.payload) return [];
+  const bruto = snap.payload.dados != null ? snap.payload.dados : snap.payload;
+  return normalizarLinhasPontualidade(bruto);
+}
+
+/** Fluxo único de leitura por cenário: AWS → Firestore → JSON → planilha. */
 export async function carregarDadosPontualidade(cenario, { onProgress } = {}) {
   const tentativas = [];
   const origens = [];
 
-  onProgress?.("Consultando Firestore e JSON...");
-  const [fsRes, jsonRes] = await Promise.allSettled([
+  onProgress?.("Consultando AWS, Firestore e JSON...");
+  const [awsRes, fsRes, jsonRes] = await Promise.allSettled([
+    withTimeout(carregarAws(cenario), 15000),
     withTimeout(carregarFirestore(cenario), 30000),
     withTimeout(carregarJsonCenario(cenario), 15000)
   ]);
 
+  const aws = awsRes.status === "fulfilled" ? awsRes.value : [];
   const firestore = fsRes.status === "fulfilled" ? fsRes.value : [];
   const jsonPack = jsonRes.status === "fulfilled" ? jsonRes.value : { meta: null, dados: [] };
   const json = jsonPack.dados || [];
 
+  tentativas.push(`AWS: ${aws.length}`);
   tentativas.push(`Firestore: ${firestore.length}`);
   tentativas.push(`JSON: ${json.length}`);
 
-  let dados = mesclarPorData([json, firestore]);
+  let dados = mesclarPorData([json, firestore, aws]);
+  if (aws.length) origens.push("AWS");
   if (firestore.length) origens.push("Firestore");
   if (json.length) origens.push("JSON");
 
