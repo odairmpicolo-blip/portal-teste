@@ -1,4 +1,4 @@
-import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
+import { carregarSnapshotAws } from "./portal-aws-config.js";
 
 export function normalizarDataIsoRow(row) {
   if (row?.data_iso) return row.data_iso;

@@ -1,9 +1,9 @@
-import { query, getPool } from "./db.js";
+import { query, closePool, isDsqlMode } from "./db.js";
 
 async function main() {
   const res = await query("SELECT NOW() AS agora, current_database() AS banco");
-  console.log("Conexão OK:", res.rows[0]);
-  await getPool().end();
+  console.log("Conexão OK (" + (isDsqlMode() ? "DSQL" : "PostgreSQL") + "):", res.rows[0]);
+  await closePool();
 }
 
 main().catch((err) => {

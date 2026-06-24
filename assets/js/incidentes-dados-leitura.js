@@ -5,7 +5,7 @@ import {
   idIncidente,
   normalizarDataIsoIncidente
 } from "./incidentes-firestore.js";
-import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
+import { carregarSnapshotAws } from "./portal-aws-config.js";
 
 export const INCIDENTES_JSON_URL = "../assets/data/incidentes-tcgl.json";
 

@@ -1,7 +1,7 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { app } from "./portal-firestore.js";
 import { carregarCenarioPontualidadeFirestore, normalizarDataIso } from "./pontualidade-firestore.js";
-import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
+import { carregarSnapshotAws } from "./portal-aws-config.js";
 
 export const PONTUALIDADE_DATA_BASE = "../assets/data/pontualidade";
 export const PONTUALIDADE_MANIFEST_URL = `${PONTUALIDADE_DATA_BASE}/manifest.json`;

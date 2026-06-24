@@ -1483,13 +1483,17 @@ async function carregarPlanilha(manual){
     setErroFonte("");
     try {
         if (TERMINAIS_USAR_FIRESTORE) {
-            const mod = await import("../assets/js/terminais-dados-leitura.js?v=20260624");
-            const res = await mod.carregarDadosTerminais({
-                onProgress: function(msg){ setStatusFonte("", msg); }
-            });
-            if (res.payload?.REGISTROS?.length) {
-                aplicarSnapshotTerminais(res.payload, res.origem);
-                return;
+            try {
+                const mod = await import("../assets/js/terminais-dados-leitura.js?v=20260624d");
+                const res = await mod.carregarDadosTerminais({
+                    onProgress: function(msg){ setStatusFonte("", msg); }
+                });
+                if (res.payload?.REGISTROS?.length) {
+                    aplicarSnapshotTerminais(res.payload, res.origem);
+                    return;
+                }
+            } catch (moduleErr) {
+                console.warn("Firestore/AWS indisponível, usando planilha:", moduleErr);
             }
         }
         const resultado = await Promise.allSettled([buscarAba(GID_DADOS), buscarAba(GID_PROGRAMACAO)]);

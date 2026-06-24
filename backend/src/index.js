@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { config } from "./config.js";
-import { query } from "./db.js";
+import { query, isDsqlMode } from "./db.js";
 import liberacaoRouter from "./routes/liberacao.js";
 import terminaisRouter from "./routes/terminais.js";
 import snapshotsRouter from "./routes/snapshots.js";
@@ -21,12 +21,12 @@ app.use(cors({
 
 app.get("/health", async (_req, res) => {
   try {
-    if (!config.databaseUrl) {
-      res.status(503).json({ ok: false, erro: "DATABASE_URL não configurada" });
+    if (!config.databaseUrl && !config.dsqlClusterId) {
+      res.status(503).json({ ok: false, erro: "DATABASE_URL ou DSQL_CLUSTER_ID não configurado" });
       return;
     }
     const result = await query("SELECT 1 AS ok");
-    res.json({ ok: true, db: result.rows[0].ok === 1 });
+    res.json({ ok: true, db: result.rows[0].ok === 1, modo: isDsqlMode() ? "dsql" : "postgres" });
   } catch (err) {
     res.status(503).json({ ok: false, erro: err.message });
   }
@@ -42,5 +42,5 @@ app.use((_req, res) => {
 
 app.listen(config.port, () => {
   console.log(`Portal CIOP API em http://localhost:${config.port}`);
-  if (!config.databaseUrl) console.warn("AVISO: configure DATABASE_URL em backend/.env");
+  if (!config.databaseUrl && !config.dsqlClusterId) console.warn("AVISO: configure DATABASE_URL ou DSQL_CLUSTER_ID em backend/.env");
 });

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS liberacao_linhas (
   PRIMARY KEY (data_iso, row_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_liberacao_data ON liberacao_linhas (data_iso);
+-- Índice em schema-indexes.sql (CREATE INDEX ASYNC — exigido pelo DSQL)
 
 CREATE TABLE IF NOT EXISTS terminais_snapshot (
   id TEXT PRIMARY KEY DEFAULT 'atual',

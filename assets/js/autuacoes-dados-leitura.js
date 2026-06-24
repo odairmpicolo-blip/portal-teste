@@ -1,7 +1,7 @@
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { app } from "./portal-firestore.js";
 import { carregarTodosAutuacoesFirestore } from "./autuacoes-firestore.js";
-import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
+import { carregarSnapshotAws } from "./portal-aws-config.js";
 
 export const AUTUACOES_API_URL = "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
 export const AUTUACOES_DATA_BASE = "../assets/data/autuacoes";

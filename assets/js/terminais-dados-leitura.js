@@ -4,7 +4,7 @@ import {
   carregarSnapshotTerminaisFirestore,
   reidratarSnapshotTerminais
 } from "./terminais-firestore.js";
-import { carregarSnapshotAws } from "./portal-aws-snapshot.js";
+import { carregarSnapshotAws } from "./portal-aws-config.js";
 
 export const TERMINAIS_JSON_URL = "../assets/data/terminais-agora.json";
 
