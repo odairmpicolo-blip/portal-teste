@@ -56,10 +56,8 @@ table.relatorio td.col-texto,table.relatorio th.col-texto{text-align:left}
 table.relatorio td.col-formula{color:#1d4ed8;background:#f8fbff;font-weight:700}
 table.relatorio td.cell-div-neg{background:#fef2f2!important;color:#b91c1c!important;font-weight:800}
 table.relatorio td.cell-div-warn{background:#fffbeb!important;color:#b45309!important;font-weight:800}
-table.relatorio td.cell-div-ok{background:#f0fdf4!important;color:#15803d!important;font-weight:700}
 table.relatorio tbody tr:nth-child(even) td.cell-div-neg{background:#fee2e2!important}
 table.relatorio tbody tr:nth-child(even) td.cell-div-warn{background:#fef3c7!important}
-table.relatorio tbody tr:nth-child(even) td.cell-div-ok{background:#dcfce7!important}
 table.relatorio tbody tr.row-div td{box-shadow:inset 3px 0 0 var(--orange)}
 .empty{padding:48px 24px;text-align:center;color:var(--muted)}
 .empty-title{font-size:16px;font-weight:900;color:var(--blue);margin-bottom:6px}
@@ -247,14 +245,11 @@ function classesDivergencia(row){
     const classes={};
     const snh=String(val(row,"saiu_no_horario")||"").trim().toUpperCase();
     if(snh==="NÃO") classes.saiu_no_horario="cell-div-neg";
-    else if(snh==="SIM") classes.saiu_no_horario="cell-div-ok";
     const inh=String(val(row,"inicio_no_horario")||"").trim().toUpperCase();
     if(inh==="ATRASADO") classes.inicio_no_horario="cell-div-neg";
     else if(inh==="ADIANTADO") classes.inicio_no_horario="cell-div-warn";
-    else if(inh==="NO HORÁRIO") classes.inicio_no_horario="cell-div-ok";
     const toc=String(val(row,"trajeto_ocioso_correto")||"").trim().toUpperCase();
     if(toc==="NÃO") classes.trajeto_ocioso_correto="cell-div-neg";
-    else if(toc==="SIM") classes.trajeto_ocioso_correto="cell-div-ok";
     return classes;
 }
 function linhaParaRelatorio(row){
