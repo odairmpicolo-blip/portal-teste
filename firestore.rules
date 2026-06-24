@@ -40,6 +40,13 @@ service cloud.firestore {
       );
     }
 
+    function perfilFolhaServico() {
+      return signedIn() && (
+        bootstrapGestor() ||
+        perfilAtual() in ['Administrador', 'Supervisor', 'Analista']
+      );
+    }
+
     match /liberacaoDias/{dataIso} {
       allow read: if perfilLiberacao();
       allow create, update: if perfilLiberacao();
@@ -48,6 +55,20 @@ service cloud.firestore {
       match /linhas/{linhaId} {
         allow read: if perfilLiberacao();
         allow create, update: if perfilLiberacao()
+          && request.resource.data.atualizadoPor == email()
+          && linhaId == string(request.resource.data._row);
+        allow delete: if gestor();
+      }
+    }
+
+    match /folhaServicoDias/{dataIso} {
+      allow read: if perfilFolhaServico();
+      allow create, update: if perfilFolhaServico();
+      allow delete: if gestor();
+
+      match /linhas/{linhaId} {
+        allow read: if perfilFolhaServico();
+        allow create, update: if perfilFolhaServico()
           && request.resource.data.atualizadoPor == email()
           && linhaId == string(request.resource.data._row);
         allow delete: if gestor();
