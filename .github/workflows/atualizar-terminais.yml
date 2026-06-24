@@ -1,9 +1,9 @@
-name: Atualizar incidentes TCGL
+name: Atualizar terminais planilha
 
 on:
   schedule:
-    # 06:00 UTC = 03:00 horário de Brasília (backup se o PC local falhar)
-    - cron: '0 6 * * *'
+    # A cada 5 minutos (UTC)
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   atualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 15
 
     steps:
       - name: Baixar portal
@@ -23,23 +23,21 @@ jobs:
         with:
           node-version: "24"
 
-      - name: Atualizar incidentes TCGL
+      - name: Atualizar snapshot da planilha
         env:
-          CIOP_INCIDENTES_USUARIO: ${{ secrets.CIOP_INCIDENTES_USUARIO }}
-          CIOP_INCIDENTES_SENHA: ${{ secrets.CIOP_INCIDENTES_SENHA }}
           PORTAL_ROOT: ${{ github.workspace }}
-        run: node scripts/atualizar-incidentes-tcgl.mjs
+        run: node scripts/atualizar-terminais-planilha.mjs
 
       - name: Publicar dados atualizados
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Atualiza incidentes TCGL"
-          file_pattern: assets/data/incidentes-tcgl.json
+          commit_message: "Atualiza terminais agora"
+          file_pattern: assets/data/terminais-agora.json
 
       - name: Instalar dependências
         run: npm ci
 
-      - name: Importar incidentes no Firestore
+      - name: Importar terminais no Firestore
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ runner.temp }}/firebase-sa.json
         run: |
@@ -48,4 +46,4 @@ jobs:
             exit 0
           fi
           printf '%s' "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > "$FIREBASE_SERVICE_ACCOUNT"
-          npm run import-incidentes-firestore
+          npm run import-terminais-firestore

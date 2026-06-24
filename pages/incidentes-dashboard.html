@@ -700,7 +700,9 @@ function salvarCacheIncidentes(payload) {
     } catch (error) {}
 }
 
-function aplicarPayloadIncidentes(payload) {
+const INCIDENTES_USAR_FIRESTORE = true;
+
+function aplicarPayloadIncidentes(payload, origem) {
     state.all = (payload.incidentes || []).filter((row) => String(row.empresa || "").toUpperCase() === "TCGL" && (String(row.natureOfProblem || "").trim() || String(row.instructions || "").trim()));
     populateSelect(fields.estado, state.all, "estado");
     populateSelect(fields.tipo, state.all, "tipo");
@@ -709,14 +711,16 @@ function aplicarPayloadIncidentes(payload) {
     populateSelect(fields.criado, state.all, "criadoPor");
     populateSelect(fields.proprietario, state.all, "proprietario");
     applyFilters();
-    atualizarStatusLinha(payload, state.all.length);
+    atualizarStatusLinha(payload, state.all.length, origem);
 }
 
-function atualizarStatusLinha(payload, total) {
+function atualizarStatusLinha(payload, total, origem) {
     const quando = payload?.atualizadoEm
         ? new Date(payload.atualizadoEm).toLocaleString("pt-BR")
         : "data desconhecida";
-    document.getElementById("statusLine").textContent = "Atualizado em " + quando + " · " + formatNumber(total) + " incidentes TCGL";
+    let txt = "Atualizado em " + quando + " · " + formatNumber(total) + " incidentes TCGL";
+    if (origem) txt += " · " + origem;
+    document.getElementById("statusLine").textContent = txt;
 }
 
 async function carregarIncidentes(forcar) {
@@ -735,6 +739,17 @@ async function carregarIncidentes(forcar) {
     }
 
     try {
+        if (INCIDENTES_USAR_FIRESTORE) {
+            const mod = await import("../assets/js/incidentes-dados-leitura.js?v=20260624");
+            const res = await mod.carregarDadosIncidentes({
+                onProgress: (msg) => { status.textContent = msg; }
+            });
+            if (res.payload?.incidentes?.length) {
+                salvarCacheIncidentes(res.payload);
+                aplicarPayloadIncidentes(res.payload, res.origem);
+                return;
+            }
+        }
         const url = forcar || !cacheLocal
             ? "../assets/data/incidentes-tcgl.json?ts=" + Date.now()
             : "../assets/data/incidentes-tcgl.json";
@@ -742,7 +757,7 @@ async function carregarIncidentes(forcar) {
         if (!response.ok) throw new Error("Não foi possível carregar o arquivo de incidentes.");
         const payload = await response.json();
         salvarCacheIncidentes(payload);
-        aplicarPayloadIncidentes(payload);
+        aplicarPayloadIncidentes(payload, "JSON");
     } catch (error) {
         if (!cacheLocal) {
             status.textContent = error.message || "Erro ao atualizar incidentes.";

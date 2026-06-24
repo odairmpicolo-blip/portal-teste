@@ -54,6 +54,20 @@ service cloud.firestore {
       );
     }
 
+    function perfilIncidentes() {
+      return signedIn() && (
+        bootstrapGestor() ||
+        perfilAtual() in ['Administrador', 'Supervisor', 'Gerência', 'Gerencia', 'Analista']
+      );
+    }
+
+    function perfilTerminais() {
+      return signedIn() && (
+        bootstrapGestor() ||
+        perfilAtual() in ['Administrador', 'Supervisor', 'Gerência', 'Gerencia', 'Analista']
+      );
+    }
+
     match /liberacaoDias/{dataIso} {
       allow read: if perfilLiberacao();
       allow create, update: if perfilLiberacao();
@@ -100,6 +114,21 @@ service cloud.firestore {
         allow read: if signedIn();
         allow write: if false;
       }
+    }
+
+    match /incidentesDias/{dataIso} {
+      allow read: if perfilIncidentes();
+      allow create, update, delete: if false;
+
+      match /linhas/{linhaId} {
+        allow read: if perfilIncidentes();
+        allow write: if false;
+      }
+    }
+
+    match /terminaisAgora/{docId} {
+      allow read: if perfilTerminais();
+      allow create, update, delete: if false;
     }
 
     match /avisos/{avisoId} {
