@@ -50,7 +50,11 @@ export function listarDatasIsoJanela(dataDe, dataAte) {
 }
 
 function docParaLinha(item, dataIso) {
-  return sanitizarLinha(Object.assign({ _row: item.id }, item.data()), dataIso);
+  const linha = sanitizarLinha(Object.assign({ _row: item.id }, item.data()), dataIso);
+  if (!linha) return null;
+  const sync = String(linha.syncPlanilhaStatus || "").trim().toLowerCase();
+  if (sync === "pending" || sync === "ok" || sync === "erro") linha._syncPlanilha = sync;
+  return linha;
 }
 
 export function observarJanelaLiberacaoFirestore(dataDe, dataAte, { onLinha, onErro } = {}) {
@@ -135,8 +139,8 @@ export async function carregarJanelaLiberacaoFirestore(dataDe, dataAte) {
   };
 }
 
-/** Save no Firestore para tempo real entre usuários (planilha continua como persistência principal). */
-export async function salvarLinhaLiberacaoFirestore(row, email) {
+/** Save no Firestore — fonte principal (Fase 2). */
+export async function salvarLinhaLiberacaoFirestore(row, email, extras = {}) {
   const dataIso = normalizarDataIsoRow(row);
   const id = String(row?._row || "").trim();
   if (!dataIso || !id) throw new Error("Linha invalida para Firestore.");
@@ -145,6 +149,7 @@ export async function salvarLinhaLiberacaoFirestore(row, email) {
   payload.atualizadoEm = serverTimestamp();
   payload.atualizadoPor = String(email || "").trim().toLowerCase();
   payload.origem = "portal";
+  if (extras.syncPlanilha) payload.syncPlanilhaStatus = extras.syncPlanilha;
   await setDoc(doc(db, COLECAO_LIBERACAO_DIAS, dataIso, SUBCOLECAO_LINHAS, id), payload, { merge: true });
   await setDoc(doc(db, COLECAO_LIBERACAO_DIAS, dataIso), {
     data: dataIso,
@@ -152,4 +157,15 @@ export async function salvarLinhaLiberacaoFirestore(row, email) {
     atualizadoEm: serverTimestamp()
   }, { merge: true });
   return payload;
+}
+
+export async function marcarSyncPlanilhaLiberacaoFirestore(row, email, status) {
+  const dataIso = normalizarDataIsoRow(row);
+  const id = String(row?._row || "").trim();
+  if (!dataIso || !id) return;
+  await setDoc(doc(db, COLECAO_LIBERACAO_DIAS, dataIso, SUBCOLECAO_LINHAS, id), {
+    syncPlanilhaStatus: status,
+    syncPlanilhaEm: serverTimestamp(),
+    syncPlanilhaPor: String(email || "").trim().toLowerCase()
+  }, { merge: true });
 }

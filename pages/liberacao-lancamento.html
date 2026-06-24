@@ -105,7 +105,8 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 .sync-badge{display:inline-flex;align-items:center;justify-content:center;min-width:68px;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.03em}
 .sync-badge.ok{background:#dcfce7;color:var(--green)}
 .sync-badge.saving{background:#ffedd5;color:var(--amber)}
-.sync-badge.dirty{background:#e0e7ff;color:#3730a3}
+.sync-badge.pending{background:#e0e7ff;color:#3730a3}
+.sync-badge.dirty{background:#fef3c7;color:#92400e}
 .sync-badge.erro{background:#fee2e2;color:var(--red)}
 .empty{padding:48px 24px;color:var(--muted);text-align:center}
 .empty-title{font-size:15px;font-weight:900;color:var(--blue);margin-bottom:6px}
@@ -180,7 +181,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
         <div class="table-head">
             <div>
                 <h2 class="card-title">Planilha de acompanhamento</h2>
-                <div class="table-sub">Firestore em tempo real · save na planilha + sync Firestore · JSON/planilha como fallback</div>
+                <div class="table-sub">Firestore · save instantâneo · planilha em background · tempo real</div>
             </div>
             <span class="status-pill" style="padding:6px 10px"><span id="tableInfo">0 linhas</span></span>
         </div>
@@ -195,8 +196,9 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
             </div>
         </div>
         <div class="legend" aria-hidden="true">
-            <span class="legend-item"><span class="legend-swatch ok"></span>Salvo</span>
+            <span class="legend-item"><span class="legend-swatch ok"></span>Salvo (Firestore)</span>
             <span class="legend-item"><span class="legend-swatch saving"></span>Salvando</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#e0e7ff"></span>Planilha pendente</span>
             <span class="legend-item"><span class="legend-swatch erro"></span>Erro ao salvar</span>
             <span class="legend-item"><span class="legend-swatch formula"></span>Calculado automaticamente</span>
             <span class="legend-item">Setas / Tab / Enter — navegar células editáveis</span>
@@ -207,7 +209,7 @@ tbody td.col-maquina .cell-readonly{background:transparent;color:inherit;padding
 <footer class="page-footer">Portal CIOP · Acompanhamento da Liberação · TCGL</footer>
 
 <script type="module">
-import { carregarJanelaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
+import { carregarJanelaLiberacaoFirestore, observarJanelaLiberacaoFirestore, salvarLinhaLiberacaoFirestore, marcarSyncPlanilhaLiberacaoFirestore } from "../assets/js/liberacao-firestore.js";
 
 const API_URL = "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const COLUNAS_EXIBICAO = [
@@ -259,6 +261,8 @@ const CACHE_STORAGE_KEY = "portal_liberacao_lancamento_v2";
 const LIBERACAO_MODO_JSON_HIBRIDO = true;
 const LIBERACAO_USAR_FIRESTORE = true;
 const LIBERACAO_TEMPO_REAL = true;
+const LIBERACAO_FASE2 = true;
+const MAX_TENTATIVAS_PLANILHA = 4;
 const INTERVALO_SYNC_PLANILHA_MS = 3000;
 const INTERVALO_SYNC_JSON_MS = 30000;
 const INTERVALO_SYNC_JITTER_MS = 500;
@@ -282,6 +286,9 @@ let cacheGravacaoTimer = null;
 let liberacaoFirestoreUnsub = null;
 let meuEmailLiberacao = "";
 const ultimoSaveFirestorePorRow = {};
+const filaSyncPlanilha = [];
+let processandoFilaPlanilha = false;
+const rowsSyncPlanilhaEnfileirados = new Set();
 const state = {
     colunas: COLUNAS_EXIBICAO,
     semana: [],
@@ -678,7 +685,87 @@ function syncBadge(row,i){
     if(state.saving[i]) return '<span class="sync-badge saving">Salvando</span>';
     if(row._syncErro) return '<span class="sync-badge erro">Erro</span>';
     if(row._dirty) return '<span class="sync-badge dirty">Alterado</span>';
+    if(LIBERACAO_FASE2&&row._syncPlanilha==="pending") return '<span class="sync-badge pending">Planilha…</span>';
+    if(LIBERACAO_FASE2&&row._syncPlanilha==="erro") return '<span class="sync-badge erro">Planilha</span>';
     return '<span class="sync-badge ok">Salvo</span>';
+}
+
+function montarPayloadPlanilha(row){
+    const payload={action:"update",_row:row._row};
+    CAMPOS_EDITAVEIS.forEach(chave=>{payload[chave]=val(row,chave)||"";});
+    CAMPOS_FORMULA_PLANILHA.forEach(k=>{payload[k]=val(row,k)||"";});
+    return payload;
+}
+
+function indiceLinhaPorRow(rowId){
+    return state.dados.findIndex(r=>String(r._row)===String(rowId));
+}
+
+function atualizarBadgeLinhaPorRow(rowId){
+    const idx=indiceLinhaPorRow(rowId);
+    if(idx<0) return;
+    const syncEl=document.querySelector(".sync-"+idx);
+    if(syncEl) syncEl.innerHTML=syncBadge(state.dados[idx],idx);
+}
+
+function enfileirarSyncPlanilha(row,payload){
+    const rowId=String(row._row);
+    if(rowsSyncPlanilhaEnfileirados.has(rowId)) return;
+    rowsSyncPlanilhaEnfileirados.add(rowId);
+    filaSyncPlanilha.push({rowId,payload:payload||montarPayloadPlanilha(row),tentativas:0});
+    processarFilaSyncPlanilha();
+}
+
+async function processarFilaSyncPlanilha(){
+    if(processandoFilaPlanilha) return;
+    processandoFilaPlanilha=true;
+    while(filaSyncPlanilha.length){
+        const job=filaSyncPlanilha.shift();
+        const idx=indiceLinhaPorRow(job.rowId);
+        const row=idx>=0?state.dados[idx]:state.semana.find(r=>String(r._row)===String(job.rowId));
+        if(!row){
+            rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
+            continue;
+        }
+        try{
+            await apiPost(job.payload);
+            row._syncPlanilha="ok";
+            row._syncPlanilhaErro=false;
+            rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
+            const idxSem=state.semana.findIndex(r=>String(r._row)===String(job.rowId));
+            if(idxSem>=0) state.semana[idxSem]._syncPlanilha="ok";
+            if(LIBERACAO_USAR_FIRESTORE&&meuEmailLiberacao){
+                marcarSyncPlanilhaLiberacaoFirestore(row,meuEmailLiberacao,"ok").catch(()=>{});
+            }
+            if(state.semana.length){
+                salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte},true);
+            }
+            atualizarBadgeLinhaPorRow(job.rowId);
+            if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
+        }catch(err){
+            job.tentativas++;
+            if(job.tentativas<MAX_TENTATIVAS_PLANILHA){
+                filaSyncPlanilha.unshift(job);
+                await new Promise(r=>setTimeout(r,1500*job.tentativas));
+            }else{
+                row._syncPlanilha="erro";
+                row._syncPlanilhaErro=err.message||"Erro na planilha";
+                rowsSyncPlanilhaEnfileirados.delete(String(job.rowId));
+                atualizarBadgeLinhaPorRow(job.rowId);
+                console.warn("Sync planilha falhou:",job.rowId,err);
+            }
+        }
+    }
+    processandoFilaPlanilha=false;
+}
+
+function reprocessarSyncPlanilhaPendentes(){
+    if(!LIBERACAO_FASE2) return;
+    state.semana.forEach(row=>{
+        if(row._syncPlanilha!=="pending"&&row._syncPlanilha!=="erro") return;
+        if(rowsSyncPlanilhaEnfileirados.has(String(row._row))) return;
+        enfileirarSyncPlanilha(row);
+    });
 }
 
 function marcarCelulaAtiva(el){
@@ -882,27 +969,38 @@ async function salvarLinha(i){
     aplicarFormulasLinha(row);
     state.saving[i]=true;
     document.querySelector(".sync-"+i).innerHTML=syncBadge(row,i);
-    const payload={action:"update",_row:row._row};
-    CAMPOS_EDITAVEIS.forEach(chave=>{
-        payload[chave]=val(row,chave)||"";
-    });
-    CAMPOS_FORMULA_PLANILHA.forEach(k=>{
-        payload[k]=val(row,k)||"";
-    });
+    const payload=montarPayloadPlanilha(row);
     try{
-        await apiPost(payload);
-        if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_TEMPO_REAL&&meuEmailLiberacao){
-            salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao)
-                .then(()=>{ultimoSaveFirestorePorRow[String(row._row)]=Date.now();})
-                .catch(err=>console.warn("Firestore save:",err));
+        if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_FASE2&&meuEmailLiberacao){
+            await salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao,{syncPlanilha:"pending"});
+            ultimoSaveFirestorePorRow[String(row._row)]=Date.now();
+            row._dirty=false;
+            row._syncErro=false;
+            row._syncPlanilha="pending";
+            const idxSem=state.semana.findIndex(r=>r._row===row._row);
+            if(idxSem>=0){
+                state.semana[idxSem]=Object.assign({},row);
+                state.semana[idxSem]._syncPlanilha="pending";
+            }
+            if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
+            atualizarLinhaPosSalvar(i);
+            enfileirarSyncPlanilha(row,payload);
+        }else{
+            await apiPost(payload);
+            if(LIBERACAO_USAR_FIRESTORE&&LIBERACAO_TEMPO_REAL&&meuEmailLiberacao){
+                salvarLinhaLiberacaoFirestore(row,meuEmailLiberacao)
+                    .then(()=>{ultimoSaveFirestorePorRow[String(row._row)]=Date.now();})
+                    .catch(err=>console.warn("Firestore save:",err));
+            }
+            row._dirty=false;
+            row._syncErro=false;
+            row._syncPlanilha="ok";
+            const idxSem=state.semana.findIndex(r=>r._row===row._row);
+            if(idxSem>=0) state.semana[idxSem]=row;
+            if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
+            atualizarLinhaPosSalvar(i);
+            if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
         }
-        row._dirty=false;
-        row._syncErro=false;
-        const idxSem=state.semana.findIndex(r=>r._row===row._row);
-        if(idxSem>=0) state.semana[idxSem]=row;
-        if(state.semana.length) salvarCacheLiberacao(state.semana,{data_de:state.semanaDataDe,data_ate:state.semanaDataAte});
-        atualizarLinhaPosSalvar(i);
-        if(ehDiaAtual($("dataFiltro").value)) setTimeout(()=>sincronizarJsonHoje(),1500);
     }catch(err){
         row._syncErro=true;
         document.querySelectorAll('[data-i="'+i+'"]').forEach(el=>{el.classList.remove("saving");el.classList.add("erro");});
@@ -1144,6 +1242,10 @@ function rodarSyncHojeSilencioso(origem){
 
 function rodarSyncAutomatico(){
     if(!ehDiaAtual($("dataFiltro").value)) return;
+    if(LIBERACAO_FASE2){
+        reprocessarSyncPlanilhaPendentes();
+        return;
+    }
     sincronizarJsonHoje();
 }
 
@@ -1445,6 +1547,7 @@ function aplicarLinhaFirestoreRemota(rowRemota){
     if(state.dados[idx]._dirty||state.saving[idx]) return;
 
     const mesclada=mesclarLinhaLiberacao(state.dados[idx],rowRemota);
+    if(rowRemota._syncPlanilha) mesclada._syncPlanilha=rowRemota._syncPlanilha;
     aplicarFormulasLinha(mesclada);
     state.dados[idx]=mesclada;
     const idxTodos=state.todos.findIndex(r=>String(r._row)===rowId);
@@ -1539,6 +1642,7 @@ async function iniciar(){
     });
     iniciarPollingHoje();
     iniciarListenerFirestore();
+    reprocessarSyncPlanilhaPendentes();
 }
 if(window.portalUsuarioValidado) iniciar();
 else window.addEventListener("portal:usuario-validado", ()=>{iniciar();}, { once: true });
