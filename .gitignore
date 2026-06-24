@@ -1,6 +1,8 @@
 node_modules/
 backend/.env
 .secrets/
+aws/incidentes-sync/.build/
+aws/incidentes-sync/incidentes-sync.zip
 assets/import/tabelas-horarias/_drive/
 assets/import/tabelas-horarias/**/*.xlsx
 scripts/baixar-tabelas-horarias.log
