@@ -20,12 +20,17 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: portal-ciop-bus2-proxy
-      Description: Proxy GET para mobilibus.com (Ônibus Agora)
+      Description: Proxy GET para mobilibus.com (legado) e BusTime csr.mov1.com.br
       Runtime: nodejs20.x
       Handler: index.handler
       Role: !GetAtt Bus2ProxyRole.Arn
       Timeout: 30
       MemorySize: 256
+      Environment:
+        Variables:
+          BUSTIME_BASE_URL: https://csr.mov1.com.br/bustime/api/v3
+          BUSTIME_REFERER: https://csr.mov1.com.br/map
+          BUSTIME_API_KEY: ""
       Code:
         ZipFile: |
           export const handler = async () => ({
@@ -78,11 +83,25 @@ Resources:
       RouteKey: "GET /bus2/{proxy+}"
       Target: !Sub integrations/${Bus2ProxyIntegration}
 
+  Bus2ProxyRouteMov1:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Bus2ProxyApi
+      RouteKey: "GET /mov1/{proxy+}"
+      Target: !Sub integrations/${Bus2ProxyIntegration}
+
   Bus2ProxyRouteOptions:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref Bus2ProxyApi
       RouteKey: "OPTIONS /bus2/{proxy+}"
+      Target: !Sub integrations/${Bus2ProxyIntegration}
+
+  Bus2ProxyRouteMov1Options:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Bus2ProxyApi
+      RouteKey: "OPTIONS /mov1/{proxy+}"
       Target: !Sub integrations/${Bus2ProxyIntegration}
 
   Bus2ProxyStage:

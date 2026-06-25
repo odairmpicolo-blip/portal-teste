@@ -187,7 +187,7 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
     <div class="title-wrap">
         <p class="page-kicker">Monitoramento ao vivo</p>
         <h1 class="page-title">Ônibus Agora</h1>
-        <p class="page-desc">Mapa em tempo real · Londrina · dados Bus2</p>
+        <p class="page-desc">Mapa ao vivo · BusTime TCGL · horários Bus2</p>
     </div>
     <div class="header-actions">
         <div class="ciop-session">
@@ -212,7 +212,7 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
         </div>
         <div class="topbar-actions">
             <button type="button" class="btn btn-ghost" id="btnAtualizar">Atualizar agora</button>
-            <a class="btn btn-ghost" href="https://bus2.info/pr/londrina" target="_blank" rel="noopener">Bus2 Londrina</a>
+            <a class="btn btn-ghost" href="https://csr.mov1.com.br/map" target="_blank" rel="noopener">Mapa TCGL</a>
         </div>
     </div>
 
@@ -286,6 +286,8 @@ const BUS2 = {
     hash: "2fvn7",
     proxyFallback: "https://62wvo4yk9b.execute-api.sa-east-1.amazonaws.com",
     proxyBase: null,
+    liveProvider: "mov1",
+    mov1Origin: "https://csr.mov1.com.br",
     tiles: {
         light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         lightBus2: "https://bus2.info/api/public/tiles/light/{z}/{x}/{y}",
@@ -382,11 +384,12 @@ function resolverBasePortal(){
     return last > 0 ? path.slice(0, last) : "";
 }
 
-function normalizarProxyBase(apiUrl){
+function normalizarProxyLive(apiUrl){
     let url = String(apiUrl || "").trim().replace(/\/+$/, "");
     if (!url) return "";
-    if (url.endsWith("/bus2")) return url;
-    return url + "/bus2";
+    if (url.endsWith("/mov1")) return url;
+    if (url.endsWith("/bus2")) url = url.slice(0, -5);
+    return url + "/mov1";
 }
 
 async function fetchJson(url){
@@ -404,7 +407,7 @@ async function fetchJson(url){
     return res.json();
 }
 
-async function initBus2Proxy(){
+async function initLiveProxy(){
     if (BUS2.proxyBase) return;
     const candidatos = [
         resolverBasePortal() + "/assets/data/portal-runtime.json",
@@ -413,7 +416,7 @@ async function initBus2Proxy(){
     for (const cfgUrl of candidatos){
         try {
             const cfg = await fetchJson(cfgUrl);
-            const base = normalizarProxyBase(cfg?.awsApiUrl);
+            const base = normalizarProxyLive(cfg?.awsApiUrl);
             const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(base);
             const onLocal = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
             if (base && (!local || onLocal)){
@@ -422,7 +425,65 @@ async function initBus2Proxy(){
             }
         } catch { /* tenta próximo */ }
     }
-    if (BUS2.proxyFallback) BUS2.proxyBase = normalizarProxyBase(BUS2.proxyFallback);
+    if (BUS2.proxyFallback) BUS2.proxyBase = normalizarProxyLive(BUS2.proxyFallback);
+}
+
+async function fetchMov1Live(action, params){
+    if (!BUS2.proxyBase) throw new Error("Mapa ao vivo indisponível (API proxy não configurada).");
+    const qs = new URLSearchParams();
+    Object.entries(params || {}).forEach(([k, v]) => {
+        if (v != null && v !== "") qs.set(k, String(v));
+    });
+    const suffix = qs.toString() ? "?" + qs.toString() : "";
+    const raw = await fetchJson(BUS2.proxyBase + "/" + action + suffix);
+    const br = raw?.["bustime-response"];
+    if (br?.error?.length) {
+        throw new Error(br.error.map(e => e.msg || e).join("; "));
+    }
+    return br || raw;
+}
+
+function listaVeiculosMov1(br){
+    const v = br?.vehicle;
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === "object") return [v];
+    return [];
+}
+
+function mapaRotasPorNumero(){
+    const map = new Map();
+    state.routes.forEach(r => map.set(String(r.shortName), r));
+    return map;
+}
+
+function normalizarVeiculoMov1(v, route){
+    const lat = Number(v.lat);
+    const lng = Number(v.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    const atrasado = v.dly === true || v.dly === "true";
+    const routeMeta = route || {
+        routeId: String(v.rt || v.vid || "?"),
+        shortName: String(v.rt || "?"),
+        longName: String(v.des || ""),
+        color: "#2db4bf"
+    };
+    return {
+        vehicleId: String(v.vid || ""),
+        lat,
+        lng,
+        heading: Number(v.hdg) || 0,
+        delay: atrasado ? 361 : 0,
+        positionTime: String(v.tmstmp || ""),
+        tripDesc: String(v.des || ""),
+        percTravelled: v.pdist != null ? Math.min(100, Math.round(Number(v.pdist) / 500)) : null,
+        routeId: routeMeta.routeId,
+        route: {
+            shortName: routeMeta.shortName,
+            longName: routeMeta.longName || v.des || "",
+            color: routeMeta.color
+        },
+        key: String(v.vid) + ":" + String(routeMeta.shortName)
+    };
 }
 
 function staticUrl(relativePath){
@@ -431,12 +492,6 @@ function staticUrl(relativePath){
 
 async function fetchStaticJson(relativePath){
     return fetchJson(staticUrl(relativePath));
-}
-
-async function fetchBus2Live(pathAndQuery){
-    if (!BUS2.proxyBase) throw new Error("Mapa ao vivo indisponível (API proxy não configurada).");
-    const path = String(pathAndQuery || "").replace(/^\//, "");
-    return fetchJson(BUS2.proxyBase + "/" + path);
 }
 
 function ordenarRotas(a, b){
@@ -736,27 +791,12 @@ async function configurarTrajetoLinha(route, tt){
     renderShapePicker(route, opcoes);
 }
 
-async function buscarVeiculosRota(route){
-    const tt = await obterTimetable(route.routeId);
-    const trips = tt?.timetable?.trips || [];
-    const found = [];
-    for (const trip of trips){
-        try {
-            const list = await fetchBus2Live("vehicles?origin=web&trip_id=" + trip.tripId + "&route_id=" + route.routeId);
-            if (!Array.isArray(list)) continue;
-            list.forEach(v => {
-                found.push({
-                    ...v,
-                    routeId: route.routeId,
-                    route,
-                    tripId: trip.tripId,
-                    tripDesc: trip.tripDesc,
-                    key: String(v.vehicleId) + ":" + route.routeId
-                });
-            });
-        } catch { /* linha sem veículo online */ }
-    }
-    return found;
+async function buscarVeiculosLinha(route){
+    const br = await fetchMov1Live("getvehicles", { rt: route.shortName, locale: "pt" });
+    const porNumero = mapaRotasPorNumero();
+    return listaVeiculosMov1(br)
+        .map(v => normalizarVeiculoMov1(v, porNumero.get(String(v.rt)) || route))
+        .filter(Boolean);
 }
 
 async function pollLote(){
@@ -766,35 +806,49 @@ async function pollLote(){
         return;
     }
     setLive("Atualizando posições...", true);
-    const lote = 18;
-    const start = state.pollIndex;
-    const slice = [];
-    for (let i = 0; i < lote; i += 1){
-        slice.push(state.routes[(start + i) % state.routes.length]);
-    }
-    state.pollIndex = (start + lote) % state.routes.length;
+    try {
+        const params = { locale: "pt" };
+        if (state.routeFiltro) params.rt = state.routeFiltro.shortName;
+        const br = await fetchMov1Live("getvehicles", params);
+        const lista = listaVeiculosMov1(br);
+        const porNumero = mapaRotasPorNumero();
+        const agora = Date.now();
+        const chavesAtualizadas = new Set();
 
-    const promises = slice.map(r => buscarVeiculosRota(r));
-    const results = await Promise.allSettled(promises);
-    results.forEach(res => {
-        if (res.status !== "fulfilled") return;
-        res.value.forEach(v => {
-            v.lastSeen = Date.now();
-            state.vehicles.set(v.key, v);
+        lista.forEach(v => {
+            const route = porNumero.get(String(v.rt)) || {
+                routeId: String(v.rt || v.vid || "?"),
+                shortName: String(v.rt || "?"),
+                longName: String(v.des || ""),
+                color: "#2db4bf"
+            };
+            const nv = normalizarVeiculoMov1(v, route);
+            if (!nv) return;
+            if (state.routeFiltro && String(route.shortName) !== String(state.routeFiltro.shortName)) return;
+            nv.lastSeen = agora;
+            state.vehicles.set(nv.key, nv);
+            chavesAtualizadas.add(nv.key);
         });
-    });
 
-    const staleMs = Math.max(BUS2.intervaloMs * 8, 120000);
-    const cutoff = Date.now() - staleMs;
-    state.vehicles.forEach((v, key) => {
-        if ((v.lastSeen || 0) < cutoff) state.vehicles.delete(key);
-    });
+        const staleMs = Math.max(BUS2.intervaloMs * 3, 90000);
+        const cutoff = agora - staleMs;
+        state.vehicles.forEach((v, key) => {
+            if (state.routeFiltro && !String(key).endsWith(":" + state.routeFiltro.shortName)){
+                state.vehicles.delete(key);
+                return;
+            }
+            if (!chavesAtualizadas.has(key) && (v.lastSeen || 0) < cutoff) state.vehicles.delete(key);
+        });
 
-    state.lastUpdate = new Date();
-    state.liveOk = true;
-    atualizarMarcadores();
-    const hora = state.lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    setLive(state.vehicles.size + " ônibus · " + hora, false);
+        state.lastUpdate = new Date();
+        state.liveOk = true;
+        atualizarMarcadores();
+        const hora = state.lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        setLive(state.vehicles.size + " ônibus · " + hora, false);
+    } catch (err) {
+        state.liveOk = false;
+        setLive(err.message || "Falha ao consultar BusTime", false);
+    }
 }
 
 function iniciarPoll(){
@@ -817,7 +871,7 @@ async function selecionarLinha(routeId){
     state.schedule.serviceId = null;
     await configurarTrajetoLinha(route, tt);
     renderHorarios();
-    buscarVeiculosRota(route).then(list => {
+    buscarVeiculosLinha(route).then(list => {
         list.forEach(v => {
             v.lastSeen = Date.now();
             state.vehicles.set(v.key, v);
@@ -916,7 +970,7 @@ function trocarTab(tab){
 async function boot(){
     setLive("Carregando linhas...", true);
     initMapa();
-    await initBus2Proxy();
+    await initLiveProxy();
 
     try {
         state.manifest = await fetchStaticJson("manifest.json");
