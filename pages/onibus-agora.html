@@ -259,7 +259,8 @@ const BUS2 = {
     zoom: 13,
     intervaloMs: 20000,
     pontualidade: {
-        toleranciaSeg: 120,
+        adiantadoSeg: 120,
+        atrasadoSeg: 360,
         cores: { adiantado: "#dc2626", atrasado: "#eab308", noHorario: "#22c55e" }
     }
 };
@@ -306,14 +307,16 @@ function contraste(hex){
 }
 
 function statusPontualidade(delaySec){
-    const tol = BUS2.pontualidade.toleranciaSeg;
-    const cores = BUS2.pontualidade.cores;
+    const { adiantadoSeg, atrasadoSeg, cores } = BUS2.pontualidade;
     if (delaySec == null || !Number.isFinite(Number(delaySec))) return null;
     const d = Number(delaySec);
-    const min = Math.round(Math.abs(d) / 60);
-    if (Math.abs(d) <= tol) return { tipo: "no_horario", cor: cores.noHorario, min: 0, d };
-    if (d < 0) return { tipo: "adiantado", cor: cores.adiantado, min, d };
-    return { tipo: "atrasado", cor: cores.atrasado, min, d };
+    if (d < -adiantadoSeg) {
+        return { tipo: "adiantado", cor: cores.adiantado, min: Math.round(Math.abs(d) / 60), d };
+    }
+    if (d > atrasadoSeg) {
+        return { tipo: "atrasado", cor: cores.atrasado, min: Math.round(d / 60), d };
+    }
+    return { tipo: "no_horario", cor: cores.noHorario, min: 0, d };
 }
 
 function corOnibusVeiculo(v){
@@ -324,28 +327,15 @@ function infoPontualidade(v){
     if (v.delay == null || !Number.isFinite(Number(v.delay))) {
         return { rotulo: "Pontualidade", valor: "—", cor: "#64748b" };
     }
-    const d = Number(v.delay);
     const st = statusPontualidade(v.delay);
-    const min = Math.round(Math.abs(d) / 60);
-    if (d < 0) {
-        return {
-            rotulo: "Adiantado",
-            valor: min > 0 ? min + " min" : "< 1 min",
-            cor: st?.cor || BUS2.pontualidade.cores.adiantado
-        };
+    if (!st) return { rotulo: "Pontualidade", valor: "—", cor: "#64748b" };
+    if (st.tipo === "adiantado") {
+        return { rotulo: "Adiantado", valor: st.min + " min", cor: st.cor };
     }
-    if (d > 0) {
-        return {
-            rotulo: "Atrasado",
-            valor: min > 0 ? min + " min" : "< 1 min",
-            cor: st?.cor || BUS2.pontualidade.cores.atrasado
-        };
+    if (st.tipo === "atrasado") {
+        return { rotulo: "Atrasado", valor: st.min + " min", cor: st.cor };
     }
-    return {
-        rotulo: "Pontualidade",
-        valor: "No horário",
-        cor: st?.cor || BUS2.pontualidade.cores.noHorario
-    };
+    return { rotulo: "Pontualidade", valor: "No horário", cor: st.cor };
 }
 
 function resolverBasePortal(){
