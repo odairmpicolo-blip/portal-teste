@@ -237,7 +237,8 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
 <script>
 const BUS2 = {
     hash: "2fvn7",
-    api: "https://mobilibus.com/api",
+    static: "../assets/data/bus2",
+    proxyBase: null,
     tiles: {
         light: "https://bus2.info/api/public/tiles/light/{z}/{x}/{y}",
         satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -261,6 +262,8 @@ const state = {
     pollTimer: null,
     pollIndex: 0,
     lastUpdate: null,
+    manifest: null,
+    liveOk: false,
     mapa: null,
     tileLayer: null,
     shapeLayer: null,
@@ -290,6 +293,31 @@ async function fetchJson(url){
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("Erro " + res.status);
     return res.json();
+}
+
+async function initBus2Proxy(){
+    if (BUS2.proxyBase) return;
+    try {
+        const base = window.location.pathname.replace(/\/pages\/.*$/, "").replace(/\/$/, "");
+        const cfg = await fetchJson(base + "/assets/data/portal-runtime.json");
+        const url = String(cfg?.awsApiUrl || "").trim().replace(/\/$/, "");
+        const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(url);
+        const onLocal = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+        if (url && (!local || onLocal)) BUS2.proxyBase = url + "/bus2";
+    } catch { /* sem proxy */ }
+}
+
+function staticUrl(relativePath){
+    return BUS2.static.replace(/\/$/, "") + "/" + relativePath;
+}
+
+async function fetchStaticJson(relativePath){
+    return fetchJson(staticUrl(relativePath));
+}
+
+async function fetchBus2Live(pathAndQuery){
+    if (!BUS2.proxyBase) throw new Error("Mapa ao vivo indisponível (API proxy não configurada).");
+    return fetchJson(BUS2.proxyBase + "/" + pathAndQuery);
 }
 
 function ordenarRotas(a, b){
@@ -435,7 +463,7 @@ function atualizarMarcadores(){
 
 async function obterTimetable(routeId){
     if (state.timetableCache.has(routeId)) return state.timetableCache.get(routeId);
-    const data = await fetchJson(BUS2.api + "/timetable?origin=web&v=2&project_id=" + state.project.projectId + "&route_id=" + routeId);
+    const data = await fetchStaticJson("timetables/" + routeId + ".json");
     state.timetableCache.set(routeId, data);
     return data;
 }
@@ -443,7 +471,7 @@ async function obterTimetable(routeId){
 async function obterShape(tripId){
     if (state.shapeCache.has(tripId)) return state.shapeCache.get(tripId);
     try {
-        const data = await fetchJson(BUS2.api + "/trip-details?origin=web&v=2&trip_id=" + tripId);
+        const data = await fetchStaticJson("shapes/" + tripId + ".json");
         state.shapeCache.set(tripId, data);
         return data;
     } catch { return null; }
@@ -485,7 +513,7 @@ async function buscarVeiculosRota(route){
     const found = [];
     for (const trip of trips){
         try {
-            const list = await fetchJson(BUS2.api + "/vehicles?origin=web&trip_id=" + trip.tripId + "&route_id=" + route.routeId);
+            const list = await fetchBus2Live("vehicles?origin=web&trip_id=" + trip.tripId + "&route_id=" + route.routeId);
             if (!Array.isArray(list)) continue;
             list.forEach(v => {
                 found.push({
@@ -504,6 +532,10 @@ async function buscarVeiculosRota(route){
 
 async function pollLote(){
     if (!state.routes.length) return;
+    if (!BUS2.proxyBase){
+        setLive("Horários OK · mapa ao vivo requer API AWS", false);
+        return;
+    }
     setLive("Atualizando posições...", true);
     const lote = 18;
     const start = state.pollIndex;
@@ -530,6 +562,7 @@ async function pollLote(){
     });
 
     state.lastUpdate = new Date();
+    state.liveOk = true;
     atualizarMarcadores();
     const hora = state.lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     setLive(state.vehicles.size + " ônibus · " + hora, false);
@@ -562,7 +595,7 @@ async function selecionarLinha(routeId){
             state.vehicles.set(v.key, v);
         });
         atualizarMarcadores();
-    });
+    }).catch(() => { /* proxy indisponível — horários ainda funcionam */ });
 }
 
 function limparFiltro(){
@@ -657,12 +690,24 @@ function trocarTab(tab){
 async function boot(){
     setLive("Carregando linhas...", true);
     initMapa();
-    const project = await fetchJson(BUS2.api + "/project-details?project_hash=" + BUS2.hash);
+    await initBus2Proxy();
+
+    try {
+        state.manifest = await fetchStaticJson("manifest.json");
+    } catch { /* manifest opcional */ }
+
+    const project = await fetchStaticJson("project.json");
     state.project = project;
     BUS2.intervaloMs = (project.realtimeUpdateFreqSec || 20) * 1000;
-    const routes = await fetchJson(BUS2.api + "/routes?origin=web&project_id=" + project.projectId);
+
+    const routes = await fetchStaticJson("routes.json");
     state.routes = Array.isArray(routes) ? routes.slice().sort(ordenarRotas) : [];
     renderListaLinhas();
+
+    const manifestTxt = state.manifest?.atualizadoEm
+        ? " · horários " + new Date(state.manifest.atualizadoEm).toLocaleString("pt-BR")
+        : "";
+    setLive(state.routes.length + " linhas" + manifestTxt, false);
 
     const linhaParam = new URLSearchParams(location.search).get("linha");
     if (linhaParam){
@@ -670,8 +715,10 @@ async function boot(){
         if (alvo) await selecionarLinha(alvo.routeId);
     }
 
-    iniciarPoll();
-    setTimeout(pollLote, 2500);
+    if (BUS2.proxyBase){
+        iniciarPoll();
+        setTimeout(pollLote, 2500);
+    }
 }
 
 function bind(){
