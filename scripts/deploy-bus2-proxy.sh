@@ -19,12 +19,18 @@ if ! "$AWS" sts get-caller-identity --region "$REGION" >/dev/null 2>&1; then
 fi
 
 echo "==> CloudFormation stack: $STACK ($REGION)"
-"$AWS" cloudformation deploy \
+if ! "$AWS" cloudformation deploy \
   --template-file "$AWS_DIR/template.yaml" \
   --stack-name "$STACK" \
   --capabilities CAPABILITY_NAMED_IAM \
   --region "$REGION" \
-  --no-fail-on-empty-changeset
+  --no-fail-on-empty-changeset; then
+  echo ""
+  echo "ERRO: deploy CloudFormation falhou (permissões IAM insuficientes?)."
+  echo "Anexe a política aws/bus2-proxy/iam-github-actions-policy.json ao usuário portal-ciop-github-actions"
+  echo "ou rode localmente com credenciais admin: aws login && bash scripts/deploy-bus2-proxy.sh"
+  exit 1
+fi
 
 FUNC=$("$AWS" cloudformation describe-stacks \
   --stack-name "$STACK" \
