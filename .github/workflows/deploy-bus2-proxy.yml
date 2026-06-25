@@ -1,0 +1,37 @@
+name: Deploy Bus2 Proxy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "aws/bus2-proxy/**"
+      - "scripts/deploy-bus2-proxy.sh"
+      - ".github/workflows/deploy-bus2-proxy.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: sa-east-1
+
+      - name: Implantar proxy Bus2
+        run: bash scripts/deploy-bus2-proxy.sh
+        env:
+          SKIP_GH_SECRET: "1"
+
+      - name: Redeploy GitHub Pages (portal-runtime)
+        run: gh workflow run deploy-github-pages.yml
+        env:
+          GH_TOKEN: ${{ github.token }}

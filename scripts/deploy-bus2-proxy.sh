@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Deploy proxy Bus2 (Lambda + API Gateway HTTP) e opcionalmente configura PORTAL_AWS_API_URL no GitHub.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+AWS_DIR="$ROOT/aws/bus2-proxy"
+STACK="${BUS2_STACK_NAME:-portal-ciop-bus2-proxy}"
+REGION="${AWS_REGION:-sa-east-1}"
+AWS="${AWS_CLI:-aws}"
+
+if ! command -v "$AWS" >/dev/null 2>&1; then
+  echo "AWS CLI não encontrado."
+  exit 1
+fi
+
+if ! "$AWS" sts get-caller-identity --region "$REGION" >/dev/null 2>&1; then
+  echo "Credenciais AWS ausentes. Rode: aws login"
+  exit 1
+fi
+
+echo "==> CloudFormation stack: $STACK ($REGION)"
+"$AWS" cloudformation deploy \
+  --template-file "$AWS_DIR/template.yaml" \
+  --stack-name "$STACK" \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region "$REGION" \
+  --no-fail-on-empty-changeset
+
+FUNC=$("$AWS" cloudformation describe-stacks \
+  --stack-name "$STACK" \
+  --region "$REGION" \
+  --query "Stacks[0].Outputs[?OutputKey=='FunctionName'].OutputValue" \
+  --output text)
+
+API_URL=$("$AWS" cloudformation describe-stacks \
+  --stack-name "$STACK" \
+  --region "$REGION" \
+  --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+  --output text)
+
+ZIP="/tmp/portal-bus2-proxy-$$.zip"
+rm -f "$ZIP"
+(cd "$AWS_DIR" && zip -q "$ZIP" index.mjs)
+
+echo "==> Atualizando Lambda $FUNC"
+"$AWS" lambda update-function-code \
+  --function-name "$FUNC" \
+  --region "$REGION" \
+  --zip-file "fileb://$ZIP" >/dev/null
+rm -f "$ZIP"
+
+echo "==> Teste /health"
+"$AWS" lambda wait function-updated --function-name "$FUNC" --region "$REGION"
+sleep 2
+HEALTH=$(curl -s "${API_URL}/health" || true)
+echo "$HEALTH"
+
+echo ""
+echo "API URL (PORTAL_AWS_API_URL): $API_URL"
+echo "Proxy Bus2: ${API_URL}/bus2/vehicles?..."
+
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && [[ "${SKIP_GH_SECRET:-}" != "1" ]]; then
+  echo "==> Gravando secret PORTAL_AWS_API_URL no GitHub (portal-teste)"
+  if gh secret set PORTAL_AWS_API_URL --body "$API_URL" --repo odairmpicolo-blip/portal-teste 2>/dev/null; then
+    echo "Secret atualizado."
+  else
+    echo "AVISO: não foi possível gravar secret (use PAT ou defina manualmente)."
+  fi
+else
+  echo "Configure: gh secret set PORTAL_AWS_API_URL --body \"$API_URL\""
+fi
