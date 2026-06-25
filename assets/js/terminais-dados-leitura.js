@@ -59,7 +59,7 @@ function escolherSnapshot(candidatos) {
   return validos[0];
 }
 
-/** Fluxo de leitura: AWS → JSON (planilha). */
+/** Fluxo legado (AWS/JSON). A página terminais-agora.html usa planilha ao vivo. */
 export async function carregarDadosTerminais({ onProgress } = {}) {
   onProgress?.("Consultando AWS e JSON...");
   const [awsRes, jsonRes] = await Promise.allSettled([
