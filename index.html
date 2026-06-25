@@ -1398,7 +1398,16 @@ footer{
 }
 
 [data-admin-only]{display:none;}
-[data-perfis], [data-usuarios]{display:none;}
+.card[data-perfis],
+.card[data-usuarios],
+a[data-perfis],
+a[data-usuarios]{
+  display:none!important;
+}
+.card.portal-card-visivel,
+a.portal-card-visivel{
+  display:flex!important;
+}
 
 
 
@@ -1814,8 +1823,7 @@ h1 {
 <!-- CONTROLE DE CONTEUDO POR USUARIO
      Para restringir um card ou link, adicione:
      data-perfis="Administrador,Supervisor,Gerência"
-     ou data-usuarios="email@empresa.com.br,outro@empresa.com.br"
-     Administrador ve tudo automaticamente.
+     ou data-usuarios="email@empresa.com.br" data-somente-usuarios="true" (somente esses e-mails; admin não bypassa)
      Supervisor e Gerência veem conteúdos abertos e os que listarem o perfil deles.
 -->
 
@@ -1936,7 +1944,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/onibus-agora.html" class="card theme-cyan" data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true">
+        <a href="pages/onibus-agora.html" class="card theme-cyan" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v8H4z"/><path d="M6 18h2"/><path d="M16 18h2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M4 10h16"/></svg></div>
                 <div class="card-title">Ônibus Agora</div>
