@@ -1,0 +1,23 @@
+---
+description: Fluxo de commit e publicação nos repositórios portal-teste e portalCIOP
+alwaysApply: true
+---
+
+# Publicação — teste primeiro, produção sob confirmação
+
+Repositórios:
+- **portal-teste** (`~/portal-teste`) — ambiente de teste
+- **portalCIOP** (`~/portalCIOP`) — ambiente de produção
+
+## Hospedagem do portal
+
+- O portal estático é publicado **somente no GitHub Pages** (workflow `deploy-github-pages.yml`).
+- **Firebase** é usado apenas para **Auth** e **Firestore** — não há Firebase Hosting.
+
+Quando o usuário pedir commit, push, publicar ou implantar:
+
+1. Aplicar **somente em portal-teste** por padrão (commit + push).
+2. **Perguntar explicitamente** se também deve publicar em **portalCIOP** (produção) antes de commitar ou dar push lá.
+3. Não publicar em produção sem confirmação do usuário, mesmo que as alterações já estejam no teste.
+
+Apps Script (`.gs`): lembrar que reimplantar o Web App no Google é manual, independente do git.
