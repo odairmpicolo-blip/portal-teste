@@ -257,7 +257,11 @@ const BUS2 = {
     },
     centro: [-23.303, -51.166],
     zoom: 13,
-    intervaloMs: 20000
+    intervaloMs: 20000,
+    pontualidade: {
+        toleranciaSeg: 120,
+        cores: { adiantado: "#dc2626", atrasado: "#eab308", noHorario: "#22c55e" }
+    }
 };
 
 const state = {
@@ -299,6 +303,49 @@ function contraste(hex){
     if (c.length !== 6) return "#fff";
     const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#06245c" : "#fff";
+}
+
+function statusPontualidade(delaySec){
+    const tol = BUS2.pontualidade.toleranciaSeg;
+    const cores = BUS2.pontualidade.cores;
+    if (delaySec == null || !Number.isFinite(Number(delaySec))) return null;
+    const d = Number(delaySec);
+    const min = Math.round(Math.abs(d) / 60);
+    if (Math.abs(d) <= tol) return { tipo: "no_horario", cor: cores.noHorario, min: 0, d };
+    if (d < 0) return { tipo: "adiantado", cor: cores.adiantado, min, d };
+    return { tipo: "atrasado", cor: cores.atrasado, min, d };
+}
+
+function corMarcadorVeiculo(v){
+    return statusPontualidade(v.delay)?.cor || corCss(v.route?.color);
+}
+
+function infoPontualidade(v){
+    if (v.delay == null || !Number.isFinite(Number(v.delay))) {
+        return { rotulo: "Pontualidade", valor: "—", cor: "#64748b" };
+    }
+    const d = Number(v.delay);
+    const st = statusPontualidade(v.delay);
+    const min = Math.round(Math.abs(d) / 60);
+    if (d < 0) {
+        return {
+            rotulo: "Adiantado",
+            valor: min > 0 ? min + " min" : "< 1 min",
+            cor: st?.cor || BUS2.pontualidade.cores.adiantado
+        };
+    }
+    if (d > 0) {
+        return {
+            rotulo: "Atrasado",
+            valor: min > 0 ? min + " min" : "< 1 min",
+            cor: st?.cor || BUS2.pontualidade.cores.atrasado
+        };
+    }
+    return {
+        rotulo: "Pontualidade",
+        valor: "No horário",
+        cor: st?.cor || BUS2.pontualidade.cores.noHorario
+    };
 }
 
 function resolverBasePortal(){
@@ -387,18 +434,19 @@ function setLive(texto, busy){
     $("liveDot").classList.toggle("busy", !!busy);
 }
 
-function iconeOnibusHtml(cor, heading, label, extraClass){
-    const c = esc(corCss(cor));
-    return '<div class="bus-marker ' + (extraClass || "") + '" style="--cor:' + c + '">' +
+function iconeOnibusHtml(corMarcador, corRotulo, heading, label, extraClass){
+    const cm = esc(corCss(corMarcador));
+    const cr = esc(corCss(corRotulo));
+    return '<div class="bus-marker ' + (extraClass || "") + '" style="--cor:' + cr + '">' +
         '<span class="bus-label">' + esc(label) + '</span>' +
         '<svg viewBox="0 0 48 48" aria-hidden="true">' +
-            '<circle cx="24" cy="24" r="21" fill="' + c + '"/>' +
+            '<circle cx="24" cy="24" r="21" fill="' + cm + '"/>' +
             '<circle cx="24" cy="24" r="19.5" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1"/>' +
             '<g transform="translate(24,24)">' +
                 '<path fill="#fff" d="M-13.5-5.8h27a3.8 3.8 0 0 1 3.8 3.8v7.8a3.8 3.8 0 0 1-3.8 3.8h-27a3.8 3.8 0 0 1-3.8-3.8v-7.8a3.8 3.8 0 0 1 3.8-3.8z"/>' +
-                '<rect x="-10" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + c + '" opacity=".42"/>' +
-                '<rect x="-2.2" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + c + '" opacity=".42"/>' +
-                '<rect x="5.6" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + c + '" opacity=".42"/>' +
+                '<rect x="-10" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + cm + '" opacity=".42"/>' +
+                '<rect x="-2.2" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + cm + '" opacity=".42"/>' +
+                '<rect x="5.6" y="-2.6" width="5.8" height="4.4" rx="1.1" fill="' + cm + '" opacity=".42"/>' +
                 '<circle cx="-8" cy="8.2" r="2.3" fill="#fff" stroke="#475569" stroke-width=".9"/>' +
                 '<circle cx="8" cy="8.2" r="2.3" fill="#fff" stroke="#475569" stroke-width=".9"/>' +
                 '<circle cx="-8" cy="8.2" r=".9" fill="#94a3b8"/>' +
@@ -458,7 +506,7 @@ function veiculoPassaFiltro(v){
 
 function popupHtml(v){
     const cor = corCss(v.route?.color);
-    const atraso = v.delay != null ? Math.round(v.delay / 60) + " min" : "—";
+    const pont = infoPontualidade(v);
     return '<div class="popup">' +
         '<div class="popup-head">' +
             '<span class="popup-chip" style="background:' + esc(cor) + ';color:' + contraste(cor) + '">' + esc(v.route?.shortName || "?") + '</span>' +
@@ -466,7 +514,7 @@ function popupHtml(v){
         '</div>' +
         '<div class="popup-grid">' +
             '<div class="popup-item">Posição<strong>' + esc(v.positionTime || "—") + '</strong></div>' +
-            '<div class="popup-item">Atraso<strong>' + esc(atraso) + '</strong></div>' +
+            '<div class="popup-item">' + esc(pont.rotulo) + '<strong style="color:' + esc(pont.cor) + '">' + esc(pont.valor) + '</strong></div>' +
             '<div class="popup-item">Viagem<strong>' + esc(v.tripDesc || "—") + '</strong></div>' +
             '<div class="popup-item">Percorrido<strong>' + esc(v.percTravelled != null ? v.percTravelled + "%" : "—") + '</strong></div>' +
         '</div></div>';
@@ -486,7 +534,7 @@ function atualizarMarcadores(){
         const extra = state.veiculoFiltro && String(v.vehicleId).includes(state.veiculoFiltro) ? "highlight" : "";
         const icon = L.divIcon({
             className: "bus-marker-wrap",
-            html: iconeOnibusHtml(corCss(v.route?.color), v.heading || 0, label, extra),
+            html: iconeOnibusHtml(corMarcadorVeiculo(v), corCss(v.route?.color), v.heading || 0, label, extra),
             iconSize: [48, 48],
             iconAnchor: [24, 24]
         });
