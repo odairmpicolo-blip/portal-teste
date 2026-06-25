@@ -1,13 +1,9 @@
 name: Deploy Bus2 Proxy
 
+# Manual apenas: o usuário IAM do GitHub não tem CloudFormation.
+# O proxy já foi implantado via `aws login && bash scripts/deploy-bus2-proxy.sh`.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "aws/bus2-proxy/**"
-      - "scripts/deploy-bus2-proxy.sh"
-      - ".github/workflows/deploy-bus2-proxy.yml"
 
 permissions:
   contents: read
