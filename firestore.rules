@@ -35,18 +35,6 @@ service cloud.firestore {
       return lista is list && perfilAtual() in lista;
     }
 
-    function perfilTerminais() {
-      return signedIn() && (
-        bootstrapGestor() ||
-        perfilAtual() in ['Administrador', 'Supervisor', 'Gerência', 'Gerencia', 'Analista']
-      );
-    }
-
-    match /terminaisAgora/{docId} {
-      allow read: if perfilTerminais();
-      allow create, update, delete: if false;
-    }
-
     match /avisos/{avisoId} {
       allow read: if signedIn() && (
         podePostarAviso() ||
