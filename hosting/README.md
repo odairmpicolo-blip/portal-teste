@@ -1,5 +1,7 @@
 # Publicação estática (GitHub Pages)
 
+O portal é hospedado **somente no GitHub Pages** — não usamos Firebase Hosting.
+
 O workflow `.github/workflows/deploy-github-pages.yml` monta o site com:
 
 - `app/` — portal React (`/app/`)
