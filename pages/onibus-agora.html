@@ -234,7 +234,7 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
     </div>
 </main>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvXl/xBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 const BUS2 = {
     hash: "2fvn7",
@@ -392,6 +392,7 @@ function iconeOnibusHtml(cor, heading, label, extraClass){
 
 function initMapa(){
     if (state.mapa) return;
+    if (typeof L === "undefined") throw new Error("Mapa indisponível: biblioteca Leaflet não carregou.");
     state.mapa = L.map("mapa", { zoomControl: true }).setView(BUS2.centro, BUS2.zoom);
     state.tileLayer = L.tileLayer(BUS2.tiles.light, {
         maxZoom: 18,
