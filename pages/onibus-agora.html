@@ -217,6 +217,7 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
                     <div id="mapa"></div>
                     <div class="map-tools">
                         <button type="button" class="btn btn-ghost" id="btnMapaClaro">Mapa claro</button>
+                        <button type="button" class="btn btn-ghost" id="btnMapaBus2">Estilo Bus2</button>
                         <button type="button" class="btn btn-ghost" id="btnMapaSat">Satélite</button>
                         <button type="button" class="btn btn-ghost" id="btnCentralizar">Centralizar</button>
                     </div>
@@ -237,10 +238,11 @@ body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:In
 <script>
 const BUS2 = {
     hash: "2fvn7",
-    static: "../assets/data/bus2",
+    proxyFallback: "https://62wvo4yk9b.execute-api.sa-east-1.amazonaws.com",
     proxyBase: null,
     tiles: {
-        light: "https://bus2.info/api/public/tiles/light/{z}/{x}/{y}",
+        light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        lightBus2: "https://bus2.info/api/public/tiles/light/{z}/{x}/{y}",
         satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
     },
     centro: [-23.303, -51.166],
@@ -289,26 +291,59 @@ function contraste(hex){
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#06245c" : "#fff";
 }
 
+function resolverBasePortal(){
+    const path = String(window.location.pathname || "").replace(/\\/g, "/");
+    const pagesIdx = path.indexOf("/pages/");
+    if (pagesIdx >= 0) return path.slice(0, pagesIdx);
+    const last = path.lastIndexOf("/");
+    return last > 0 ? path.slice(0, last) : "";
+}
+
+function normalizarProxyBase(apiUrl){
+    let url = String(apiUrl || "").trim().replace(/\/+$/, "");
+    if (!url) return "";
+    if (url.endsWith("/bus2")) return url;
+    return url + "/bus2";
+}
+
 async function fetchJson(url){
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("Erro " + res.status);
+    if (!res.ok){
+        const body = await res.text().catch(() => "");
+        let msg = "Erro " + res.status + " em " + url;
+        try {
+            const j = JSON.parse(body);
+            if (j.message) msg += ": " + j.message;
+            else if (j.erro) msg += ": " + j.erro;
+        } catch { /* ignore */ }
+        throw new Error(msg);
+    }
     return res.json();
 }
 
 async function initBus2Proxy(){
     if (BUS2.proxyBase) return;
-    try {
-        const base = window.location.pathname.replace(/\/pages\/.*$/, "").replace(/\/$/, "");
-        const cfg = await fetchJson(base + "/assets/data/portal-runtime.json");
-        const url = String(cfg?.awsApiUrl || "").trim().replace(/\/$/, "");
-        const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(url);
-        const onLocal = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
-        if (url && (!local || onLocal)) BUS2.proxyBase = url + "/bus2";
-    } catch { /* sem proxy */ }
+    const candidatos = [
+        resolverBasePortal() + "/assets/data/portal-runtime.json",
+        new URL("../assets/data/portal-runtime.json", window.location.href).href
+    ];
+    for (const cfgUrl of candidatos){
+        try {
+            const cfg = await fetchJson(cfgUrl);
+            const base = normalizarProxyBase(cfg?.awsApiUrl);
+            const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(base);
+            const onLocal = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+            if (base && (!local || onLocal)){
+                BUS2.proxyBase = base;
+                return;
+            }
+        } catch { /* tenta próximo */ }
+    }
+    if (BUS2.proxyFallback) BUS2.proxyBase = normalizarProxyBase(BUS2.proxyFallback);
 }
 
 function staticUrl(relativePath){
-    return BUS2.static.replace(/\/$/, "") + "/" + relativePath;
+    return resolverBasePortal() + "/assets/data/bus2/" + String(relativePath || "").replace(/^\//, "");
 }
 
 async function fetchStaticJson(relativePath){
@@ -317,7 +352,8 @@ async function fetchStaticJson(relativePath){
 
 async function fetchBus2Live(pathAndQuery){
     if (!BUS2.proxyBase) throw new Error("Mapa ao vivo indisponível (API proxy não configurada).");
-    return fetchJson(BUS2.proxyBase + "/" + pathAndQuery);
+    const path = String(pathAndQuery || "").replace(/^\//, "");
+    return fetchJson(BUS2.proxyBase + "/" + path);
 }
 
 function ordenarRotas(a, b){
@@ -357,16 +393,24 @@ function iconeOnibusHtml(cor, heading, label, extraClass){
 function initMapa(){
     if (state.mapa) return;
     state.mapa = L.map("mapa", { zoomControl: true }).setView(BUS2.centro, BUS2.zoom);
-    state.tileLayer = L.tileLayer(BUS2.tiles.light, { maxZoom: 18, attribution: "© Bus2 / OpenStreetMap" }).addTo(state.mapa);
+    state.tileLayer = L.tileLayer(BUS2.tiles.light, {
+        maxZoom: 18,
+        attribution: "© OpenStreetMap",
+        subdomains: "abc"
+    }).addTo(state.mapa);
     setTimeout(() => state.mapa.invalidateSize(), 200);
 }
 
 function trocarTile(tipo){
     if (!state.mapa || !state.tileLayer) return;
     state.mapa.removeLayer(state.tileLayer);
-    const url = tipo === "sat" ? BUS2.tiles.satellite : BUS2.tiles.light;
-    const attr = tipo === "sat" ? "© Esri" : "© Bus2 / OpenStreetMap";
-    state.tileLayer = L.tileLayer(url, { maxZoom: 18, attribution: attr }).addTo(state.mapa);
+    if (tipo === "sat"){
+        state.tileLayer = L.tileLayer(BUS2.tiles.satellite, { maxZoom: 18, attribution: "© Esri" }).addTo(state.mapa);
+    } else if (tipo === "bus2"){
+        state.tileLayer = L.tileLayer(BUS2.tiles.lightBus2, { maxZoom: 18, attribution: "© Bus2 / OpenStreetMap" }).addTo(state.mapa);
+    } else {
+        state.tileLayer = L.tileLayer(BUS2.tiles.light, { maxZoom: 18, attribution: "© OpenStreetMap", subdomains: "abc" }).addTo(state.mapa);
+    }
 }
 
 function renderListaLinhas(){
@@ -727,6 +771,7 @@ function bind(){
     $("btnLimparFiltro").addEventListener("click", limparFiltro);
     $("btnAtualizar").addEventListener("click", () => { state.vehicles.clear(); pollLote(); });
     $("btnMapaClaro").addEventListener("click", () => trocarTile("light"));
+    $("btnMapaBus2").addEventListener("click", () => trocarTile("bus2"));
     $("btnMapaSat").addEventListener("click", () => trocarTile("sat"));
     $("btnCentralizar").addEventListener("click", () => state.mapa?.setView(BUS2.centro, BUS2.zoom));
     document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => trocarTab(btn.dataset.tab)));
@@ -736,7 +781,7 @@ function iniciar(){
     bind();
     boot().catch(err => {
         setLive(err.message || "Erro ao iniciar", false);
-        $("listaLinhas").innerHTML = '<div class="empty"><h3>Falha na conexão</h3><p>Não foi possível carregar os dados Bus2.</p></div>';
+        $("listaLinhas").innerHTML = '<div class="empty"><h3>Falha ao carregar</h3><p>' + esc(err.message || "Não foi possível carregar os dados Bus2.") + '</p></div>';
     });
 }
 

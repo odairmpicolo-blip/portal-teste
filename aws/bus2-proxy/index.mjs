@@ -24,6 +24,18 @@ export async function handler(event) {
     return { statusCode: 204, headers: corsHeaders(), body: "" };
   }
 
+  if (method === "GET" && (event.rawPath === "/" || event.rawPath === "")) {
+    return {
+      statusCode: 200,
+      headers: corsHeaders(),
+      body: JSON.stringify({
+        ok: true,
+        service: "portal-ciop-bus2-proxy",
+        usage: "Use /bus2/{mobilibus-api-path} — ex.: /bus2/vehicles?origin=web&trip_id=…&route_id=…"
+      })
+    };
+  }
+
   if (method === "GET" && (event.rawPath === "/health" || event.path === "/health")) {
     return {
       statusCode: 200,

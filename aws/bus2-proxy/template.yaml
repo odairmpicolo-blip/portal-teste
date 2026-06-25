@@ -57,6 +57,13 @@ Resources:
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Bus2ProxyFunction.Arn}/invocations
       PayloadFormatVersion: "2.0"
 
+  Bus2ProxyRouteRoot:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Bus2ProxyApi
+      RouteKey: GET /
+      Target: !Sub integrations/${Bus2ProxyIntegration}
+
   Bus2ProxyRouteHealth:
     Type: AWS::ApiGatewayV2::Route
     Properties:
