@@ -152,10 +152,50 @@ function montarColunas(apiColunas, amostra) {
   return ordem.map((chave) => mapa.get(chave));
 }
 
-function processarLinha(row, patio, usados) {
-  const carroEscalado = normalizarPrefixo(
+function extrairCarroEscalado(row) {
+  return normalizarPrefixo(
     pickCampo(row, ["carro_escalado", "carro", "prefixo", "veiculo"])
   );
+}
+
+function montarEscaladosReservados(linhas) {
+  const reservados = new Set();
+  linhas.forEach((row) => {
+    const prefixo = extrairCarroEscalado(row);
+    if (prefixo) reservados.add(prefixo);
+  });
+  return reservados;
+}
+
+function situacaoCarroEscalado(prefixo, patio, tecnologia) {
+  if (!prefixo) return { tipo: "vazio" };
+
+  const saida = avaliarSaidaVeiculo(prefixo, patio);
+  const loc = localizarVeiculo(prefixo, patio);
+
+  if (saida.ok) {
+    const techCarro = obterTecnologia(prefixo, frota);
+    if (tecnologia && techCarro && normalizarTecnologia(techCarro) !== normalizarTecnologia(tecnologia)) {
+      return {
+        tipo: "tech",
+        prefixo,
+        motivo: `Tecnologia divergente (${techCarro})`,
+        loc: saida.loc || loc
+      };
+    }
+    return { tipo: "ok", prefixo, loc: saida.loc };
+  }
+
+  if (loc) {
+    return { tipo: "bloqueado", prefixo, motivo: saida.motivo, loc };
+  }
+
+  return { tipo: "ausente", prefixo, motivo: saida.motivo || "Fora do pátio" };
+}
+
+function processarLinha(row, patio, ctx) {
+  const { usados, escaladosReservados } = ctx;
+  const carroEscalado = extrairCarroEscalado(row);
   const fCarro = normalizarPrefixo(pickCampo(row, ["f_carro", "f_carro_", "fcarro"]));
   const horarioInicio = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado"]);
   const tecnologia = obterTecnologia(carroEscalado, frota);
@@ -169,49 +209,49 @@ function processarLinha(row, patio, usados) {
     alertas.push(`Pedido ${fCarro}: recolhimento após ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`);
   }
 
-  const tentarCarro = (prefixo) => {
-    if (!prefixo) return null;
-    const saida = avaliarSaidaVeiculo(prefixo, patio);
-    if (!saida.ok) return { ok: false, prefixo, motivo: saida.motivo, loc: saida.loc };
-    const techCarro = obterTecnologia(prefixo, frota);
-    if (tecnologia && techCarro && normalizarTecnologia(techCarro) !== normalizarTecnologia(tecnologia)) {
-      return { ok: false, prefixo, motivo: `Tecnologia divergente (${techCarro})`, loc: saida.loc };
-    }
-    return { ok: true, prefixo, loc: saida.loc };
-  };
+  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio, tecnologia);
 
-  let escolhido = tentarCarro(carroEscalado);
-
-  if (escolhido?.ok) {
-    carroSaida = escolhido.prefixo;
-    obsEscala = formatarPosicaoPatio(escolhido.loc);
-  } else if (fCarro) {
-    const fCheck = tentarCarro(fCarro);
-    if (fCheck?.ok) {
-      carroSaida = fCheck.prefixo;
-      subst = carroEscalado;
-      obsEscala = formatarPosicaoPatio(fCheck.loc);
-      if (escolhido?.motivo) alertas.push(`Escalado ${carroEscalado}: ${escolhido.motivo}`);
+  if (carroEscalado && !usados.has(carroEscalado)) {
+    if (sitEscalado.tipo === "ok") {
+      carroSaida = carroEscalado;
+      obsEscala = formatarPosicaoPatio(sitEscalado.loc);
+    } else if (sitEscalado.tipo === "bloqueado") {
+      carroSaida = carroEscalado;
+      obsEscala = formatarPosicaoPatio(sitEscalado.loc);
+      alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
     }
+  } else if (carroEscalado && usados.has(carroEscalado)) {
+    alertas.push(`Escalado ${carroEscalado} já alocado em outro serviço.`);
   }
 
   if (!carroSaida) {
+    const excluirSubst = new Set([
+      ...escaladosReservados,
+      carroEscalado,
+      fCarro
+    ].filter(Boolean));
+
     const candidatos = listarCandidatosSubstituto(tecnologia, patio, frota, {
       usados,
-      excluir: [carroEscalado, fCarro].filter(Boolean)
+      excluir: [...excluirSubst]
     });
+
     if (candidatos.length) {
       const sub = candidatos[0];
       carroSaida = sub.prefixo;
       subst = carroEscalado;
       obsEscala = formatarPosicaoPatio(sub.loc);
-      if (escolhido?.motivo) alertas.push(`Escalado ${carroEscalado}: ${escolhido.motivo}`);
+      if (sitEscalado.tipo !== "vazio" && sitEscalado.motivo) {
+        alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
+      }
     } else if (carroEscalado) {
       const loc = localizarVeiculo(carroEscalado, patio);
-      obsEscala = loc
-        ? formatarPosicaoPatio(loc)
-        : "Fora do pátio";
-      alertas.push(escolhido?.motivo || "Sem substituto disponível com a mesma tecnologia.");
+      obsEscala = loc ? formatarPosicaoPatio(loc) : "Fora do pátio";
+      if (sitEscalado.motivo) {
+        alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
+      } else {
+        alertas.push("Sem substituto disponível com a mesma tecnologia.");
+      }
     }
   }
 
@@ -231,8 +271,11 @@ function processarLinha(row, patio, usados) {
 
 function processarEscala(linhas) {
   const patio = carregarPatio();
-  const usados = new Set();
-  return linhas.map((row) => processarLinha(row, patio, usados));
+  const ctx = {
+    usados: new Set(),
+    escaladosReservados: montarEscaladosReservados(linhas)
+  };
+  return linhas.map((row) => processarLinha(row, patio, ctx));
 }
 
 function filtrarAteHorario(linhas) {

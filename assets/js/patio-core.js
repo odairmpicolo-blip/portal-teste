@@ -100,10 +100,8 @@ const FILAS_SAIDA_LIVRE = new Set([
   "cot"
 ]);
 
-/** Oficina (pátio) e bloqueados não entram na escalação. */
+/** Carros bloqueados (oficina/reforma) não entram na escalação. */
 const FILAS_NAO_UTILIZAVEIS = new Set([
-  "oficina_f1",
-  "oficina_f2",
   "bloqueados_oficina",
   "reforma"
 ]);
