@@ -3,6 +3,7 @@ import {
   avaliarSaidaVeiculo,
   carregarPatio,
   ehPedido,
+  ehFilaNaoUtilizavelEscala,
   formatarPosicaoPatio,
   listarCandidatosSubstituto,
   localizarVeiculo,
@@ -186,8 +187,12 @@ function situacaoCarroEscalado(prefixo, patio, tecnologia) {
     return { tipo: "ok", prefixo, loc: saida.loc };
   }
 
+  if (loc && ehFilaNaoUtilizavelEscala(loc.filaKey)) {
+    return { tipo: "nao_utilizavel", prefixo, motivo: saida.motivo, loc };
+  }
+
   if (loc) {
-    return { tipo: "bloqueado", prefixo, motivo: saida.motivo, loc };
+    return { tipo: "aguardando", prefixo, motivo: saida.motivo, loc };
   }
 
   return { tipo: "ausente", prefixo, motivo: saida.motivo || "Fora do pátio" };
@@ -215,7 +220,7 @@ function processarLinha(row, patio, ctx) {
     if (sitEscalado.tipo === "ok") {
       carroSaida = carroEscalado;
       obsEscala = formatarPosicaoPatio(sitEscalado.loc);
-    } else if (sitEscalado.tipo === "bloqueado") {
+    } else if (sitEscalado.tipo === "aguardando") {
       carroSaida = carroEscalado;
       obsEscala = formatarPosicaoPatio(sitEscalado.loc);
       alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);

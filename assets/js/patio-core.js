@@ -6,7 +6,7 @@ export const GRUPOS_PATIO = [
     id: "oficina",
     titulo: "Oficina",
     filas: [
-      { key: "oficina_f1", label: "Fila 1", ordem: 1 },
+      { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
       { key: "oficina_f2", label: "Fila 2", ordem: 2 }
     ]
   },
@@ -67,7 +67,7 @@ export const GRUPO_BLOQUEADOS = {
   id: "bloqueados",
   titulo: "Carros bloqueados",
   filas: [
-    { key: "bloqueados_oficina", label: "Oficina", bloqueado: true },
+    { key: "bloqueados_oficina", label: "Bloq. oficina", bloqueado: true },
     { key: "reforma", label: "Reforma", bloqueado: true }
   ]
 };
@@ -100,11 +100,15 @@ const FILAS_SAIDA_LIVRE = new Set([
   "cot"
 ]);
 
-/** Carros bloqueados (oficina/reforma) não entram na escalação. */
+/** Carros em bloqueio (bloq. oficina / reforma) não entram na escalação. */
 const FILAS_NAO_UTILIZAVEIS = new Set([
   "bloqueados_oficina",
   "reforma"
 ]);
+
+export function ehFilaNaoUtilizavelEscala(filaKey) {
+  return FILAS_NAO_UTILIZAVEIS.has(filaKey);
+}
 
 function criarFilasVazias() {
   const filas = {};
@@ -215,7 +219,7 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   }
 
   if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) {
-    return { ok: false, motivo: "Oficina/bloqueado — não utilizável.", loc };
+    return { ok: false, motivo: "Carro bloqueado — não utilizável.", loc };
   }
 
   if (loc.posicao !== 0) {

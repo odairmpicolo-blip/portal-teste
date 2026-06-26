@@ -8,7 +8,7 @@
       id: "oficina",
       titulo: "Oficina",
       filas: [
-        { key: "oficina_f1", label: "Fila 1", ordem: 1 },
+        { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
         { key: "oficina_f2", label: "Fila 2", ordem: 2 }
       ]
     },
@@ -69,7 +69,7 @@
     id: "bloqueados",
     titulo: "Carros bloqueados",
     filas: [
-      { key: "bloqueados_oficina", label: "Oficina", bloqueado: true },
+      { key: "bloqueados_oficina", label: "Bloq. oficina", bloqueado: true },
       { key: "reforma", label: "Reforma", bloqueado: true }
     ]
   };
