@@ -21,7 +21,7 @@ on:
 
 concurrency:
   group: github-pages-portal-teste
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
