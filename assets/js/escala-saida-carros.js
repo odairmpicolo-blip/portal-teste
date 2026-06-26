@@ -231,9 +231,11 @@ function extrairCarroEscalado(row) {
   );
 }
 
-function montarEscaladosReservados(linhas) {
+/** Escalados de serviços posteriores (cronológicos) — não usar como substituto antes da hora. */
+function montarEscaladosReservados(linhas, indiceAtual) {
   const reservados = new Set();
-  linhas.forEach((row) => {
+  linhas.forEach((row, i) => {
+    if (i <= indiceAtual) return;
     const prefixo = extrairCarroEscalado(row);
     if (prefixo) reservados.add(prefixo);
   });
@@ -627,12 +629,12 @@ function processarEscala(linhas) {
   const patio = clonarPatio(carregarPatio());
   const ctx = {
     usados: new Set(),
-    escaladosReservados: montarEscaladosReservados(ordenadas),
     total: ordenadas.length
   };
   const resultados = [];
   for (let indice = 0; indice < ordenadas.length; indice++) {
-    let row = processarLinha(ordenadas[indice], patio, { ...ctx, indice });
+    const escaladosReservados = montarEscaladosReservados(ordenadas, indice);
+    let row = processarLinha(ordenadas[indice], patio, { ...ctx, indice, escaladosReservados });
     const escolha = state.escolhasCarro.get(row._chave_servico);
     if (escolha && row._opcoes_carro?.length) {
       const opcao = row._opcoes_carro.find((op) => op.prefixo === escolha);
