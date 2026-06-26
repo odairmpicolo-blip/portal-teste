@@ -16,7 +16,7 @@ const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:40";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
 
-/** Colunas na mesma ordem da planilha — OBS por último. */
+/** Colunas na mesma ordem da planilha; TECNOLOGIA, OBS e ALERTA ao final. */
 const COLUNAS_PLANILHA = [
   { chave: "data", rotulo: "DATA" },
   { chave: "linha", rotulo: "LINHA" },
@@ -31,7 +31,9 @@ const COLUNAS_PLANILHA = [
   { chave: "h_total", rotulo: "H.TOTAL", alias: ["h_total"], tipo: "hora" },
   { chave: "turno", rotulo: "TURNO", alias: ["turno"] },
   { chave: "f_carro", rotulo: "F. CARRO", tipo: "hora", titulo: "Fim do carro (HH:MM) — horário de recolhimento" },
-  { chave: "obs", rotulo: "OBS", tipo: "obs" }
+  { chave: "tecnologia", rotulo: "TECNOLOGIA" },
+  { chave: "obs", rotulo: "OBS", tipo: "obs" },
+  { chave: "alerta", rotulo: "ALERTA", tipo: "alerta" }
 ];
 
 const state = {
@@ -177,7 +179,9 @@ function pareceHora(valor) {
 }
 
 function valorColuna(row, col) {
-  if (col.tipo === "obs") return "";
+  if (col.tipo === "obs") return formatarObs(row);
+  if (col.tipo === "alerta") return row._alerta || "";
+  if (col.chave === "tecnologia") return row.tecnologia || pickCampo(row, ["tecnologia"]);
   const chaves = col.alias || [col.chave];
   if (col.chave === "subst") {
     const v = row.subst || pickCampo(row, chaves);
@@ -193,7 +197,6 @@ function formatarObs(row) {
     partes.push(`Saída: ${row.carro_saida}`);
   }
   if (row.obs_escala) partes.push(row.obs_escala);
-  if (row._alerta) partes.push(row._alerta);
   return partes.join(" · ");
 }
 
@@ -450,16 +453,16 @@ function classesLinha(row) {
   return classes.join(" ");
 }
 
-function renderCelulaObs(row) {
-  const texto = formatarObs(row);
+function renderCelulaAlerta(row) {
+  const alerta = row._alerta || "";
   const chave = row._chave_servico;
   const pendente = row._aceite_pendente && !state.aceites.has(chave);
-  let html = texto ? escHtml(texto) : "—";
+  let html = alerta ? escHtml(alerta) : "";
 
   if (pendente) {
-    html += ` <button type="button" class="btn-aceitar" data-chave="${escHtml(chave)}">Aceitar</button>`;
+    html += `${html ? " " : ""}<button type="button" class="btn-aceitar" data-chave="${escHtml(chave)}">Aceitar</button>`;
   } else if (row._aceite_pendente && state.aceites.has(chave)) {
-    html += ` <span class="aceite-ok">Aceito</span>`;
+    html += `${html ? " " : ""}<span class="aceite-ok">Aceito</span>`;
   }
 
   return html;
@@ -522,7 +525,11 @@ function renderTabela() {
     const cls = classesLinha(row);
     const cells = state.colunas.map((col) => {
       if (col.tipo === "obs") {
-        return `<td class="col-obs">${renderCelulaObs(row)}</td>`;
+        const texto = formatarObs(row);
+        return `<td class="col-obs">${texto ? escHtml(texto) : ""}</td>`;
+      }
+      if (col.tipo === "alerta") {
+        return `<td class="col-alerta">${renderCelulaAlerta(row)}</td>`;
       }
       const valor = valorColuna(row, col);
       let clsExtra = col.tipo === "hora" || pareceHora(valor) ? " col-hora" : "";
@@ -597,7 +604,7 @@ function exportarCsv() {
   const header = state.colunas.map((c) => c.rotulo);
   const linhas = state.processado.map((row) =>
     state.colunas.map((col) => {
-      const v = col.tipo === "obs" ? formatarObs(row) : String(valorColuna(row, col) ?? "");
+      const v = String(valorColuna(row, col) ?? "");
       return `"${v.replace(/"/g, '""')}"`;
     }).join(";")
   );

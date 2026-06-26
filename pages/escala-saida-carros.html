@@ -231,7 +231,7 @@ body {
     width: 100%;
     border-collapse: collapse;
     font-size: 11px;
-    min-width: 1180px;
+    min-width: 1320px;
     font-family: Arial, Helvetica, sans-serif;
 }
 .escala-tabela th,
@@ -266,8 +266,8 @@ body {
 .escala-tabela .col-obs {
     text-align: left;
     white-space: normal;
-    min-width: 200px;
-    max-width: 360px;
+    min-width: 160px;
+    max-width: 280px;
     font-size: 11px;
 }
 .escala-tabela tr.linha-subst td { background: #fff8ef !important; }
@@ -281,7 +281,13 @@ body {
 .escala-tabela tr.linha-tech-alternativa td { background: #f3e8ff !important; }
 .escala-tabela tr.linha-aceite-pendente td { background: #fff4e6 !important; }
 .escala-tabela tr.linha-aceita td { background: #edfbf3 !important; }
-.escala-tabela .col-alerta { white-space: normal; max-width: 320px; }
+.escala-tabela .col-alerta {
+    text-align: left;
+    white-space: normal;
+    min-width: 180px;
+    max-width: 320px;
+    font-size: 11px;
+}
 .btn-aceitar {
     margin-left: 6px;
     padding: 2px 8px;
@@ -390,7 +396,8 @@ body {
         Importa a planilha de saída de carros (início a partir de <strong>04:10</strong>), cruza com o
         <strong>pátio atual</strong> e sugere carro de saída, substituição e OBS com a posição no pátio.
         O <strong>carro escalado</strong> é sempre priorizado; substituto da <strong>mesma tecnologia</strong> em seguida.
-        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong> na coluna OBS.
+        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong> na coluna <strong>ALERTA</strong>.
+        Colunas extras após a planilha: <strong>TECNOLOGIA</strong>, <strong>OBS</strong> (pátio/saída) e <strong>ALERTA</strong>.
         Carros <strong>SUPER BUS</strong> só podem rodar nas linhas <strong>800, 801, 802, 803, 806 e 913</strong>
         e devem ser <strong>recolhidos até 15:00</strong>.
         Carros em <strong>bloq. oficina</strong> ou <strong>reforma</strong> não são utilizados.
