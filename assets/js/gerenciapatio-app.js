@@ -51,7 +51,10 @@
   const GRUPO_BLOQUEADOS = {
     id: "bloqueados",
     titulo: "Carros bloqueados",
-    filas: [{ key: "reforma", label: "Oficina — Reforma", bloqueado: true }]
+    filas: [
+      { key: "bloqueados_oficina", label: "Oficina", bloqueado: true },
+      { key: "reforma", label: "Reforma", bloqueado: true }
+    ]
   };
 
   const TODAS_FILAS = [
@@ -408,7 +411,7 @@
     lancamentoEmAndamento = true;
     try {
       patio.filas[filaKey].push(prefixo);
-      if (ehFilaOficina(filaKey)) {
+      if (ehFilaOficina(filaKey) || FILA_MAP[filaKey]?.bloqueado) {
         patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
       }
       salvarUltimaFila(filaKey);
@@ -452,16 +455,14 @@
     document.getElementById("inputFilaBus")?.focus();
   }
 
-  function enviarParaReforma() {
-    const input = document.getElementById("reformaBus");
-    const prefixo = input?.value.trim();
-    if (!prefixo) return;
-    removerVeiculoDeTudo(prefixo);
-    patio.filas.reforma.push(prefixo);
-    salvarEstado();
-    renderizarPatio();
-    input.value = "";
-    document.getElementById("inputFilaBus")?.focus();
+  function configurarAtalhosLancamento() {
+    document.querySelectorAll("[data-atalho-fila]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        definirFilaSelecionada(btn.dataset.atalhoFila);
+        limparFeedbackLancamento();
+        document.getElementById("inputFilaBus")?.focus();
+      });
+    });
   }
 
   function liberarCarro(prefixo) {
@@ -571,10 +572,10 @@
           const p = patio.filas[f.key][i];
           if (!p) return "";
           let tag = "";
-          if (ehFilaOficina(f.key)) tag = " [OFICINA]";
+          if (ehFilaOficina(f.key)) tag = " [OFICINA PÁTIO]";
+          else if (FILA_MAP[f.key]?.bloqueado) tag = ` [BLOQUEADO — ${f.label.toUpperCase()}]`;
           else if (patio.pedidos.includes(p)) tag = " [PEDIDO]";
           else if (patio.analisados.includes(p)) tag = " [UTILIZADO]";
-          if (FILA_MAP[f.key]?.bloqueado) tag = " [BLOQUEADO]";
           return `${p} — ${obterTecnologia(p)}${tag}`;
         })
       );
@@ -608,9 +609,6 @@
     document.getElementById("pedidosBus")?.addEventListener("keypress", (e) => {
       if (e.key === "Enter") marcarPedidoInput();
     });
-    document.getElementById("reformaBus")?.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") enviarParaReforma();
-    });
 
     const searchBus = document.getElementById("searchBus");
     const resultBox = document.getElementById("resultOutput");
@@ -632,6 +630,7 @@
   function inicializar() {
     popularSelectFila();
     configurarInputs();
+    configurarAtalhosLancamento();
     renderizarPatio();
     document.getElementById("inputFilaBus")?.focus();
     if (window.portalLoading) window.portalLoading.hide();
@@ -639,7 +638,6 @@
 
   window.alocarNaFila = alocarNaFila;
   window.marcarPedidoInput = marcarPedidoInput;
-  window.enviarParaReforma = enviarParaReforma;
   window.liberarCarro = liberarCarro;
   window.limparTudo = limparTudo;
   window.exportarExcel = exportarExcel;
