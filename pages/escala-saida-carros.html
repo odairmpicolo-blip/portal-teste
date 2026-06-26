@@ -14,7 +14,7 @@ document.documentElement.classList.add("portal-auth-pending");
 <meta http-equiv="Expires" content="0">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Escalação de Saída de Carros - CIOP / TCGL</title>
+<title>Saída de carros - CIOP / TCGL</title>
 <script src="../assets/js/loading.js"></script>
 <link rel="stylesheet" href="../assets/css/portal-senha.css">
 <link rel="stylesheet" href="../assets/css/portal-titulos.css">
@@ -47,30 +47,6 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-}
-.header-title,
-.title-wrap {
-    text-align: center;
-    min-width: 0;
-}
-.header-subtitle {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-    margin-top: 4px;
-}
-.header-actions {
-    justify-self: end;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    min-width: 0;
-}
-.logo-tcgl {
-    height: 48px;
-    object-fit: contain;
-    justify-self: end;
 }
 .container {
     max-width: 1600px;
@@ -359,18 +335,17 @@ body {
     font-weight: 600;
 }
 @media (max-width: 960px) {
-    .header-actions { justify-self: center; flex-wrap: wrap; }
     .toolbar-left { width: 100%; }
 }
 </style>
 </head>
 <body data-require-perfis="Administrador,Supervisor" data-require-usuarios="pedroisrael2009@gmail.com">
 
-<header class="header">
+<div class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
-    <div class="title-wrap">
-        <h1 class="escala-title-art" aria-label="Escalação de Saída de Carros">
-            <img src="../assets/img/titulo-escala-saida.svg" alt="Escalação de Saída de Carros">
+    <div class="header-title">
+        <h1 class="saida-carros-title-art" aria-label="Saída de carros">
+            <img src="../assets/img/titulo-saida-carros.svg" alt="Saída de carros">
         </h1>
         <div class="header-subtitle">Importação da planilha e cruzamento com o pátio</div>
     </div>
@@ -380,11 +355,11 @@ body {
             <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
             <button onclick="logout()" class="btn-logout" type="button">Sair</button>
         </div>
-        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener">
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener" style="display:flex">
             <img src="../assets/img/LOGO_TCGL-removebg-preview.png" class="logo-tcgl" alt="TCGL">
         </a>
     </div>
-</header>
+</div>
 
 <main class="container">
     <div class="toolbar">
