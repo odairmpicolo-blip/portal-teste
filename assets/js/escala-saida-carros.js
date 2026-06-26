@@ -5,9 +5,9 @@ import {
   consultarSituacaoCarro,
   ehPedido,
   formatarConsultaFila,
+  formatarPosicaoPatio,
   listarCandidatosSubstituto,
   mesmaCorVeiculo,
-  obterNomeFila,
   obterPerfilTecnologia,
   obterTecnologia,
   normalizarTecnologia,
@@ -218,7 +218,7 @@ function valorColuna(row, col) {
 
 function formatarLocalEscala(loc) {
   if (!loc) return "";
-  return obterNomeFila(loc.filaKey);
+  return formatarPosicaoPatio(loc);
 }
 
 function formatarObs(row) {
@@ -569,7 +569,7 @@ function processarLinha(row, patio, ctx) {
           );
         }
         if (filaUsada > 1) {
-          alertas.push(`Primeira opção na Fila ${filaUsada} (sem carro livre nas filas anteriores).`);
+          alertas.push(`Primeira opção na ${filaUsada}ª posição (sem carro livre nas posições anteriores).`);
         }
       } else {
         alertas.push(

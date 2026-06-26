@@ -204,9 +204,21 @@ export function obterNomeFila(key) {
   return grupo ? `${grupo.titulo} · ${fila.label}` : fila.label;
 }
 
+/** Posição de escalação exibida (1ª–4ª), alinhada à ordem de saída do pátio. */
+export function obterPosicaoEscala(filaKey) {
+  const ordem = obterOrdemFilaSaida(filaKey);
+  if (ordem >= 99) return { ordem, rotulo: "—" };
+  return { ordem, rotulo: `${ordem}ª posição` };
+}
+
 export function formatarPosicaoPatio(loc) {
   if (!loc) return "";
-  return `${obterNomeFila(loc.filaKey)} · posição ${loc.posicao + 1}`;
+  const nome = obterNomeFila(loc.filaKey);
+  const { rotulo } = obterPosicaoEscala(loc.filaKey);
+  if (loc.posicao > 0) {
+    return `${nome} · ${rotulo} (aguard. ${loc.posicao + 1}º na fila)`;
+  }
+  return `${nome} · ${rotulo}`;
 }
 
 export function normalizarTecnologia(valor) {
@@ -296,9 +308,10 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   }
 
   if (loc.posicao !== 0) {
+    const { rotulo } = obterPosicaoEscala(loc.filaKey);
     return {
       ok: false,
-      motivo: `Aguardando na fila (posição ${loc.posicao + 1}).`,
+      motivo: `Aguardando (${loc.posicao + 1}º na fila) — só escala ${rotulo}.`,
       loc
     };
   }
@@ -307,7 +320,7 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   if (filaCfg?.horarioMinimo && !corujaoDisponivel()) {
     return {
       ok: false,
-      motivo: `Corujão disponível apenas após ${filaCfg.horarioMinimo}.`,
+      motivo: `Corujão: escalar somente após ${filaCfg.horarioMinimo}.`,
       loc
     };
   }
@@ -336,7 +349,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
   }
 
   const fila = obterNomeFila(loc.filaKey);
-  const posicao = loc.posicao + 1;
+  const posicaoEscala = obterPosicaoEscala(loc.filaKey).rotulo;
   const tags = [];
   if (ehPedido(alvo, patio)) tags.push("Pedido");
   if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) tags.push("Bloqueado");
@@ -347,7 +360,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
       prefixo: alvo,
       loc,
       fila,
-      posicao,
+      posicaoEscala,
       motivo: "Carro pedido — buscar substituto.",
       tags
     };
@@ -355,7 +368,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
 
   const saida = avaliarSaidaVeiculo(alvo, patio);
   if (saida.ok) {
-    return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, posicao, tags };
+    return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, posicaoEscala, tags };
   }
 
   return {
@@ -363,7 +376,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
     prefixo: alvo,
     loc,
     fila,
-    posicao,
+    posicaoEscala,
     motivo: saida.motivo,
     tags
   };
@@ -375,7 +388,7 @@ export function formatarConsultaFila(situacao) {
     return `${situacao.prefixo} — sem alocação no pátio.`;
   }
   const tagsTxt = situacao.tags?.length ? ` (${situacao.tags.join(" · ")})` : "";
-  return `${situacao.prefixo} em ${situacao.fila}, posição #${situacao.posicao}${tagsTxt}`;
+  return `${situacao.prefixo} · ${situacao.fila} · ${situacao.posicaoEscala}${tagsTxt}`;
 }
 
 export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}) {
