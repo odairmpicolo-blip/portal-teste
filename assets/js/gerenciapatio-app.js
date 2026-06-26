@@ -642,7 +642,7 @@
     const tagsTxt = tags.length ? ` <span style="opacity:.85">(${tags.join(" · ")})</span>` : "";
 
     resultBox.className = "result-box success";
-    resultBox.innerHTML = `<b>${prefixo}</b> está em <b>${nome}</b>, posição <b>#${loc.posicao + 1}</b>.${tagsTxt}`;
+    resultBox.innerHTML = `<b>${prefixo}</b> está em <b>${nome}</b>.${tagsTxt}`;
     input.value = "";
     input.focus();
   }

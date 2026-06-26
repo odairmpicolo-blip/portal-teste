@@ -286,7 +286,7 @@ function filasAnterioresBloqueando(patio, filaKey) {
   return [];
 }
 
-/** Verifica se o veículo pode sair do pátio conforme fila e posição. */
+/** Verifica se o veículo pode sair do pátio conforme fila (ordem entre filas, não posição no array). */
 export function avaliarSaidaVeiculo(prefixo, patio) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) {
@@ -300,14 +300,6 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
 
   if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) {
     return { ok: false, motivo: "Carro bloqueado — não utilizável.", loc };
-  }
-
-  if (loc.posicao !== 0) {
-    return {
-      ok: false,
-      motivo: "Aguardando na fila — saída ainda não liberada.",
-      loc
-    };
   }
 
   const filaCfg = FILA_MAP[loc.filaKey];
@@ -343,7 +335,6 @@ export function consultarSituacaoCarro(prefixo, patio) {
   }
 
   const fila = obterNomeFila(loc.filaKey);
-  const posicaoEscala = obterPosicaoEscala(loc.filaKey).rotulo;
   const tags = [];
   if (ehPedido(alvo, patio)) tags.push("Pedido");
   if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) tags.push("Bloqueado");
@@ -354,7 +345,6 @@ export function consultarSituacaoCarro(prefixo, patio) {
       prefixo: alvo,
       loc,
       fila,
-      posicaoEscala,
       motivo: "Carro pedido — buscar substituto.",
       tags
     };
@@ -362,7 +352,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
 
   const saida = avaliarSaidaVeiculo(alvo, patio);
   if (saida.ok) {
-    return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, posicaoEscala, tags };
+    return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, tags };
   }
 
   return {
@@ -370,7 +360,6 @@ export function consultarSituacaoCarro(prefixo, patio) {
     prefixo: alvo,
     loc,
     fila,
-    posicaoEscala,
     motivo: saida.motivo,
     tags
   };
@@ -400,7 +389,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
     if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return;
 
-    lista.forEach((prefixo, posicao) => {
+    lista.forEach((prefixo) => {
       const p = String(prefixo);
       if (excluir.has(p) || usados.has(p)) return;
       if (opcoes.excluirPedidos && ehPedido(p, patio)) return;
@@ -421,7 +410,6 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
       candidatos.push({
         prefixo: p,
         loc: saida.loc,
-        posicao,
         ordemFila,
         mesmaTecnologia: mesmaTecnologia ? 1 : 0
       });
@@ -431,7 +419,6 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
   candidatos.sort((a, b) => {
     if (b.mesmaTecnologia !== a.mesmaTecnologia) return b.mesmaTecnologia - a.mesmaTecnologia;
     if (a.ordemFila !== b.ordemFila) return a.ordemFila - b.ordemFila;
-    if (a.posicao !== b.posicao) return a.posicao - b.posicao;
     return Number(a.prefixo) - Number(b.prefixo);
   });
 
