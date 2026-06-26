@@ -301,6 +301,29 @@ body.oa-page{
 .via-card-times{display:flex;flex-wrap:wrap;gap:6px}
 .via-card-times .time{width:auto;min-width:58px;padding:8px 10px;font-size:12px}
 
+.local-card{
+  border-radius:14px;border:1px solid var(--border);background:#fff;overflow:hidden;
+  transition:border-color .18s,box-shadow .18s;text-align:left;
+}
+.local-card-head{padding:14px 16px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.local-card-local{margin:0;font-size:16px;font-weight:800;color:var(--blue);line-height:1.2}
+.local-card-saida{margin:4px 0 0;font-size:11px;font-weight:600;color:var(--muted)}
+.local-card-body{padding:12px 14px 14px}
+.via-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.via-legend-item{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;
+  border-radius:999px;padding:5px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer;color:var(--blue);
+  transition:border-color .15s,background .15s;
+}
+.via-legend-item::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--via-cor,var(--teal));flex:0 0 auto}
+.via-legend-item:hover{border-color:var(--via-cor,var(--teal));background:var(--surface-2)}
+.via-legend-item.active{border-color:var(--via-cor,var(--teal));background:color-mix(in srgb,var(--via-cor,var(--teal)) 12%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,var(--via-cor,var(--teal)) 18%,transparent)}
+.local-card-times{display:flex;flex-wrap:wrap;gap:6px}
+.local-card-times .time{width:auto;min-width:54px;padding:8px 10px;font-size:12px;border-left:3px solid var(--via-cor,var(--teal))}
+.local-card-times .time.past{border-left-color:color-mix(in srgb,var(--via-cor,#cbd5e1) 40%,#cbd5e1)}
+.local-card-times .time.next{border-left-color:#fff}
+.local-card.active{border-color:var(--teal);box-shadow:0 0 0 2px rgba(45,180,191,.16)}
+
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty h3{margin:0 0 8px;color:var(--blue);font-size:18px;font-weight:800}
 </style>
@@ -905,8 +928,17 @@ async function desenharShapesViagem(route, opcoes, tripIdsFiltro){
 
 function destacarViaViagem(tripId){
     state.viagemTripAtivo = tripId ? Number(tripId) : null;
-    document.querySelectorAll(".via-card").forEach(row => {
+    document.querySelectorAll(".via-legend-item").forEach(row => {
         row.classList.toggle("active", Number(row.dataset.trip) === state.viagemTripAtivo);
+    });
+    document.querySelectorAll(".local-card").forEach(card => {
+        if (!state.viagemTripAtivo){
+            card.classList.remove("active");
+            return;
+        }
+        const hasVia = card.querySelector('.via-legend-item[data-trip="' + state.viagemTripAtivo + '"]')
+            || card.querySelector('.local-card-times .time[data-trip="' + state.viagemTripAtivo + '"]');
+        card.classList.toggle("active", !!hasVia);
     });
     state.viagemLinhas.forEach((line, id) => {
         if (!state.viagemTripAtivo){
@@ -943,16 +975,17 @@ function renderViagem(){
     }
     $("viagemEmpty").hidden = true;
     $("viagemConteudo").hidden = false;
+    const grupos = extrairGruposLocaisBus2(tt);
     const opcoes = state.viagemOpcoes.length ? state.viagemOpcoes : opcoesTrajetoComCor(opcoesTrajeto(tt));
     state.viagemOpcoes = opcoes;
-    const cards = extrairCardsViagemBus2(tt);
     const agoraMin = minutosAgora();
+    const cards = cardsFromGrupos(grupos);
     const { perCard } = calcProximaPartidaCards(cards, agoraMin);
 
     $("viagemTitulo").textContent = "Linha " + (route.shortName || "?") + " · " + (route.longName || "");
-    $("viagemSub").textContent = cards.length + " saída(s) · horários como no Bus2 · clique para destacar no mapa";
+    $("viagemSub").textContent = grupos.length + " local(is) · vias coloridas · horários reunidos";
 
-    $("viagemCards").innerHTML = cards.map(c => htmlCardHorarioBus2(c, route, agoraMin, perCard, null, opcoes)).join("");
+    $("viagemCards").innerHTML = grupos.map(g => htmlGrupoLocalBus2(g, route, agoraMin, perCard, null, opcoes)).join("");
     bindCardHorarioEvents($("viagemCards"));
 
     initMapaViagem();
@@ -1169,32 +1202,87 @@ function formatarContagem(minutos, amanha){
     return "em " + h + "h" + (m ? " " + m + "min" : "");
 }
 
-function extrairCardsViagemBus2(tt){
+function nomeLocal(desc){
+    return String(desc || "").replace(/^Saída\s+/i, "").trim() || String(desc || "Local");
+}
+
+function nomeVia(tripDesc){
+    const s = String(tripDesc || "").trim();
+    const parts = s.split(" - ");
+    if (parts.length >= 2) return parts[parts.length - 1];
+    const m = s.match(/\bVia\s+(.+)$/i);
+    if (m) return "Via " + m[1];
+    return s || "Principal";
+}
+
+function labelVia(via, grupo){
+    const curta = nomeVia(via.via);
+    const iguais = grupo.vias.filter(v => nomeVia(v.via) === curta);
+    if (iguais.length > 1){
+        const origem = String(via.via || "").split(" - ")[0].trim();
+        return origem + " · " + curta;
+    }
+    return curta;
+}
+
+function extrairGruposLocaisBus2(tt){
     const trips = tt?.timetable?.trips || [];
     const tripBySeq = new Map(trips.map(t => [Number(t.seq), t]));
-    const cards = [];
-    (tt?.timetable?.directions || []).forEach((dir, dirIdx) => {
+    return (tt?.timetable?.directions || []).map((dir, dirIdx) => {
         const seqs = new Set();
         (dir.services || []).forEach(svc => {
             (svc.departures || []).forEach(d => {
                 if (d.seq != null) seqs.add(Number(d.seq));
             });
         });
-        [...seqs].sort((a, b) => a - b).forEach(seq => {
+        const vias = [...seqs].sort((a, b) => a - b).map((seq, i) => {
             const trip = tripBySeq.get(seq);
-            cards.push({
+            return {
                 key: dirIdx + "-" + seq,
-                dirIdx,
-                directionId: dir.directionId,
-                saida: dir.desc || "Saída",
-                via: trip?.tripDesc || "Principal",
                 seq,
                 tripId: trip?.tripId,
-                services: dir.services || []
-            });
+                via: trip?.tripDesc || "Principal",
+                corIdx: i
+            };
         });
-    });
-    return cards;
+        vias.forEach(v => { v.viaCurta = labelVia(v, { vias }); });
+        return {
+            key: "local-" + dirIdx,
+            dirIdx,
+            local: nomeLocal(dir.desc),
+            saida: dir.desc || "Saída",
+            directionId: dir.directionId,
+            services: dir.services || [],
+            vias
+        };
+    }).filter(g => g.vias.length);
+}
+
+function cardsFromGrupos(grupos){
+    return grupos.flatMap(g => g.vias.map(v => ({
+        key: v.key,
+        dirIdx: g.dirIdx,
+        saida: g.saida,
+        local: g.local,
+        via: v.via,
+        seq: v.seq,
+        tripId: v.tripId,
+        services: g.services
+    })));
+}
+
+function extrairCardsViagemBus2(tt){
+    return cardsFromGrupos(extrairGruposLocaisBus2(tt));
+}
+
+function servicoDoGrupo(grupo){
+    const services = grupo.services || [];
+    const saved = state.schedule.servicePorCard[grupo.key];
+    if (saved != null){
+        const found = services.find(s => s.serviceId === saved);
+        if (found) return found;
+    }
+    return servicoHoje(services);
 }
 
 function servicoDoCard(card){
@@ -1204,7 +1292,18 @@ function servicoDoCard(card){
         const found = services.find(s => s.serviceId === saved);
         if (found) return found;
     }
+    const grupoKey = "local-" + card.dirIdx;
+    const savedGrupo = state.schedule.servicePorCard[grupoKey];
+    if (savedGrupo != null){
+        const found = services.find(s => s.serviceId === savedGrupo);
+        if (found) return found;
+    }
     return servicoHoje(services);
+}
+
+function corDaVia(via, grupo, opcoes){
+    const op = opcoes.find(o => Number(o.tripId) === Number(via.tripId));
+    return op?.cor || corVia(via.corIdx + grupo.dirIdx);
 }
 
 function htmlChipsDiasSemana(svc){
@@ -1231,7 +1330,7 @@ function calcProximaPartidaCards(cards, agoraMin){
         const chosen = prox || lista[0];
         const amanha = !prox;
         const depMin = parseDepMin(chosen.dep);
-        perCard.set(card.key, { dep: chosen.dep, amanha, depMin, via: card.via, saida: card.saida, seq: card.seq });
+        perCard.set(card.key, { dep: chosen.dep, amanha, depMin, via: card.via, saida: card.saida, local: card.local, seq: card.seq });
 
         const effectiveMin = amanha ? depMin + 24 * 60 : depMin;
         if (!globalNext || effectiveMin < globalNext.effectiveMin){
@@ -1242,6 +1341,7 @@ function calcProximaPartidaCards(cards, agoraMin){
                 effectiveMin,
                 tripDesc: card.via,
                 saida: card.saida,
+                local: card.local,
                 seq: card.seq,
                 cardKey: card.key
             };
@@ -1264,57 +1364,69 @@ function classesChipHorarioCard(d, cardKey, agoraMin, perCard, globalNext){
     return cls;
 }
 
-function htmlCardHorarioBus2(card, route, agoraMin, perCard, globalNext, opcoes){
-    const svc = servicoDoCard(card);
-    if (svc) state.schedule.servicePorCard[card.key] = svc.serviceId;
-    const op = opcoes.find(o => Number(o.tripId) === Number(card.tripId));
-    const cor = op?.cor || corVia(card.dirIdx);
-    const deps = (svc?.departures || [])
-        .filter(d => Number(d.seq) === card.seq)
-        .slice()
-        .sort((a, b) => parseDepMin(a.dep) - parseDepMin(b.dep));
-    const times = deps.map(d => {
-        const cls = classesChipHorarioCard(d, card.key, agoraMin, perCard, globalNext);
-        return '<span class="' + cls + '">' + esc(d.dep) + '</span>';
-    }).join("") || '<span class="time" style="opacity:.35">—</span>';
-    const svcChips = (card.services || []).length > 1
-        ? (card.services || []).map(s =>
-            '<button type="button" class="chip' + (s.serviceId === svc?.serviceId ? " active" : "") + '" data-card="' + esc(card.key) + '" data-svc="' + s.serviceId + '">' + esc(s.desc || "Dia") + '</button>'
+function htmlGrupoLocalBus2(grupo, route, agoraMin, perCard, globalNext, opcoes){
+    const svc = servicoDoGrupo(grupo);
+    if (svc) state.schedule.servicePorCard[grupo.key] = svc.serviceId;
+    const svcChips = (grupo.services || []).length > 1
+        ? (grupo.services || []).map(s =>
+            '<button type="button" class="chip' + (s.serviceId === svc?.serviceId ? " active" : "") + '" data-card="' + esc(grupo.key) + '" data-svc="' + s.serviceId + '">' + esc(s.desc || "Dia") + '</button>'
         ).join("")
         : "";
-    const active = state.viagemTripAtivo === card.tripId || state.schedule.cardKey === card.key;
-    return '<article class="via-card' + (active ? " active" : "") + '" data-card="' + esc(card.key) + '" data-trip="' + esc(card.tripId || "") + '" style="--via-cor:' + esc(cor) + '" role="listitem">' +
-        '<div class="via-card-head">' +
-            '<div class="via-card-bar" aria-hidden="true"></div>' +
-            '<h4 class="via-card-saida">' + esc(card.saida) + '</h4>' +
-            '<p class="via-card-rota">- ' + esc(card.via) + '</p>' +
+
+    const legend = grupo.vias.map(v => {
+        const cor = corDaVia(v, grupo, opcoes);
+        const active = state.viagemTripAtivo === v.tripId;
+        return '<button type="button" class="via-legend-item' + (active ? " active" : "") + '" data-trip="' + esc(v.tripId || "") + '" data-card="' + esc(v.key) + '" data-group="' + esc(grupo.key) + '" style="--via-cor:' + esc(cor) + '" title="' + esc(v.via) + '">' + esc(v.viaCurta) + '</button>';
+    }).join("");
+
+    const horarios = [];
+    grupo.vias.forEach(v => {
+        const cor = corDaVia(v, grupo, opcoes);
+        (svc?.departures || [])
+            .filter(d => Number(d.seq) === v.seq)
+            .forEach(d => horarios.push({ dep: d.dep, cardKey: v.key, cor, viaCurta: v.viaCurta, tripId: v.tripId }));
+    });
+    horarios.sort((a, b) => parseDepMin(a.dep) - parseDepMin(b.dep));
+
+    const times = horarios.map(h => {
+        const cls = classesChipHorarioCard({ dep: h.dep }, h.cardKey, agoraMin, perCard, globalNext);
+        return '<span class="' + cls + '" data-trip="' + esc(h.tripId || "") + '" data-card="' + esc(h.cardKey) + '" style="--via-cor:' + esc(h.cor) + '" title="' + esc(h.viaCurta) + '">' + esc(h.dep) + '</span>';
+    }).join("") || '<span class="time" style="opacity:.35">—</span>';
+
+    const groupActive = grupo.vias.some(v => state.viagemTripAtivo === v.tripId || state.schedule.cardKey === v.key);
+    return '<article class="local-card' + (groupActive ? " active" : "") + '" data-group="' + esc(grupo.key) + '" role="listitem">' +
+        '<div class="local-card-head">' +
+            '<h4 class="local-card-local">' + esc(grupo.local) + '</h4>' +
+            (grupo.saida !== grupo.local ? '<p class="local-card-saida">' + esc(grupo.saida) + '</p>' : '') +
         '</div>' +
-        '<div class="via-card-body">' +
+        '<div class="local-card-body">' +
             '<p class="via-card-svc-label">' + esc(svc?.desc || "Horários") + '</p>' +
             '<div class="via-card-dias">' + htmlChipsDiasSemana(svc) + '</div>' +
             (svcChips ? '<div class="via-card-svc-chips">' + svcChips + '</div>' : '') +
-            '<div class="via-card-times">' + times + '</div>' +
+            (grupo.vias.length > 1 ? '<div class="via-legend">' + legend + '</div>' : '') +
+            '<div class="local-card-times">' + times + '</div>' +
         '</div>' +
     '</article>';
 }
 
 function bindCardHorarioEvents(root){
-    root.querySelectorAll(".via-card").forEach(cardEl => {
-        cardEl.addEventListener("click", (ev) => {
-            if (ev.target.closest(".chip")) return;
-            const tripId = cardEl.dataset.trip;
-            state.schedule.cardKey = cardEl.dataset.card;
+    root.querySelectorAll(".via-legend-item, .local-card-times .time[data-trip]").forEach(el => {
+        el.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            const tripId = el.dataset.trip;
+            state.schedule.cardKey = el.dataset.card;
             if (tripId && state.tab === "viagem") destacarViaViagem(Number(tripId));
-            else document.querySelectorAll(".via-card").forEach(row => {
-                row.classList.toggle("active", row.dataset.card === state.schedule.cardKey);
-            });
+            else if (tripId) {
+                document.querySelectorAll(".via-legend-item").forEach(row => {
+                    row.classList.toggle("active", Number(row.dataset.trip) === Number(tripId));
+                });
+            }
         });
     });
     root.querySelectorAll(".via-card-svc-chips .chip").forEach(btn => {
         btn.addEventListener("click", (ev) => {
             ev.stopPropagation();
             state.schedule.servicePorCard[btn.dataset.card] = Number(btn.dataset.svc);
-            state.schedule.cardKey = btn.dataset.card;
             renderHorarios();
             if (state.tab === "viagem") renderViagem();
         });
@@ -1348,14 +1460,15 @@ function montarHorarios(){
     $("horariosEmpty").hidden = true;
     $("horariosConteudo").hidden = false;
 
-    const cards = extrairCardsViagemBus2(tt);
+    const grupos = extrairGruposLocaisBus2(tt);
     const opcoes = state.viagemOpcoes.length ? state.viagemOpcoes : opcoesTrajetoComCor(opcoesTrajeto(tt));
     const agoraMin = minutosAgora();
+    const cards = cardsFromGrupos(grupos);
     const { globalNext, perCard } = calcProximaPartidaCards(cards, agoraMin);
     const corRoute = esc(corCss(route.color));
-    const svcRef = cards.length ? servicoDoCard(cards[0]) : null;
+    const svcRef = grupos.length ? servicoDoGrupo(grupos[0]) : null;
 
-    const cardsHtml = cards.map(c => htmlCardHorarioBus2(c, route, agoraMin, perCard, globalNext, opcoes)).join("");
+    const cardsHtml = grupos.map(g => htmlGrupoLocalBus2(g, route, agoraMin, perCard, globalNext, opcoes)).join("");
 
     let heroHtml = "";
     if (globalNext){
@@ -1367,7 +1480,7 @@ function montarHorarios(){
                 '<p class="sched-hero-label">Próxima partida</p>' +
                 '<div class="sched-hero-row">' +
                     '<div><p class="sched-hero-time">' + esc(globalNext.dep) + '</p>' +
-                    '<p class="sched-hero-meta"><span>' + esc(globalNext.saida) + '</span> · ' + esc(globalNext.tripDesc) + ' · Linha ' + esc(route.shortName) + '</p></div>' +
+                    '<p class="sched-hero-meta"><span>' + esc(globalNext.local || globalNext.saida) + '</span> · ' + esc(globalNext.tripDesc) + ' · Linha ' + esc(route.shortName) + '</p></div>' +
                     '<div class="' + countdownCls + '">' + esc(formatarContagem(rest, globalNext.amanha)) + '</div>' +
                 '</div>' +
             '</section>';
@@ -1379,7 +1492,7 @@ function montarHorarios(){
                 '<div class="sched-head-main">' +
                     '<p class="sched-kicker">Viagem · Bus2</p>' +
                     '<h3 class="sched-title">Linha ' + esc(route.shortName) + ' · ' + esc(route.longName) + '</h3>' +
-                    '<p class="sched-sub">Horários por saída e via · como no Bus2You</p>' +
+                    '<p class="sched-sub">Horários por local · vias coloridas · partidas reunidas</p>' +
                 '</div>' +
                 '<span class="sched-valid">Válido ' + esc(brDate(svcRef?.start)) + ' – ' + esc(brDate(svcRef?.end)) + '</span>' +
             '</header>' +
