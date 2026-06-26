@@ -16,7 +16,7 @@ import {
 } from "./patio-core.js";
 
 const HORA_INICIO_SAIDA = "04:10";
-const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:40";
+const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
 
@@ -201,12 +201,7 @@ function formatarLocalEscala(loc) {
 }
 
 function formatarObs(row) {
-  const partes = [];
-  if (row.carro_saida && row.carro_saida !== valorColuna(row, { chave: "carro", alias: ["carro", "carro_escalado"] })) {
-    partes.push(`Saída: ${row.carro_saida}`);
-  }
-  if (row.obs_escala) partes.push(row.obs_escala);
-  return partes.join(" · ");
+  return row.obs_escala || "";
 }
 
 function extrairCarroEscalado(row) {
@@ -435,7 +430,7 @@ function processarLinha(row, patio, ctx) {
     temSuperBus: false
   };
   let carroSaida = "";
-  let subst = pickCampo(row, ["subst"]);
+  let subst = "";
   let obsEscala = pickCampo(row, ["observacoes", "obs", "observacao"]);
   let tecnologiaExibicao = tecnologia;
 
@@ -466,7 +461,6 @@ function processarLinha(row, patio, ctx) {
     if (resultado) {
       const sub = resultado.candidato;
       carroSaida = sub.prefixo;
-      subst = carroEscalado;
       obsEscala = formatarLocalEscala(sub.loc);
       const techSaida = obterTecnologia(carroSaida, frota);
       const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
@@ -517,6 +511,11 @@ function processarLinha(row, patio, ctx) {
 
   aplicarAlertasSuperBus([carroSaida || carroEscalado], fCarroHora, alertas, flags);
 
+  const temSubstituicao = Boolean(carroSaida && carroEscalado && carroSaida !== carroEscalado);
+  if (temSubstituicao) {
+    subst = carroSaida;
+  }
+
   return {
     ...row,
     carro_escalado: carroEscalado || row.carro_escalado || row.carro || "",
@@ -532,6 +531,7 @@ function processarLinha(row, patio, ctx) {
     _super_bus_alerta: flags.superBusAlerta,
     _aceite_pendente: flags.aceitePendente,
     _tem_pedido: temPedido,
+    _tem_substituicao: temSubstituicao,
     _tem_super_bus: flags.temSuperBus,
     _f_carro_atrasado: fCarroAtrasadoPedido || (flags.temSuperBus && fCarroAtrasadoSuperBus)
   };
@@ -581,7 +581,7 @@ function classesLinha(row) {
     classes.push("linha-troca-cor");
   } else if (row._mudanca_tecnologia) {
     classes.push("linha-tech-alternativa");
-  } else if (row.subst) {
+  } else if (row._tem_substituicao) {
     classes.push("linha-subst");
   } else if (row._alerta) {
     classes.push("linha-alerta");
@@ -618,7 +618,7 @@ function atualizarResumo() {
   const el = document.getElementById("escalaResumo");
   if (!el) return;
   const total = state.processado.length;
-  const comSubst = state.processado.filter((r) => r.subst).length;
+  const comSubst = state.processado.filter((r) => r._tem_substituicao).length;
   const pedidos = state.processado.filter((r) => r._tem_pedido).length;
   const alertas = state.processado.filter((r) => r._alerta).length;
   const aceitesPendentes = state.processado.filter(
@@ -672,6 +672,9 @@ function renderTabela() {
       let clsExtra = col.tipo === "hora" || pareceHora(valor) ? " col-hora" : "";
       if (col.chave === "f_carro" && row._f_carro_atrasado && valor) {
         clsExtra += " celula-recolhimento-atrasado";
+      }
+      if (col.chave === "subst" && row._tem_substituicao && valor) {
+        clsExtra += " celula-subst";
       }
       return `<td class="${clsExtra.trim()}" title="${escHtml(valor)}">${valor || ""}</td>`;
     }).join("");
