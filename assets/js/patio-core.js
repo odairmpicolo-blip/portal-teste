@@ -1,25 +1,27 @@
 /** Regras compartilhadas do pátio (leitura do localStorage patio_tcgl_v3). */
 export const STORAGE_KEY = "patio_tcgl_v3";
 
+export const HORA_MINIMA_CORUJAO = "06:00";
+
 export const GRUPOS_PATIO = [
   {
     id: "oficina",
     titulo: "Oficina",
     filas: [
-      { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
+      { key: "oficina_f1", label: "Fila 1", ordem: 1 },
       { key: "oficina_f2", label: "Fila 2", ordem: 2 }
     ]
   },
   {
     id: "latavador",
-    titulo: "Latavador",
+    titulo: "Lavador",
     filas: [{ key: "latavador_f1", label: "Fila 1", ordem: 1, saidaLivre: true }]
   },
   {
     id: "mistos",
     titulo: "Carros mistos",
     filas: [
-      { key: "mistos_f1", label: "Fila 1", ordem: 1 },
+      { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
       { key: "mistos_f2", label: "Fila 2", ordem: 2 },
       { key: "mistos_f3", label: "Fila 3", ordem: 3 },
       { key: "mistos_f4", label: "Fila 4", ordem: 4 }
@@ -29,7 +31,7 @@ export const GRUPOS_PATIO = [
     id: "pesados",
     titulo: "Carros Pesados",
     filas: [
-      { key: "pesados_f1", label: "Fila 1", ordem: 1 },
+      { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
       { key: "pesados_f2", label: "Fila 2", ordem: 2 },
       { key: "pesados_f3", label: "Fila 3", ordem: 3 },
       { key: "pesados_f4", label: "Fila 4", ordem: 4 }
@@ -58,7 +60,7 @@ export const GRUPOS_PATIO = [
     filas: [
       { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
       { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-      { key: "corujao", label: "Corujão", ordem: 1 }
+      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
     ]
   }
 ];
@@ -83,9 +85,8 @@ const GRUPO_POR_FILA = {};
 GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
 GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
-/** Filas com saída livre (sem depender de filas anteriores no grupo). */
+/** Filas com saída livre (sem depender de fila anterior no grupo). */
 const FILAS_SAIDA_LIVRE = new Set([
-  "oficina_f1",
   "latavador_f1",
   "mistos_f1",
   "pesados_f1",
@@ -241,17 +242,29 @@ export function ehPedido(prefixo, patio) {
   return patio.pedidos.includes(String(prefixo || "").trim());
 }
 
+function horaAtualMinutos() {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function horaTextoParaMinutos(hora) {
+  const [h, m] = String(hora || "0:0").split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
+export function corujaoDisponivel(agora = horaAtualMinutos()) {
+  return agora >= horaTextoParaMinutos(HORA_MINIMA_CORUJAO);
+}
+
 function filasAnterioresBloqueando(patio, filaKey) {
   const filaCfg = FILA_MAP[filaKey];
   const grupo = GRUPO_POR_FILA[filaKey];
   if (!filaCfg || !grupo || !filaCfg.ordem || filaCfg.ordem <= 1) return [];
-  const bloqueadas = [];
-  grupo.filas.forEach((f) => {
-    if (f.ordem < filaCfg.ordem && patio.filas[f.key]?.length) {
-      bloqueadas.push(f);
-    }
-  });
-  return bloqueadas;
+  const filaAnterior = grupo.filas.find((f) => f.ordem === filaCfg.ordem - 1);
+  if (filaAnterior && patio.filas[filaAnterior.key]?.length) {
+    return [filaAnterior];
+  }
+  return [];
 }
 
 /** Verifica se o veículo pode sair do pátio conforme fila e posição. */
@@ -283,6 +296,14 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   }
 
   const filaCfg = FILA_MAP[loc.filaKey];
+  if (filaCfg?.horarioMinimo && !corujaoDisponivel()) {
+    return {
+      ok: false,
+      motivo: `Corujão disponível apenas após ${filaCfg.horarioMinimo}.`,
+      loc
+    };
+  }
+
   if (filaCfg?.saidaLivre || FILAS_SAIDA_LIVRE.has(loc.filaKey)) {
     return { ok: true, loc };
   }
@@ -314,6 +335,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
     lista.forEach((prefixo, posicao) => {
       const p = String(prefixo);
       if (excluir.has(p) || usados.has(p)) return;
+      if (opcoes.excluirPedidos && ehPedido(p, patio)) return;
 
       const techCarro = normalizarTecnologia(obterTecnologia(p, frota));
       const mesmaTecnologia = Boolean(techAlvo && techCarro === techAlvo);

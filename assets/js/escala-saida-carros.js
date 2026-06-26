@@ -15,7 +15,7 @@ import {
   ORDEM_MAXIMA_FILAS_SEQUENCIAIS
 } from "./patio-core.js";
 
-const HORA_INICIO_SAIDA = "04:10";
+const HORA_LIMITE_INICIO = "07:00";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
@@ -171,11 +171,12 @@ function dentroDoLimite(horario, limite) {
   return mins <= lim;
 }
 
-function aPartirDoHorario(horario, limite) {
-  const mins = horaParaMinutos(horario);
-  const lim = horaParaMinutos(limite);
-  if (mins == null || lim == null) return true;
-  return mins >= lim;
+function filtrarAteHorarioInicio(linhas) {
+  return linhas.filter((row) => {
+    const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
+    if (!hora) return true;
+    return dentroDoLimite(hora, HORA_LIMITE_INICIO);
+  });
 }
 
 function pareceHora(valor) {
@@ -300,11 +301,12 @@ function aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm) {
   }
 }
 
-function opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm) {
+function opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm, extra = {}) {
   const { usados, escaladosReservados } = ctx;
   return {
     usados,
     excluir: [...escaladosReservados, carroEscalado].filter(Boolean),
+    excluirPedidos: extra.excluirPedidos === true,
     filtroCarro: (prefixo) => validarSuperBusLinha(prefixo, linhaNorm, frota).ok
   };
 }
@@ -321,9 +323,9 @@ function montarAlertaTroca(tipo, carroEscalado, substituto, frotaRef) {
   return `Sugestão: troca de cor/tecnologia — escalado ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
 }
 
-function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax) {
+function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax, extra = {}) {
   const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
-  const base = { ...opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm), ordemMax };
+  const base = { ...opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm, extra), ordemMax };
 
   const candidatosExatos = listarCandidatosSubstituto(perfilEsc.completo, patio, frota, base);
   if (candidatosExatos.length) {
@@ -399,12 +401,20 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
   return null;
 }
 
-function buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm) {
+function buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm, opcoes = {}) {
   const { ordemFilaMax } = ctx;
-  let resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemFilaMax);
+  const { excluirPedidos = false, priorizarFilaLivre = false } = opcoes;
+  const extra = { excluirPedidos };
+
+  if (priorizarFilaLivre) {
+    let resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, 1, extra);
+    if (resultado) return resultado;
+  }
+
+  let resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemFilaMax, extra);
 
   if (!resultado && ordemFilaMax != null) {
-    resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null);
+    resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null, extra);
     if (resultado) {
       resultado.foraOrdemFila = true;
     }
@@ -442,10 +452,17 @@ function processarLinha(row, patio, ctx) {
 
   const sitEscalado = situacaoCarroEscalado(carroEscalado, patio, ctx.ordemFilaMax);
 
+  const exigeSubstituto = Boolean(carroEscalado && (temPedido || sitEscalado.tipo !== "ok"));
+
   if (carroEscalado && !usados.has(carroEscalado)) {
-    if (sitEscalado.tipo === "ok") {
+    if (sitEscalado.tipo === "ok" && !temPedido) {
       carroSaida = carroEscalado;
       obsEscala = formatarLocalEscala(sitEscalado.loc);
+    } else if (temPedido) {
+      alertas.push(`Pedido ${carroEscalado}: buscar carro livre para saída.`);
+      if (sitEscalado.tipo !== "ok" && sitEscalado.motivo) {
+        alertas.push(`Pedido ${carroEscalado}: ${sitEscalado.motivo}`);
+      }
     } else if (sitEscalado.tipo === "aguardando") {
       alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
     } else if (sitEscalado.motivo) {
@@ -456,7 +473,10 @@ function processarLinha(row, patio, ctx) {
   }
 
   if (!carroSaida) {
-    const resultado = buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm);
+    const resultado = buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm, {
+      excluirPedidos: temPedido,
+      priorizarFilaLivre: exigeSubstituto
+    });
 
     if (resultado) {
       const sub = resultado.candidato;
@@ -484,7 +504,12 @@ function processarLinha(row, patio, ctx) {
         tecnologiaExibicao = `${perfilEsc.rotulo} → ${perfilSaida.rotulo}`;
       }
 
-      if (sitEscalado.tipo !== "vazio" && sitEscalado.motivo && sitEscalado.tipo !== "ok") {
+      if (exigeSubstituto && carroSaida !== carroEscalado) {
+        const rotulo = temPedido ? "Pedido" : "Escalado";
+        alertas.push(`${rotulo} ${carroEscalado}: substituto ${carroSaida} (carro livre)`);
+      }
+
+      if (sitEscalado.tipo !== "vazio" && sitEscalado.motivo && sitEscalado.tipo !== "ok" && !exigeSubstituto) {
         alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
       }
 
@@ -496,7 +521,11 @@ function processarLinha(row, patio, ctx) {
     } else if (carroEscalado) {
       const loc = localizarVeiculo(carroEscalado, patio);
       obsEscala = loc ? formatarLocalEscala(loc) : "Fora do pátio";
-      if (sitEscalado.motivo) {
+      if (exigeSubstituto) {
+        alertas.push(temPedido
+          ? "Sem carro livre disponível para substituir pedido."
+          : "Sem carro livre disponível para substituição.");
+      } else if (sitEscalado.motivo) {
         alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
       } else {
         alertas.push("Sem substituto disponível (mesma tecnologia ou alternativa).");
@@ -548,14 +577,6 @@ function processarEscala(linhas) {
   return linhas.map((row, indice) => {
     const ordemFilaMax = calcularOrdemFilaMaxima(indice, total);
     return processarLinha(row, patio, { ...ctx, indice, ordemFilaMax });
-  });
-}
-
-function filtrarAPartirHorario(linhas) {
-  return linhas.filter((row) => {
-    const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
-    if (!hora) return true;
-    return aPartirDoHorario(hora, HORA_INICIO_SAIDA);
   });
 }
 
@@ -630,7 +651,7 @@ function atualizarResumo() {
     .map(([nome, qtd]) => `<span><b>${qtd}</b> ${escHtml(nome)}</span>`)
     .join("");
   el.innerHTML = `
-    <span><b>${total}</b> serviços a partir de ${HORA_INICIO_SAIDA}</span>
+    <span><b>${total}</b> serviços com início até ${HORA_LIMITE_INICIO}</span>
     ${turnoHtml}
     <span><b>${pedidos}</b> pedidos</span>
     <span><b>${comSubst}</b> com substituição</span>
@@ -701,7 +722,7 @@ async function carregarPlanilha() {
     const { json, origem, aviso } = await carregarEscalaSaidaPlanilha(data);
 
     const linhas = Array.isArray(json.dados) ? json.dados : [];
-    const filtradas = ordenarPorInicio(filtrarAPartirHorario(linhas));
+    const filtradas = ordenarPorInicio(filtrarAteHorarioInicio(linhas));
     state.bruto = filtradas;
     state.colunas = COLUNAS_PLANILHA;
     state.aceites = new Set();
@@ -712,7 +733,7 @@ async function carregarPlanilha() {
     const origemLabel = origem === "json" ? "cache JSON" : origem === "liberacao" ? "API liberação" : "API escalação";
     if (filtradas.length) {
       const extra = aviso ? ` — ${aviso}` : "";
-      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início a partir de ${HORA_INICIO_SAIDA}.${extra}`, aviso ? "warn" : "ok");
+      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início até ${HORA_LIMITE_INICIO}.${extra}`, aviso ? "warn" : "ok");
     } else if (aviso) {
       setStatus(aviso, "warn");
     } else if (planilhaPareceSemCabecalho(json.colunas)) {

@@ -405,6 +405,7 @@ h1 {
     margin-top: 2px;
 }
 .fila-select-btn.saida-livre { border-left: 4px solid var(--success); }
+.fila-select-btn.corujao-aguardando { border-left: 4px solid #f59e0b; }
 .fila-select-btn.bloqueado-lane {
     border-left: 4px solid var(--danger);
     background: #fee2e2;
@@ -958,10 +959,12 @@ h1 {
             <div class="card" style="margin-bottom: 0;">
                 <div class="card-title">🚘 Mapa do Pátio</div>
                 <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
-                    Legenda: <span style="color:var(--blue2)">● Normal</span> |
+                    <span style="color:var(--success); font-weight:700">■ Saída livre:</span> Fila 1 (mistos/pesados), Lavador, Corredor, COT, Muro, Bomba.
+                    Fila 2 libera após esvaziar Fila 1; Fila 3 após Fila 2.
+                    Corujão após 06:00.
+                    <span style="color:var(--blue2)">● Normal</span> |
                     <span style="color:var(--pedidos)">● Pedido</span> |
-                    <span style="color:#000">● Bloqueado (bloq. oficina / reforma)</span>
-                    <span style="color:var(--muted); font-size:12px"> — Oficina Fila 1 e 2 são filas normais de saída.</span>
+                    <span style="color:#000">● Bloqueado</span>
                 </p>
                 <div id="patioResumo" class="patio-resumo"></div>
                 <div id="patioMap" class="patio-map" aria-live="polite"></div>

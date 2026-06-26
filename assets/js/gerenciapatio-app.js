@@ -3,25 +3,27 @@
   const STORAGE_KEY = "patio_tcgl_v3";
   const FILA_PREF_KEY = "patio_ultima_fila_v1";
 
+  const HORA_MINIMA_CORUJAO = "06:00";
+
   const GRUPOS_PATIO = [
     {
       id: "oficina",
       titulo: "Oficina",
       filas: [
-        { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
+        { key: "oficina_f1", label: "Fila 1", ordem: 1 },
         { key: "oficina_f2", label: "Fila 2", ordem: 2 }
       ]
     },
     {
       id: "latavador",
-      titulo: "Latavador",
+      titulo: "Lavador",
       filas: [{ key: "latavador_f1", label: "Fila 1", ordem: 1, saidaLivre: true }]
     },
     {
       id: "mistos",
       titulo: "Carros mistos",
       filas: [
-        { key: "mistos_f1", label: "Fila 1", ordem: 1 },
+        { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
         { key: "mistos_f2", label: "Fila 2", ordem: 2 },
         { key: "mistos_f3", label: "Fila 3", ordem: 3 },
         { key: "mistos_f4", label: "Fila 4", ordem: 4 }
@@ -31,7 +33,7 @@
       id: "pesados",
       titulo: "Carros Pesados",
       filas: [
-        { key: "pesados_f1", label: "Fila 1", ordem: 1 },
+        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
         { key: "pesados_f2", label: "Fila 2", ordem: 2 },
         { key: "pesados_f3", label: "Fila 3", ordem: 3 },
         { key: "pesados_f4", label: "Fila 4", ordem: 4 }
@@ -41,12 +43,12 @@
       id: "corredor",
       titulo: "Corredor",
       filas: [
-        { key: "corredor_c1", label: "Cor. 1", ordem: 1 },
-        { key: "corredor_c2", label: "Cor. 2", ordem: 2 },
-        { key: "corredor_c3", label: "Cor. 3", ordem: 3 },
-        { key: "corredor_c4", label: "Cor. 4", ordem: 4 },
-        { key: "corredor_c5", label: "Cor. 5", ordem: 5 },
-        { key: "corredor_c6", label: "Cor. 6", ordem: 6 }
+        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
+        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
+        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
+        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
+        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
+        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
       ]
     },
     {
@@ -60,7 +62,7 @@
       filas: [
         { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
         { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-        { key: "corujao", label: "Corujão", ordem: 1, saidaLivre: true }
+        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
       ]
     }
   ];
@@ -86,6 +88,20 @@
 
   function ehFilaBloqueada(filaKey) {
     return Boolean(FILA_MAP[filaKey]?.bloqueado);
+  }
+
+  function corujaoDisponivel() {
+    const d = new Date();
+    const agora = d.getHours() * 60 + d.getMinutes();
+    const [h, m] = HORA_MINIMA_CORUJAO.split(":").map(Number);
+    return agora >= h * 60 + m;
+  }
+
+  function classeSaidaFila(filaCfg) {
+    if (filaCfg.horarioMinimo) {
+      return corujaoDisponivel() ? " saida-livre" : " corujao-aguardando";
+    }
+    return filaCfg.saidaLivre ? " saida-livre" : "";
   }
 
   function contarPedidos() {
@@ -395,11 +411,14 @@
         const col = document.createElement("div");
         col.className = "fila-col";
         const qtd = patio.filas[filaCfg.key].length;
-        const livre = filaCfg.saidaLivre ? " saida-livre" : "";
+        const livre = classeSaidaFila(filaCfg);
         const bloq = filaCfg.bloqueado ? " bloqueado-lane" : "";
+        const corujaoHint = filaCfg.horarioMinimo && !corujaoDisponivel()
+          ? ` · após ${filaCfg.horarioMinimo}`
+          : "";
         col.innerHTML = `
           <button type="button" class="fila-header fila-select-btn${livre}${bloq}" data-fila="${filaCfg.key}">
-            ${filaCfg.label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}</small>
+            ${filaCfg.label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${corujaoHint}</small>
           </button>
           <div class="fila-body" id="fila_${filaCfg.key}"></div>
         `;
