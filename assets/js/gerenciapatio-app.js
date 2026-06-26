@@ -62,7 +62,8 @@
       filas: [
         { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
         { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
+        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO },
+        { key: "caixa_dagua", label: "Caixa Dágua", ordem: 1, saidaLivre: true }
       ]
     }
   ];
@@ -85,6 +86,58 @@
   const GRUPO_POR_FILA = {};
   GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
+
+  /** Layout visual — gabarito da garagem (nome da área no topo, quadro por carro). */
+  const LAYOUT_GARAGEM = [
+    {
+      id: "principal",
+      titulo: "Garagem — fila principal",
+      cols: [
+        { key: "muro", label: "MURO" },
+        { key: "corredor_c1", label: "Cor. 1" },
+        { key: "corredor_c2", label: "Cor. 2" },
+        { key: "corredor_c3", label: "Cor. 3" },
+        { key: "corredor_c4", label: "Cor. 4" },
+        { key: "corredor_c5", label: "Cor. 5" },
+        { key: "corredor_c6", label: "Cor. 6" },
+        { key: "mistos_f1", label: "Fila 1" },
+        { key: "mistos_f2", label: "Fila 2" },
+        { key: "mistos_f3", label: "Fila 3" },
+        { key: "mistos_f4", label: "Fila 4" }
+      ]
+    },
+    {
+      id: "areas",
+      titulo: "Áreas laterais",
+      cols: [
+        { key: "bomba", label: "Bomba" },
+        { key: "corujao", label: "Corujão" },
+        { key: "caixa_dagua", label: "Caixa Dágua" },
+        { key: "latavador_f1", label: "Lavador" },
+        { key: "cot", label: "COT" }
+      ]
+    },
+    {
+      id: "oficina-pesados",
+      titulo: "Oficina e carros pesados",
+      cols: [
+        { key: "oficina_f1", label: "Ofic. F1" },
+        { key: "oficina_f2", label: "Ofic. F2" },
+        { key: "pesados_f1", label: "Pes. F1" },
+        { key: "pesados_f2", label: "Pes. F2" },
+        { key: "pesados_f3", label: "Pes. F3" },
+        { key: "pesados_f4", label: "Pes. F4" }
+      ]
+    },
+    {
+      id: "bloqueados",
+      titulo: "Bloqueados",
+      cols: [
+        { key: "bloqueados_oficina", label: "Bloq. oficina" },
+        { key: "reforma", label: "Reforma" }
+      ]
+    }
+  ];
 
   function ehFilaBloqueada(filaKey) {
     return Boolean(FILA_MAP[filaKey]?.bloqueado);
@@ -362,37 +415,76 @@
     `;
   }
 
-  function criarCardCarro(prefixo, index, filaKey) {
+  function criarQuadroCarro(prefixo, filaKey) {
     const tech = obterTecnologia(prefixo);
     const filaCfg = FILA_MAP[filaKey] || {};
-    const card = document.createElement("div");
+    const slot = document.createElement("div");
     let statusClass = "";
-    let texto = prefixo;
 
     if (filaCfg.bloqueado) {
       statusClass = "bloqueado-status";
     } else if (patio.pedidos.includes(prefixo)) {
       statusClass = "pedidos-status";
-      texto = `${prefixo} · Pedido`;
     }
 
     const btnPedido = filaCfg.bloqueado
       ? ""
       : `<button type="button" class="btn-pedido" title="Marcar/desmarcar Pedido" data-prefixo="${prefixo}">P</button>`;
 
-    card.className = `car-tag ${statusClass}`;
-    card.innerHTML = `
-      <div class="car-tag-main">
-        <span class="car-pos">#${index + 1}</span>
-        <span class="car-prefixo">${texto}</span>
-      </div>
-      <div class="car-tag-actions">
-        <span class="tech" title="${tech}">${tech}</span>
+    slot.className = `garagem-slot car-tag ${statusClass}`;
+    slot.title = `${prefixo} — ${tech}`;
+    slot.innerHTML = `
+      <span class="garagem-slot-prefixo">${prefixo}</span>
+      <span class="garagem-slot-tech">${tech}</span>
+      <div class="garagem-slot-actions">
         ${btnPedido}
         <button type="button" class="remove-btn" title="Remover" data-prefixo="${prefixo}">×</button>
       </div>
     `;
-    return card;
+    return slot;
+  }
+
+  function criarSlotVazio() {
+    const slot = document.createElement("div");
+    slot.className = "garagem-slot garagem-slot-vazio";
+    slot.setAttribute("aria-hidden", "true");
+    slot.textContent = "—";
+    return slot;
+  }
+
+  function criarColunaGaragem(filaKey, label) {
+    const filaCfg = FILA_MAP[filaKey] || {};
+    const col = document.createElement("div");
+    col.className = "garagem-col";
+
+    const qtd = (patio.filas[filaKey] || []).length;
+    const livre = classeSaidaFila(filaCfg);
+    const bloq = filaCfg.bloqueado ? " bloqueado-lane" : "";
+    const corujaoHint = filaCfg.horarioMinimo && !corujaoDisponivel()
+      ? ` · após ${filaCfg.horarioMinimo}`
+      : "";
+
+    const head = document.createElement("button");
+    head.type = "button";
+    head.className = `garagem-col-head${livre}${bloq}`;
+    head.dataset.fila = filaKey;
+    head.innerHTML = `${label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${corujaoHint}</small>`;
+
+    const slots = document.createElement("div");
+    slots.className = "garagem-slots";
+    slots.id = `fila_${filaKey}`;
+
+    const carros = patio.filas[filaKey] || [];
+    if (!carros.length) {
+      slots.appendChild(criarSlotVazio());
+    } else {
+      carros.forEach((prefixo) => {
+        slots.appendChild(criarQuadroCarro(prefixo, filaKey));
+      });
+    }
+
+    col.append(head, slots);
+    return col;
   }
 
   function renderizarMapa() {
@@ -400,47 +492,22 @@
     if (!mapa) return;
     mapa.innerHTML = "";
 
-    const renderGrupo = (grupo, extraClass) => {
+    LAYOUT_GARAGEM.forEach((linha) => {
       const section = document.createElement("section");
-      section.className = `patio-zona ${extraClass || ""}`;
-      section.innerHTML = `<h3 class="patio-zona-titulo">${grupo.titulo}</h3>`;
-      const row = document.createElement("div");
-      row.className = "patio-filas-row";
+      section.className = `garagem-linha-wrap${linha.id === "bloqueados" ? " garagem-linha-bloq" : ""}`;
+      section.innerHTML = `<h3 class="garagem-linha-titulo">${linha.titulo}</h3>`;
 
-      grupo.filas.forEach((filaCfg) => {
-        const col = document.createElement("div");
-        col.className = "fila-col";
-        const qtd = patio.filas[filaCfg.key].length;
-        const livre = classeSaidaFila(filaCfg);
-        const bloq = filaCfg.bloqueado ? " bloqueado-lane" : "";
-        const corujaoHint = filaCfg.horarioMinimo && !corujaoDisponivel()
-          ? ` · após ${filaCfg.horarioMinimo}`
-          : "";
-        col.innerHTML = `
-          <button type="button" class="fila-header fila-select-btn${livre}${bloq}" data-fila="${filaCfg.key}">
-            ${filaCfg.label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${corujaoHint}</small>
-          </button>
-          <div class="fila-body" id="fila_${filaCfg.key}"></div>
-        `;
-        row.appendChild(col);
+      const row = document.createElement("div");
+      row.className = "garagem-linha";
+      linha.cols.forEach(({ key, label }) => {
+        row.appendChild(criarColunaGaragem(key, label));
       });
 
       section.appendChild(row);
       mapa.appendChild(section);
-    };
-
-    GRUPOS_PATIO.forEach((g) => renderGrupo(g));
-    renderGrupo(GRUPO_BLOQUEADOS, "zona-bloqueados");
-
-    TODAS_FILAS.forEach((f) => {
-      const container = document.getElementById(`fila_${f.key}`);
-      if (!container) return;
-      patio.filas[f.key].forEach((prefixo, i) => {
-        container.appendChild(criarCardCarro(prefixo, i, f.key));
-      });
     });
 
-    mapa.querySelectorAll(".fila-select-btn").forEach((btn) => {
+    mapa.querySelectorAll(".garagem-col-head").forEach((btn) => {
       btn.addEventListener("click", () => {
         definirFilaSelecionada(btn.dataset.fila);
         document.getElementById("inputFilaBus")?.focus();
@@ -448,11 +515,17 @@
     });
 
     mapa.querySelectorAll(".remove-btn").forEach((btn) => {
-      btn.addEventListener("click", () => liberarCarro(btn.dataset.prefixo));
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        liberarCarro(btn.dataset.prefixo);
+      });
     });
 
     mapa.querySelectorAll(".btn-pedido").forEach((btn) => {
-      btn.addEventListener("click", () => togglePedido(btn.dataset.prefixo));
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePedido(btn.dataset.prefixo);
+      });
     });
   }
 

@@ -60,7 +60,8 @@ export const GRUPOS_PATIO = [
     filas: [
       { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
       { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
+      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO },
+      { key: "caixa_dagua", label: "Caixa Dágua", ordem: 1, saidaLivre: true }
     ]
   }
 ];
@@ -99,7 +100,8 @@ export const FILAS_SAIDA_LIVRE = new Set([
   "corredor_c6",
   "cot",
   "muro",
-  "bomba"
+  "bomba",
+  "caixa_dagua"
 ]);
 
 /** Carros em bloqueio (bloq. oficina / reforma) não entram na escalação. */
