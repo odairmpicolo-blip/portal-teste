@@ -467,6 +467,33 @@
     renderizarListaNaoUtilizados();
   }
 
+  function removerVeiculoDasFilas(prefixo) {
+    Object.keys(patio.filas).forEach((k) => {
+      patio.filas[k] = patio.filas[k].filter((p) => p != prefixo);
+    });
+  }
+
+  function aplicarAlocacao(prefixo, filaKey, input, mensagemOk) {
+    lancamentoEmAndamento = true;
+    try {
+      removerVeiculoDasFilas(prefixo);
+      patio.filas[filaKey].push(prefixo);
+      if (ehFilaOficina(filaKey) || FILA_MAP[filaKey]?.bloqueado) {
+        patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+      }
+      salvarUltimaFila(filaKey);
+      salvarEstado();
+      renderizarPatio();
+      mostrarOkLancamento(mensagemOk || `✓ ${prefixo} lançado em ${obterNomeFila(filaKey)}.`);
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+    } finally {
+      lancamentoEmAndamento = false;
+    }
+  }
+
   function alocarNaFila() {
     if (lancamentoEmAndamento) return;
     const input = document.getElementById("inputFilaBus");
@@ -486,34 +513,33 @@
       input?.select();
       return;
     }
-    const loc = localizarVeiculo(prefixo);
-    if (loc) {
-      mostrarErroLancamento(`Veículo ${prefixo} já está em ${obterNomeFila(loc.filaKey)}. Remova antes de lançar de novo.`);
-      input?.select();
-      return;
-    }
     if (!filaKey) {
       mostrarErroLancamento("Selecione a fila de destino.");
       return;
     }
 
-    lancamentoEmAndamento = true;
-    try {
-      patio.filas[filaKey].push(prefixo);
-      if (ehFilaOficina(filaKey) || FILA_MAP[filaKey]?.bloqueado) {
-        patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+    const loc = localizarVeiculo(prefixo);
+    if (loc) {
+      const origem = obterNomeFila(loc.filaKey);
+      const destino = obterNomeFila(filaKey);
+      if (loc.filaKey === filaKey) {
+        mostrarErroLancamento(`Veículo ${prefixo} já está em ${destino}.`);
+        input?.select();
+        return;
       }
-      salvarUltimaFila(filaKey);
-      salvarEstado();
-      renderizarPatio();
-      mostrarOkLancamento(`✓ ${prefixo} lançado em ${obterNomeFila(filaKey)}.`);
-      if (input) {
-        input.value = "";
-        input.focus();
+      const mover = confirm(
+        `Veículo ${prefixo} já está em ${origem}.\n\nDeseja mover para ${destino}?`
+      );
+      if (!mover) {
+        mostrarErroLancamento(`Lançamento cancelado. ${prefixo} permanece em ${origem}.`);
+        input?.select();
+        return;
       }
-    } finally {
-      lancamentoEmAndamento = false;
+      aplicarAlocacao(prefixo, filaKey, input, `✓ ${prefixo} movido de ${origem} para ${destino}.`);
+      return;
     }
+
+    aplicarAlocacao(prefixo, filaKey, input);
   }
 
   function togglePedido(prefixo) {
