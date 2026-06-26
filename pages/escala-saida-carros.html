@@ -225,42 +225,55 @@ body {
     overflow: auto;
     max-height: calc(100vh - 320px);
     min-height: 420px;
+    background: #fff;
 }
 .escala-tabela {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 12px;
-    min-width: 1100px;
+    border-collapse: collapse;
+    font-size: 11px;
+    min-width: 1180px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 .escala-tabela th,
 .escala-tabela td {
-    border-bottom: 1px solid #edf1f7;
-    padding: 8px 10px;
-    text-align: left;
+    border: 1px solid #b4b4b4;
+    padding: 4px 7px;
+    text-align: center;
     white-space: nowrap;
+    color: #000;
 }
 .escala-tabela th {
     position: sticky;
     top: 0;
-    background: #f1f5f9;
-    color: var(--blue);
-    font-size: 9px;
-    font-weight: 900;
-    text-transform: uppercase;
+    background: #d9d9d9;
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: none;
     z-index: 1;
-    letter-spacing: 0.03em;
+    letter-spacing: 0;
+    box-shadow: inset 0 -1px 0 #a6a6a6;
 }
-.escala-tabela tbody tr:nth-child(even) td { background: #fafbfd; }
-.escala-tabela tbody tr:hover td { background: #fff7ed; }
+.escala-tabela tbody tr td { background: #fff; }
+.escala-tabela tbody tr:nth-child(even) td { background: #fafafa; }
+.escala-tabela tbody tr:hover td { background: #fff4e8; }
+.escala-tabela .col-hora { font-variant-numeric: tabular-nums; }
+.escala-tabela .celula-recolhimento-atrasado {
+    background: #fde8e8 !important;
+    color: #b42318;
+    font-weight: 800;
+}
+.escala-tabela .col-obs {
+    text-align: left;
+    white-space: normal;
+    min-width: 200px;
+    max-width: 360px;
+    font-size: 11px;
+}
 .escala-tabela tr.linha-subst td { background: #fff8ef !important; }
 .escala-tabela tr.linha-pedido td {
     background: #e8eef8 !important;
-    box-shadow: inset 4px 0 0 #0b3a8a;
-}
-.escala-tabela tr.linha-pedido td.celula-pedido {
-    color: #0b3a8a;
-    font-weight: 800;
+    box-shadow: inset 3px 0 0 #0b3a8a;
 }
 .escala-tabela tr.linha-alerta td { background: #fff1f0 !important; }
 .escala-tabela tr.linha-pedido.linha-alerta td { background: #fff1f0 !important; }
@@ -374,14 +387,15 @@ body {
             </span>
             Como funciona
         </div>
-        Importa a planilha de saída de carros (início até <strong>07:00</strong>), cruza com o
+        Importa a planilha de saída de carros (início a partir de <strong>04:10</strong>), cruza com o
         <strong>pátio atual</strong> e sugere carro de saída, substituição e OBS com a posição no pátio.
         O <strong>carro escalado</strong> é sempre priorizado; substituto da <strong>mesma tecnologia</strong> em seguida.
-        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong>.
+        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong> na coluna OBS.
         Carros <strong>SUPER BUS</strong> só podem rodar nas linhas <strong>800, 801, 802, 803, 806 e 913</strong>
         e devem ser <strong>recolhidos até 15:00</strong>.
         Carros em <strong>bloq. oficina</strong> ou <strong>reforma</strong> não são utilizados.
-        Linhas com <strong>F.CARRO</strong> (pedidos) aparecem <strong>grifadas em azul</strong>. Recolhimento até <strong>10:40</strong>.
+        <strong>Pedidos</strong> (carro na lista do pátio) aparecem <strong>grifados em azul</strong>.
+        O horário de <strong>recolhimento</strong> é o <strong>F. CARRO</strong> (fim do carro): pedidos até <strong>10:40</strong>, SUPER BUS até <strong>15:00</strong>.
     </section>
 
     <div class="status-bar">
@@ -393,8 +407,8 @@ body {
     <section class="table-card" aria-label="Planilha de escalação">
         <div class="table-head">
             <div>
-                <h2 class="card-title">Saída de carros processada</h2>
-                <div class="table-sub">Cruzamento planilha × pátio — início até 07:00</div>
+                <h2 class="card-title">Saída de carros</h2>
+                <div class="table-sub">Planilha × pátio — início a partir de 04:10</div>
             </div>
         </div>
         <div class="table-wrap">
@@ -405,9 +419,9 @@ body {
             </table>
         </div>
         <div class="legend" aria-hidden="true">
-            <span class="legend-item"><span class="legend-swatch pedido"></span>Pedido (F.CARRO)</span>
+            <span class="legend-item"><span class="legend-swatch pedido"></span>Pedido (carro na lista)</span>
             <span class="legend-item"><span class="legend-swatch subst"></span>Substituição</span>
-            <span class="legend-item"><span class="legend-swatch alerta"></span>Alerta / aceite pendente</span>
+            <span class="legend-item"><span class="legend-swatch alerta"></span>Recolhimento atrasado (F. CARRO)</span>
         </div>
     </section>
 </main>

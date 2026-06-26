@@ -11,43 +11,32 @@ import {
   normalizarTecnologia
 } from "./patio-core.js";
 
-const HORA_LIMITE_IMPORTE = "07:00";
+const HORA_INICIO_SAIDA = "04:10";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:40";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
 
-const COLUNAS_PADRAO = [
-  { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INÍCIO" },
-  { chave: "maquina", rotulo: "MÁQUINA" },
+/** Colunas na mesma ordem da planilha — OBS por último. */
+const COLUNAS_PLANILHA = [
+  { chave: "data", rotulo: "DATA" },
   { chave: "linha", rotulo: "LINHA" },
-  { chave: "work_id", rotulo: "WORK-ID" },
-  { chave: "carro_escalado", rotulo: "CARRO ESCALADO" },
-  { chave: "f_carro", rotulo: "F.CARRO" },
-  { chave: "carro_saida", rotulo: "CARRO SAÍDA" },
   { chave: "subst", rotulo: "SUBST" },
-  { chave: "tecnologia", rotulo: "TECNOLOGIA" },
-  { chave: "obs_escala", rotulo: "OBS" }
+  { chave: "carro", rotulo: "CARRO", alias: ["carro", "carro_escalado"] },
+  { chave: "h_real", rotulo: "H.REAL", alias: ["h_real", "saida_real"] },
+  { chave: "inicio", rotulo: "INICIO", alias: ["inicio", "horario_de_inicio", "horario_inicio"] },
+  { chave: "serv", rotulo: "SERV.", alias: ["serv", "work_id"] },
+  { chave: "fim", rotulo: "FIM MOT.", alias: ["fim", "fim_mot"] },
+  { chave: "reg", rotulo: "REG.", alias: ["reg", "motorista"] },
+  { chave: "loc", rotulo: "LOCAL", alias: ["loc", "local_inicio", "local"] },
+  { chave: "h_total", rotulo: "H.TOTAL", alias: ["h_total"] },
+  { chave: "turno", rotulo: "TURNO", alias: ["turno"] },
+  { chave: "f_carro", rotulo: "F. CARRO", tipo: "hora", titulo: "Fim do carro / horário de recolhimento" },
+  { chave: "obs", rotulo: "OBS", tipo: "obs" }
 ];
-
-const CHAVES_IMPORTANTES = new Set([
-  "data",
-  "horario_de_inicio",
-  "horario_saida_da_garagem",
-  "maquina",
-  "linha",
-  "work_id",
-  "carro",
-  "carro_escalado",
-  "f_carro",
-  "motorista",
-  "local_inicio",
-  "preparo",
-  "observacoes"
-]);
 
 const state = {
   data: "",
-  colunas: COLUNAS_PADRAO,
+  colunas: COLUNAS_PLANILHA,
   bruto: [],
   processado: [],
   carregando: false,
@@ -109,7 +98,7 @@ function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
 function chaveServico(row, carroEscalado) {
   return [
     pickCampo(row, ["work_id", "work-id", "serv"]),
-    pickCampo(row, ["horario_de_inicio", "horario_inicio"]),
+    pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio"]),
     carroEscalado
   ].join("|");
 }
@@ -144,61 +133,37 @@ function dentroDoLimite(horario, limite) {
   return mins <= lim;
 }
 
-function montarColunas(apiColunas, amostra) {
-  const mapa = new Map();
-  (apiColunas || []).forEach((c) => {
-    if (!c?.chave) return;
-    mapa.set(c.chave, { chave: c.chave, rotulo: c.rotulo || c.chave });
-  });
+function aPartirDoHorario(horario, limite) {
+  const mins = horaParaMinutos(horario);
+  const lim = horaParaMinutos(limite);
+  if (mins == null || lim == null) return true;
+  return mins >= lim;
+}
 
-  if (!mapa.size && amostra) {
-    Object.keys(amostra).forEach((chave) => {
-      if (chave.startsWith("_")) return;
-      mapa.set(chave, { chave, rotulo: chave.toUpperCase().replace(/_/g, " ") });
-    });
+function pareceHora(valor) {
+  return /^\d{1,2}:\d{2}$/.test(String(valor || "").trim());
+}
+
+function valorColuna(row, col) {
+  if (col.tipo === "obs") return "";
+  const chaves = col.alias || [col.chave];
+  if (col.chave === "subst") {
+    return row.subst || pickCampo(row, chaves);
   }
+  if (col.chave === "f_carro") {
+    return pickCampo(row, ["f_carro", "f_carro_"]);
+  }
+  return pickCampo(row, chaves);
+}
 
-  const extras = [
-    { chave: "carro_saida", rotulo: "CARRO SAÍDA" },
-    { chave: "subst", rotulo: "SUBST" },
-    { chave: "tecnologia", rotulo: "TECNOLOGIA" },
-    { chave: "obs_escala", rotulo: "OBS" },
-    { chave: "_alerta", rotulo: "ALERTA" }
-  ];
-  extras.forEach((c) => mapa.set(c.chave, c));
-
-  const ordem = [];
-  const pushUnico = (chave) => {
-    if (mapa.has(chave) && !ordem.includes(chave)) ordem.push(chave);
-  };
-
-  [
-    "data",
-    "horario_de_inicio",
-    "horario_saida_da_garagem",
-    "maquina",
-    "linha",
-    "work_id",
-    "carro_escalado",
-    "carro",
-    "f_carro",
-    "motorista",
-    "local_inicio"
-  ].forEach(pushUnico);
-
-  [...mapa.keys()]
-    .filter((k) => !ordem.includes(k) && CHAVES_IMPORTANTES.has(k))
-    .sort()
-    .forEach(pushUnico);
-
-  extras.forEach((c) => pushUnico(c.chave));
-
-  [...mapa.keys()]
-    .filter((k) => !ordem.includes(k) && !k.startsWith("_"))
-    .sort()
-    .forEach(pushUnico);
-
-  return ordem.map((chave) => mapa.get(chave));
+function formatarObs(row) {
+  const partes = [];
+  if (row.carro_saida && row.carro_saida !== valorColuna(row, { chave: "carro", alias: ["carro", "carro_escalado"] })) {
+    partes.push(`Saída: ${row.carro_saida}`);
+  }
+  if (row.obs_escala) partes.push(row.obs_escala);
+  if (row._alerta) partes.push(row._alerta);
+  return partes.join(" · ");
 }
 
 function extrairCarroEscalado(row) {
@@ -237,17 +202,35 @@ function situacaoCarroEscalado(prefixo, patio) {
   return { tipo: "ausente", prefixo, motivo: saida.motivo || "Fora do pátio" };
 }
 
-function aplicarAlertasSuperBus(prefixos, horarioInicio, alertas, flags) {
+function extrairFimCarro(row) {
+  return pickCampo(row, ["f_carro", "f_carro_"]);
+}
+
+function recolhimentoAposLimite(horaFimCarro, limite) {
+  if (!horaFimCarro) return false;
+  return !dentroDoLimite(horaFimCarro, limite);
+}
+
+function aplicarAlertasRecolhimentoPedido(carro, horaFimCarro, patio, alertas) {
+  if (!carro || !ehPedido(carro, patio)) return;
+  if (recolhimentoAposLimite(horaFimCarro, HORA_LIMITE_RECOLHIMENTO_PEDIDO)) {
+    alertas.push(
+      `Pedido ${carro}: recolhimento (F. CARRO ${horaFimCarro}) após ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`
+    );
+  }
+}
+
+function aplicarAlertasSuperBus(prefixos, horaFimCarro, alertas, flags) {
   const vistos = new Set();
   prefixos.forEach((prefixo) => {
     const alvo = String(prefixo || "").trim();
     if (!alvo || vistos.has(alvo) || !ehSuperBusPorPrefixo(alvo, frota)) return;
     vistos.add(alvo);
     flags.temSuperBus = true;
-    alertas.push(`SUPER BUS ${alvo}: recolher até ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS}`);
-    if (horarioInicio && !dentroDoLimite(horarioInicio, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS)) {
+    alertas.push(`SUPER BUS ${alvo}: recolher até ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS} (F. CARRO)`);
+    if (recolhimentoAposLimite(horaFimCarro, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS)) {
       alertas.push(
-        `SUPER BUS ${alvo}: serviço/recolhimento após ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS}`
+        `SUPER BUS ${alvo}: recolhimento (F. CARRO ${horaFimCarro}) após ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS}`
       );
     }
   });
@@ -268,8 +251,7 @@ function buscarSubstituto(row, patio, ctx, tecnologia, carroEscalado, linhaNorm)
   const { usados, escaladosReservados } = ctx;
   const excluirSubst = new Set([
     ...escaladosReservados,
-    carroEscalado,
-    normalizarPrefixo(pickCampo(row, ["f_carro", "f_carro_", "fcarro"]))
+    carroEscalado
   ].filter(Boolean));
 
   const opcoesBase = {
@@ -298,8 +280,7 @@ function buscarSubstituto(row, patio, ctx, tecnologia, carroEscalado, linhaNorm)
 function processarLinha(row, patio, ctx) {
   const { usados } = ctx;
   const carroEscalado = extrairCarroEscalado(row);
-  const fCarro = normalizarPrefixo(pickCampo(row, ["f_carro", "f_carro_", "fcarro"]));
-  const horarioInicio = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado"]);
+  const fCarroHora = extrairFimCarro(row);
   const linhaNorm = normalizarLinhaServico(row);
   const tecnologia = obterTecnologia(carroEscalado, frota);
   const chave = chaveServico(row, carroEscalado);
@@ -312,15 +293,15 @@ function processarLinha(row, patio, ctx) {
     temSuperBus: false
   };
   let carroSaida = "";
-  let subst = "";
+  let subst = pickCampo(row, ["subst"]);
   let obsEscala = pickCampo(row, ["observacoes", "obs", "observacao"]);
   let tecnologiaExibicao = tecnologia;
 
-  if (fCarro && ehPedido(fCarro, patio) && !dentroDoLimite(horarioInicio, HORA_LIMITE_RECOLHIMENTO_PEDIDO)) {
-    alertas.push(`Pedido ${fCarro}: recolhimento após ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`);
-  }
+  const temPedido = Boolean(carroEscalado && ehPedido(carroEscalado, patio));
+  const fCarroAtrasadoPedido = temPedido && recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_PEDIDO);
+  const fCarroAtrasadoSuperBus = recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS);
 
-  const temPedido = Boolean(fCarro);
+  aplicarAlertasRecolhimentoPedido(carroEscalado, fCarroHora, patio, alertas);
 
   const sitEscalado = situacaoCarroEscalado(carroEscalado, patio);
 
@@ -371,12 +352,12 @@ function processarLinha(row, patio, ctx) {
     usados.add(carroSaida);
   }
 
-  aplicarAlertasSuperBus([carroSaida, fCarro], horarioInicio, alertas, flags);
+  aplicarAlertasSuperBus([carroSaida || carroEscalado], fCarroHora, alertas, flags);
 
   return {
     ...row,
     carro_escalado: carroEscalado || row.carro_escalado || row.carro || "",
-    f_carro: fCarro || row.f_carro || "",
+    f_carro: fCarroHora || row.f_carro || "",
     carro_saida: carroSaida,
     subst,
     tecnologia: tecnologiaExibicao,
@@ -387,7 +368,8 @@ function processarLinha(row, patio, ctx) {
     _super_bus_alerta: flags.superBusAlerta,
     _aceite_pendente: flags.aceitePendente,
     _tem_pedido: temPedido,
-    _tem_super_bus: flags.temSuperBus
+    _tem_super_bus: flags.temSuperBus,
+    _f_carro_atrasado: fCarroAtrasadoPedido || (flags.temSuperBus && fCarroAtrasadoSuperBus)
   };
 }
 
@@ -400,11 +382,11 @@ function processarEscala(linhas) {
   return linhas.map((row) => processarLinha(row, patio, ctx));
 }
 
-function filtrarAteHorario(linhas) {
+function filtrarAPartirHorario(linhas) {
   return linhas.filter((row) => {
     const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
     if (!hora) return true;
-    return dentroDoLimite(hora, HORA_LIMITE_IMPORTE);
+    return aPartirDoHorario(hora, HORA_INICIO_SAIDA);
   });
 }
 
@@ -437,11 +419,11 @@ function classesLinha(row) {
   return classes.join(" ");
 }
 
-function renderCelulaAlerta(row) {
-  const alerta = row._alerta || "";
+function renderCelulaObs(row) {
+  const texto = formatarObs(row);
   const chave = row._chave_servico;
   const pendente = row._aceite_pendente && !state.aceites.has(chave);
-  let html = alerta ? escHtml(alerta) : "—";
+  let html = texto ? escHtml(texto) : "—";
 
   if (pendente) {
     html += ` <button type="button" class="btn-aceitar" data-chave="${escHtml(chave)}">Aceitar</button>`;
@@ -450,6 +432,15 @@ function renderCelulaAlerta(row) {
   }
 
   return html;
+}
+
+function contarPorTurno(linhas) {
+  const map = {};
+  linhas.forEach((row) => {
+    const turno = pickCampo(row, ["turno"]) || "—";
+    map[turno] = (map[turno] || 0) + 1;
+  });
+  return map;
 }
 
 function atualizarResumo() {
@@ -462,8 +453,14 @@ function atualizarResumo() {
   const aceitesPendentes = state.processado.filter(
     (r) => r._aceite_pendente && !state.aceites.has(r._chave_servico)
   ).length;
+  const turnos = contarPorTurno(state.processado);
+  const turnoHtml = Object.entries(turnos)
+    .sort(([a], [b]) => a.localeCompare(b, "pt-BR"))
+    .map(([nome, qtd]) => `<span><b>${qtd}</b> ${escHtml(nome)}</span>`)
+    .join("");
   el.innerHTML = `
-    <span><b>${total}</b> serviços até ${HORA_LIMITE_IMPORTE}</span>
+    <span><b>${total}</b> serviços a partir de ${HORA_INICIO_SAIDA}</span>
+    ${turnoHtml}
     <span><b>${pedidos}</b> pedidos</span>
     <span><b>${comSubst}</b> com substituição</span>
     <span><b>${alertas}</b> com alerta</span>
@@ -485,17 +482,23 @@ function renderTabela() {
   }
   if (vazio) vazio.hidden = true;
 
-  head.innerHTML = `<tr>${state.colunas.map((c) => `<th>${c.rotulo}</th>`).join("")}</tr>`;
+  head.innerHTML = `<tr>${state.colunas.map((c) => {
+    const title = c.titulo ? ` title="${escHtml(c.titulo)}"` : "";
+    return `<th${title}>${c.rotulo}</th>`;
+  }).join("")}</tr>`;
 
   body.innerHTML = state.processado.map((row) => {
     const cls = classesLinha(row);
     const cells = state.colunas.map((col) => {
-      if (col.chave === "_alerta") {
-        return `<td class="col-alerta">${renderCelulaAlerta(row)}</td>`;
+      if (col.tipo === "obs") {
+        return `<td class="col-obs">${renderCelulaObs(row)}</td>`;
       }
-      const valor = row[col.chave] ?? "";
-      const extraCls = row._tem_pedido && col.chave === "f_carro" && valor ? " celula-pedido" : "";
-      return `<td class="${extraCls.trim()}" title="${escHtml(valor)}">${valor || "—"}</td>`;
+      const valor = valorColuna(row, col);
+      let clsExtra = col.tipo === "hora" || pareceHora(valor) ? " col-hora" : "";
+      if (col.chave === "f_carro" && row._f_carro_atrasado && valor) {
+        clsExtra += " celula-recolhimento-atrasado";
+      }
+      return `<td class="${clsExtra.trim()}" title="${escHtml(valor)}">${valor || ""}</td>`;
     }).join("");
     return `<tr class="${cls}">${cells}</tr>`;
   }).join("");
@@ -520,9 +523,9 @@ async function carregarPlanilha() {
     const { json, origem, aviso } = await carregarEscalaSaidaPlanilha(data);
 
     const linhas = Array.isArray(json.dados) ? json.dados : [];
-    const filtradas = ordenarPorInicio(filtrarAteHorario(linhas));
+    const filtradas = ordenarPorInicio(filtrarAPartirHorario(linhas));
     state.bruto = filtradas;
-    state.colunas = montarColunas(json.colunas, filtradas[0]);
+    state.colunas = COLUNAS_PLANILHA;
     state.aceites = new Set();
     state.processado = processarEscala(filtradas);
 
@@ -531,7 +534,7 @@ async function carregarPlanilha() {
     const origemLabel = origem === "json" ? "cache JSON" : origem === "liberacao" ? "API liberação" : "API escalação";
     if (filtradas.length) {
       const extra = aviso ? ` — ${aviso}` : "";
-      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início até ${HORA_LIMITE_IMPORTE}.${extra}`, aviso ? "warn" : "ok");
+      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início a partir de ${HORA_INICIO_SAIDA}.${extra}`, aviso ? "warn" : "ok");
     } else if (aviso) {
       setStatus(aviso, "warn");
     } else if (planilhaPareceSemCabecalho(json.colunas)) {
@@ -562,9 +565,9 @@ function exportarCsv() {
   if (!state.processado.length) return;
   const header = state.colunas.map((c) => c.rotulo);
   const linhas = state.processado.map((row) =>
-    state.colunas.map((c) => {
-      const v = String(row[c.chave] ?? "").replace(/"/g, '""');
-      return `"${v}"`;
+    state.colunas.map((col) => {
+      const v = col.tipo === "obs" ? formatarObs(row) : String(valorColuna(row, col) ?? "");
+      return `"${v.replace(/"/g, '""')}"`;
     }).join(";")
   );
   const blob = new Blob(["\uFEFF" + [header.join(";"), ...linhas].join("\n")], {
