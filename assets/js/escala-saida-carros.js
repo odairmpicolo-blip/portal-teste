@@ -1,4 +1,4 @@
-import { LIBERACAO_API_URL } from "./liberacao-dados-leitura.js";
+import { ESCALA_SAIDA_API_URL } from "./escala-saida-dados-leitura.js";
 import {
   avaliarSaidaVeiculo,
   carregarPatio,
@@ -306,7 +306,7 @@ async function carregarPlanilha() {
 
   try {
     const data = state.data || hojeIso();
-    const url = `${LIBERACAO_API_URL}?liberacao=1&recurso=saida_carros&data=${encodeURIComponent(data)}`;
+    const url = `${ESCALA_SAIDA_API_URL}?recurso=saida_carros&data=${encodeURIComponent(data)}`;
     const res = await fetch(url, { cache: "no-store" });
     const json = await res.json();
     if (!json.ok) throw new Error(json.erro || "Falha ao carregar planilha.");

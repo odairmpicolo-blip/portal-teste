@@ -4,7 +4,9 @@
  * Planilha CIOP: 1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA
  *   - D.Operacionais de In.Linhas (gráficos): gid 751419807
  *   - ACOMPANHAMENTO LIBERAÇÃO (lançamentos): gid 753262285
- * Saída de carros semanal: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
+ *
+ * Saída de carros / escalação: projeto Apps Script SEPARADO — ver scripts/escala-saida-carros.gs
+ * Planilha: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
  * GET  ?liberacao=1&recurso=graficos&data_de=...&data_ate=...
