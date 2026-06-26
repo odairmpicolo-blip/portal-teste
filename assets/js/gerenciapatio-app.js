@@ -1,6 +1,7 @@
 /* Gerenciamento de Pátio — filas v3 (zonas operacionais) */
 (function () {
   const STORAGE_KEY = "patio_tcgl_v3";
+  const FILA_PREF_KEY = "patio_ultima_fila_v1";
 
   const GRUPOS_PATIO = [
     {
@@ -63,7 +64,30 @@
   GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
-  const frotaDados = window.FROTA_PATIO || [];
+  const FILAS_OFICINA = new Set(["oficina_f1", "oficina_f2"]);
+
+  function ehFilaOficina(filaKey) {
+    return FILAS_OFICINA.has(filaKey);
+  }
+
+  function estaNaOficina(prefixo) {
+    const loc = localizarVeiculo(prefixo);
+    return loc ? ehFilaOficina(loc.filaKey) : false;
+  }
+
+  function limparPedidosDaOficina() {
+    const naOficina = new Set([
+      ...patio.filas.oficina_f1,
+      ...patio.filas.oficina_f2
+    ]);
+    if (!naOficina.size) return;
+    patio.pedidos = patio.pedidos.filter((p) => !naOficina.has(p));
+  }
+
+  function contarPedidos() {
+    limparPedidosDaOficina();
+    return patio.pedidos.length;
+  }
 
   function criarFilasVazias() {
     const filas = {};
@@ -107,7 +131,10 @@
     || JSON.parse(localStorage.getItem("patio_tcgl_v2") || "null")
   );
 
+  const frotaDados = window.FROTA_PATIO || [];
+
   function salvarEstado() {
+    limparPedidosDaOficina();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(patio));
   }
 
@@ -156,9 +183,27 @@
     });
   }
 
+  function lerUltimaFila() {
+    const saved = localStorage.getItem(FILA_PREF_KEY);
+    return FILA_MAP[saved] ? saved : TODAS_FILAS[0].key;
+  }
+
+  function salvarUltimaFila(key) {
+    if (!FILA_MAP[key]) return;
+    localStorage.setItem(FILA_PREF_KEY, key);
+  }
+
+  function definirFilaSelecionada(key) {
+    const select = document.getElementById("selectFila");
+    if (!select || !FILA_MAP[key]) return;
+    select.value = key;
+    salvarUltimaFila(key);
+  }
+
   function popularSelectFila() {
     const select = document.getElementById("selectFila");
     if (!select) return;
+    const preferida = select.value && FILA_MAP[select.value] ? select.value : lerUltimaFila();
     select.innerHTML = "";
 
     const addGroup = (label, filas) => {
@@ -175,6 +220,9 @@
 
     GRUPOS_PATIO.forEach((g) => addGroup(g.titulo, g.filas));
     addGroup(GRUPO_BLOQUEADOS.titulo, GRUPO_BLOQUEADOS.filas);
+
+    select.value = FILA_MAP[preferida] ? preferida : TODAS_FILAS[0].key;
+    salvarUltimaFila(select.value);
   }
 
   function atualizarResumo() {
@@ -186,7 +234,7 @@
       <span><b>${frotaDados.length}</b> na frota</span>
       <span><b>${alocados}</b> no pátio</span>
       <span><b>${fora}</b> sem alocação</span>
-      <span><b>${patio.pedidos.length}</b> pedidos</span>
+      <span><b>${contarPedidos()}</b> pedidos</span>
       <span><b>${patio.analisados.length}</b> utilizados</span>
     `;
   }
@@ -198,7 +246,9 @@
     let statusClass = "";
     let texto = prefixo;
 
-    if (filaCfg.bloqueado) {
+    if (ehFilaOficina(filaKey)) {
+      statusClass = "oficina-status";
+    } else if (filaCfg.bloqueado) {
       statusClass = "bloqueado-status";
     } else if (patio.analisados.includes(prefixo)) {
       statusClass = "analisado";
@@ -206,6 +256,10 @@
       statusClass = "pedidos-status";
       texto = `${prefixo} · Pedido`;
     }
+
+    const btnPedido = ehFilaOficina(filaKey) || filaCfg.bloqueado
+      ? ""
+      : `<button type="button" class="btn-pedido" title="Marcar/desmarcar Pedido" data-prefixo="${prefixo}">P</button>`;
 
     card.className = `car-tag ${statusClass}`;
     card.innerHTML = `
@@ -215,7 +269,7 @@
       </div>
       <div class="car-tag-actions">
         <span class="tech" title="${tech}">${tech}</span>
-        <button type="button" class="btn-pedido" title="Marcar/desmarcar Pedido" data-prefixo="${prefixo}">P</button>
+        ${btnPedido}
         <button type="button" class="remove-btn" title="Remover" data-prefixo="${prefixo}">×</button>
       </div>
     `;
@@ -266,11 +320,8 @@
 
     mapa.querySelectorAll(".fila-select-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const select = document.getElementById("selectFila");
-        if (select) {
-          select.value = btn.dataset.fila;
-          document.getElementById("inputFilaBus")?.focus();
-        }
+        definirFilaSelecionada(btn.dataset.fila);
+        document.getElementById("inputFilaBus")?.focus();
       });
     });
 
@@ -299,6 +350,10 @@
 
     removerVeiculoDeTudo(prefixo);
     patio.filas[filaKey].push(prefixo);
+    if (ehFilaOficina(filaKey)) {
+      patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+    }
+    salvarUltimaFila(filaKey);
     salvarEstado();
     renderizarPatio();
     input.value = "";
@@ -306,7 +361,7 @@
   }
 
   function togglePedido(prefixo) {
-    if (!prefixo) return;
+    if (!prefixo || estaNaOficina(prefixo)) return;
     if (patio.pedidos.includes(prefixo)) {
       patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
     } else {
@@ -321,6 +376,10 @@
     const input = document.getElementById("pedidosBus");
     const prefixo = input?.value.trim();
     if (!prefixo) return;
+    if (estaNaOficina(prefixo)) {
+      input.value = "";
+      return;
+    }
     if (!patio.pedidos.includes(prefixo)) patio.pedidos.push(prefixo);
     patio.analisados = patio.analisados.filter((p) => p != prefixo);
     salvarEstado();
@@ -396,21 +455,6 @@
     }
 
     const loc = localizarVeiculo(prefixo);
-    if (loc && !FILA_MAP[loc.filaKey]?.bloqueado) {
-      if (!patio.analisados.includes(prefixo)) {
-        patio.analisados.push(prefixo);
-        patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
-        salvarEstado();
-        renderizarPatio();
-      }
-    }
-
-    if (loc && FILA_MAP[loc.filaKey]?.bloqueado) {
-      resultBox.className = "result-box danger";
-      resultBox.innerHTML = `❌ <b>BLOQUEADO:</b> ${prefixo} está em <b>${obterNomeFila(loc.filaKey)}</b>.`;
-      input.value = "";
-      return;
-    }
 
     if (!loc) {
       const naFrota = frotaDados.some((item) => item.veiculo == prefixo);
@@ -420,6 +464,20 @@
         : `⚠️ Veículo <b>${prefixo}</b> não está na frota (${frotaDados.length} cadastrados).`;
       input.value = "";
       return;
+    }
+
+    if (FILA_MAP[loc.filaKey]?.bloqueado) {
+      resultBox.className = "result-box danger";
+      resultBox.innerHTML = `❌ <b>BLOQUEADO:</b> ${prefixo} está em <b>${obterNomeFila(loc.filaKey)}</b>.`;
+      input.value = "";
+      return;
+    }
+
+    if (!ehFilaOficina(loc.filaKey) && !patio.analisados.includes(prefixo)) {
+      patio.analisados.push(prefixo);
+      patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+      salvarEstado();
+      renderizarPatio();
     }
 
     const grupo = GRUPO_POR_FILA[loc.filaKey];
@@ -449,7 +507,8 @@
           const p = patio.filas[f.key][i];
           if (!p) return "";
           let tag = "";
-          if (patio.pedidos.includes(p)) tag = " [PEDIDO]";
+          if (ehFilaOficina(f.key)) tag = " [OFICINA]";
+          else if (patio.pedidos.includes(p)) tag = " [PEDIDO]";
           else if (patio.analisados.includes(p)) tag = " [UTILIZADO]";
           if (FILA_MAP[f.key]?.bloqueado) tag = " [BLOQUEADO]";
           return `${p} — ${obterTecnologia(p)}${tag}`;
@@ -465,6 +524,9 @@
   }
 
   function configurarInputs() {
+    document.getElementById("selectFila")?.addEventListener("change", (e) => {
+      salvarUltimaFila(e.target.value);
+    });
     document.getElementById("inputFilaBus")?.addEventListener("keypress", (e) => {
       if (e.key === "Enter") alocarNaFila();
     });
