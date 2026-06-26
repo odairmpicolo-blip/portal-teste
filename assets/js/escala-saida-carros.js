@@ -5,8 +5,8 @@ import {
   consultarSituacaoCarro,
   ehPedido,
   formatarConsultaFila,
-  formatarPosicaoPatio,
   listarCandidatosSubstituto,
+  obterNomeFila,
   mesmaCorVeiculo,
   obterPerfilTecnologia,
   obterTecnologia,
@@ -218,7 +218,7 @@ function valorColuna(row, col) {
 
 function formatarLocalEscala(loc) {
   if (!loc) return "";
-  return formatarPosicaoPatio(loc);
+  return obterNomeFila(loc.filaKey);
 }
 
 function formatarObs(row) {
@@ -416,8 +416,7 @@ function buscarSubstitutoParaHorario(patio, ctx, carroEscalado, linhaNorm) {
     }).slice(0, MAX_OPCOES_CARRO);
     return {
       tipo: "mesma_tech",
-      opcoes,
-      ordemFilaUsada: opcoes[0]?.ordemFila ?? 1
+      opcoes
     };
   }
 
@@ -425,8 +424,7 @@ function buscarSubstitutoParaHorario(patio, ctx, carroEscalado, linhaNorm) {
   if (alternativas.length) {
     return {
       tipo: "alternativa",
-      opcoes: alternativas,
-      ordemFilaUsada: alternativas[0]?.ordemFila ?? 1
+      opcoes: alternativas
     };
   }
 
@@ -560,16 +558,12 @@ function processarLinha(row, patio, ctx) {
         flags.mudancaCor = aplicado._mudanca_cor;
         flags.aceitePendente = aplicado._aceite_pendente;
 
-        const filaUsada = busca.ordemFilaUsada || 1;
         if (busca.tipo === "alternativa") {
           alertas.push(`Troca: ${opcoesCarro.length} veículo(s) livre(s) — escolha em SUBST.`);
         } else {
           alertas.push(
             `Troca: ${opcoesCarro.length} veículo(s) livre(s) (mesma tecnologia) — escolha em SUBST.`
           );
-        }
-        if (filaUsada > 1) {
-          alertas.push(`Primeira opção na ${filaUsada}ª posição (sem carro livre nas posições anteriores).`);
         }
       } else {
         alertas.push(
@@ -730,8 +724,7 @@ function renderCelulaSubst(row) {
   if (row._escolha_pendente && opcoes.length) {
     return opcoes.map((op) => {
       const ativo = op.prefixo === escolhido ? " ativo" : "";
-      const filaLabel = op.ordemFila ? `F${op.ordemFila}` : "";
-      const titulo = [op.tecnologia, op.fila, filaLabel].filter(Boolean).join(" · ");
+      const titulo = [op.tecnologia, op.fila].filter(Boolean).join(" · ");
       return `<button type="button" class="btn-opcao-carro${ativo}" data-chave="${escHtml(chave)}" data-prefixo="${escHtml(op.prefixo)}" title="${escHtml(titulo)}">${escHtml(op.prefixo)}</button>`;
     }).join("");
   }

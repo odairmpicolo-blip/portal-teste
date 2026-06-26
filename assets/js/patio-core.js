@@ -213,12 +213,7 @@ export function obterPosicaoEscala(filaKey) {
 
 export function formatarPosicaoPatio(loc) {
   if (!loc) return "";
-  const nome = obterNomeFila(loc.filaKey);
-  const { rotulo } = obterPosicaoEscala(loc.filaKey);
-  if (loc.posicao > 0) {
-    return `${nome} · ${rotulo} (aguard. ${loc.posicao + 1}º na fila)`;
-  }
-  return `${nome} · ${rotulo}`;
+  return obterNomeFila(loc.filaKey);
 }
 
 export function normalizarTecnologia(valor) {
@@ -308,10 +303,9 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   }
 
   if (loc.posicao !== 0) {
-    const { rotulo } = obterPosicaoEscala(loc.filaKey);
     return {
       ok: false,
-      motivo: `Aguardando (${loc.posicao + 1}º na fila) — só escala ${rotulo}.`,
+      motivo: "Aguardando na fila — saída ainda não liberada.",
       loc
     };
   }
@@ -388,7 +382,7 @@ export function formatarConsultaFila(situacao) {
     return `${situacao.prefixo} — sem alocação no pátio.`;
   }
   const tagsTxt = situacao.tags?.length ? ` (${situacao.tags.join(" · ")})` : "";
-  return `${situacao.prefixo} · ${situacao.fila} · ${situacao.posicaoEscala}${tagsTxt}`;
+  return `${situacao.prefixo} · ${situacao.fila}${tagsTxt}`;
 }
 
 export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}) {
