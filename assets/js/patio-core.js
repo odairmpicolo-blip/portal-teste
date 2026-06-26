@@ -8,7 +8,7 @@ export const GRUPOS_PATIO = [
     id: "oficina",
     titulo: "Oficina",
     filas: [
-      { key: "oficina_f1", label: "Fila 1", ordem: 1 },
+      { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
       { key: "oficina_f2", label: "Fila 2", ordem: 2 }
     ]
   },
@@ -87,6 +87,7 @@ GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS
 
 /** Filas com saída livre (sem depender de fila anterior no grupo). */
 const FILAS_SAIDA_LIVRE = new Set([
+  "oficina_f1",
   "latavador_f1",
   "mistos_f1",
   "pesados_f1",
@@ -107,25 +108,15 @@ const FILAS_NAO_UTILIZAVEIS = new Set([
   "reforma"
 ]);
 
-/** Oficina não entra na escalação de saída. */
-const FILAS_EXCLUIDAS_ESCALA = new Set([
-  "oficina_f1",
-  "oficina_f2"
-]);
-
 export const ORDEM_MAXIMA_FILAS_SEQUENCIAIS = 4;
 
 export function ehFilaNaoUtilizavelEscala(filaKey) {
   return FILAS_NAO_UTILIZAVEIS.has(filaKey);
 }
 
-export function ehFilaExcluidaEscala(filaKey) {
-  return FILAS_EXCLUIDAS_ESCALA.has(filaKey);
-}
-
 /** Ordem da fila para prioridade de saída (1 = fila 1 / livre, 2 = fila 2…). */
 export function obterOrdemFilaSaida(filaKey) {
-  if (FILAS_EXCLUIDAS_ESCALA.has(filaKey) || FILAS_NAO_UTILIZAVEIS.has(filaKey)) return 99;
+  if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return 99;
   const cfg = FILA_MAP[filaKey];
   if (!cfg) return 50;
   if (FILAS_SAIDA_LIVRE.has(filaKey) || cfg.saidaLivre) return 1;
@@ -283,10 +274,6 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
     return { ok: false, motivo: "Carro bloqueado — não utilizável.", loc };
   }
 
-  if (FILAS_EXCLUIDAS_ESCALA.has(loc.filaKey)) {
-    return { ok: false, motivo: "Carro na oficina — não utilizável na escalação.", loc };
-  }
-
   if (loc.posicao !== 0) {
     return {
       ok: false,
@@ -330,7 +317,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
   const ordemMax = opcoes.ordemMax;
 
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
-    if (FILAS_EXCLUIDAS_ESCALA.has(filaKey)) return;
+    if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return;
 
     lista.forEach((prefixo, posicao) => {
       const p = String(prefixo);
