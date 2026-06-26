@@ -505,7 +505,7 @@ function setStatus(msg, tipo) {
   const el = document.getElementById("escalaStatus");
   if (!el) return;
   el.textContent = msg || "";
-  el.className = `escala-status${tipo ? ` escala-status--${tipo}` : ""}`;
+  el.className = `status-pill escala-status${tipo ? ` escala-status--${tipo}` : ""}`;
 }
 
 function planilhaPareceSemCabecalho(colunas) {

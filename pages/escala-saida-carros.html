@@ -21,6 +21,7 @@ document.documentElement.classList.add("portal-auth-pending");
 <link rel="stylesheet" href="../assets/css/portal-brand.css">
 <link rel="stylesheet" href="../assets/css/portal-header.css">
 <link rel="stylesheet" href="../assets/css/portal-session.css">
+<link rel="stylesheet" href="../assets/css/portal-filtros.css">
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 <style>
@@ -35,6 +36,7 @@ document.documentElement.classList.add("portal-auth-pending");
     --success: #12b76a;
     --danger: #f04438;
     --warning: #f79009;
+    --white: #fff;
 }
 * { box-sizing: border-box; }
 body {
@@ -46,101 +48,136 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
-.header {
-    background: white;
-    padding: 10px 24px;
-    display: grid;
-    grid-template-columns: minmax(190px, 220px) 1fr minmax(310px, auto);
-    gap: 15px;
-    align-items: center;
-    border-bottom: 1px solid #e8edf6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+.header-title,
+.title-wrap {
+    text-align: center;
+    min-width: 0;
 }
-.header-title { text-align: center; }
-.header-subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.titulo-pagina {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--blue);
-    letter-spacing: 0.02em;
-    margin: 0;
+.header-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 4px;
 }
-.logo-tcgl { height: 48px; object-fit: contain; }
-.container {
-    flex: 1;
-    width: min(100%, 1600px);
-    margin: 0 auto;
-    padding: 16px 20px 28px;
-}
-.portal-toolbar {
+.header-actions {
+    justify-self: end;
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
+    justify-content: flex-end;
+    gap: 10px;
+    min-width: 0;
 }
-.btn-portal {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--blue);
-    color: #fff;
-    text-decoration: none;
-    padding: 11px 16px;
-    border-radius: 7px;
-    font-weight: 800;
-    font-size: 13px;
-    box-shadow: 0 10px 20px rgba(6, 36, 92, 0.16);
-    transition: background 0.15s ease;
+.logo-tcgl {
+    height: 48px;
+    object-fit: contain;
+    justify-self: end;
 }
-.btn-portal:hover {
-    background: var(--blue2);
+.container {
+    max-width: 1600px;
+    margin: 25px auto;
+    padding: 0 20px;
+    width: 100%;
+    flex: 1;
 }
 .toolbar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: end;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
     margin-bottom: 14px;
+    flex-wrap: wrap;
 }
-.toolbar-field label {
-    display: block;
-    font-size: 10px;
+.toolbar-left {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+}
+.nav-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
+}
+.btn-portal,
+.btn-primary,
+.btn-secondary,
+.btn-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 800;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
+    padding: 8px 14px;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.15s;
 }
-.toolbar-field input[type="date"] {
-    min-height: 40px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 0 12px;
-    font-size: 15px;
-    font-weight: 700;
+.btn-portal,
+.btn-primary {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+.btn-portal:hover,
+.btn-primary:hover {
+    background: var(--blue2);
+}
+.btn-secondary {
+    background: #e8edf6;
     color: var(--blue);
 }
-.btn {
-    min-height: 40px;
-    border: none;
-    border-radius: 7px;
-    padding: 0 16px;
-    font-weight: 800;
-    cursor: pointer;
+.btn-secondary:hover {
+    background: #dbe4f2;
 }
-.btn-primary { background: var(--blue2); color: #fff; }
-.btn-secondary { background: #eef2f8; color: var(--blue); }
-.btn-accent { background: var(--orange); color: #fff; }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.escala-status {
-    flex: 1 1 100%;
+.btn-accent {
+    background: var(--orange);
+    color: #fff;
+}
+.btn-accent:hover {
+    filter: brightness(1.05);
+}
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-accent:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+.escala-info {
+    margin-bottom: 14px;
     font-size: 13px;
     color: var(--muted);
-    min-height: 18px;
+    line-height: 1.55;
+}
+.escala-info strong { color: var(--blue); }
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    flex: 1 1 240px;
 }
 .escala-status--ok { color: var(--success); }
 .escala-status--warn { color: var(--warning); }
@@ -153,29 +190,48 @@ body {
     font-size: 13px;
     color: var(--muted);
     margin-bottom: 12px;
+    padding: 0 2px;
 }
 .escala-resumo b { color: var(--blue); }
-.escala-info {
-    background: #fff;
+.table-card {
+    overflow: hidden;
+    background: var(--white);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.5;
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(16, 24, 40, 0.07);
 }
-.escala-info strong { color: var(--blue); }
-.tabela-wrap {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
+.table-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #fff, #fafbfd);
+}
+.card-title {
+    margin: 0;
+    color: var(--blue);
+    font-size: 15px;
+    font-weight: 900;
+}
+.table-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-top: 2px;
+}
+.table-wrap {
     overflow: auto;
+    max-height: calc(100vh - 320px);
+    min-height: 420px;
 }
 .escala-tabela {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 12px;
+    min-width: 1100px;
 }
 .escala-tabela th,
 .escala-tabela td {
@@ -187,27 +243,31 @@ body {
 .escala-tabela th {
     position: sticky;
     top: 0;
-    background: #f8fafc;
+    background: #f1f5f9;
     color: var(--blue);
-    font-size: 10px;
+    font-size: 9px;
+    font-weight: 900;
     text-transform: uppercase;
     z-index: 1;
+    letter-spacing: 0.03em;
 }
-.escala-tabela tr.linha-subst td { background: #fff8ef; }
+.escala-tabela tbody tr:nth-child(even) td { background: #fafbfd; }
+.escala-tabela tbody tr:hover td { background: #fff7ed; }
+.escala-tabela tr.linha-subst td { background: #fff8ef !important; }
 .escala-tabela tr.linha-pedido td {
-    background: #e8eef8;
+    background: #e8eef8 !important;
     box-shadow: inset 4px 0 0 #0b3a8a;
 }
 .escala-tabela tr.linha-pedido td.celula-pedido {
     color: #0b3a8a;
     font-weight: 800;
 }
-.escala-tabela tr.linha-alerta td { background: #fff1f0; }
-.escala-tabela tr.linha-pedido.linha-alerta td { background: #fff1f0; }
-.escala-tabela tr.linha-pedido.linha-subst td { background: #fff8ef; }
-.escala-tabela tr.linha-tech-alternativa td { background: #f3e8ff; }
-.escala-tabela tr.linha-aceite-pendente td { background: #fff4e6; }
-.escala-tabela tr.linha-aceita td { background: #edfbf3; }
+.escala-tabela tr.linha-alerta td { background: #fff1f0 !important; }
+.escala-tabela tr.linha-pedido.linha-alerta td { background: #fff1f0 !important; }
+.escala-tabela tr.linha-pedido.linha-subst td { background: #fff8ef !important; }
+.escala-tabela tr.linha-tech-alternativa td { background: #f3e8ff !important; }
+.escala-tabela tr.linha-aceite-pendente td { background: #fff4e6 !important; }
+.escala-tabela tr.linha-aceita td { background: #edfbf3 !important; }
 .escala-tabela .col-alerta { white-space: normal; max-width: 320px; }
 .btn-aceitar {
     margin-left: 6px;
@@ -227,29 +287,52 @@ body {
     color: var(--success);
 }
 .escala-vazio {
-    padding: 28px;
+    padding: 48px 24px;
     text-align: center;
     color: var(--muted);
 }
-footer {
-    text-align: center;
-    padding: 14px;
-    font-size: 12px;
+.escala-vazio b { color: var(--blue); }
+.legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
     color: var(--muted);
+    font-weight: 700;
 }
-@media (max-width: 900px) {
-    .header { grid-template-columns: 1fr; text-align: center; }
-    .logo-ciop, .logo-tcgl { justify-self: center; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.legend-swatch.pedido { background: #e8eef8; border-color: #0b3a8a; }
+.legend-swatch.subst { background: #fff8ef; border-color: #fdba74; }
+.legend-swatch.alerta { background: #fff1f0; border-color: #fca5a5; }
+.page-footer {
+    text-align: center;
+    padding: 12px 20px 20px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+}
+@media (max-width: 960px) {
+    .header-actions { justify-self: center; flex-wrap: wrap; }
+    .toolbar-left { width: 100%; }
 }
 </style>
 </head>
 <body data-require-perfis="Administrador,Supervisor" data-require-usuarios="pedroisrael2009@gmail.com">
 
-<div class="header">
+<header class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
-    <div class="header-title">
-        <h1 class="patio-title-art" aria-label="Escalação de Saída de Carros">
-            <span class="titulo-pagina">Escalação de Saída de Carros</span>
+    <div class="title-wrap">
+        <h1 class="escala-title-art" aria-label="Escalação de Saída de Carros">
+            <img src="../assets/img/titulo-escala-saida.svg" alt="Escalação de Saída de Carros">
         </h1>
         <div class="header-subtitle">Importação da planilha e cruzamento com o pátio</div>
     </div>
@@ -259,55 +342,77 @@ footer {
             <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
             <button onclick="logout()" class="btn-logout" type="button">Sair</button>
         </div>
-        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" style="display: flex;">
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener">
             <img src="../assets/img/LOGO_TCGL-removebg-preview.png" class="logo-tcgl" alt="TCGL">
         </a>
     </div>
-</div>
+</header>
 
-<div class="container">
-    <div class="portal-toolbar">
-        <a href="../index.html" class="btn-portal">Portal CIOP</a>
-        <a href="gerenciapatio.html" class="btn-portal">Gerenciamento do Pátio</a>
+<main class="container">
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="nav-actions">
+                <a href="../index.html" class="btn-portal">Portal CIOP</a>
+                <a href="gerenciapatio.html" class="btn-secondary">Gerenciamento do Pátio</a>
+            </div>
+            <div class="filters-inline" aria-label="Filtros">
+                <div class="filter-field">
+                    <label for="escalaData">Data</label>
+                    <input type="date" id="escalaData">
+                </div>
+            </div>
+            <button type="button" class="btn-primary" id="btnImportar">Importar e processar</button>
+            <button type="button" class="btn-secondary" id="btnReprocessar">Reprocessar pátio</button>
+            <button type="button" class="btn-accent" id="btnExportar">Exportar CSV</button>
+        </div>
     </div>
 
-    <div class="escala-info">
+    <section class="filters-panel escala-info" aria-label="Regras da escalação">
+        <div class="filters-head">
+            <span class="section-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
+            </span>
+            Como funciona
+        </div>
         Importa a planilha de saída de carros (início até <strong>07:00</strong>), cruza com o
         <strong>pátio atual</strong> e sugere carro de saída, substituição e OBS com a posição no pátio.
         O <strong>carro escalado</strong> é sempre priorizado; substituto da <strong>mesma tecnologia</strong> em seguida.
         Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong>.
         Carros <strong>SUPER BUS</strong> só podem rodar nas linhas <strong>800, 801, 802, 803, 806 e 913</strong>
-        e devem ser <strong>recolhidos até 15:00</strong> (não rodam o dia todo).
+        e devem ser <strong>recolhidos até 15:00</strong>.
         Carros em <strong>bloq. oficina</strong> ou <strong>reforma</strong> não são utilizados.
-        As filas <strong>Oficina Fila 1 e 2</strong> são normais. Linhas com <strong>F.CARRO</strong> (pedidos) aparecem
-        <strong>grifadas em azul</strong>. Recolhimento até <strong>10:40</strong>.
-    </div>
+        Linhas com <strong>F.CARRO</strong> (pedidos) aparecem <strong>grifadas em azul</strong>. Recolhimento até <strong>10:40</strong>.
+    </section>
 
-    <div class="toolbar">
-        <div class="toolbar-field">
-            <label for="escalaData">Data</label>
-            <input type="date" id="escalaData">
-        </div>
-        <button type="button" class="btn btn-primary" id="btnImportar">Importar e processar</button>
-        <button type="button" class="btn btn-secondary" id="btnReprocessar">Reprocessar pátio</button>
-        <button type="button" class="btn btn-accent" id="btnExportar">Exportar CSV</button>
-        <div class="escala-status" id="escalaStatus" aria-live="polite"></div>
+    <div class="status-bar">
+        <div class="status-pill escala-status" id="escalaStatus" aria-live="polite">Escolha a data e clique em Importar e processar.</div>
     </div>
 
     <div class="escala-resumo" id="escalaResumo"></div>
 
-    <div class="tabela-wrap">
-        <div class="escala-vazio" id="escalaVazio">Escolha a data e clique em <b>Importar e processar</b>.</div>
-        <table class="escala-tabela" aria-label="Escalação de saída">
-            <thead id="escalaTabelaHead"></thead>
-            <tbody id="escalaTabelaBody"></tbody>
-        </table>
-    </div>
-</div>
+    <section class="table-card" aria-label="Planilha de escalação">
+        <div class="table-head">
+            <div>
+                <h2 class="card-title">Saída de carros processada</h2>
+                <div class="table-sub">Cruzamento planilha × pátio — início até 07:00</div>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <div class="escala-vazio" id="escalaVazio">Escolha a data e clique em <b>Importar e processar</b>.</div>
+            <table class="escala-tabela" aria-label="Escalação de saída">
+                <thead id="escalaTabelaHead"></thead>
+                <tbody id="escalaTabelaBody"></tbody>
+            </table>
+        </div>
+        <div class="legend" aria-hidden="true">
+            <span class="legend-item"><span class="legend-swatch pedido"></span>Pedido (F.CARRO)</span>
+            <span class="legend-item"><span class="legend-swatch subst"></span>Substituição</span>
+            <span class="legend-item"><span class="legend-swatch alerta"></span>Alerta / aceite pendente</span>
+        </div>
+    </section>
+</main>
 
-<footer>
-    &copy; 2026 CIOP / TCGL - Escalação operacional de saída de carros
-</footer>
+<footer class="page-footer">&copy; 2026 CIOP / TCGL — Escalação operacional de saída de carros</footer>
 
 <script src="../assets/js/frota-patio-data.js"></script>
 <script type="module" src="../assets/js/escala-saida-carros.js"></script>
