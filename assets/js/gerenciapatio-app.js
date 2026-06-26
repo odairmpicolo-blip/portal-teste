@@ -50,6 +50,11 @@
       ]
     },
     {
+      id: "cot",
+      titulo: "COT",
+      filas: [{ key: "cot", label: "COT", ordem: 1, saidaLivre: true }]
+    },
+    {
       id: "especiais",
       titulo: "Áreas especiais",
       filas: [
