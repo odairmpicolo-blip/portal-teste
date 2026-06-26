@@ -1,11 +1,11 @@
 name: Atualizar incidentes TCGL
 
-# portal-teste: busca TCGL e publica JSON no git (sem import DSQL).
-# Import Aurora DSQL roda somente no portalCIOP.
+# portal-teste: busca TCGL e publica JSON (legado / backup).
+# Fonte principal: DSQL → exportar-incidentes-dsql.yml (a cada 30 min).
+# Import DSQL: somente portalCIOP (atualizar-incidentes.yml).
 
 on:
   schedule:
-    # 07:00 UTC = 04:00 horário de Brasília
     - cron: "0 7 * * *"
   workflow_dispatch:
 
