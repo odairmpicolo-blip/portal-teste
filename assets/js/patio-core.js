@@ -85,21 +85,21 @@ const GRUPO_POR_FILA = {};
 GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
 GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
-/** Filas com saída livre (sem depender de fila anterior no grupo). */
-const FILAS_SAIDA_LIVRE = new Set([
+/** Filas com saída livre — sem depender de fila anterior no grupo. */
+export const FILAS_SAIDA_LIVRE = new Set([
   "oficina_f1",
   "latavador_f1",
   "mistos_f1",
   "pesados_f1",
-  "muro",
-  "bomba",
   "corredor_c1",
   "corredor_c2",
   "corredor_c3",
   "corredor_c4",
   "corredor_c5",
   "corredor_c6",
-  "cot"
+  "cot",
+  "muro",
+  "bomba"
 ]);
 
 /** Carros em bloqueio (bloq. oficina / reforma) não entram na escalação. */
@@ -114,12 +114,20 @@ export function ehFilaNaoUtilizavelEscala(filaKey) {
   return FILAS_NAO_UTILIZAVEIS.has(filaKey);
 }
 
-/** Ordem da fila para prioridade de saída (1 = fila 1 / livre, 2 = fila 2…). */
+/** Saída livre: Fila 1 (Oficina, Lavador, Mistos, Pesados), Corredor 1–6, COT, Muro, Bomba. */
+export function ehSaidaLivre(filaKey) {
+  return FILAS_SAIDA_LIVRE.has(filaKey);
+}
+
+/**
+ * Ordem de escalação entre filas do mesmo grupo (1 → 2 → 3 → 4).
+ * Áreas de saída livre entram sempre no bucket 1, junto com a Fila 1 sequencial.
+ */
 export function obterOrdemFilaSaida(filaKey) {
   if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return 99;
   const cfg = FILA_MAP[filaKey];
   if (!cfg) return 50;
-  if (FILAS_SAIDA_LIVRE.has(filaKey) || cfg.saidaLivre) return 1;
+  if (ehSaidaLivre(filaKey)) return 1;
   return cfg.ordem || 1;
 }
 
@@ -204,13 +212,6 @@ export function obterNomeFila(key) {
   return grupo ? `${grupo.titulo} · ${fila.label}` : fila.label;
 }
 
-/** Posição de escalação exibida (1ª–4ª), alinhada à ordem de saída do pátio. */
-export function obterPosicaoEscala(filaKey) {
-  const ordem = obterOrdemFilaSaida(filaKey);
-  if (ordem >= 99) return { ordem, rotulo: "—" };
-  return { ordem, rotulo: `${ordem}ª posição` };
-}
-
 export function formatarPosicaoPatio(loc) {
   if (!loc) return "";
   return obterNomeFila(loc.filaKey);
@@ -275,15 +276,16 @@ export function corujaoDisponivel(agora = horaAtualMinutos()) {
   return agora >= horaTextoParaMinutos(HORA_MINIMA_CORUJAO);
 }
 
+/** Filas anteriores no mesmo grupo que ainda têm carros (Fila 1 → 2 → 3 → 4). */
 function filasAnterioresBloqueando(patio, filaKey) {
   const filaCfg = FILA_MAP[filaKey];
   const grupo = GRUPO_POR_FILA[filaKey];
-  if (!filaCfg || !grupo || !filaCfg.ordem || filaCfg.ordem <= 1) return [];
-  const filaAnterior = grupo.filas.find((f) => f.ordem === filaCfg.ordem - 1);
-  if (filaAnterior && patio.filas[filaAnterior.key]?.length) {
-    return [filaAnterior];
-  }
-  return [];
+  if (!filaCfg || !grupo || ehSaidaLivre(filaKey)) return [];
+  if (!filaCfg.ordem || filaCfg.ordem <= 1) return [];
+
+  return grupo.filas.filter(
+    (f) => f.ordem < filaCfg.ordem && (patio.filas[f.key]?.length || 0) > 0
+  );
 }
 
 /** Verifica se o veículo pode sair do pátio conforme fila (ordem entre filas, não posição no array). */
@@ -311,7 +313,7 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
     };
   }
 
-  if (filaCfg?.saidaLivre || FILAS_SAIDA_LIVRE.has(loc.filaKey)) {
+  if (ehSaidaLivre(loc.filaKey)) {
     return { ok: true, loc };
   }
 

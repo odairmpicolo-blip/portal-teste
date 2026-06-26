@@ -331,7 +331,7 @@ function candidatosParaOpcoes(candidatos, perfilEsc, carroEscalado, meta) {
   return candidatos.map((c) => montarOpcaoCarro(c, perfilEsc, carroEscalado, meta));
 }
 
-/** Carros livres (saída OK) na ordem Fila 1 → 2 → 3 → 4. */
+/** Carros livres na ordem Fila 1 → 2 → 3 → 4 (por grupo), após esgotar a anterior. */
 function listarCandidatosPorOrdemFila(tecnologia, patio, frota, base) {
   const resultado = [];
   const vistos = new Set();
