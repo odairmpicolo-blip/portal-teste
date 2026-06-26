@@ -302,15 +302,24 @@ function montarAlertaTroca(tipo, carroEscalado, substituto, frotaRef) {
   return `Sugestão: troca de cor/tecnologia — horário ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
 }
 
-function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax) {
-  const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
-  const base = { ...opcoesCarroLivre(ctx, carroEscalado, linhaNorm), ordemMax };
+function montarResultadoAlternativa(candidato, perfilEsc, carroEscalado, opcoes = {}) {
+  const mudancaCor = Boolean(
+    opcoes.mudancaCor ?? (perfilEsc.cor ? !mesmaCorVeiculo(carroEscalado, candidato.prefixo, frota) : false)
+  );
+  const mudancaTecnologia = opcoes.mudancaTecnologia !== false;
+  let tipoTroca = "tecnologia";
+  if (mudancaCor && mudancaTecnologia) tipoTroca = "tecnologia_cor";
+  else if (mudancaCor) tipoTroca = "cor";
+  return {
+    candidato,
+    mudancaTecnologia,
+    mudancaCor,
+    tipoTroca,
+    semMesmaTecnologia: true
+  };
+}
 
-  const candidatosExatos = listarCandidatosSubstituto(perfilEsc.completo, patio, frota, base);
-  if (candidatosExatos.length) {
-    return { candidato: candidatosExatos[0], mudancaTecnologia: false, mudancaCor: false };
-  }
-
+function buscarAlternativaTecnologia(patio, base, perfilEsc, carroEscalado) {
   if (perfilEsc.cor) {
     const mesmaCorMesmoResto = listarCandidatosSubstituto("", patio, frota, {
       ...base,
@@ -321,7 +330,11 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
       }
     });
     if (mesmaCorMesmoResto.length) {
-      return { candidato: mesmaCorMesmoResto[0], mudancaTecnologia: false, mudancaCor: false };
+      return {
+        candidato: mesmaCorMesmoResto[0],
+        mudancaTecnologia: false,
+        mudancaCor: false
+      };
     }
 
     const mesmaCorTechDiferente = listarCandidatosSubstituto("", patio, frota, {
@@ -333,12 +346,10 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
       }
     });
     if (mesmaCorTechDiferente.length) {
-      return {
-        candidato: mesmaCorTechDiferente[0],
+      return montarResultadoAlternativa(mesmaCorTechDiferente[0], perfilEsc, carroEscalado, {
         mudancaTecnologia: true,
-        mudancaCor: false,
-        tipoTroca: "tecnologia"
-      };
+        mudancaCor: false
+      });
     }
   }
 
@@ -352,32 +363,39 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
       }
     });
     if (mesmaTechCorDiferente.length) {
-      return {
-        candidato: mesmaTechCorDiferente[0],
+      return montarResultadoAlternativa(mesmaTechCorDiferente[0], perfilEsc, carroEscalado, {
         mudancaTecnologia: false,
-        mudancaCor: true,
-        tipoTroca: "cor"
-      };
+        mudancaCor: true
+      });
     }
   }
 
-  const alternativos = listarCandidatosSubstituto(perfilEsc.completo, patio, frota, {
+  const outrasTecnologias = listarCandidatosSubstituto("", patio, frota, {
     ...base,
-    incluirOutrasTecnologias: true
-  }).filter((c) => !c.mesmaTecnologia);
-
-  if (alternativos.length) {
-    const cand = alternativos[0];
-    const mudancaCor = perfilEsc.cor ? !mesmaCorVeiculo(carroEscalado, cand.prefixo, frota) : false;
-    return {
-      candidato: cand,
-      mudancaTecnologia: true,
-      mudancaCor,
-      tipoTroca: mudancaCor ? "tecnologia_cor" : "tecnologia"
-    };
+    incluirOutrasTecnologias: true,
+    filtroPrefixo: (prefixo) => {
+      if (!perfilEsc.completo) return true;
+      const tech = normalizarTecnologia(obterTecnologia(prefixo, frota));
+      return tech !== perfilEsc.completo;
+    }
+  });
+  if (outrasTecnologias.length) {
+    return montarResultadoAlternativa(outrasTecnologias[0], perfilEsc, carroEscalado);
   }
 
   return null;
+}
+
+function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax) {
+  const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
+  const base = { ...opcoesCarroLivre(ctx, carroEscalado, linhaNorm), ordemMax };
+
+  const candidatosMesmaTech = listarCandidatosSubstituto(perfilEsc.completo, patio, frota, base);
+  if (candidatosMesmaTech.length) {
+    return { candidato: candidatosMesmaTech[0], mudancaTecnologia: false, mudancaCor: false };
+  }
+
+  return buscarAlternativaTecnologia(patio, base, perfilEsc, carroEscalado);
 }
 
 function buscarCarroLivreHorario(row, patio, ctx, carroEscalado, linhaNorm) {
@@ -432,6 +450,11 @@ function processarLinha(row, patio, ctx) {
       const techSaida = obterTecnologia(carroSaida, frota);
       const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
       const perfilSaida = obterPerfilTecnologia(carroSaida, frota);
+
+      if (resultado.semMesmaTecnologia && tecnologia) {
+        alertas.push(`Sem carro livre para tecnologia ${tecnologia} do horário.`);
+        flags.aceitePendente = true;
+      }
 
       if (resultado.mudancaCor || resultado.mudancaTecnologia) {
         flags.mudancaCor = Boolean(resultado.mudancaCor);
@@ -659,6 +682,7 @@ async function carregarPlanilha() {
   if (state.carregando) return;
   state.carregando = true;
   setStatus("Carregando planilha…", "loading");
+  window.portalMostrarCarregando?.("Carregando planilha");
   const btn = document.getElementById("btnImportar");
   if (btn) btn.disabled = true;
 
@@ -694,6 +718,7 @@ async function carregarPlanilha() {
   } finally {
     state.carregando = false;
     if (btn) btn.disabled = false;
+    window.portalOcultarCarregando?.();
   }
 }
 
