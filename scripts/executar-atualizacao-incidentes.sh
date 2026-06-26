@@ -87,7 +87,13 @@ fi
 if "$NODE_BIN" "$PORTAL_ROOT/scripts/sync-incidentes-completo.mjs" >> "$LOG_FILE" 2>&1; then
   publish_portal_prod
   mark_success
-  log "Atualização concluída com sucesso (TCGL + DSQL + git)."
+  if tail -5 "$LOG_FILE" | grep -q '"dsql":true'; then
+    log "Atualização concluída com sucesso (TCGL + DSQL + git)."
+  elif tail -8 "$LOG_FILE" | grep -q "import DSQL falhou"; then
+    log "Atualização concluída (TCGL + git). DSQL ignorado — renove credenciais AWS ou use GitHub Actions."
+  else
+    log "Atualização concluída com sucesso (TCGL + git)."
+  fi
 else
   log "Primeira tentativa falhou. Nova tentativa em 120 segundos..."
   sleep 120
