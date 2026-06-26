@@ -132,6 +132,40 @@
   );
 
   const frotaDados = window.FROTA_PATIO || [];
+  const FROTA_SET = new Set(frotaDados.map((item) => String(item.veiculo)));
+  let lancamentoEmAndamento = false;
+
+  function veiculoExisteNaFrota(prefixo) {
+    return FROTA_SET.has(String(prefixo));
+  }
+
+  function mostrarErroLancamento(msg) {
+    const erro = document.getElementById("lancamentoErro");
+    const ok = document.getElementById("lancamentoOk");
+    if (ok) ok.textContent = "";
+    if (erro) erro.textContent = msg;
+  }
+
+  function mostrarOkLancamento(msg) {
+    const erro = document.getElementById("lancamentoErro");
+    const ok = document.getElementById("lancamentoOk");
+    if (erro) erro.textContent = "";
+    if (ok) ok.textContent = msg;
+  }
+
+  function limparFeedbackLancamento() {
+    const erro = document.getElementById("lancamentoErro");
+    const ok = document.getElementById("lancamentoOk");
+    if (erro) erro.textContent = "";
+    if (ok) ok.textContent = "";
+  }
+
+  function normalizarPrefixoInput(input) {
+    if (!input) return "";
+    const limpo = input.value.replace(/\D/g, "");
+    if (input.value !== limpo) input.value = limpo;
+    return limpo;
+  }
 
   function salvarEstado() {
     limparPedidosDaOficina();
@@ -342,22 +376,52 @@
   }
 
   function alocarNaFila() {
+    if (lancamentoEmAndamento) return;
     const input = document.getElementById("inputFilaBus");
     const select = document.getElementById("selectFila");
-    const prefixo = input?.value.trim();
+    const prefixo = normalizarPrefixoInput(input);
     const filaKey = select?.value;
-    if (!prefixo || !filaKey) return;
 
-    removerVeiculoDeTudo(prefixo);
-    patio.filas[filaKey].push(prefixo);
-    if (ehFilaOficina(filaKey)) {
-      patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+    limparFeedbackLancamento();
+
+    if (!prefixo) {
+      mostrarErroLancamento("Digite o prefixo do veículo.");
+      input?.focus();
+      return;
     }
-    salvarUltimaFila(filaKey);
-    salvarEstado();
-    renderizarPatio();
-    input.value = "";
-    input.focus();
+    if (!veiculoExisteNaFrota(prefixo)) {
+      mostrarErroLancamento(`Veículo ${prefixo} não existe na frota.`);
+      input?.select();
+      return;
+    }
+    const loc = localizarVeiculo(prefixo);
+    if (loc) {
+      mostrarErroLancamento(`Veículo ${prefixo} já está em ${obterNomeFila(loc.filaKey)}. Remova antes de lançar de novo.`);
+      input?.select();
+      return;
+    }
+    if (!filaKey) {
+      mostrarErroLancamento("Selecione a fila de destino.");
+      return;
+    }
+
+    lancamentoEmAndamento = true;
+    try {
+      patio.filas[filaKey].push(prefixo);
+      if (ehFilaOficina(filaKey)) {
+        patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
+      }
+      salvarUltimaFila(filaKey);
+      salvarEstado();
+      renderizarPatio();
+      mostrarOkLancamento(`✓ ${prefixo} lançado em ${obterNomeFila(filaKey)}.`);
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+    } finally {
+      lancamentoEmAndamento = false;
+    }
   }
 
   function togglePedido(prefixo) {
@@ -524,11 +588,22 @@
   }
 
   function configurarInputs() {
+    const inputFila = document.getElementById("inputFilaBus");
+
     document.getElementById("selectFila")?.addEventListener("change", (e) => {
       salvarUltimaFila(e.target.value);
+      limparFeedbackLancamento();
     });
-    document.getElementById("inputFilaBus")?.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") alocarNaFila();
+
+    inputFila?.addEventListener("input", () => {
+      normalizarPrefixoInput(inputFila);
+      limparFeedbackLancamento();
+    });
+
+    inputFila?.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      alocarNaFila();
     });
     document.getElementById("pedidosBus")?.addEventListener("keypress", (e) => {
       if (e.key === "Enter") marcarPedidoInput();
