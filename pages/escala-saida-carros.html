@@ -194,7 +194,38 @@ body {
     z-index: 1;
 }
 .escala-tabela tr.linha-subst td { background: #fff8ef; }
+.escala-tabela tr.linha-pedido td {
+    background: #e8eef8;
+    box-shadow: inset 4px 0 0 #0b3a8a;
+}
+.escala-tabela tr.linha-pedido td.celula-pedido {
+    color: #0b3a8a;
+    font-weight: 800;
+}
 .escala-tabela tr.linha-alerta td { background: #fff1f0; }
+.escala-tabela tr.linha-pedido.linha-alerta td { background: #fff1f0; }
+.escala-tabela tr.linha-pedido.linha-subst td { background: #fff8ef; }
+.escala-tabela tr.linha-tech-alternativa td { background: #f3e8ff; }
+.escala-tabela tr.linha-aceite-pendente td { background: #fff4e6; }
+.escala-tabela tr.linha-aceita td { background: #edfbf3; }
+.escala-tabela .col-alerta { white-space: normal; max-width: 320px; }
+.btn-aceitar {
+    margin-left: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    border: none;
+    border-radius: 5px;
+    background: var(--orange);
+    color: #fff;
+    cursor: pointer;
+}
+.aceite-ok {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--success);
+}
 .escala-vazio {
     padding: 28px;
     text-align: center;
@@ -243,9 +274,13 @@ footer {
     <div class="escala-info">
         Importa a planilha de saída de carros (início até <strong>07:00</strong>), cruza com o
         <strong>pátio atual</strong> e sugere carro de saída, substituição e OBS com a posição no pátio.
-        O <strong>carro escalado</strong> é sempre priorizado; substituto só quando não puder sair ou estiver ausente.
+        O <strong>carro escalado</strong> é sempre priorizado; substituto da <strong>mesma tecnologia</strong> em seguida.
+        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong>.
+        Carros <strong>SUPER BUS</strong> só podem rodar nas linhas <strong>800, 801, 802, 803, 806 e 913</strong>
+        e devem ser <strong>recolhidos até 15:00</strong> (não rodam o dia todo).
         Carros em <strong>bloq. oficina</strong> ou <strong>reforma</strong> não são utilizados.
-        As filas <strong>Oficina Fila 1 e 2</strong> são normais. Pedidos em F.CARRO: recolhimento até <strong>10:40</strong>.
+        As filas <strong>Oficina Fila 1 e 2</strong> são normais. Linhas com <strong>F.CARRO</strong> (pedidos) aparecem
+        <strong>grifadas em azul</strong>. Recolhimento até <strong>10:40</strong>.
     </div>
 
     <div class="toolbar">

@@ -246,32 +246,40 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
 
 export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}) {
   const techAlvo = normalizarTecnologia(tecnologia);
-  if (!techAlvo) return [];
+  const incluirOutras = opcoes.incluirOutrasTecnologias === true;
+  if (!techAlvo && !incluirOutras) return [];
 
   const usados = opcoes.usados || new Set();
   const excluir = new Set((opcoes.excluir || []).map(String));
+  const filtroCarro = opcoes.filtroCarro;
   const candidatos = [];
 
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
     lista.forEach((prefixo, posicao) => {
       const p = String(prefixo);
       if (excluir.has(p) || usados.has(p)) return;
-      if (normalizarTecnologia(obterTecnologia(p, frota)) !== techAlvo) return;
+
+      const techCarro = normalizarTecnologia(obterTecnologia(p, frota));
+      const mesmaTecnologia = Boolean(techAlvo && techCarro === techAlvo);
+      if (techAlvo && !mesmaTecnologia && !incluirOutras) return;
 
       const saida = avaliarSaidaVeiculo(p, patio);
       if (!saida.ok) return;
+      if (typeof filtroCarro === "function" && !filtroCarro(p, saida.loc)) return;
 
       const livre = FILAS_SAIDA_LIVRE.has(filaKey) || FILA_MAP[filaKey]?.saidaLivre;
       candidatos.push({
         prefixo: p,
         loc: saida.loc,
         posicao,
-        livre: livre ? 1 : 0
+        livre: livre ? 1 : 0,
+        mesmaTecnologia: mesmaTecnologia ? 1 : 0
       });
     });
   });
 
   candidatos.sort((a, b) => {
+    if (b.mesmaTecnologia !== a.mesmaTecnologia) return b.mesmaTecnologia - a.mesmaTecnologia;
     if (b.livre !== a.livre) return b.livre - a.livre;
     if (a.posicao !== b.posicao) return a.posicao - b.posicao;
     return Number(a.prefixo) - Number(b.prefixo);

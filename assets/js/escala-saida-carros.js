@@ -13,6 +13,8 @@ import {
 
 const HORA_LIMITE_IMPORTE = "07:00";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:40";
+const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
+const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
 
 const COLUNAS_PADRAO = [
   { chave: "horario_de_inicio", rotulo: "HORÁRIO DE INÍCIO" },
@@ -48,7 +50,8 @@ const state = {
   colunas: COLUNAS_PADRAO,
   bruto: [],
   processado: [],
-  carregando: false
+  carregando: false,
+  aceites: new Set()
 };
 
 const frota = window.FROTA_PATIO || [];
@@ -71,6 +74,51 @@ function pickCampo(row, chaves) {
 
 function normalizarPrefixo(valor) {
   return String(valor || "").replace(/\D/g, "").trim();
+}
+
+function normalizarLinhaServico(row) {
+  const bruto = pickCampo(row, ["linha", "linha_"]);
+  const match = bruto.match(/\d+/);
+  return match ? String(Number(match[0])) : "";
+}
+
+function ehSuperBus(tecnologia) {
+  const t = normalizarTecnologia(tecnologia);
+  return t.includes("super bus") || t.includes("superbus");
+}
+
+function ehSuperBusPorPrefixo(prefixo, frotaRef) {
+  return ehSuperBus(obterTecnologia(prefixo, frotaRef));
+}
+
+function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
+  const tech = obterTecnologia(prefixo, frotaRef);
+  if (!ehSuperBus(tech)) return { ok: true };
+  if (!linhaNorm) {
+    return { ok: false, motivo: "SUPER BUS exige linha definida (800–806, 913)" };
+  }
+  if (!LINHAS_SUPER_BUS.has(linhaNorm)) {
+    return {
+      ok: false,
+      motivo: `SUPER BUS só nas linhas 800, 801, 802, 803, 806 e 913 (linha ${linhaNorm})`
+    };
+  }
+  return { ok: true };
+}
+
+function chaveServico(row, carroEscalado) {
+  return [
+    pickCampo(row, ["work_id", "work-id"]),
+    pickCampo(row, ["horario_de_inicio", "horario_inicio"]),
+    carroEscalado
+  ].join("|");
+}
+
+function escHtml(valor) {
+  return String(valor ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;");
 }
 
 export function horaParaMinutos(valor) {
@@ -168,22 +216,13 @@ function montarEscaladosReservados(linhas) {
   return reservados;
 }
 
-function situacaoCarroEscalado(prefixo, patio, tecnologia) {
+function situacaoCarroEscalado(prefixo, patio) {
   if (!prefixo) return { tipo: "vazio" };
 
   const saida = avaliarSaidaVeiculo(prefixo, patio);
   const loc = localizarVeiculo(prefixo, patio);
 
   if (saida.ok) {
-    const techCarro = obterTecnologia(prefixo, frota);
-    if (tecnologia && techCarro && normalizarTecnologia(techCarro) !== normalizarTecnologia(tecnologia)) {
-      return {
-        tipo: "tech",
-        prefixo,
-        motivo: `Tecnologia divergente (${techCarro})`,
-        loc: saida.loc || loc
-      };
-    }
     return { tipo: "ok", prefixo, loc: saida.loc };
   }
 
@@ -198,23 +237,92 @@ function situacaoCarroEscalado(prefixo, patio, tecnologia) {
   return { tipo: "ausente", prefixo, motivo: saida.motivo || "Fora do pátio" };
 }
 
-function processarLinha(row, patio, ctx) {
+function aplicarAlertasSuperBus(prefixos, horarioInicio, alertas, flags) {
+  const vistos = new Set();
+  prefixos.forEach((prefixo) => {
+    const alvo = String(prefixo || "").trim();
+    if (!alvo || vistos.has(alvo) || !ehSuperBusPorPrefixo(alvo, frota)) return;
+    vistos.add(alvo);
+    flags.temSuperBus = true;
+    alertas.push(`SUPER BUS ${alvo}: recolher até ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS}`);
+    if (horarioInicio && !dentroDoLimite(horarioInicio, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS)) {
+      alertas.push(
+        `SUPER BUS ${alvo}: serviço/recolhimento após ${HORA_LIMITE_RECOLHIMENTO_SUPER_BUS}`
+      );
+    }
+  });
+}
+
+function aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm) {
+  if (!carroSaida) return;
+
+  const vSuper = validarSuperBusLinha(carroSaida, linhaNorm, frota);
+  if (!vSuper.ok) {
+    alertas.push(vSuper.motivo);
+    flags.superBusAlerta = true;
+    flags.aceitePendente = true;
+  }
+}
+
+function buscarSubstituto(row, patio, ctx, tecnologia, carroEscalado, linhaNorm) {
   const { usados, escaladosReservados } = ctx;
+  const excluirSubst = new Set([
+    ...escaladosReservados,
+    carroEscalado,
+    normalizarPrefixo(pickCampo(row, ["f_carro", "f_carro_", "fcarro"]))
+  ].filter(Boolean));
+
+  const opcoesBase = {
+    usados,
+    excluir: [...excluirSubst],
+    filtroCarro: (prefixo) => validarSuperBusLinha(prefixo, linhaNorm, frota).ok
+  };
+
+  let candidatos = listarCandidatosSubstituto(tecnologia, patio, frota, opcoesBase);
+  if (candidatos.length) {
+    return { candidato: candidatos[0], mudancaTecnologia: false };
+  }
+
+  candidatos = listarCandidatosSubstituto(tecnologia, patio, frota, {
+    ...opcoesBase,
+    incluirOutrasTecnologias: true
+  }).filter((c) => !c.mesmaTecnologia);
+
+  if (candidatos.length) {
+    return { candidato: candidatos[0], mudancaTecnologia: true };
+  }
+
+  return null;
+}
+
+function processarLinha(row, patio, ctx) {
+  const { usados } = ctx;
   const carroEscalado = extrairCarroEscalado(row);
   const fCarro = normalizarPrefixo(pickCampo(row, ["f_carro", "f_carro_", "fcarro"]));
   const horarioInicio = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado"]);
+  const linhaNorm = normalizarLinhaServico(row);
   const tecnologia = obterTecnologia(carroEscalado, frota);
+  const chave = chaveServico(row, carroEscalado);
 
   const alertas = [];
+  const flags = {
+    mudancaTecnologia: false,
+    superBusAlerta: false,
+    aceitePendente: false,
+    temSuperBus: false
+  };
   let carroSaida = "";
   let subst = "";
   let obsEscala = pickCampo(row, ["observacoes", "obs", "observacao"]);
+  let tecnologiaExibicao = tecnologia;
 
   if (fCarro && ehPedido(fCarro, patio) && !dentroDoLimite(horarioInicio, HORA_LIMITE_RECOLHIMENTO_PEDIDO)) {
     alertas.push(`Pedido ${fCarro}: recolhimento após ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`);
   }
 
-  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio, tecnologia);
+  const temPedido = Boolean(fCarro);
+
+  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio);
 
   if (carroEscalado && !usados.has(carroEscalado)) {
     if (sitEscalado.tipo === "ok") {
@@ -230,22 +338,20 @@ function processarLinha(row, patio, ctx) {
   }
 
   if (!carroSaida) {
-    const excluirSubst = new Set([
-      ...escaladosReservados,
-      carroEscalado,
-      fCarro
-    ].filter(Boolean));
+    const resultado = buscarSubstituto(row, patio, ctx, tecnologia, carroEscalado, linhaNorm);
 
-    const candidatos = listarCandidatosSubstituto(tecnologia, patio, frota, {
-      usados,
-      excluir: [...excluirSubst]
-    });
-
-    if (candidatos.length) {
-      const sub = candidatos[0];
+    if (resultado) {
+      const sub = resultado.candidato;
       carroSaida = sub.prefixo;
       subst = carroEscalado;
       obsEscala = formatarPosicaoPatio(sub.loc);
+      if (resultado.mudancaTecnologia) {
+        const techSaida = obterTecnologia(carroSaida, frota);
+        flags.mudancaTecnologia = true;
+        flags.aceitePendente = true;
+        tecnologiaExibicao = tecnologia && techSaida ? `${tecnologia} → ${techSaida}` : (techSaida || tecnologia);
+        alertas.push(`Tecnologia alternativa — aceitar substituto ${carroSaida}`);
+      }
       if (sitEscalado.tipo !== "vazio" && sitEscalado.motivo) {
         alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
       }
@@ -255,12 +361,17 @@ function processarLinha(row, patio, ctx) {
       if (sitEscalado.motivo) {
         alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
       } else {
-        alertas.push("Sem substituto disponível com a mesma tecnologia.");
+        alertas.push("Sem substituto disponível (mesma tecnologia ou alternativa).");
       }
     }
   }
 
-  if (carroSaida) usados.add(carroSaida);
+  if (carroSaida) {
+    aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm);
+    usados.add(carroSaida);
+  }
+
+  aplicarAlertasSuperBus([carroSaida, fCarro], horarioInicio, alertas, flags);
 
   return {
     ...row,
@@ -268,9 +379,15 @@ function processarLinha(row, patio, ctx) {
     f_carro: fCarro || row.f_carro || "",
     carro_saida: carroSaida,
     subst,
-    tecnologia,
+    tecnologia: tecnologiaExibicao,
     obs_escala: obsEscala,
-    _alerta: alertas.join(" | ")
+    _alerta: alertas.join(" | "),
+    _chave_servico: chave,
+    _mudanca_tecnologia: flags.mudancaTecnologia,
+    _super_bus_alerta: flags.superBusAlerta,
+    _aceite_pendente: flags.aceitePendente,
+    _tem_pedido: temPedido,
+    _tem_super_bus: flags.temSuperBus
   };
 }
 
@@ -299,16 +416,58 @@ function ordenarPorInicio(linhas) {
   });
 }
 
+function classesLinha(row) {
+  const aceito = state.aceites.has(row._chave_servico);
+  const classes = [];
+
+  if (row._tem_pedido) classes.push("linha-pedido");
+
+  if (row._aceite_pendente && !aceito) {
+    classes.push("linha-aceite-pendente");
+  } else if (row._aceite_pendente && aceito) {
+    classes.push("linha-aceita");
+  } else if (row._mudanca_tecnologia) {
+    classes.push("linha-tech-alternativa");
+  } else if (row.subst) {
+    classes.push("linha-subst");
+  } else if (row._alerta) {
+    classes.push("linha-alerta");
+  }
+
+  return classes.join(" ");
+}
+
+function renderCelulaAlerta(row) {
+  const alerta = row._alerta || "";
+  const chave = row._chave_servico;
+  const pendente = row._aceite_pendente && !state.aceites.has(chave);
+  let html = alerta ? escHtml(alerta) : "—";
+
+  if (pendente) {
+    html += ` <button type="button" class="btn-aceitar" data-chave="${escHtml(chave)}">Aceitar</button>`;
+  } else if (row._aceite_pendente && state.aceites.has(chave)) {
+    html += ` <span class="aceite-ok">Aceito</span>`;
+  }
+
+  return html;
+}
+
 function atualizarResumo() {
   const el = document.getElementById("escalaResumo");
   if (!el) return;
   const total = state.processado.length;
   const comSubst = state.processado.filter((r) => r.subst).length;
+  const pedidos = state.processado.filter((r) => r._tem_pedido).length;
   const alertas = state.processado.filter((r) => r._alerta).length;
+  const aceitesPendentes = state.processado.filter(
+    (r) => r._aceite_pendente && !state.aceites.has(r._chave_servico)
+  ).length;
   el.innerHTML = `
     <span><b>${total}</b> serviços até ${HORA_LIMITE_IMPORTE}</span>
+    <span><b>${pedidos}</b> pedidos</span>
     <span><b>${comSubst}</b> com substituição</span>
     <span><b>${alertas}</b> com alerta</span>
+    <span><b>${aceitesPendentes}</b> aguardando aceite</span>
   `;
 }
 
@@ -329,10 +488,14 @@ function renderTabela() {
   head.innerHTML = `<tr>${state.colunas.map((c) => `<th>${c.rotulo}</th>`).join("")}</tr>`;
 
   body.innerHTML = state.processado.map((row) => {
-    const cls = row._alerta ? "linha-alerta" : (row.subst ? "linha-subst" : "");
+    const cls = classesLinha(row);
     const cells = state.colunas.map((col) => {
+      if (col.chave === "_alerta") {
+        return `<td class="col-alerta">${renderCelulaAlerta(row)}</td>`;
+      }
       const valor = row[col.chave] ?? "";
-      return `<td title="${String(valor).replace(/"/g, "&quot;")}">${valor || "—"}</td>`;
+      const extraCls = row._tem_pedido && col.chave === "f_carro" && valor ? " celula-pedido" : "";
+      return `<td class="${extraCls.trim()}" title="${escHtml(valor)}">${valor || "—"}</td>`;
     }).join("");
     return `<tr class="${cls}">${cells}</tr>`;
   }).join("");
@@ -363,6 +526,7 @@ async function carregarPlanilha() {
     const filtradas = ordenarPorInicio(filtrarAteHorario(linhas));
     state.bruto = filtradas;
     state.colunas = montarColunas(json.colunas, filtradas[0]);
+    state.aceites = new Set();
     state.processado = processarEscala(filtradas);
 
     atualizarResumo();
@@ -425,6 +589,14 @@ function iniciar() {
 
   document.getElementById("btnReprocessar")?.addEventListener("click", reprocessarPatio);
   document.getElementById("btnExportar")?.addEventListener("click", exportarCsv);
+
+  document.getElementById("escalaTabelaBody")?.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".btn-aceitar");
+    if (!btn?.dataset.chave) return;
+    state.aceites.add(btn.dataset.chave);
+    atualizarResumo();
+    renderTabela();
+  });
 
   atualizarResumo();
   renderTabela();
