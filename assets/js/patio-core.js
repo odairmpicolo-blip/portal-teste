@@ -408,6 +408,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
       if (typeof filtroCarro === "function" && !filtroCarro(p, saida.loc)) return;
 
       const ordemFila = obterOrdemFilaSaida(filaKey);
+      if (opcoes.ordemFilaAlvo != null && ordemFila !== opcoes.ordemFilaAlvo) return;
       if (ordemMax != null && ordemFila > ordemMax) return;
 
       candidatos.push({
