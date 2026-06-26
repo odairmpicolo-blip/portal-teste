@@ -151,13 +151,6 @@ body {
     cursor: not-allowed;
     transform: none;
 }
-.escala-info {
-    margin-bottom: 14px;
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.55;
-}
-.escala-info strong { color: var(--blue); }
 .status-bar {
     display: flex;
     align-items: center;
@@ -385,25 +378,6 @@ body {
             <button type="button" class="btn-accent" id="btnExportar">Exportar CSV</button>
         </div>
     </div>
-
-    <section class="filters-panel escala-info" aria-label="Regras da escalação">
-        <div class="filters-head">
-            <span class="section-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
-            </span>
-            Como funciona
-        </div>
-        Importa a planilha de saída de carros (início a partir de <strong>04:10</strong>), cruza com o
-        <strong>pátio atual</strong> e sugere carro de saída, substituição e OBS com a posição no pátio.
-        O <strong>carro escalado</strong> é sempre priorizado; substituto da <strong>mesma tecnologia</strong> em seguida.
-        Se não houver, sugere outra tecnologia (linha destacada) com botão <strong>Aceitar</strong> na coluna <strong>ALERTA</strong>.
-        Colunas extras após a planilha: <strong>TECNOLOGIA</strong>, <strong>OBS</strong> (pátio/saída) e <strong>ALERTA</strong>.
-        Carros <strong>SUPER BUS</strong> só podem rodar nas linhas <strong>800, 801, 802, 803, 806 e 913</strong>
-        e devem ser <strong>recolhidos até 15:00</strong>.
-        Carros em <strong>bloq. oficina</strong> ou <strong>reforma</strong> não são utilizados.
-        <strong>Pedidos</strong> (carro na lista do pátio) aparecem <strong>grifados em azul</strong>.
-        O horário de <strong>recolhimento</strong> é a coluna <strong>F. CARRO</strong> (formato <strong>HH:MM</strong>, fim do carro): pedidos até <strong>10:40</strong>, SUPER BUS até <strong>15:00</strong>.
-    </section>
 
     <div class="status-bar">
         <div class="status-pill escala-status" id="escalaStatus" aria-live="polite">Escolha a data e clique em Importar e processar.</div>
