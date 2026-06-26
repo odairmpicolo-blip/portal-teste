@@ -317,6 +317,39 @@
     salvarUltimaFila(select.value);
   }
 
+  function obterAlocadosSet() {
+    const set = new Set();
+    Object.values(patio.filas).forEach((arr) => {
+      arr.forEach((p) => set.add(String(p)));
+    });
+    return set;
+  }
+
+  function listarCarrosNaoUtilizados() {
+    const alocados = obterAlocadosSet();
+    return frotaDados
+      .filter((item) => !alocados.has(String(item.veiculo)))
+      .sort((a, b) => Number(a.veiculo) - Number(b.veiculo));
+  }
+
+  function renderizarListaNaoUtilizados() {
+    const lista = document.getElementById("listaNaoUtilizados");
+    const qtd = document.getElementById("naoUtilizadosQtd");
+    if (!lista) return;
+
+    const carros = listarCarrosNaoUtilizados();
+    if (qtd) qtd.textContent = String(carros.length);
+
+    if (!carros.length) {
+      lista.innerHTML = '<span class="patio-nao-util-vazio">Todos os veículos estão alocados no pátio.</span>';
+      return;
+    }
+
+    lista.innerHTML = carros
+      .map((item) => `<span class="patio-nao-util-chip" title="${item.tecnologia}">${item.veiculo}</span>`)
+      .join("");
+  }
+
   function atualizarResumo() {
     const el = document.getElementById("patioResumo");
     if (!el) return;
@@ -431,6 +464,7 @@
     popularSelectFila();
     popularDatalist();
     atualizarResumo();
+    renderizarListaNaoUtilizados();
   }
 
   function alocarNaFila() {
