@@ -15,7 +15,8 @@ import {
   ORDEM_MAXIMA_FILAS_SEQUENCIAIS
 } from "./patio-core.js";
 
-const HORA_LIMITE_INICIO = "07:00";
+const HORA_INICIO_MIN = "04:10";
+const HORA_INICIO_MAX = "07:00";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
@@ -171,11 +172,19 @@ function dentroDoLimite(horario, limite) {
   return mins <= lim;
 }
 
-function filtrarAteHorarioInicio(linhas) {
+function entreHorarios(horario, minimo, maximo) {
+  const mins = horaParaMinutos(horario);
+  const min = horaParaMinutos(minimo);
+  const max = horaParaMinutos(maximo);
+  if (mins == null || min == null || max == null) return true;
+  return mins >= min && mins <= max;
+}
+
+function filtrarHorarioInicio(linhas) {
   return linhas.filter((row) => {
     const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
     if (!hora) return true;
-    return dentroDoLimite(hora, HORA_LIMITE_INICIO);
+    return entreHorarios(hora, HORA_INICIO_MIN, HORA_INICIO_MAX);
   });
 }
 
@@ -651,7 +660,7 @@ function atualizarResumo() {
     .map(([nome, qtd]) => `<span><b>${qtd}</b> ${escHtml(nome)}</span>`)
     .join("");
   el.innerHTML = `
-    <span><b>${total}</b> serviços com início até ${HORA_LIMITE_INICIO}</span>
+    <span><b>${total}</b> serviços (${HORA_INICIO_MIN}–${HORA_INICIO_MAX})</span>
     ${turnoHtml}
     <span><b>${pedidos}</b> pedidos</span>
     <span><b>${comSubst}</b> com substituição</span>
@@ -722,7 +731,7 @@ async function carregarPlanilha() {
     const { json, origem, aviso } = await carregarEscalaSaidaPlanilha(data);
 
     const linhas = Array.isArray(json.dados) ? json.dados : [];
-    const filtradas = ordenarPorInicio(filtrarAteHorarioInicio(linhas));
+    const filtradas = ordenarPorInicio(filtrarHorarioInicio(linhas));
     state.bruto = filtradas;
     state.colunas = COLUNAS_PLANILHA;
     state.aceites = new Set();
@@ -733,7 +742,7 @@ async function carregarPlanilha() {
     const origemLabel = origem === "json" ? "cache JSON" : origem === "liberacao" ? "API liberação" : "API escalação";
     if (filtradas.length) {
       const extra = aviso ? ` — ${aviso}` : "";
-      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início até ${HORA_LIMITE_INICIO}.${extra}`, aviso ? "warn" : "ok");
+      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início entre ${HORA_INICIO_MIN} e ${HORA_INICIO_MAX}.${extra}`, aviso ? "warn" : "ok");
     } else if (aviso) {
       setStatus(aviso, "warn");
     } else if (planilhaPareceSemCabecalho(json.colunas)) {
