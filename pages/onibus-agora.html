@@ -123,6 +123,22 @@ body.oa-page{
 .shape-picker-via{font-size:12px;font-weight:800;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shape-picker-all{width:100%;margin-top:8px;font-size:11px}
 .map-tools .btn{min-height:38px;padding:0 12px;font-size:12px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px)}
+.map-filtro-pont{
+  position:absolute;left:12px;top:12px;z-index:500;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  max-width:min(420px,calc(100% - 24px));padding:8px 10px;border-radius:14px;
+  background:rgba(255,255,255,.97);border:1px solid var(--border);box-shadow:0 8px 24px rgba(15,23,42,.14);backdrop-filter:blur(8px);
+}
+.map-filtro-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.pont-chip{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:#fff;
+  border-radius:999px;padding:6px 11px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;color:var(--blue);
+  transition:border-color .15s,background .15s,opacity .15s;
+}
+.pont-chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pont-cor,var(--teal));flex:0 0 auto;border:1px solid rgba(15,23,42,.12)}
+.pont-chip[data-pont="atrasado"]{color:#854d0e}
+.pont-chip:hover{border-color:var(--pont-cor,var(--teal))}
+.pont-chip.active{border-color:var(--pont-cor,var(--teal));background:color-mix(in srgb,var(--pont-cor,var(--teal)) 14%,#fff);box-shadow:0 0 0 2px color-mix(in srgb,var(--pont-cor,var(--teal)) 20%,transparent)}
+.pont-chip:not(.active){opacity:.55}
 
 #panelViagem{background:var(--surface)}
 .viagem-wrap{position:relative;z-index:1;height:100%;min-height:520px;display:flex;flex-direction:column}
@@ -410,6 +426,12 @@ body.oa-page{
             <div class="panel-wrap">
                 <div class="panel" id="panelMapa">
                     <div id="mapa"></div>
+                    <div class="map-filtro-pont" id="mapFiltroPont" aria-label="Filtro de pontualidade">
+                        <span class="map-filtro-label">Pontualidade</span>
+                        <button type="button" class="pont-chip active" data-pont="adiantado" style="--pont-cor:#D30000">Adiantado</button>
+                        <button type="button" class="pont-chip active" data-pont="no_horario" style="--pont-cor:#8FD400">No horário</button>
+                        <button type="button" class="pont-chip active" data-pont="atrasado" style="--pont-cor:#FFFF00">Atrasado</button>
+                    </div>
                     <div class="shape-picker" id="shapePicker" hidden>
                         <div class="shape-picker-head">
                             <strong id="shapePickerTitle">Trajeto da linha</strong>
@@ -490,6 +512,7 @@ const state = {
     routes: [],
     routeFiltro: null,
     veiculoFiltro: "",
+    filtroPontualidade: { adiantado: true, no_horario: true, atrasado: true, sem_dado: true },
     buscaLinha: "",
     tab: "mapa",
     vehicles: new Map(),
@@ -715,10 +738,29 @@ function renderListaLinhas(){
     $("statLinhas").textContent = state.routes.length;
 }
 
+function tipoPontualidadeVeiculo(v){
+    const st = statusPontualidade(v.delay);
+    if (!st) return "sem_dado";
+    return st.tipo;
+}
+
+function veiculoPassaFiltroPontualidade(v){
+    const tipo = tipoPontualidadeVeiculo(v);
+    return !!state.filtroPontualidade[tipo];
+}
+
+function syncFiltroPontualidadeUI(){
+    document.querySelectorAll(".pont-chip[data-pont]").forEach(btn => {
+        const on = !!state.filtroPontualidade[btn.dataset.pont];
+        btn.classList.toggle("active", on);
+    });
+}
+
 function veiculoPassaFiltro(v){
     if (state.routeFiltro && v.routeId !== state.routeFiltro.routeId) return false;
     const q = state.veiculoFiltro.trim();
     if (q && !String(v.vehicleId || "").includes(q)) return false;
+    if (!veiculoPassaFiltroPontualidade(v)) return false;
     return true;
 }
 
@@ -1144,9 +1186,11 @@ async function selecionarLinha(routeId){
 function limparFiltro(){
     state.routeFiltro = null;
     state.veiculoFiltro = "";
+    state.filtroPontualidade = { adiantado: true, no_horario: true, atrasado: true, sem_dado: true };
     state.viagemOpcoes = [];
     state.viagemTripAtivo = null;
     $("buscaVeiculo").value = "";
+    syncFiltroPontualidadeUI();
     renderListaLinhas();
     limparShapes();
     limparShapesViagem();
@@ -1568,6 +1612,15 @@ async function boot(){
 function bind(){
     $("buscaLinha").addEventListener("input", e => { state.buscaLinha = e.target.value; renderListaLinhas(); });
     $("buscaVeiculo").addEventListener("input", e => { state.veiculoFiltro = e.target.value.trim(); atualizarMarcadores(); });
+    $("mapFiltroPont")?.querySelectorAll(".pont-chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const key = btn.dataset.pont;
+            if (!key) return;
+            state.filtroPontualidade[key] = !state.filtroPontualidade[key];
+            syncFiltroPontualidadeUI();
+            atualizarMarcadores();
+        });
+    });
     $("btnLimparFiltro").addEventListener("click", limparFiltro);
     $("btnAtualizar").addEventListener("click", () => { state.vehicles.clear(); pollLote(); });
     $("btnMapaClaro").addEventListener("click", () => trocarTile("light"));
