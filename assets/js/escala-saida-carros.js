@@ -1,12 +1,9 @@
 import { carregarEscalaSaidaPlanilha, planilhaPareceSemCabecalho } from "./escala-saida-dados-leitura.js";
 import {
-  avaliarSaidaVeiculo,
   carregarPatio,
   clonarPatio,
   ehPedido,
-  ehFilaNaoUtilizavelEscala,
   listarCandidatosSubstituto,
-  localizarVeiculo,
   mesmaCorVeiculo,
   obterNomeFila,
   obterPerfilTecnologia,
@@ -238,27 +235,6 @@ function montarEscaladosReservados(linhas) {
   return reservados;
 }
 
-function situacaoCarroEscalado(prefixo, patio) {
-  if (!prefixo) return { tipo: "vazio" };
-
-  const saida = avaliarSaidaVeiculo(prefixo, patio);
-  const loc = localizarVeiculo(prefixo, patio);
-
-  if (saida.ok) {
-    return { tipo: "ok", prefixo, loc: saida.loc };
-  }
-
-  if (loc && ehFilaNaoUtilizavelEscala(loc.filaKey)) {
-    return { tipo: "nao_utilizavel", prefixo, motivo: saida.motivo, loc };
-  }
-
-  if (loc) {
-    return { tipo: "aguardando", prefixo, motivo: saida.motivo, loc };
-  }
-
-  return { tipo: "ausente", prefixo, motivo: saida.motivo || "Fora do pátio" };
-}
-
 function extrairFimCarro(row) {
   return formatarHoraHHMM(pickCampo(row, ["f_carro", "f_carro_"]));
 }
@@ -304,12 +280,12 @@ function aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm) {
   }
 }
 
-function opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm, extra = {}) {
+function opcoesCarroLivre(ctx, carroEscalado, linhaNorm) {
   const { usados, escaladosReservados } = ctx;
   return {
     usados,
     excluir: [...escaladosReservados, carroEscalado].filter(Boolean),
-    excluirPedidos: extra.excluirPedidos === true,
+    excluirPedidos: true,
     filtroCarro: (prefixo) => validarSuperBusLinha(prefixo, linhaNorm, frota).ok
   };
 }
@@ -318,17 +294,17 @@ function montarAlertaTroca(tipo, carroEscalado, substituto, frotaRef) {
   const perfilEsc = obterPerfilTecnologia(carroEscalado, frotaRef);
   const perfilSub = obterPerfilTecnologia(substituto, frotaRef);
   if (tipo === "cor") {
-    return `Sugestão: troca de cor — escalado ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
+    return `Sugestão: troca de cor — horário ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
   }
   if (tipo === "tecnologia") {
-    return `Sugestão: troca de tecnologia — escalado ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
+    return `Sugestão: troca de tecnologia — horário ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
   }
-  return `Sugestão: troca de cor/tecnologia — escalado ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
+  return `Sugestão: troca de cor/tecnologia — horário ${perfilEsc.rotulo || carroEscalado}, saída ${substituto} (${perfilSub.rotulo})`;
 }
 
-function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax, extra = {}) {
+function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemMax) {
   const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
-  const base = { ...opcoesSubstitutoBase(ctx, carroEscalado, linhaNorm, extra), ordemMax };
+  const base = { ...opcoesCarroLivre(ctx, carroEscalado, linhaNorm), ordemMax };
 
   const candidatosExatos = listarCandidatosSubstituto(perfilEsc.completo, patio, frota, base);
   if (candidatosExatos.length) {
@@ -404,17 +380,12 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
   return null;
 }
 
-function buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm, opcoes = {}) {
-  const { excluirPedidos = false, priorizarFilaLivre = false } = opcoes;
-  const extra = { excluirPedidos };
+function buscarCarroLivreHorario(row, patio, ctx, carroEscalado, linhaNorm) {
+  const resultadoLivre = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, 1);
+  if (resultadoLivre) return resultadoLivre;
 
-  if (priorizarFilaLivre) {
-    const resultadoLivre = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, 1, extra);
-    if (resultadoLivre) return resultadoLivre;
-  }
-
-  const resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null, extra);
-  if (resultado && priorizarFilaLivre && resultado.candidato.ordemFila > 1) {
+  const resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null);
+  if (resultado && resultado.candidato.ordemFila > 1) {
     resultado.foraOrdemFila = true;
   }
   return resultado;
@@ -447,33 +418,12 @@ function processarLinha(row, patio, ctx) {
 
   aplicarAlertasRecolhimentoPedido(carroEscalado, fCarroHora, patio, alertas);
 
-  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio);
-
-  const exigeSubstituto = Boolean(carroEscalado && (temPedido || sitEscalado.tipo !== "ok"));
-
-  if (carroEscalado && !usados.has(carroEscalado)) {
-    if (sitEscalado.tipo === "ok" && !temPedido) {
-      carroSaida = carroEscalado;
-      obsEscala = formatarLocalEscala(sitEscalado.loc);
-    } else if (temPedido) {
-      alertas.push(`Pedido ${carroEscalado}: buscar carro livre para saída.`);
-      if (sitEscalado.tipo !== "ok" && sitEscalado.motivo) {
-        alertas.push(`Pedido ${carroEscalado}: ${sitEscalado.motivo}`);
-      }
-    } else if (sitEscalado.tipo === "aguardando") {
-      alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
-    } else if (sitEscalado.motivo) {
-      alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
-    }
-  } else if (carroEscalado && usados.has(carroEscalado)) {
-    alertas.push(`Escalado ${carroEscalado} já alocado em outro serviço.`);
+  if (temPedido) {
+    alertas.push(`Pedido ${carroEscalado}: buscar carro livre para saída.`);
   }
 
-  if (!carroSaida) {
-    const resultado = buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm, {
-      excluirPedidos: temPedido,
-      priorizarFilaLivre: exigeSubstituto
-    });
+  if (carroEscalado) {
+    const resultado = buscarCarroLivreHorario(row, patio, ctx, carroEscalado, linhaNorm);
 
     if (resultado) {
       const sub = resultado.candidato;
@@ -501,33 +451,20 @@ function processarLinha(row, patio, ctx) {
         tecnologiaExibicao = `${perfilEsc.rotulo} → ${perfilSaida.rotulo}`;
       }
 
-      if (exigeSubstituto && carroSaida !== carroEscalado) {
-        const rotulo = temPedido ? "Pedido" : "Escalado";
-        alertas.push(`${rotulo} ${carroEscalado}: substituto ${carroSaida} (carro livre)`);
-      }
-
-      if (sitEscalado.tipo !== "vazio" && sitEscalado.motivo && sitEscalado.tipo !== "ok" && !exigeSubstituto) {
-        alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
-      }
-
       if (resultado.foraOrdemFila) {
         alertas.push(
           `Sugestão: carro em fila posterior (${formatarLocalEscala(sub.loc)}) — preferir fila 1 ou livre quando disponível.`
         );
       }
-    } else if (carroEscalado) {
-      const loc = localizarVeiculo(carroEscalado, patio);
-      obsEscala = loc ? formatarLocalEscala(loc) : "Fora do pátio";
-      if (exigeSubstituto) {
-        alertas.push(temPedido
-          ? "Sem carro livre disponível para substituir pedido."
-          : "Sem carro livre disponível para substituição.");
-      } else if (sitEscalado.motivo) {
-        alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
-      } else {
-        alertas.push("Sem substituto disponível (mesma tecnologia ou alternativa).");
-      }
+    } else {
+      alertas.push(
+        tecnologia
+          ? `Sem carro livre para tecnologia ${tecnologia} (horário escalado ${carroEscalado}).`
+          : `Sem carro livre disponível (horário escalado ${carroEscalado}).`
+      );
     }
+  } else {
+    alertas.push("Serviço sem carro escalado — não é possível sugerir saída.");
   }
 
   if (carroSaida) {
