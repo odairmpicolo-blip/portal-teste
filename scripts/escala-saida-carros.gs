@@ -10,9 +10,16 @@
  * Implantar como App da Web: executar como Eu, acesso Qualquer pessoa.
  */
 
-const ESCALA_VERSAO = "2026-06-25-escala-saida";
+const ESCALA_VERSAO = "2026-06-25-escala-saida-v2";
 const ESCALA_SPREADSHEET_ID = "1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0";
 const ESCALA_GID = 1482156234;
+
+/** Cabeçalhos esperados na aba (linha de título "Saída de carros" fica acima). */
+const CHAVES_CABECALHO_SAIDA_ = [
+  "data", "maquina", "linha", "work_id", "carro", "carro_escalado",
+  "f_carro", "motorista", "horario_de_inicio", "horario_saida_da_garagem",
+  "local_inicio", "preparo", "observacoes", "subst", "saida_real", "inicio_real"
+];
 
 function doGet(e) {
   try {
@@ -35,6 +42,11 @@ function montarRespostaEscalaGet_(params) {
     return { ok: false, erro: "Informe a data (data=YYYY-MM-DD)." };
   }
 
+  var headerRow = 1;
+  try {
+    headerRow = detectarLinhaCabecalhoSaida_(abrirAbaEscala_());
+  } catch (errHeader) {}
+
   return {
     ok: true,
     dados: lerSaidaCarros_(dataFiltro, maquinaFiltro),
@@ -42,7 +54,9 @@ function montarRespostaEscalaGet_(params) {
     meta: {
       versao: ESCALA_VERSAO,
       recurso: recurso,
-      saida_ref: resolverSaidaCarrosPorData_(dataFiltro)
+      saida_ref: Object.assign({}, resolverSaidaCarrosPorData_(dataFiltro), {
+        linha_cabecalho: headerRow
+      })
     }
   };
 }
@@ -65,6 +79,41 @@ function abrirAbaEscala_() {
   throw new Error("Aba gid " + ESCALA_GID + " não encontrada.");
 }
 
+function pontuarLinhaCabecalhoSaida_(cabecalho) {
+  let score = 0;
+  const vistos = {};
+  cabecalho.forEach(function (chave) {
+    if (!chave || vistos[chave]) return;
+    vistos[chave] = true;
+    if (CHAVES_CABECALHO_SAIDA_.indexOf(chave) >= 0) score += 3;
+    else if (/horario|carro|linha|maquina|motorista|work|local|preparo|obs/.test(chave)) score += 1;
+  });
+  return score;
+}
+
+/** A planilha costuma ter título na linha 1; cabeçalhos reais ficam abaixo. */
+function detectarLinhaCabecalhoSaida_(sheet) {
+  const lastCol = sheet.getLastColumn();
+  const maxScan = Math.min(12, Math.max(1, sheet.getLastRow()));
+  let melhorRow = 1;
+  let melhorScore = 0;
+  for (let r = 1; r <= maxScan; r++) {
+    const titulos = sheet.getRange(r, 1, 1, lastCol).getValues()[0];
+    const score = pontuarLinhaCabecalhoSaida_(titulos.map(normalizarChave_));
+    if (score > melhorScore) {
+      melhorScore = score;
+      melhorRow = r;
+    }
+  }
+  return melhorScore >= 2 ? melhorRow : 1;
+}
+
+function linhaCorrespondeDataSaida_(dataIso, dataFiltro) {
+  if (!dataFiltro) return true;
+  if (!dataIso) return true;
+  return dataIso === dataFiltro;
+}
+
 function lerSaidaCarros_(dataFiltro, maquinaFiltro) {
   if (!dataFiltro) return [];
   var sheet;
@@ -75,11 +124,14 @@ function lerSaidaCarros_(dataFiltro, maquinaFiltro) {
   }
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
-  if (lastRow < 2) return [];
+  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
+  const dataStartRow = headerRow + 1;
+  if (lastRow < dataStartRow || lastCol < 1) return [];
 
-  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
   const cabecalho = titulos.map(normalizarChave_);
-  const valores = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  const numRows = lastRow - dataStartRow + 1;
+  const valores = sheet.getRange(dataStartRow, 1, numRows, lastCol).getValues();
   const dados = [];
 
   for (let i = 0; i < valores.length; i++) {
@@ -88,15 +140,25 @@ function lerSaidaCarros_(dataFiltro, maquinaFiltro) {
       if (!chave) return;
       bruto[chave] = valorCelula_(valores[i][idx]);
     });
+    if (!linhaTemConteudoSaida_(bruto)) continue;
     const dataBr = pickCampo_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIso_(dataBr);
-    if (dataFiltro && dataIso !== dataFiltro) continue;
+    if (!linhaCorrespondeDataSaida_(dataIso, dataFiltro)) continue;
     const item = Object.assign({}, bruto, mapearSaidaCarros_(bruto, dataIso, dataBr));
     if (!filtrarMaquina_(item, maquinaFiltro)) continue;
     dados.push(item);
   }
 
   return dados;
+}
+
+function linhaTemConteudoSaida_(bruto) {
+  return Boolean(
+    pickCampo_(bruto, [
+      "work_id", "workid", "carro", "carro_escalado", "linha", "maquina",
+      "horario_de_inicio", "horario_saida_da_garagem", "motorista"
+    ])
+  );
 }
 
 function lerColunasSaidaCarros_() {
@@ -108,7 +170,8 @@ function lerColunasSaidaCarros_() {
   }
   const lastCol = sheet.getLastColumn();
   if (lastCol < 1) return [];
-  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
+  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
   const colunas = [];
   titulos.forEach(function (titulo) {
     const chave = normalizarChave_(titulo);

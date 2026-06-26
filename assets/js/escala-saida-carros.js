@@ -508,6 +508,14 @@ function setStatus(msg, tipo) {
   el.className = `escala-status${tipo ? ` escala-status--${tipo}` : ""}`;
 }
 
+function planilhaPareceSemCabecalho(colunas) {
+  const lista = colunas || [];
+  return lista.length <= 1 && lista.some((c) => {
+    const t = `${c.chave || ""} ${c.rotulo || ""}`.toLowerCase();
+    return t.includes("saida_de_carros") || t.includes("saída de carros") || t.includes("saida de carros");
+  });
+}
+
 async function carregarPlanilha() {
   if (state.carregando) return;
   state.carregando = true;
@@ -531,12 +539,16 @@ async function carregarPlanilha() {
 
     atualizarResumo();
     renderTabela();
-    setStatus(
-      filtradas.length
-        ? `${filtradas.length} linha(s) importada(s) — início até ${HORA_LIMITE_IMPORTE}.`
-        : "Nenhuma linha encontrada para esta data na planilha.",
-      filtradas.length ? "ok" : "warn"
-    );
+    if (filtradas.length) {
+      setStatus(`${filtradas.length} linha(s) importada(s) — início até ${HORA_LIMITE_IMPORTE}.`, "ok");
+    } else if (planilhaPareceSemCabecalho(json.colunas)) {
+      setStatus(
+        "Nenhuma linha importada. A planilha tem título na 1ª linha — reimplante o Apps Script escala-saida-carros.gs (versão v2).",
+        "warn"
+      );
+    } else {
+      setStatus("Nenhuma linha encontrada para esta data na planilha.", "warn");
+    }
   } catch (err) {
     setStatus(err.message || "Erro ao importar.", "erro");
   } finally {

@@ -27,6 +27,12 @@ const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
 const LIBERACAO_SAIDA_SPREADSHEET_ID = "1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0";
 const LIBERACAO_SAIDA_GID = 1482156234;
 
+const CHAVES_CABECALHO_SAIDA_ = [
+  "data", "maquina", "linha", "work_id", "carro", "carro_escalado",
+  "f_carro", "motorista", "horario_de_inicio", "horario_saida_da_garagem",
+  "local_inicio", "preparo", "observacoes", "subst", "saida_real", "inicio_real"
+];
+
 function versaoCacheLiberacao_() {
   return PropertiesService.getScriptProperties().getProperty("liberacao_cache_v") || "0";
 }
@@ -431,6 +437,49 @@ function abrirSaidaCarrosPorData_(dataIso) {
   return abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
 }
 
+function pontuarLinhaCabecalhoSaida_(cabecalho) {
+  let score = 0;
+  const vistos = {};
+  cabecalho.forEach(function (chave) {
+    if (!chave || vistos[chave]) return;
+    vistos[chave] = true;
+    if (CHAVES_CABECALHO_SAIDA_.indexOf(chave) >= 0) score += 3;
+    else if (/horario|carro|linha|maquina|motorista|work|local|preparo|obs/.test(chave)) score += 1;
+  });
+  return score;
+}
+
+function detectarLinhaCabecalhoSaida_(sheet) {
+  const lastCol = sheet.getLastColumn();
+  const maxScan = Math.min(12, Math.max(1, sheet.getLastRow()));
+  let melhorRow = 1;
+  let melhorScore = 0;
+  for (let r = 1; r <= maxScan; r++) {
+    const titulos = sheet.getRange(r, 1, 1, lastCol).getValues()[0];
+    const score = pontuarLinhaCabecalhoSaida_(titulos.map(normalizarChaveLiberacao_));
+    if (score > melhorScore) {
+      melhorScore = score;
+      melhorRow = r;
+    }
+  }
+  return melhorScore >= 2 ? melhorRow : 1;
+}
+
+function linhaCorrespondeDataSaida_(dataIso, dataFiltro) {
+  if (!dataFiltro) return true;
+  if (!dataIso) return true;
+  return dataIso === dataFiltro;
+}
+
+function linhaTemConteudoSaida_(bruto) {
+  return Boolean(
+    pickCampoLiberacao_(bruto, [
+      "work_id", "workid", "carro", "carro_escalado", "linha", "maquina",
+      "horario_de_inicio", "horario_saida_da_garagem", "motorista"
+    ])
+  );
+}
+
 function isoDataDiasAtrasLiberacao_(dias) {
   const d = new Date();
   d.setDate(d.getDate() - dias);
@@ -542,11 +591,14 @@ function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
   }
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
-  if (lastRow < 2) return [];
+  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
+  const dataStartRow = headerRow + 1;
+  if (lastRow < dataStartRow || lastCol < 1) return [];
 
-  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
   const cabecalho = titulos.map(normalizarChaveLiberacao_);
-  const valores = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  const numRows = lastRow - dataStartRow + 1;
+  const valores = sheet.getRange(dataStartRow, 1, numRows, lastCol).getValues();
   const dados = [];
 
   for (let i = 0; i < valores.length; i++) {
@@ -555,9 +607,10 @@ function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
       if (!chave) return;
       bruto[chave] = valorCelulaLiberacao_(valores[i][idx]);
     });
+    if (!linhaTemConteudoSaida_(bruto)) continue;
     const dataBr = pickCampoLiberacao_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIsoLiberacao_(dataBr);
-    if (dataFiltro && dataIso !== dataFiltro) continue;
+    if (!linhaCorrespondeDataSaida_(dataIso, dataFiltro)) continue;
     const item = Object.assign({}, bruto, mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr));
     if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
     dados.push(item);
@@ -575,7 +628,8 @@ function lerColunasSaidaCarros_() {
   }
   const lastCol = sheet.getLastColumn();
   if (lastCol < 1) return [];
-  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
+  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
   const colunas = [];
   titulos.forEach(function (titulo) {
     const chave = normalizarChaveLiberacao_(titulo);
