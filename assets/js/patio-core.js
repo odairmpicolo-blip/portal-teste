@@ -166,6 +166,27 @@ export function carregarPatio() {
   return migrarEstado(raw);
 }
 
+/** Cópia mutável do pátio para simular saídas durante a escalação. */
+export function clonarPatio(patio) {
+  return {
+    ...patio,
+    filas: Object.fromEntries(
+      Object.entries(patio.filas).map(([key, lista]) => [key, [...lista]])
+    ),
+    pedidos: [...(patio.pedidos || [])],
+    analisados: [...(patio.analisados || [])]
+  };
+}
+
+/** Remove veículo das filas após alocado para saída (simulação 1 a 1). */
+export function registrarSaidaVeiculo(prefixo, patio) {
+  const alvo = String(prefixo || "").trim();
+  if (!alvo) return;
+  Object.keys(patio.filas).forEach((key) => {
+    patio.filas[key] = patio.filas[key].filter((p) => String(p) !== alvo);
+  });
+}
+
 export function localizarVeiculo(prefixo, patio) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) return null;

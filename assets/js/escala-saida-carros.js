@@ -2,17 +2,17 @@ import { carregarEscalaSaidaPlanilha, planilhaPareceSemCabecalho } from "./escal
 import {
   avaliarSaidaVeiculo,
   carregarPatio,
+  clonarPatio,
   ehPedido,
   ehFilaNaoUtilizavelEscala,
   listarCandidatosSubstituto,
   localizarVeiculo,
   mesmaCorVeiculo,
-  obterOrdemFilaSaida,
   obterNomeFila,
   obterPerfilTecnologia,
   obterTecnologia,
   normalizarTecnologia,
-  ORDEM_MAXIMA_FILAS_SEQUENCIAIS
+  registrarSaidaVeiculo
 } from "./patio-core.js";
 
 const HORA_INICIO_MIN = "04:10";
@@ -238,28 +238,13 @@ function montarEscaladosReservados(linhas) {
   return reservados;
 }
 
-function calcularOrdemFilaMaxima(indice, total) {
-  const maxOrdem = ORDEM_MAXIMA_FILAS_SEQUENCIAIS;
-  if (total <= 0) return maxOrdem;
-  return Math.min(maxOrdem, Math.max(1, Math.ceil(((indice + 1) / total) * maxOrdem)));
-}
-
-function situacaoCarroEscalado(prefixo, patio, ordemFilaMax) {
+function situacaoCarroEscalado(prefixo, patio) {
   if (!prefixo) return { tipo: "vazio" };
 
   const saida = avaliarSaidaVeiculo(prefixo, patio);
   const loc = localizarVeiculo(prefixo, patio);
 
   if (saida.ok) {
-    const ordem = obterOrdemFilaSaida(saida.loc.filaKey);
-    if (ordemFilaMax != null && ordem > ordemFilaMax) {
-      return {
-        tipo: "aguardando",
-        prefixo,
-        motivo: `Horário inicial exige fila 1 ou livre — escalado em ${obterNomeFila(saida.loc.filaKey)}.`,
-        loc: saida.loc
-      };
-    }
     return { tipo: "ok", prefixo, loc: saida.loc };
   }
 
@@ -420,24 +405,18 @@ function buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, orde
 }
 
 function buscarSubstituto(row, patio, ctx, carroEscalado, linhaNorm, opcoes = {}) {
-  const { ordemFilaMax } = ctx;
   const { excluirPedidos = false, priorizarFilaLivre = false } = opcoes;
   const extra = { excluirPedidos };
 
   if (priorizarFilaLivre) {
-    let resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, 1, extra);
-    if (resultado) return resultado;
+    const resultadoLivre = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, 1, extra);
+    if (resultadoLivre) return resultadoLivre;
   }
 
-  let resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, ordemFilaMax, extra);
-
-  if (!resultado && ordemFilaMax != null) {
-    resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null, extra);
-    if (resultado) {
-      resultado.foraOrdemFila = true;
-    }
+  const resultado = buscarSubstitutoInterno(row, patio, ctx, carroEscalado, linhaNorm, null, extra);
+  if (resultado && priorizarFilaLivre && resultado.candidato.ordemFila > 1) {
+    resultado.foraOrdemFila = true;
   }
-
   return resultado;
 }
 
@@ -468,7 +447,7 @@ function processarLinha(row, patio, ctx) {
 
   aplicarAlertasRecolhimentoPedido(carroEscalado, fCarroHora, patio, alertas);
 
-  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio, ctx.ordemFilaMax);
+  const sitEscalado = situacaoCarroEscalado(carroEscalado, patio);
 
   const exigeSubstituto = Boolean(carroEscalado && (temPedido || sitEscalado.tipo !== "ok"));
 
@@ -533,7 +512,7 @@ function processarLinha(row, patio, ctx) {
 
       if (resultado.foraOrdemFila) {
         alertas.push(
-          `Sugestão: carro em fila posterior (${formatarLocalEscala(sub.loc)}) — horários iniciais preferem fila 1 ou livre.`
+          `Sugestão: carro em fila posterior (${formatarLocalEscala(sub.loc)}) — preferir fila 1 ou livre quando disponível.`
         );
       }
     } else if (carroEscalado) {
@@ -586,17 +565,21 @@ function processarLinha(row, patio, ctx) {
 
 function processarEscala(linhas) {
   const ordenadas = ordenarPorInicio(linhas);
-  const patio = carregarPatio();
-  const total = ordenadas.length;
+  const patio = clonarPatio(carregarPatio());
   const ctx = {
     usados: new Set(),
     escaladosReservados: montarEscaladosReservados(ordenadas),
-    total
+    total: ordenadas.length
   };
-  return ordenadas.map((row, indice) => {
-    const ordemFilaMax = calcularOrdemFilaMaxima(indice, total);
-    return processarLinha(row, patio, { ...ctx, indice, ordemFilaMax });
-  });
+  const resultados = [];
+  for (let indice = 0; indice < ordenadas.length; indice++) {
+    const row = processarLinha(ordenadas[indice], patio, { ...ctx, indice });
+    if (row.carro_saida) {
+      registrarSaidaVeiculo(row.carro_saida, patio);
+    }
+    resultados.push(row);
+  }
+  return resultados;
 }
 
 function ordenarPorInicio(linhas) {
