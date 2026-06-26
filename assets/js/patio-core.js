@@ -106,8 +106,29 @@ const FILAS_NAO_UTILIZAVEIS = new Set([
   "reforma"
 ]);
 
+/** Oficina não entra na escalação de saída. */
+const FILAS_EXCLUIDAS_ESCALA = new Set([
+  "oficina_f1",
+  "oficina_f2"
+]);
+
+export const ORDEM_MAXIMA_FILAS_SEQUENCIAIS = 4;
+
 export function ehFilaNaoUtilizavelEscala(filaKey) {
   return FILAS_NAO_UTILIZAVEIS.has(filaKey);
+}
+
+export function ehFilaExcluidaEscala(filaKey) {
+  return FILAS_EXCLUIDAS_ESCALA.has(filaKey);
+}
+
+/** Ordem da fila para prioridade de saída (1 = fila 1 / livre, 2 = fila 2…). */
+export function obterOrdemFilaSaida(filaKey) {
+  if (FILAS_EXCLUIDAS_ESCALA.has(filaKey) || FILAS_NAO_UTILIZAVEIS.has(filaKey)) return 99;
+  const cfg = FILA_MAP[filaKey];
+  if (!cfg) return 50;
+  if (FILAS_SAIDA_LIVRE.has(filaKey) || cfg.saidaLivre) return 1;
+  return cfg.ordem || 1;
 }
 
 function criarFilasVazias() {
@@ -189,6 +210,33 @@ export function obterTecnologia(prefixo, frota) {
   return item ? item.tecnologia : "";
 }
 
+const CORES_VEICULO = ["amarelo", "azul", "verde", "vermelho", "branco", "laranja", "roxo"];
+
+export function obterCor(prefixo, frota) {
+  const tech = normalizarTecnologia(obterTecnologia(prefixo, frota));
+  for (const cor of CORES_VEICULO) {
+    if (tech.startsWith(`${cor} `) || tech === cor) return cor;
+  }
+  return "";
+}
+
+export function obterPerfilTecnologia(prefixo, frota) {
+  const rotulo = obterTecnologia(prefixo, frota);
+  const completo = normalizarTecnologia(rotulo);
+  const cor = obterCor(prefixo, frota);
+  const resto = cor && completo.startsWith(`${cor} `)
+    ? completo.slice(cor.length + 1).trim()
+    : completo;
+  return { cor, resto, completo, rotulo };
+}
+
+export function mesmaCorVeiculo(prefixoA, prefixoB, frota) {
+  const a = obterCor(prefixoA, frota);
+  const b = obterCor(prefixoB, frota);
+  if (!a && !b) return true;
+  return Boolean(a && b && a === b);
+}
+
 export function ehPedido(prefixo, patio) {
   return patio.pedidos.includes(String(prefixo || "").trim());
 }
@@ -220,6 +268,10 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
 
   if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) {
     return { ok: false, motivo: "Carro bloqueado — não utilizável.", loc };
+  }
+
+  if (FILAS_EXCLUIDAS_ESCALA.has(loc.filaKey)) {
+    return { ok: false, motivo: "Carro na oficina — não utilizável na escalação.", loc };
   }
 
   if (loc.posicao !== 0) {
@@ -254,7 +306,11 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
   const filtroCarro = opcoes.filtroCarro;
   const candidatos = [];
 
+  const ordemMax = opcoes.ordemMax;
+
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
+    if (FILAS_EXCLUIDAS_ESCALA.has(filaKey)) return;
+
     lista.forEach((prefixo, posicao) => {
       const p = String(prefixo);
       if (excluir.has(p) || usados.has(p)) return;
@@ -265,14 +321,17 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
 
       const saida = avaliarSaidaVeiculo(p, patio);
       if (!saida.ok) return;
+      if (typeof opcoes.filtroPrefixo === "function" && !opcoes.filtroPrefixo(p, saida.loc)) return;
       if (typeof filtroCarro === "function" && !filtroCarro(p, saida.loc)) return;
 
-      const livre = FILAS_SAIDA_LIVRE.has(filaKey) || FILA_MAP[filaKey]?.saidaLivre;
+      const ordemFila = obterOrdemFilaSaida(filaKey);
+      if (ordemMax != null && ordemFila > ordemMax) return;
+
       candidatos.push({
         prefixo: p,
         loc: saida.loc,
         posicao,
-        livre: livre ? 1 : 0,
+        ordemFila,
         mesmaTecnologia: mesmaTecnologia ? 1 : 0
       });
     });
@@ -280,7 +339,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
 
   candidatos.sort((a, b) => {
     if (b.mesmaTecnologia !== a.mesmaTecnologia) return b.mesmaTecnologia - a.mesmaTecnologia;
-    if (b.livre !== a.livre) return b.livre - a.livre;
+    if (a.ordemFila !== b.ordemFila) return a.ordemFila - b.ordemFila;
     if (a.posicao !== b.posicao) return a.posicao - b.posicao;
     return Number(a.prefixo) - Number(b.prefixo);
   });
