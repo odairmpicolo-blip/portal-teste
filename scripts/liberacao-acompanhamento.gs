@@ -180,9 +180,11 @@ function montarRespostaLiberacaoGet_(params) {
   }
   if (recurso === "saida_carros") {
     const ref = resolverSaidaCarrosPorData_(dataFiltro);
+    const colunas = lerColunasSaidaCarros_();
     return {
       ok: true,
       dados: lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro),
+      colunas: colunas,
       meta: {
         versao: LIBERACAO_VERSAO,
         recurso: recurso,
@@ -554,7 +556,7 @@ function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
     const dataBr = pickCampoLiberacao_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIsoLiberacao_(dataBr);
     if (dataFiltro && dataIso !== dataFiltro) continue;
-    const item = mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr);
+    const item = Object.assign({}, bruto, mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr));
     if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
     dados.push(item);
   }
@@ -562,14 +564,40 @@ function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
   return dados;
 }
 
+function lerColunasSaidaCarros_() {
+  var sheet;
+  try {
+    sheet = abrirSaidaCarrosPorData_("");
+  } catch (err) {
+    return [];
+  }
+  const lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return [];
+  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  const colunas = [];
+  titulos.forEach(function (titulo) {
+    const chave = normalizarChaveLiberacao_(titulo);
+    if (!chave) return;
+    colunas.push({ chave: chave, rotulo: String(titulo || "").trim() });
+  });
+  return colunas;
+}
+
 function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
   const dataExibir = dataBr || (dataIso ? formatarDataBrLiberacao_(dataIso) : "");
+  const carroEscalado = pickCampoLiberacao_(bruto, [
+    "carro_escalado", "carro_esc", "veiculo_escalado", "prefixo_escalado"
+  ]);
+  const carro = pickCampoLiberacao_(bruto, ["carro", "prefixo", "veiculo", "frota"]);
   return {
     data: dataExibir,
     maquina: pickCampoLiberacao_(bruto, ["maquina", "maquina_", "maq", "equipamento"]),
     linha: pickCampoLiberacao_(bruto, ["linha", "linha_"]),
     work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "id_servico"]),
-    carro: pickCampoLiberacao_(bruto, ["carro", "prefixo", "veiculo", "frota"]),
+    carro: carro,
+    carro_escalado: carroEscalado || carro,
+    f_carro: pickCampoLiberacao_(bruto, ["f_carro", "f_carro_", "fcarro", "f_car"]),
+    subst: pickCampoLiberacao_(bruto, ["subst", "substituto", "substituicao"]),
     motorista: pickCampoLiberacao_(bruto, ["motorista", "matricula", "mot", "registro"]),
     preparo: pickCampoLiberacao_(bruto, ["preparo", "tempo_preparo"]),
     horario_saida_da_garagem: pickCampoLiberacao_(bruto, [
