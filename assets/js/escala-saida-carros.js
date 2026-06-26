@@ -4,7 +4,6 @@ import {
   carregarPatio,
   ehPedido,
   ehFilaNaoUtilizavelEscala,
-  formatarPosicaoPatio,
   listarCandidatosSubstituto,
   localizarVeiculo,
   mesmaCorVeiculo,
@@ -194,6 +193,11 @@ function valorColuna(row, col) {
   }
   const valor = pickCampo(row, chaves);
   return col.tipo === "hora" ? formatarHoraHHMM(valor) : valor;
+}
+
+function formatarLocalEscala(loc) {
+  if (!loc) return "";
+  return obterNomeFila(loc.filaKey);
 }
 
 function formatarObs(row) {
@@ -446,7 +450,7 @@ function processarLinha(row, patio, ctx) {
   if (carroEscalado && !usados.has(carroEscalado)) {
     if (sitEscalado.tipo === "ok") {
       carroSaida = carroEscalado;
-      obsEscala = formatarPosicaoPatio(sitEscalado.loc);
+      obsEscala = formatarLocalEscala(sitEscalado.loc);
     } else if (sitEscalado.tipo === "aguardando") {
       alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
     } else if (sitEscalado.motivo) {
@@ -463,7 +467,7 @@ function processarLinha(row, patio, ctx) {
       const sub = resultado.candidato;
       carroSaida = sub.prefixo;
       subst = carroEscalado;
-      obsEscala = formatarPosicaoPatio(sub.loc);
+      obsEscala = formatarLocalEscala(sub.loc);
       const techSaida = obterTecnologia(carroSaida, frota);
       const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
       const perfilSaida = obterPerfilTecnologia(carroSaida, frota);
@@ -492,12 +496,12 @@ function processarLinha(row, patio, ctx) {
 
       if (resultado.foraOrdemFila) {
         alertas.push(
-          `Sugestão: carro em fila posterior (${formatarPosicaoPatio(sub.loc)}) — horários iniciais preferem fila 1 ou livre.`
+          `Sugestão: carro em fila posterior (${formatarLocalEscala(sub.loc)}) — horários iniciais preferem fila 1 ou livre.`
         );
       }
     } else if (carroEscalado) {
       const loc = localizarVeiculo(carroEscalado, patio);
-      obsEscala = loc ? formatarPosicaoPatio(loc) : "Fora do pátio";
+      obsEscala = loc ? formatarLocalEscala(loc) : "Fora do pátio";
       if (sitEscalado.motivo) {
         alertas.push(`Escalado ${carroEscalado}: ${sitEscalado.motivo}`);
       } else {
