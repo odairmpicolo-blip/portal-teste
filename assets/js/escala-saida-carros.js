@@ -1,4 +1,4 @@
-import { ESCALA_SAIDA_API_URL } from "./escala-saida-dados-leitura.js";
+import { carregarEscalaSaidaPlanilha, planilhaPareceSemCabecalho } from "./escala-saida-dados-leitura.js";
 import {
   avaliarSaidaVeiculo,
   carregarPatio,
@@ -108,7 +108,7 @@ function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
 
 function chaveServico(row, carroEscalado) {
   return [
-    pickCampo(row, ["work_id", "work-id"]),
+    pickCampo(row, ["work_id", "work-id", "serv"]),
     pickCampo(row, ["horario_de_inicio", "horario_inicio"]),
     carroEscalado
   ].join("|");
@@ -402,7 +402,7 @@ function processarEscala(linhas) {
 
 function filtrarAteHorario(linhas) {
   return linhas.filter((row) => {
-    const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado"]);
+    const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
     if (!hora) return true;
     return dentroDoLimite(hora, HORA_LIMITE_IMPORTE);
   });
@@ -410,8 +410,8 @@ function filtrarAteHorario(linhas) {
 
 function ordenarPorInicio(linhas) {
   return [...linhas].sort((a, b) => {
-    const ha = horaParaMinutos(pickCampo(a, ["horario_de_inicio"])) ?? 9999;
-    const hb = horaParaMinutos(pickCampo(b, ["horario_de_inicio"])) ?? 9999;
+    const ha = horaParaMinutos(pickCampo(a, ["horario_de_inicio", "inicio"])) ?? 9999;
+    const hb = horaParaMinutos(pickCampo(b, ["horario_de_inicio", "inicio"])) ?? 9999;
     return ha - hb;
   });
 }
@@ -508,14 +508,6 @@ function setStatus(msg, tipo) {
   el.className = `status-pill escala-status${tipo ? ` escala-status--${tipo}` : ""}`;
 }
 
-function planilhaPareceSemCabecalho(colunas) {
-  const lista = colunas || [];
-  return lista.length <= 1 && lista.some((c) => {
-    const t = `${c.chave || ""} ${c.rotulo || ""}`.toLowerCase();
-    return t.includes("saida_de_carros") || t.includes("saída de carros") || t.includes("saida de carros");
-  });
-}
-
 async function carregarPlanilha() {
   if (state.carregando) return;
   state.carregando = true;
@@ -525,10 +517,7 @@ async function carregarPlanilha() {
 
   try {
     const data = state.data || hojeIso();
-    const url = `${ESCALA_SAIDA_API_URL}?recurso=saida_carros&data=${encodeURIComponent(data)}`;
-    const res = await fetch(url, { cache: "no-store" });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.erro || "Falha ao carregar planilha.");
+    const { json, origem, aviso } = await carregarEscalaSaidaPlanilha(data);
 
     const linhas = Array.isArray(json.dados) ? json.dados : [];
     const filtradas = ordenarPorInicio(filtrarAteHorario(linhas));
@@ -539,15 +528,19 @@ async function carregarPlanilha() {
 
     atualizarResumo();
     renderTabela();
+    const origemLabel = origem === "json" ? "cache JSON" : origem === "liberacao" ? "API liberação" : "API escalação";
     if (filtradas.length) {
-      setStatus(`${filtradas.length} linha(s) importada(s) — início até ${HORA_LIMITE_IMPORTE}.`, "ok");
+      const extra = aviso ? ` — ${aviso}` : "";
+      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início até ${HORA_LIMITE_IMPORTE}.${extra}`, aviso ? "warn" : "ok");
+    } else if (aviso) {
+      setStatus(aviso, "warn");
     } else if (planilhaPareceSemCabecalho(json.colunas)) {
       setStatus(
-        "Nenhuma linha importada. A planilha tem título na 1ª linha — reimplante o Apps Script escala-saida-carros.gs (versão v2).",
+        "Nenhuma linha importada. Reimplante scripts/escala-saida-carros.gs (v3) no Apps Script da escalação.",
         "warn"
       );
     } else {
-      setStatus("Nenhuma linha encontrada para esta data na planilha.", "warn");
+      setStatus(`Nenhuma linha para ${data} (${origemLabel}).`, "warn");
     }
   } catch (err) {
     setStatus(err.message || "Erro ao importar.", "erro");

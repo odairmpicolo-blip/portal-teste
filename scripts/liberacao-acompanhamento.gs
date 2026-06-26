@@ -187,16 +187,23 @@ function montarRespostaLiberacaoGet_(params) {
     return montarResumoDashboardLiberacao_(dataFiltro, String(params.incluir_colunas || "") === "1");
   }
   if (recurso === "saida_carros") {
+    const ignorarData = String(params.ignorar_data || "") === "1";
+    const leitura = lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, ignorarData);
     const ref = resolverSaidaCarrosPorData_(dataFiltro);
-    const colunas = lerColunasSaidaCarros_();
     return {
       ok: true,
-      dados: lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro),
-      colunas: colunas,
+      dados: leitura.dados,
+      colunas: leitura.colunas,
       meta: {
         versao: LIBERACAO_VERSAO,
         recurso: recurso,
-        saida_ref: ref
+        saida_ref: Object.assign({}, ref, {
+          aba: leitura.abaNome,
+          gid: leitura.gid,
+          linha_cabecalho: leitura.linhaCabecalho,
+          linhas_lidas: leitura.linhasLidas,
+          ignorou_filtro_data: leitura.ignorouFiltroData
+        })
       }
     };
   }
@@ -437,6 +444,10 @@ function abrirSaidaCarrosPorData_(dataIso) {
   return abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
 }
 
+function abrirPlanilhaSaidaCarros_() {
+  return SpreadsheetApp.openById(LIBERACAO_SAIDA_SPREADSHEET_ID);
+}
+
 function pontuarLinhaCabecalhoSaida_(cabecalho) {
   let score = 0;
   const vistos = {};
@@ -444,40 +455,51 @@ function pontuarLinhaCabecalhoSaida_(cabecalho) {
     if (!chave || vistos[chave]) return;
     vistos[chave] = true;
     if (CHAVES_CABECALHO_SAIDA_.indexOf(chave) >= 0) score += 3;
-    else if (/horario|carro|linha|maquina|motorista|work|local|preparo|obs/.test(chave)) score += 1;
+    else if (/horario|carro|linha|maquina|motorista|work|local|preparo|obs|inicio|saida|subst|f_carro/.test(chave)) score += 1;
   });
   return score;
 }
 
-function detectarLinhaCabecalhoSaida_(sheet) {
-  const lastCol = sheet.getLastColumn();
-  const maxScan = Math.min(12, Math.max(1, sheet.getLastRow()));
-  let melhorRow = 1;
+function detectarIndiceCabecalhoSaida_(valores) {
+  let melhorIdx = -1;
   let melhorScore = 0;
-  for (let r = 1; r <= maxScan; r++) {
-    const titulos = sheet.getRange(r, 1, 1, lastCol).getValues()[0];
-    const score = pontuarLinhaCabecalhoSaida_(titulos.map(normalizarChaveLiberacao_));
+  const maxScan = Math.min(20, valores.length);
+  for (let i = 0; i < maxScan; i++) {
+    const cabecalho = valores[i].map(normalizarChaveLiberacao_);
+    const colsValidas = cabecalho.filter(Boolean).length;
+    if (colsValidas < 3) continue;
+    const score = pontuarLinhaCabecalhoSaida_(cabecalho);
     if (score > melhorScore) {
       melhorScore = score;
-      melhorRow = r;
+      melhorIdx = i;
     }
   }
-  return melhorScore >= 2 ? melhorRow : 1;
+  return melhorScore >= 2 ? melhorIdx : -1;
 }
 
-function linhaCorrespondeDataSaida_(dataIso, dataFiltro) {
-  if (!dataFiltro) return true;
+function detectarLinhaCabecalhoSaida_(sheet) {
+  const range = sheet.getDataRange();
+  if (!range) return 1;
+  const valores = range.getValues();
+  const idx = detectarIndiceCabecalhoSaida_(valores);
+  return idx >= 0 ? idx + 1 : 1;
+}
+
+function linhaCorrespondeDataSaida_(dataIso, dataFiltro, ignorarData) {
+  if (ignorarData || !dataFiltro) return true;
   if (!dataIso) return true;
   return dataIso === dataFiltro;
 }
 
 function linhaTemConteudoSaida_(bruto) {
-  return Boolean(
-    pickCampoLiberacao_(bruto, [
-      "work_id", "workid", "carro", "carro_escalado", "linha", "maquina",
-      "horario_de_inicio", "horario_saida_da_garagem", "motorista"
-    ])
-  );
+  if (pickCampoLiberacao_(bruto, [
+    "work_id", "workid", "work", "carro", "carro_escalado", "linha", "maquina",
+    "horario_de_inicio", "horario_inicio", "horario_saida_da_garagem", "motorista"
+  ])) return true;
+  const vals = Object.keys(bruto).filter(function (k) {
+    return bruto[k] != null && String(bruto[k]).trim() !== "";
+  });
+  return vals.length >= 3;
 }
 
 function isoDataDiasAtrasLiberacao_(dias) {
@@ -581,27 +603,39 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janelaOpt
   return dados;
 }
 
-function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
-  if (!dataFiltro) return [];
-  var sheet;
-  try {
-    sheet = abrirSaidaCarrosPorData_(dataFiltro);
-  } catch (err) {
-    return [];
-  }
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
-  const dataStartRow = headerRow + 1;
-  if (lastRow < dataStartRow || lastCol < 1) return [];
+function montarColunasSaidaCarrosLiberacao_(cabecalho, titulos) {
+  const colunas = [];
+  cabecalho.forEach(function (chave, idx) {
+    if (!chave) return;
+    colunas.push({
+      chave: chave,
+      rotulo: String(titulos[idx] || chave).trim()
+    });
+  });
+  return colunas;
+}
 
-  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
+function lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, ignorarData) {
+  const range = sheet.getDataRange();
+  if (!range) {
+    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
+  }
+  const valores = range.getValues();
+  if (valores.length < 2) {
+    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
+  }
+
+  const headerIdx = detectarIndiceCabecalhoSaida_(valores);
+  if (headerIdx < 0) {
+    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
+  }
+
+  const titulos = valores[headerIdx];
   const cabecalho = titulos.map(normalizarChaveLiberacao_);
-  const numRows = lastRow - dataStartRow + 1;
-  const valores = sheet.getRange(dataStartRow, 1, numRows, lastCol).getValues();
+  const colunas = montarColunasSaidaCarrosLiberacao_(cabecalho, titulos);
   const dados = [];
 
-  for (let i = 0; i < valores.length; i++) {
+  for (let i = headerIdx + 1; i < valores.length; i++) {
     const bruto = {};
     cabecalho.forEach(function (chave, idx) {
       if (!chave) return;
@@ -610,33 +644,85 @@ function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
     if (!linhaTemConteudoSaida_(bruto)) continue;
     const dataBr = pickCampoLiberacao_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIsoLiberacao_(dataBr);
-    if (!linhaCorrespondeDataSaida_(dataIso, dataFiltro)) continue;
+    if (!linhaCorrespondeDataSaida_(dataIso, dataFiltro, ignorarData)) continue;
     const item = Object.assign({}, bruto, mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr));
     if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
     dados.push(item);
   }
 
-  return dados;
+  return {
+    dados: dados,
+    colunas: colunas,
+    linhaCabecalho: headerIdx + 1,
+    linhasLidas: valores.length - headerIdx - 1,
+    abaNome: sheet.getName(),
+    gid: sheet.getSheetId()
+  };
+}
+
+function finalizarLeituraSaidaCarrosLiberacao_(melhor, ignorouFiltroData) {
+  if (!melhor) {
+    return {
+      dados: [],
+      colunas: [],
+      abaNome: "",
+      gid: LIBERACAO_SAIDA_GID,
+      linhaCabecalho: 0,
+      linhasLidas: 0,
+      ignorouFiltroData: ignorouFiltroData
+    };
+  }
+  return {
+    dados: melhor.dados,
+    colunas: melhor.colunas,
+    abaNome: melhor.abaNome || "",
+    gid: melhor.gid || LIBERACAO_SAIDA_GID,
+    linhaCabecalho: melhor.linhaCabecalho,
+    linhasLidas: melhor.linhasLidas,
+    ignorouFiltroData: ignorouFiltroData
+  };
+}
+
+function lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, ignorarDataForcado) {
+  const ss = abrirPlanilhaSaidaCarros_();
+  const sheets = ss.getSheets();
+  const ordem = [];
+  let preferida = null;
+  try {
+    preferida = abrirSaidaCarrosPorData_(dataFiltro);
+  } catch (err) {
+    preferida = null;
+  }
+  if (preferida) ordem.push(preferida);
+  sheets.forEach(function (sheet) {
+    if (preferida && sheet.getSheetId() === preferida.getSheetId()) return;
+    ordem.push(sheet);
+  });
+
+  let melhor = null;
+  ordem.forEach(function (sheet) {
+    const lido = lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, ignorarDataForcado);
+    if (!melhor || lido.dados.length > melhor.dados.length) melhor = lido;
+  });
+
+  if (!melhor || melhor.dados.length || ignorarDataForcado) {
+    return finalizarLeituraSaidaCarrosLiberacao_(melhor, ignorarDataForcado);
+  }
+
+  ordem.forEach(function (sheet) {
+    const lido = lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, true);
+    if (!melhor || lido.dados.length > melhor.dados.length) melhor = lido;
+  });
+
+  return finalizarLeituraSaidaCarrosLiberacao_(melhor, true);
+}
+
+function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
+  return lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, false).dados;
 }
 
 function lerColunasSaidaCarros_() {
-  var sheet;
-  try {
-    sheet = abrirSaidaCarrosPorData_("");
-  } catch (err) {
-    return [];
-  }
-  const lastCol = sheet.getLastColumn();
-  if (lastCol < 1) return [];
-  const headerRow = detectarLinhaCabecalhoSaida_(sheet);
-  const titulos = sheet.getRange(headerRow, 1, 1, lastCol).getValues()[0];
-  const colunas = [];
-  titulos.forEach(function (titulo) {
-    const chave = normalizarChaveLiberacao_(titulo);
-    if (!chave) return;
-    colunas.push({ chave: chave, rotulo: String(titulo || "").trim() });
-  });
-  return colunas;
+  return lerSaidaCarrosCompletoLiberacao_("", "", true).colunas;
 }
 
 function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
@@ -649,7 +735,7 @@ function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
     data: dataExibir,
     maquina: pickCampoLiberacao_(bruto, ["maquina", "maquina_", "maq", "equipamento"]),
     linha: pickCampoLiberacao_(bruto, ["linha", "linha_"]),
-    work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "id_servico"]),
+    work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "serv", "id_servico"]),
     carro: carro,
     carro_escalado: carroEscalado || carro,
     f_carro: pickCampoLiberacao_(bruto, ["f_carro", "f_carro_", "fcarro", "f_car"]),
@@ -661,7 +747,7 @@ function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
     ]),
     saida_real: pickCampoLiberacao_(bruto, ["saida_real", "realizado", "saida_efetiva", "hora_real"]),
     local_inicio: pickCampoLiberacao_(bruto, ["local_inicio", "local", "terminal"]),
-    horario_de_inicio: pickCampoLiberacao_(bruto, ["horario_de_inicio", "horario_inicio", "inicio_programado"]),
+    horario_de_inicio: pickCampoLiberacao_(bruto, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]),
     inicio_real: pickCampoLiberacao_(bruto, ["inicio_real", "inicio_efetivo"]),
     observacoes: pickCampoLiberacao_(bruto, ["observacoes", "obs", "observacao"]),
     _origem: "saida_carros"

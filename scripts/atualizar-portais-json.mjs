@@ -19,6 +19,9 @@ const LIBERACAO_URL = process.env.LIBERACAO_API_URL
   || process.env.FOLHA_SERVICO_API_URL
   || "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 
+const ESCALA_SAIDA_URL = process.env.ESCALA_SAIDA_API_URL
+  || "https://script.google.com/macros/s/AKfycbzhuM5h2MzGXnfHb4WmLZb3ZOrmXpGKOdtT0fiCazRV0yPJ5dlcchtlLThiagLcg8P4/exec";
+
 const DIAS_JANELA_LANCAMENTO = Number(process.env.LIBERACAO_DIAS_JANELA || 7);
 const PORTAL_TZ = process.env.PORTAL_TZ || "America/Sao_Paulo";
 
@@ -184,6 +187,58 @@ async function buscarLiberacaoDia(data, timeoutMs = TIMEOUT_MS) {
   };
 }
 
+async function buscarEscalaSaidaDia(data, timeoutMs = TIMEOUT_MS) {
+  const bases = [
+    { url: ESCALA_SAIDA_URL, params: { recurso: "saida_carros", data } },
+    { url: ESCALA_SAIDA_URL, params: { recurso: "saida_carros", data, ignorar_data: "1" } },
+    { url: LIBERACAO_URL, params: { liberacao: "1", recurso: "saida_carros", data } },
+    { url: LIBERACAO_URL, params: { liberacao: "1", recurso: "saida_carros", data, ignorar_data: "1" } }
+  ];
+  let melhor = null;
+  for (const { url, params } of bases) {
+    try {
+      const res = await fetchJson(`${url}?${new URLSearchParams(params)}`, timeoutMs);
+      if (!res.ok) continue;
+      const total = (res.dados || []).length;
+      if (!melhor || total > (melhor.dados || []).length) {
+        melhor = res;
+      }
+      if (total > 0) break;
+    } catch (_) {
+      /* tenta próxima fonte */
+    }
+  }
+  if (!melhor) throw new Error(`Falha ao baixar escala de saída (${data})`);
+  return {
+    ok: true,
+    data,
+    dados: melhor.dados || [],
+    colunas: melhor.colunas || [],
+    meta: melhor.meta || {},
+    total: (melhor.dados || []).length
+  };
+}
+
+async function atualizarEscalaSaida() {
+  const dir = path.join(portalRoot, "assets", "data", "escala-saida");
+  const hoje = isoHoje();
+  const amanha = isoAmanha();
+  const atualizadoEm = new Date().toISOString();
+  const dias = [hoje, amanha];
+  const manifest = { atualizadoEm, dias: {} };
+
+  for (const dia of dias) {
+    console.log(`Baixando escala saída (${dia})...`);
+    const payload = await buscarEscalaSaidaDia(dia);
+    payload.atualizadoEm = atualizadoEm;
+    const arquivo = `escala-${dia}.json`;
+    escreverJson(path.join(dir, arquivo), payload);
+    manifest.dias[dia] = arquivo;
+  }
+
+  escreverJson(path.join(dir, "manifest.json"), manifest);
+}
+
 async function atualizarLiberacaoSomenteHoje() {
   const dir = path.join(portalRoot, "assets", "data", "liberacao");
   const hoje = isoHoje();
@@ -292,16 +347,23 @@ async function atualizarLiberacao() {
 
 async function main() {
   const modo = process.argv[2];
+  if (modo === "--escala-saida") {
+    console.log("Atualizando JSON de escala saída...");
+    await atualizarEscalaSaida();
+    console.log("Concluído.");
+    return;
+  }
   if (modo === "--liberacao-hoje") {
     console.log("Atualizando JSON de liberação (hoje)...");
     await atualizarLiberacaoSomenteHoje();
     console.log("Concluído.");
     return;
   }
-  console.log("Atualizando snapshots JSON (pontualidade, autuações, liberação)...");
+  console.log("Atualizando snapshots JSON (pontualidade, autuações, liberação, escala saída)...");
   await atualizarPontualidade();
   await atualizarAutuacoes();
   await atualizarLiberacao();
+  await atualizarEscalaSaida();
   console.log("Concluído.");
 }
 
