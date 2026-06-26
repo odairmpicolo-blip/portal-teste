@@ -35,7 +35,7 @@ const COLUNAS_PLANILHA = [
   { chave: "loc", rotulo: "LOCAL", alias: ["loc", "local_inicio", "local"] },
   { chave: "h_total", rotulo: "H.TOTAL", alias: ["h_total", "h_total_"], tipo: "hora" },
   { chave: "turno", rotulo: "TURNO", alias: ["turno"] },
-  { chave: "f_carro", rotulo: "F. CARRO", alias: ["f_carro", "f_carro_"], tipo: "hora", titulo: "Fim do carro (HH:MM) — horário de recolhimento" },
+  { chave: "f_carro", rotulo: "F. CARRO", alias: ["f_carro", "f_carro_"], tipo: "hora", titulo: "Fim do carro (HH:MM) — pedido: recolher até 10:45" },
   { chave: "tecnologia", rotulo: "TECNOLOGIA" },
   { chave: "obs", rotulo: "OBS", tipo: "obs" },
   { chave: "alerta", rotulo: "ALERTA", tipo: "alerta" }
@@ -251,6 +251,11 @@ function recolhimentoAposLimite(horaFimCarro, limite) {
 
 function aplicarAlertasRecolhimentoPedido(carro, horaFimCarro, patio, alertas) {
   if (!carro || !ehPedido(carro, patio)) return;
+  alertas.push(`Pedido ${carro}: recolher até ${HORA_LIMITE_RECOLHIMENTO_PEDIDO} (F. CARRO)`);
+  if (!horaFimCarro) {
+    alertas.push(`Pedido ${carro}: informar F. CARRO — recolhimento deve ser até ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`);
+    return;
+  }
   if (recolhimentoAposLimite(horaFimCarro, HORA_LIMITE_RECOLHIMENTO_PEDIDO)) {
     alertas.push(
       `Pedido ${carro}: recolhimento (F. CARRO ${horaFimCarro}) após ${HORA_LIMITE_RECOLHIMENTO_PEDIDO}`
@@ -509,7 +514,9 @@ function processarLinha(row, patio, ctx) {
   let escolhaPendente = false;
 
   const temPedido = Boolean(carroEscalado && ehPedido(carroEscalado, patio));
-  const fCarroAtrasadoPedido = temPedido && recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_PEDIDO);
+  const fCarroAtrasadoPedido = temPedido && (
+    !fCarroHora || recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_PEDIDO)
+  );
   const fCarroAtrasadoSuperBus = recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS);
 
   aplicarAlertasRecolhimentoPedido(carroEscalado, fCarroHora, patio, alertas);
