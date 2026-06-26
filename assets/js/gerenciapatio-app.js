@@ -38,6 +38,18 @@
       ]
     },
     {
+      id: "corredor",
+      titulo: "Corredor",
+      filas: [
+        { key: "corredor_c1", label: "Cor. 1", ordem: 1 },
+        { key: "corredor_c2", label: "Cor. 2", ordem: 2 },
+        { key: "corredor_c3", label: "Cor. 3", ordem: 3 },
+        { key: "corredor_c4", label: "Cor. 4", ordem: 4 },
+        { key: "corredor_c5", label: "Cor. 5", ordem: 5 },
+        { key: "corredor_c6", label: "Cor. 6", ordem: 6 }
+      ]
+    },
+    {
       id: "especiais",
       titulo: "Áreas especiais",
       filas: [
