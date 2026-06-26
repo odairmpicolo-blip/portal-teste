@@ -275,7 +275,30 @@ body {
 .escala-tabela tr.linha-tech-alternativa td { background: #f3e8ff !important; }
 .escala-tabela tr.linha-troca-cor td { background: #e8f4fd !important; }
 .escala-tabela tr.linha-aceite-pendente td { background: #fff4e6 !important; }
+.escala-tabela tr.linha-escolha-pendente td { background: #fef9c3 !important; }
 .escala-tabela tr.linha-aceita td { background: #edfbf3 !important; }
+.escala-tabela .col-subst {
+    white-space: normal;
+    min-width: 120px;
+}
+.btn-opcao-carro {
+    display: inline-block;
+    margin: 2px 3px 2px 0;
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+}
+.btn-opcao-carro:hover { background: #f1f5f9; border-color: #94a3b8; }
+.btn-opcao-carro.ativo {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
 .escala-tabela .col-alerta {
     text-align: left;
     white-space: normal;
@@ -407,8 +430,9 @@ body {
             <span class="legend-item"><span class="legend-swatch subst"></span>Substituição</span>
             <span class="legend-item"><span class="legend-swatch troca-cor"></span>Troca de cor</span>
             <span class="legend-item"><span class="legend-swatch alerta"></span>Recolhimento atrasado (F. CARRO)</span>
-            <span class="legend-item" style="font-size:11px;color:var(--muted)">Ordem cronológica por INÍCIO — cada saída sugere carro livre e atualiza o pátio</span>
-            <span class="legend-item" style="font-size:11px;color:var(--muted)">Sem carro da tecnologia do horário → sugere alternativa (aceite se trocar cor/tecnologia)</span>
+            <span class="legend-item" style="font-size:11px;color:var(--muted)">Consulta de fila (gerenciapatio) — escalado livre usa CARRO; senão SUBST</span>
+            <span class="legend-item" style="font-size:11px;color:var(--muted)">Ordem cronológica 1 a 1 — cada saída atualiza o pátio simulado</span>
+            <span class="legend-item" style="font-size:11px;color:var(--muted)">Sem mesma tecnologia → botões em SUBST para escolher carro</span>
         </div>
     </section>
 </main>

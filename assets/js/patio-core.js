@@ -325,6 +325,59 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   return { ok: true, loc };
 }
 
+/** Situação do veículo no pátio (mesma lógica da Consulta de fila do gerenciapatio). */
+export function consultarSituacaoCarro(prefixo, patio) {
+  const alvo = String(prefixo || "").trim();
+  if (!alvo) return { tipo: "vazio" };
+
+  const loc = localizarVeiculo(alvo, patio);
+  if (!loc) {
+    return { tipo: "ausente", prefixo: alvo, motivo: "Sem alocação no pátio." };
+  }
+
+  const fila = obterNomeFila(loc.filaKey);
+  const posicao = loc.posicao + 1;
+  const tags = [];
+  if (ehPedido(alvo, patio)) tags.push("Pedido");
+  if (FILAS_NAO_UTILIZAVEIS.has(loc.filaKey)) tags.push("Bloqueado");
+
+  if (ehPedido(alvo, patio)) {
+    return {
+      tipo: "indisponivel",
+      prefixo: alvo,
+      loc,
+      fila,
+      posicao,
+      motivo: "Carro pedido — buscar substituto.",
+      tags
+    };
+  }
+
+  const saida = avaliarSaidaVeiculo(alvo, patio);
+  if (saida.ok) {
+    return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, posicao, tags };
+  }
+
+  return {
+    tipo: "indisponivel",
+    prefixo: alvo,
+    loc,
+    fila,
+    posicao,
+    motivo: saida.motivo,
+    tags
+  };
+}
+
+export function formatarConsultaFila(situacao) {
+  if (!situacao || situacao.tipo === "vazio") return "";
+  if (situacao.tipo === "ausente") {
+    return `${situacao.prefixo} — sem alocação no pátio.`;
+  }
+  const tagsTxt = situacao.tags?.length ? ` (${situacao.tags.join(" · ")})` : "";
+  return `${situacao.prefixo} em ${situacao.fila}, posição #${situacao.posicao}${tagsTxt}`;
+}
+
 export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}) {
   const techAlvo = normalizarTecnologia(tecnologia);
   const incluirOutras = opcoes.incluirOutrasTecnologias === true;
