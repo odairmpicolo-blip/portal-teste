@@ -56,13 +56,23 @@ echo "==> Atualizando Lambda $FUNC"
 rm -f "$ZIP"
 
 if [[ -n "${BUSTIME_API_KEY:-}" ]]; then
-  echo "==> Configurando BUSTIME_API_KEY na Lambda"
+  echo "==> Configurando variáveis na Lambda"
+  ENV_VARS="BUSTIME_BASE_URL=https://csr.mov1.com.br/bustime/api/v3,BUSTIME_REFERER=https://csr.mov1.com.br/map,BUSTIME_API_KEY=${BUSTIME_API_KEY}"
+  if [[ -n "${GEMINI_API_KEY:-}" ]]; then
+    ENV_VARS="${ENV_VARS},GEMINI_API_KEY=${GEMINI_API_KEY}"
+  fi
   "$AWS" lambda update-function-configuration \
     --function-name "$FUNC" \
     --region "$REGION" \
-    --environment "Variables={BUSTIME_BASE_URL=https://csr.mov1.com.br/bustime/api/v3,BUSTIME_REFERER=https://csr.mov1.com.br/map,BUSTIME_API_KEY=${BUSTIME_API_KEY}}" >/dev/null
+    --environment "Variables={${ENV_VARS}}" >/dev/null
+elif [[ -n "${GEMINI_API_KEY:-}" ]]; then
+  echo "==> Configurando GEMINI_API_KEY na Lambda"
+  "$AWS" lambda update-function-configuration \
+    --function-name "$FUNC" \
+    --region "$REGION" \
+    --environment "Variables={GEMINI_API_KEY=${GEMINI_API_KEY}}" >/dev/null
 else
-  echo "AVISO: defina BUSTIME_API_KEY antes do deploy para o mapa ao vivo (export BUSTIME_API_KEY=...)"
+  echo "AVISO: defina BUSTIME_API_KEY e/ou GEMINI_API_KEY antes do deploy (export ...)"
 fi
 
 echo "==> Teste /health"
@@ -75,6 +85,7 @@ echo ""
 echo "API URL (PORTAL_AWS_API_URL): $API_URL"
 echo "Proxy MOV1: ${API_URL}/mov1/getvehicles?rt=203"
 echo "Proxy Bus2 (legado): ${API_URL}/bus2/vehicles?..."
+echo "Relatório IA: POST ${API_URL}/relatorio-ia (requer GEMINI_API_KEY na Lambda)"
 
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && [[ "${SKIP_GH_SECRET:-}" != "1" ]]; then
   echo "==> Gravando secret PORTAL_AWS_API_URL no GitHub (portal-teste)"

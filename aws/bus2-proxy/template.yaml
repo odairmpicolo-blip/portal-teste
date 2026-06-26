@@ -49,6 +49,7 @@ Resources:
           - "*"
         AllowMethods:
           - GET
+          - POST
           - OPTIONS
         AllowHeaders:
           - "*"
@@ -102,6 +103,20 @@ Resources:
     Properties:
       ApiId: !Ref Bus2ProxyApi
       RouteKey: "OPTIONS /mov1/{proxy+}"
+      Target: !Sub integrations/${Bus2ProxyIntegration}
+
+  Bus2ProxyRouteRelatorioIa:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Bus2ProxyApi
+      RouteKey: POST /relatorio-ia
+      Target: !Sub integrations/${Bus2ProxyIntegration}
+
+  Bus2ProxyRouteRelatorioIaOptions:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Bus2ProxyApi
+      RouteKey: OPTIONS /relatorio-ia
       Target: !Sub integrations/${Bus2ProxyIntegration}
 
   Bus2ProxyStage:

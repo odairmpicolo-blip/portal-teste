@@ -11,7 +11,7 @@ function corsHeaders(contentType = "application/json") {
   return {
     "Content-Type": contentType,
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Cache-Control": "no-store"
   };
@@ -82,6 +82,72 @@ async function proxyMov1(event) {
   };
 }
 
+async function proxyRelatorioIa(event) {
+  const key = process.env.GEMINI_API_KEY || "";
+  if (!key) {
+    return {
+      statusCode: 503,
+      headers: corsHeaders(),
+      body: JSON.stringify({ ok: false, erro: "GEMINI_API_KEY não configurada na Lambda." })
+    };
+  }
+
+  let body = {};
+  try {
+    body = JSON.parse(event.body || "{}");
+  } catch {
+    return {
+      statusCode: 400,
+      headers: corsHeaders(),
+      body: JSON.stringify({ ok: false, erro: "JSON inválido." })
+    };
+  }
+
+  const prompt = String(body.prompt || "").trim();
+  if (!prompt) {
+    return {
+      statusCode: 400,
+      headers: corsHeaders(),
+      body: JSON.stringify({ ok: false, erro: "Campo prompt é obrigatório." })
+    };
+  }
+
+  const modelos = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"];
+  let ultimoErro = "Falha ao consultar Gemini.";
+
+  for (const model of modelos) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.35, maxOutputTokens: 2048 }
+      }),
+      signal: AbortSignal.timeout(28000)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      ultimoErro = data?.error?.message || `Gemini HTTP ${res.status}`;
+      continue;
+    }
+    const texto = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim();
+    if (texto) {
+      return {
+        statusCode: 200,
+        headers: corsHeaders(),
+        body: JSON.stringify({ ok: true, texto, modelo: model })
+      };
+    }
+  }
+
+  return {
+    statusCode: 502,
+    headers: corsHeaders(),
+    body: JSON.stringify({ ok: false, erro: ultimoErro })
+  };
+}
+
 export async function handler(event) {
   const method = event.requestContext?.http?.method || event.httpMethod || "GET";
   if (method === "OPTIONS") {
@@ -99,7 +165,8 @@ export async function handler(event) {
         service: "portal-ciop-live-proxy",
         usage: {
           mov1: "GET /mov1/getvehicles?rt=203 — BusTime csr.mov1.com.br",
-          bus2: "GET /bus2/vehicles?... — Mobilibus (legado)"
+          bus2: "GET /bus2/vehicles?... — Mobilibus (legado)",
+          relatorioIa: "POST /relatorio-ia — Gemini para relatórios"
         }
       })
     };
@@ -114,6 +181,7 @@ export async function handler(event) {
   }
 
   try {
+    if (method === "POST" && rawPath === "/relatorio-ia") return await proxyRelatorioIa(event);
     if (rawPath.startsWith("/mov1")) return await proxyMov1(event);
     if (rawPath.startsWith("/bus2")) return await proxyBus2(event);
     return {
