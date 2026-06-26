@@ -1036,8 +1036,20 @@ function linhaAcompanhamentoParaObjeto_(cabecalho, valores, rowNumber) {
   return item;
 }
 
+function formatarHoraCelulaLiberacao_(valor) {
+  if (typeof valor === "number" && isFinite(valor) && valor >= 0 && valor < 1) {
+    const total = Math.round(valor * 24 * 60);
+    const h = Math.floor(total / 60) % 24;
+    const m = total % 60;
+    return Utilities.formatString("%02d:%02d", h, m);
+  }
+  return "";
+}
+
 function valorCelulaLiberacao_(valor) {
   if (valor == null || valor === "") return "";
+  const horaFracao = formatarHoraCelulaLiberacao_(valor);
+  if (horaFracao) return horaFracao;
   if (Object.prototype.toString.call(valor) === "[object Date]" && !isNaN(valor)) {
     const tz = Session.getScriptTimeZone();
     if (valor.getHours() === 0 && valor.getMinutes() === 0 && valor.getSeconds() === 0) {
@@ -1045,7 +1057,12 @@ function valorCelulaLiberacao_(valor) {
     }
     return Utilities.formatDate(valor, tz, "HH:mm");
   }
-  return String(valor).trim();
+  const texto = String(valor).trim();
+  const hhmm = texto.match(/^(\d{1,2})[:h](\d{2})$/);
+  if (hhmm) {
+    return Utilities.formatString("%02d:%02d", Number(hhmm[1]), Number(hhmm[2]));
+  }
+  return texto;
 }
 
 function parseNumeroLiberacao_(valor) {

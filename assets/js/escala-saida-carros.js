@@ -22,15 +22,15 @@ const COLUNAS_PLANILHA = [
   { chave: "linha", rotulo: "LINHA" },
   { chave: "subst", rotulo: "SUBST" },
   { chave: "carro", rotulo: "CARRO", alias: ["carro", "carro_escalado"] },
-  { chave: "h_real", rotulo: "H.REAL", alias: ["h_real", "saida_real"] },
-  { chave: "inicio", rotulo: "INICIO", alias: ["inicio", "horario_de_inicio", "horario_inicio"] },
+  { chave: "h_real", rotulo: "H.REAL", alias: ["h_real", "saida_real"], tipo: "hora" },
+  { chave: "inicio", rotulo: "INICIO", alias: ["inicio", "horario_de_inicio", "horario_inicio"], tipo: "hora" },
   { chave: "serv", rotulo: "SERV.", alias: ["serv", "work_id"] },
-  { chave: "fim", rotulo: "FIM MOT.", alias: ["fim", "fim_mot"] },
+  { chave: "fim", rotulo: "FIM MOT.", alias: ["fim", "fim_mot"], tipo: "hora" },
   { chave: "reg", rotulo: "REG.", alias: ["reg", "motorista"] },
   { chave: "loc", rotulo: "LOCAL", alias: ["loc", "local_inicio", "local"] },
-  { chave: "h_total", rotulo: "H.TOTAL", alias: ["h_total"] },
+  { chave: "h_total", rotulo: "H.TOTAL", alias: ["h_total"], tipo: "hora" },
   { chave: "turno", rotulo: "TURNO", alias: ["turno"] },
-  { chave: "f_carro", rotulo: "F. CARRO", tipo: "hora", titulo: "Fim do carro / horário de recolhimento" },
+  { chave: "f_carro", rotulo: "F. CARRO", tipo: "hora", titulo: "Fim do carro (HH:MM) — horário de recolhimento" },
   { chave: "obs", rotulo: "OBS", tipo: "obs" }
 ];
 
@@ -110,8 +110,40 @@ function escHtml(valor) {
     .replace(/"/g, "&quot;");
 }
 
+export function formatarHoraHHMM(valor) {
+  if (valor == null || valor === "") return "";
+  if (typeof valor === "number" && isFinite(valor)) {
+    if (valor >= 0 && valor < 1) {
+      const total = Math.round(valor * 24 * 60);
+      const h = Math.floor(total / 60) % 24;
+      const m = total % 60;
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+  }
+  const texto = String(valor).trim();
+  if (!texto) return "";
+  const iso = texto.match(/T(\d{1,2}):(\d{2})/);
+  if (iso) {
+    return `${String(Number(iso[1])).padStart(2, "0")}:${iso[2]}`;
+  }
+  const hhmm = texto.match(/^(\d{1,2})[:h](\d{2})$/);
+  if (hhmm) {
+    return `${String(Number(hhmm[1])).padStart(2, "0")}:${hhmm[2]}`;
+  }
+  const fracao = Number(texto.replace(",", "."));
+  if (texto.includes(".") && isFinite(fracao) && fracao >= 0 && fracao < 1) {
+    return formatarHoraHHMM(fracao);
+  }
+  return texto;
+}
+
 export function horaParaMinutos(valor) {
   if (valor == null || valor === "") return null;
+  const normalizado = formatarHoraHHMM(valor);
+  if (normalizado && normalizado.includes(":")) {
+    const [h, m] = normalizado.split(":");
+    return Number(h) * 60 + Number(m);
+  }
   if (typeof valor === "number" && isFinite(valor)) {
     const total = Math.round(valor * 24 * 60);
     return total % (24 * 60);
@@ -141,19 +173,18 @@ function aPartirDoHorario(horario, limite) {
 }
 
 function pareceHora(valor) {
-  return /^\d{1,2}:\d{2}$/.test(String(valor || "").trim());
+  return /^\d{2}:\d{2}$/.test(formatarHoraHHMM(valor));
 }
 
 function valorColuna(row, col) {
   if (col.tipo === "obs") return "";
   const chaves = col.alias || [col.chave];
   if (col.chave === "subst") {
-    return row.subst || pickCampo(row, chaves);
+    const v = row.subst || pickCampo(row, chaves);
+    return col.tipo === "hora" ? formatarHoraHHMM(v) : v;
   }
-  if (col.chave === "f_carro") {
-    return pickCampo(row, ["f_carro", "f_carro_"]);
-  }
-  return pickCampo(row, chaves);
+  const valor = pickCampo(row, chaves);
+  return col.tipo === "hora" ? formatarHoraHHMM(valor) : valor;
 }
 
 function formatarObs(row) {
@@ -203,7 +234,7 @@ function situacaoCarroEscalado(prefixo, patio) {
 }
 
 function extrairFimCarro(row) {
-  return pickCampo(row, ["f_carro", "f_carro_"]);
+  return formatarHoraHHMM(pickCampo(row, ["f_carro", "f_carro_"]));
 }
 
 function recolhimentoAposLimite(horaFimCarro, limite) {
