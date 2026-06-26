@@ -137,6 +137,7 @@
   const frotaDados = window.FROTA_PATIO || [];
   const FROTA_SET = new Set(frotaDados.map((item) => String(item.veiculo)));
   let lancamentoEmAndamento = false;
+  let pedidoEmAndamento = false;
 
   function veiculoExisteNaFrota(prefixo) {
     return FROTA_SET.has(String(prefixo));
@@ -161,6 +162,48 @@
     const ok = document.getElementById("lancamentoOk");
     if (erro) erro.textContent = "";
     if (ok) ok.textContent = "";
+  }
+
+  function mostrarErroPedido(msg) {
+    const erro = document.getElementById("pedidoErro");
+    const ok = document.getElementById("pedidoOk");
+    if (ok) ok.textContent = "";
+    if (erro) erro.textContent = msg;
+  }
+
+  function mostrarOkPedido(msg) {
+    const erro = document.getElementById("pedidoErro");
+    const ok = document.getElementById("pedidoOk");
+    if (erro) erro.textContent = "";
+    if (ok) ok.textContent = msg;
+  }
+
+  function limparFeedbackPedido() {
+    const erro = document.getElementById("pedidoErro");
+    const ok = document.getElementById("pedidoOk");
+    if (erro) erro.textContent = "";
+    if (ok) ok.textContent = "";
+  }
+
+  function validarPedido(prefixo) {
+    if (!prefixo) return { ok: false, msg: "Digite o prefixo do veículo." };
+    if (!veiculoExisteNaFrota(prefixo)) {
+      return { ok: false, msg: `Veículo ${prefixo} não existe na frota.` };
+    }
+    const loc = localizarVeiculo(prefixo);
+    if (!loc) {
+      return { ok: false, msg: `Veículo ${prefixo} não está no pátio. Lance-o antes de marcar como Pedido.` };
+    }
+    if (ehFilaOficina(loc.filaKey)) {
+      return { ok: false, msg: `Veículo ${prefixo} está na Oficina (pátio) — não é Pedido.` };
+    }
+    if (FILA_MAP[loc.filaKey]?.bloqueado) {
+      return { ok: false, msg: `Veículo ${prefixo} está bloqueado — não é Pedido.` };
+    }
+    if (patio.pedidos.includes(prefixo)) {
+      return { ok: false, msg: `Veículo ${prefixo} já está marcado como Pedido.` };
+    }
+    return { ok: true, loc };
   }
 
   function normalizarPrefixoInput(input) {
@@ -439,20 +482,33 @@
     renderizarPatio();
   }
 
-  function marcarPedidoInput() {
+  function marcarPedido() {
+    if (pedidoEmAndamento) return;
     const input = document.getElementById("pedidosBus");
-    const prefixo = input?.value.trim();
-    if (!prefixo) return;
-    if (estaNaOficina(prefixo)) {
-      input.value = "";
+    const prefixo = normalizarPrefixoInput(input);
+    limparFeedbackPedido();
+
+    const val = validarPedido(prefixo);
+    if (!val.ok) {
+      mostrarErroPedido(val.msg);
+      input?.select();
       return;
     }
-    if (!patio.pedidos.includes(prefixo)) patio.pedidos.push(prefixo);
-    patio.analisados = patio.analisados.filter((p) => p != prefixo);
-    salvarEstado();
-    renderizarPatio();
-    input.value = "";
-    document.getElementById("inputFilaBus")?.focus();
+
+    pedidoEmAndamento = true;
+    try {
+      patio.pedidos.push(prefixo);
+      patio.analisados = patio.analisados.filter((p) => p != prefixo);
+      salvarEstado();
+      renderizarPatio();
+      mostrarOkPedido(`✓ ${prefixo} marcado como Pedido.`);
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+    } finally {
+      pedidoEmAndamento = false;
+    }
   }
 
   function configurarAtalhosLancamento() {
@@ -484,75 +540,43 @@
     document.getElementById("inputFilaBus")?.focus();
   }
 
-  function avaliarSaida(grupo, filaKey, posicao) {
-    const filaCfg = FILA_MAP[filaKey];
-    if (filaCfg?.bloqueado) return { tipo: "bloqueado", msg: "Veículo em reforma — saída não permitida." };
-    if (filaCfg?.saidaLivre) {
-      return posicao === 0
-        ? { tipo: "livre", msg: "Saída livre nesta área." }
-        : { tipo: "parcial", msg: `Há ${posicao} veículo(s) à frente na fila.` };
-    }
-
-    const filasGrupo = [...grupo.filas].sort((a, b) => a.ordem - b.ordem);
-    const idxFila = filasGrupo.findIndex((f) => f.key === filaKey);
-    let bloqueio = 0;
-    for (let i = 0; i < idxFila; i++) {
-      bloqueio += patio.filas[filasGrupo[i].key].length;
-    }
-    if (bloqueio > 0) {
-      return {
-        tipo: "bloqueado",
-        msg: `Filas anteriores do grupo têm ${bloqueio} veículo(s). Libere antes.`
-      };
-    }
-    if (posicao === 0) return { tipo: "livre", msg: "Pronto para saída." };
-    return { tipo: "parcial", msg: `Posição ${posicao + 1} — afastar ${posicao} veículo(s) à frente.` };
-  }
-
-  function verificarAcessibilidade() {
+  function consultarFila() {
     const input = document.getElementById("searchBus");
     const resultBox = document.getElementById("resultOutput");
-    const prefixo = input?.value.trim();
+    const prefixo = normalizarPrefixoInput(input);
+
     if (!prefixo) {
-      resultBox.className = "result-box danger";
-      resultBox.innerHTML = "Digite o prefixo do veículo.";
+      resultBox.className = "result-box";
+      resultBox.innerHTML = "";
+      return;
+    }
+
+    if (!veiculoExisteNaFrota(prefixo)) {
+      resultBox.className = "result-box warning";
+      resultBox.innerHTML = `Veículo <b>${prefixo}</b> não está na frota.`;
+      input?.select();
       return;
     }
 
     const loc = localizarVeiculo(prefixo);
-
     if (!loc) {
-      const naFrota = frotaDados.some((item) => item.veiculo == prefixo);
-      resultBox.className = naFrota ? "result-box success" : "result-box warning";
-      resultBox.innerHTML = naFrota
-        ? `🟢 <b>${prefixo}</b> (${obterTecnologia(prefixo)}) — fora do pátio / sem alocação.`
-        : `⚠️ Veículo <b>${prefixo}</b> não está na frota (${frotaDados.length} cadastrados).`;
+      resultBox.className = "result-box";
+      resultBox.innerHTML = `<b>${prefixo}</b> — sem alocação no pátio.`;
       input.value = "";
       return;
     }
 
-    if (FILA_MAP[loc.filaKey]?.bloqueado) {
-      resultBox.className = "result-box danger";
-      resultBox.innerHTML = `❌ <b>BLOQUEADO:</b> ${prefixo} está em <b>${obterNomeFila(loc.filaKey)}</b>.`;
-      input.value = "";
-      return;
-    }
-
-    if (!ehFilaOficina(loc.filaKey) && !patio.analisados.includes(prefixo)) {
-      patio.analisados.push(prefixo);
-      patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
-      salvarEstado();
-      renderizarPatio();
-    }
-
-    const grupo = GRUPO_POR_FILA[loc.filaKey];
-    const aval = avaliarSaida(grupo, loc.filaKey, loc.posicao);
     const nome = obterNomeFila(loc.filaKey);
-    const classes = { livre: "success", parcial: "warning", bloqueado: "danger" };
-    const icones = { livre: "🟢", parcial: "⚠️", bloqueado: "🛑" };
-    resultBox.className = `result-box ${classes[aval.tipo]}`;
-    resultBox.innerHTML = `${icones[aval.tipo]} <b>${prefixo}</b> em <b>${nome}</b> (#${loc.posicao + 1}). ${aval.msg}`;
+    const tags = [];
+    if (patio.pedidos.includes(prefixo)) tags.push("Pedido");
+    if (ehFilaOficina(loc.filaKey)) tags.push("Oficina (pátio)");
+    if (FILA_MAP[loc.filaKey]?.bloqueado) tags.push("Bloqueado");
+    const tagsTxt = tags.length ? ` <span style="opacity:.85">(${tags.join(" · ")})</span>` : "";
+
+    resultBox.className = "result-box success";
+    resultBox.innerHTML = `<b>${prefixo}</b> está em <b>${nome}</b>, posição <b>#${loc.posicao + 1}</b>.${tagsTxt}`;
     input.value = "";
+    input.focus();
   }
 
   function exportarExcel() {
@@ -606,23 +630,31 @@
       e.preventDefault();
       alocarNaFila();
     });
-    document.getElementById("pedidosBus")?.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") marcarPedidoInput();
+    const inputPedido = document.getElementById("pedidosBus");
+    inputPedido?.addEventListener("input", () => {
+      normalizarPrefixoInput(inputPedido);
+      limparFeedbackPedido();
+    });
+    inputPedido?.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      marcarPedido();
     });
 
     const searchBus = document.getElementById("searchBus");
     const resultBox = document.getElementById("resultOutput");
     if (searchBus) {
       searchBus.addEventListener("input", () => {
+        normalizarPrefixoInput(searchBus);
         if (!searchBus.value.trim()) {
           resultBox.className = "result-box";
           resultBox.innerHTML = "";
-        } else if (searchBus.value.trim().length >= 4) {
-          verificarAcessibilidade();
         }
       });
-      searchBus.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") verificarAcessibilidade();
+      searchBus.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        consultarFila();
       });
     }
   }
@@ -637,7 +669,7 @@
   }
 
   window.alocarNaFila = alocarNaFila;
-  window.marcarPedidoInput = marcarPedidoInput;
+  window.marcarPedido = marcarPedido;
   window.liberarCarro = liberarCarro;
   window.limparTudo = limparTudo;
   window.exportarExcel = exportarExcel;

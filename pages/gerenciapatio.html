@@ -466,32 +466,16 @@ h1 {
     color: #991b1b;
 }
 .btn-atalho-fila.bloqueado:hover { background: #fee2e2; }
-
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
+.lancamento-pedidos {
+    border-top: 3px solid var(--pedidos);
+    margin-bottom: 16px;
 }
-.btn-atalho-fila {
-    flex: 1 1 calc(50% - 4px);
-    min-width: 120px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #fff;
-    color: var(--blue);
-    font-size: 12px;
-    font-weight: 800;
-    padding: 10px 8px;
-    cursor: pointer;
-    font-family: inherit;
+.consulta-panel .consulta-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.3;
 }
-.btn-atalho-fila:hover { background: #f1f5f9; }
-.btn-atalho-fila.bloqueado {
-    border-color: #fecaca;
-    background: #fef2f2;
-    color: #991b1b;
-}
-.btn-atalho-fila.bloqueado:hover { background: #fee2e2; }
 
 /* Car Tag Style */
 .car-tag {
@@ -859,10 +843,11 @@ h1 {
 <div class="container">
     <div class="portal-toolbar">
         <a href="../index.html" class="btn-portal">Portal CIOP</a>
-        <div class="consulta-panel" aria-label="Consulta de saída">
+        <div class="consulta-panel" aria-label="Consulta de fila">
             <div class="consulta-field">
-                <label for="searchBus">Consulta de saída</label>
-                <input type="text" id="searchBus" placeholder="Digite o prefixo do veículo" list="frotaList" autocomplete="off" inputmode="numeric">
+                <label for="searchBus">Consulta de fila</label>
+                <input type="text" id="searchBus" placeholder="Prefixo + Enter" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+                <p class="consulta-hint">Somente consulta — mostra em qual fila o veículo está.</p>
             </div>
             <div id="resultOutput" class="result-box"></div>
         </div>
@@ -890,15 +875,6 @@ h1 {
                 <div id="lancamentoOk" class="lancamento-ok" aria-live="polite"></div>
             </div>
 
-            <div class="card">
-                <div class="card-title">📦 Marcar como Pedido</div>
-                <div class="form-group">
-                    <label for="pedidosBus">Prefixo + Enter</label>
-                    <input type="text" id="pedidosBus" class="form-control" placeholder="Marca o carro como Pedido (azul)" list="frotaList" autocomplete="off" inputmode="numeric">
-                </div>
-                <p class="lancamento-dica">Também use o botão <b>P</b> no card do veículo no mapa.</p>
-            </div>
-
             <div class="clear-data">
                 <button class="btn btn-excel" type="button" onclick="exportarExcel()">📊 Exportar Excel</button>
                 <button class="btn-text" type="button" onclick="limparTudo()">Resetar tudo</button>
@@ -906,6 +882,18 @@ h1 {
         </div>
 
         <div>
+            <div class="card lancamento-rapido lancamento-pedidos">
+                <div class="card-title">📦 Carros Pedidos</div>
+                <p class="lancamento-dica">Veículo já lançado no pátio. Digite o prefixo e pressione <b>Enter uma vez</b> para marcar como Pedido.</p>
+                <div class="form-group">
+                    <label for="pedidosBus">Prefixo do veículo</label>
+                    <input type="text" id="pedidosBus" class="form-control" placeholder="Ex.: 3105 + Enter" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+                </div>
+                <div id="pedidoErro" class="lancamento-erro" role="alert"></div>
+                <div id="pedidoOk" class="lancamento-ok" aria-live="polite"></div>
+                <p class="lancamento-dica">Use o botão <b>P</b> no mapa para desmarcar.</p>
+            </div>
+
             <div class="card" style="margin-bottom: 0;">
                 <div class="card-title">🚘 Mapa do Pátio</div>
                 <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
@@ -931,6 +919,6 @@ h1 {
 <script>
 window.FROTA_PATIO = [{"veiculo": "1042", "tecnologia": "Mini Especial"}, {"veiculo": "1044", "tecnologia": "Leve Especial"}, {"veiculo": "1052", "tecnologia": "Van Especial"}, {"veiculo": "1150", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1151", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1152", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1153", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1154", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1155", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1156", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1157", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1158", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1159", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1160", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1161", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1162", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1163", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1164", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1165", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1166", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1167", "tecnologia": "Azul pesado com AR"}, {"veiculo": "1168", "tecnologia": "Azul pesado com AR"}, {"veiculo": "2101", "tecnologia": "Articulado"}, {"veiculo": "2102", "tecnologia": "Arsticulado"}, {"veiculo": "2103", "tecnologia": "BRT"}, {"veiculo": "2104", "tecnologia": "BRT"}, {"veiculo": "2105", "tecnologia": "BRT"}, {"veiculo": "2106", "tecnologia": "BRT"}, {"veiculo": "2107", "tecnologia": "BRT"}, {"veiculo": "2108", "tecnologia": "BRT"}, {"veiculo": "2109", "tecnologia": "BRT"}, {"veiculo": "2110", "tecnologia": "BRT"}, {"veiculo": "3001", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3002", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3003", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3004", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3005", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3006", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3007", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3008", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3009", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3010", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3011", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3012", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3013", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3014", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3015", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3016", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3017", "tecnologia": "Amarelo pesado "}, {"veiculo": "3018", "tecnologia": "Amarelo pesado "}, {"veiculo": "3019", "tecnologia": "Amarelo pesado "}, {"veiculo": "3020", "tecnologia": "Amarelo pesado "}, {"veiculo": "3021", "tecnologia": "Amarelo pesado "}, {"veiculo": "3022", "tecnologia": "Amarelo pesado "}, {"veiculo": "3023", "tecnologia": "Amarelo pesado "}, {"veiculo": "3024", "tecnologia": "Amarelo pesado "}, {"veiculo": "3025", "tecnologia": "Amarelo pesado "}, {"veiculo": "3026", "tecnologia": "Amarelo pesado "}, {"veiculo": "3027", "tecnologia": "Amarelo pesado "}, {"veiculo": "3028", "tecnologia": "Amarelo pesado "}, {"veiculo": "3029", "tecnologia": "Amarelo pesado "}, {"veiculo": "3030", "tecnologia": "Amarelo pesado "}, {"veiculo": "3031", "tecnologia": "Amarelo pesado "}, {"veiculo": "3032", "tecnologia": "Amarelo pesado "}, {"veiculo": "3033", "tecnologia": "Amarelo pesado "}, {"veiculo": "3034", "tecnologia": "Amarelo pesado "}, {"veiculo": "3035", "tecnologia": "Amarelo pesado "}, {"veiculo": "3036", "tecnologia": "Amarelo pesado "}, {"veiculo": "3037", "tecnologia": "Amarelo pesado "}, {"veiculo": "3038", "tecnologia": "Amarelo pesado "}, {"veiculo": "3039", "tecnologia": "Amarelo pesado "}, {"veiculo": "3040", "tecnologia": "Amarelo pesado "}, {"veiculo": "3041", "tecnologia": "Amarelo pesado "}, {"veiculo": "3042", "tecnologia": "Amarelo pesado "}, {"veiculo": "3043", "tecnologia": "Amarelo pesado "}, {"veiculo": "3044", "tecnologia": "Amarelo pesado "}, {"veiculo": "3045", "tecnologia": "Amarelo pesado "}, {"veiculo": "3046", "tecnologia": "Amarelo pesado "}, {"veiculo": "3047", "tecnologia": "Amarelo pesado "}, {"veiculo": "3048", "tecnologia": "Amarelo pesado "}, {"veiculo": "3049", "tecnologia": "Amarelo pesado "}, {"veiculo": "3050", "tecnologia": "Amarelo pesado "}, {"veiculo": "3051", "tecnologia": "Amarelo pesado "}, {"veiculo": "3052", "tecnologia": "Amarelo pesado "}, {"veiculo": "3053", "tecnologia": "Amarelo pesado "}, {"veiculo": "3054", "tecnologia": "Amarelo pesado "}, {"veiculo": "3060", "tecnologia": "Amarelo leve"}, {"veiculo": "3061", "tecnologia": "Amarelo leve"}, {"veiculo": "3062", "tecnologia": "Amarelo leve"}, {"veiculo": "3063", "tecnologia": "Amarelo leve"}, {"veiculo": "3064", "tecnologia": "Amarelo leve"}, {"veiculo": "3065", "tecnologia": "Amarelo leve"}, {"veiculo": "3066", "tecnologia": "Amarelo leve"}, {"veiculo": "3067", "tecnologia": "Amarelo leve"}, {"veiculo": "3068", "tecnologia": "Amarelo leve"}, {"veiculo": "3069", "tecnologia": "Amarelo leve"}, {"veiculo": "3070", "tecnologia": "Amarelo leve"}, {"veiculo": "3071", "tecnologia": "Amarelo leve"}, {"veiculo": "3072", "tecnologia": "Amarelo leve"}, {"veiculo": "3073", "tecnologia": "Amarelo leve"}, {"veiculo": "3074", "tecnologia": "Amarelo leve"}, {"veiculo": "3075", "tecnologia": "Amarelo leve"}, {"veiculo": "3076", "tecnologia": "Amarelo leve"}, {"veiculo": "3077", "tecnologia": "Amarelo leve"}, {"veiculo": "3078", "tecnologia": "Amarelo leve"}, {"veiculo": "3079", "tecnologia": "Amarelo leve"}, {"veiculo": "3080", "tecnologia": "Amarelo leve"}, {"veiculo": "3081", "tecnologia": "Amarelo leve"}, {"veiculo": "3082", "tecnologia": "Amarelo leve"}, {"veiculo": "3083", "tecnologia": "Amarelo leve"}, {"veiculo": "3084", "tecnologia": "Amarelo leve"}, {"veiculo": "3085", "tecnologia": "Amarelo leve"}, {"veiculo": "3086", "tecnologia": "Amarelo leve"}, {"veiculo": "3087", "tecnologia": "Amarelo leve"}, {"veiculo": "3088", "tecnologia": "Amarelo leve"}, {"veiculo": "3089", "tecnologia": "Amarelo leve"}, {"veiculo": "3090", "tecnologia": "Amarelo leve"}, {"veiculo": "3091", "tecnologia": "Amarelo leve"}, {"veiculo": "3092", "tecnologia": "Amarelo leve"}, {"veiculo": "3093", "tecnologia": "Amarelo leve"}, {"veiculo": "3094", "tecnologia": "Amarelo leve"}, {"veiculo": "3095", "tecnologia": "Amarelo leve"}, {"veiculo": "3096", "tecnologia": "Amarelo leve"}, {"veiculo": "3100", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3101", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3102", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3103", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3104", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3105", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3106", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3107", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3108", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3109", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3110", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3111", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3112", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3113", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3114", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3115", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3116", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3117", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3118", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3119", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3120", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3121", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3122", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3123", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3124", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3125", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3126", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3127", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3128", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3129", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3130", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3131", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3132", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3133", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3134", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3135", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3136", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3137", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3138", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3139", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3140", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3141", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3142", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3143", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3144", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3145", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3146", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3147", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3148", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3149", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3150", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3151", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3152", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3153", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3154", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3155", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3156", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3157", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3158", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3159", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3160", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3161", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3162", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3163", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3164", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3165", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3166", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3167", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3168", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3169", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3170", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3171", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3172", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3173", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3174", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3175", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3176", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3177", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3178", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3179", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "3180", "tecnologia": "Amarelo pesado com AR"}, {"veiculo": "4501", "tecnologia": "Azul Pesado"}, {"veiculo": "4502", "tecnologia": "Azul Pesado"}, {"veiculo": "4503", "tecnologia": "Azul Pesado"}, {"veiculo": "4504", "tecnologia": "Azul Pesado"}, {"veiculo": "4505", "tecnologia": "Azul Pesado"}, {"veiculo": "4506", "tecnologia": "Azul Pesado"}, {"veiculo": "4507", "tecnologia": "Azul Pesado"}, {"veiculo": "4508", "tecnologia": "Azul Pesado"}, {"veiculo": "4509", "tecnologia": "Azul Pesado"}, {"veiculo": "4510", "tecnologia": "Azul Pesado"}, {"veiculo": "4511", "tecnologia": "Azul Pesado"}, {"veiculo": "4512", "tecnologia": "Azul Pesado"}, {"veiculo": "4514", "tecnologia": "Azul Pesado"}, {"veiculo": "4515", "tecnologia": "Azul Pesado"}, {"veiculo": "4516", "tecnologia": "Azul Pesado"}, {"veiculo": "4517", "tecnologia": "Azul Pesado"}, {"veiculo": "4518", "tecnologia": "Azul Pesado"}, {"veiculo": "4519", "tecnologia": "Azul Pesado"}, {"veiculo": "4520", "tecnologia": "Azul Pesado"}, {"veiculo": "4521", "tecnologia": "Azul Pesado"}, {"veiculo": "4522", "tecnologia": "Azul Pesado"}, {"veiculo": "4523", "tecnologia": "Azul Pesado"}, {"veiculo": "4524", "tecnologia": "Azul Pesado"}, {"veiculo": "4525", "tecnologia": "Amarelo pesado "}, {"veiculo": "4526", "tecnologia": "Azul pesado com AR"}, {"veiculo": "4527", "tecnologia": "Azul pesado com AR"}, {"veiculo": "4528", "tecnologia": "Azul pesado com AR"}, {"veiculo": "4529", "tecnologia": "Azul pesado com AR"}, {"veiculo": "4550", "tecnologia": "Azul leve"}, {"veiculo": "4551", "tecnologia": "Azul leve"}, {"veiculo": "4552", "tecnologia": "Azul leve"}, {"veiculo": "4553", "tecnologia": "Azul leve"}, {"veiculo": "4554", "tecnologia": "Azul leve"}, {"veiculo": "4555", "tecnologia": "Azul leve"}, {"veiculo": "4559", "tecnologia": "Amarelo leve"}, {"veiculo": "4601", "tecnologia": "Minionibus"}, {"veiculo": "4602", "tecnologia": "Minionibus"}, {"veiculo": "4603", "tecnologia": "Minionibus"}, {"veiculo": "4604", "tecnologia": "Minionibus"}, {"veiculo": "4605", "tecnologia": "Minionibus"}, {"veiculo": "4606", "tecnologia": "Low entry"}, {"veiculo": "4607", "tecnologia": "Low entry"}, {"veiculo": "4608", "tecnologia": "Low entry"}, {"veiculo": "4609", "tecnologia": "Low entry"}, {"veiculo": "4610", "tecnologia": "Minionibus"}, {"veiculo": "4611", "tecnologia": "Minionibus"}];
 </script>
-<script src="../assets/js/gerenciapatio-app.js?v=20260627e"></script>
+<script src="../assets/js/gerenciapatio-app.js?v=20260627f"></script>
 </body>
 </html>
