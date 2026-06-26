@@ -72,6 +72,30 @@ body {
     margin: 0 auto;
     padding: 16px 20px 28px;
 }
+.portal-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.btn-portal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blue);
+    color: #fff;
+    text-decoration: none;
+    padding: 11px 16px;
+    border-radius: 7px;
+    font-weight: 800;
+    font-size: 13px;
+    box-shadow: 0 10px 20px rgba(6, 36, 92, 0.16);
+    transition: background 0.15s ease;
+}
+.btn-portal:hover {
+    background: var(--blue2);
+}
 .toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -211,9 +235,9 @@ footer {
 </div>
 
 <div class="container">
-    <div class="portal-toolbar" style="margin-bottom:14px;">
+    <div class="portal-toolbar">
         <a href="../index.html" class="btn-portal">Portal CIOP</a>
-        <a href="gerenciapatio.html" class="btn-portal">Gerenciar Pátio</a>
+        <a href="gerenciapatio.html" class="btn-portal">Gerenciamento do Pátio</a>
     </div>
 
     <div class="escala-info">
