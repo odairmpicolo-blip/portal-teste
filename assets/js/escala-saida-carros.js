@@ -20,6 +20,7 @@ const HORA_INICIO_MAX = "07:00";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
+const CHAVES_HORARIO_INICIO = ["inicio", "horario_de_inicio", "horario_inicio", "inicio_programado"];
 
 /** Colunas oficiais — planilha + TECNOLOGIA, OBS, ALERTA. */
 const COLUNAS_PLANILHA = [
@@ -102,10 +103,18 @@ function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
   return { ok: true };
 }
 
+function extrairHorarioInicio(row) {
+  return pickCampo(row, CHAVES_HORARIO_INICIO);
+}
+
+function minutosHorarioInicio(row) {
+  return horaParaMinutos(extrairHorarioInicio(row));
+}
+
 function chaveServico(row, carroEscalado) {
   return [
-    pickCampo(row, ["work_id", "work-id", "serv"]),
-    pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio"]),
+    pickCampo(row, ["work_id", "work-id", "serv", "serv_"]),
+    extrairHorarioInicio(row),
     carroEscalado
   ].join("|");
 }
@@ -182,7 +191,7 @@ function entreHorarios(horario, minimo, maximo) {
 
 function filtrarHorarioInicio(linhas) {
   return linhas.filter((row) => {
-    const hora = pickCampo(row, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]);
+    const hora = extrairHorarioInicio(row);
     if (!hora) return true;
     return entreHorarios(hora, HORA_INICIO_MIN, HORA_INICIO_MAX);
   });
@@ -576,14 +585,15 @@ function processarLinha(row, patio, ctx) {
 }
 
 function processarEscala(linhas) {
+  const ordenadas = ordenarPorInicio(linhas);
   const patio = carregarPatio();
-  const total = linhas.length;
+  const total = ordenadas.length;
   const ctx = {
     usados: new Set(),
-    escaladosReservados: montarEscaladosReservados(linhas),
+    escaladosReservados: montarEscaladosReservados(ordenadas),
     total
   };
-  return linhas.map((row, indice) => {
+  return ordenadas.map((row, indice) => {
     const ordemFilaMax = calcularOrdemFilaMaxima(indice, total);
     return processarLinha(row, patio, { ...ctx, indice, ordemFilaMax });
   });
@@ -591,9 +601,15 @@ function processarEscala(linhas) {
 
 function ordenarPorInicio(linhas) {
   return [...linhas].sort((a, b) => {
-    const ha = horaParaMinutos(pickCampo(a, ["horario_de_inicio", "inicio"])) ?? 9999;
-    const hb = horaParaMinutos(pickCampo(b, ["horario_de_inicio", "inicio"])) ?? 9999;
-    return ha - hb;
+    const ha = minutosHorarioInicio(a) ?? 9999;
+    const hb = minutosHorarioInicio(b) ?? 9999;
+    if (ha !== hb) return ha - hb;
+    const la = normalizarLinhaServico(a);
+    const lb = normalizarLinhaServico(b);
+    if (la !== lb) return Number(la || 9999) - Number(lb || 9999);
+    const sa = pickCampo(a, ["serv", "serv_", "work_id", "work-id"]);
+    const sb = pickCampo(b, ["serv", "serv_", "work_id", "work-id"]);
+    return sa.localeCompare(sb, "pt-BR", { numeric: true });
   });
 }
 
@@ -742,7 +758,7 @@ async function carregarPlanilha() {
     const origemLabel = origem === "json" ? "cache JSON" : origem === "liberacao" ? "API liberação" : "API escalação";
     if (filtradas.length) {
       const extra = aviso ? ` — ${aviso}` : "";
-      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — início entre ${HORA_INICIO_MIN} e ${HORA_INICIO_MAX}.${extra}`, aviso ? "warn" : "ok");
+      setStatus(`${filtradas.length} linha(s) via ${origemLabel} — INÍCIO ${HORA_INICIO_MIN}–${HORA_INICIO_MAX}, ordem cronológica.${extra}`, aviso ? "warn" : "ok");
     } else if (aviso) {
       setStatus(aviso, "warn");
     } else if (planilhaPareceSemCabecalho(json.colunas)) {
@@ -763,6 +779,7 @@ async function carregarPlanilha() {
 
 function reprocessarPatio() {
   if (!state.bruto.length) return;
+  state.bruto = ordenarPorInicio(state.bruto);
   state.processado = processarEscala(state.bruto);
   atualizarResumo();
   renderTabela();
