@@ -1,11 +1,10 @@
 /**
- * Estilos exclusivos do app nativo (Capacitor).
- * Só aplicam com html.native-app — a versão web não é afetada.
+ * Shell nativo Capacitor — CSS, tema sistema e iframes legados.
  */
 
 import { Capacitor } from '@capacitor/core'
-import { StatusBar, Style } from '@capacitor/status-bar'
 import { portalAsset } from './portal-origin'
+import { watchNativeTheme } from './native-theme'
 
 const NATIVE_CSS_ID = 'portal-app-native-css'
 
@@ -32,15 +31,7 @@ export async function initNativeShell(): Promise<void> {
 
   document.documentElement.classList.add('native-app')
   injectNativeStylesheet()
-
-  try {
-    await StatusBar.setStyle({ style: Style.Dark })
-    if (Capacitor.getPlatform() === 'android') {
-      await StatusBar.setBackgroundColor({ color: '#070d18' })
-    }
-  } catch {
-    /* plugin opcional */
-  }
+  watchNativeTheme()
 }
 
 /** Aplica tema app dentro de iframes legados (mesma origem). */
@@ -48,6 +39,9 @@ export function injectLegacyNativeFrame(doc: Document): void {
   if (!isNativePlatform()) return
 
   doc.documentElement.classList.add('native-app', 'native-embedded')
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  doc.documentElement.classList.toggle('native-dark', dark)
+  doc.documentElement.classList.toggle('native-light', !dark)
 
   const viewport = doc.querySelector('meta[name="viewport"]')
   if (viewport) {
