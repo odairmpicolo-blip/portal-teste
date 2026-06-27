@@ -1,4 +1,4 @@
-/** Evita segundo Face ID logo após login manual ou com biometria na tela de login. */
+/** Evita segunda biometria logo após login manual ou com biometria na tela de login. */
 let skipUnlockOnce = false
 
 export function markBiometricSatisfied(): void {

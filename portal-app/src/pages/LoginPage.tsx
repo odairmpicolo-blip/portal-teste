@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { isBiometricAvailable, promptBiometric } from '../lib/biometric-auth'
+import { useBiometryLabels } from '../hooks/useBiometryLabels'
+import { promptBiometric } from '../lib/biometric-auth'
 import { portalAsset, isNativeApp } from '../lib/portal-origin'
 import {
   canSaveLoginLocally,
@@ -25,11 +26,11 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const native = isNativeApp()
+  const { labels, available: biometriaDisponivel } = useBiometryLabels()
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [usarFaceId, setUsarFaceId] = useState(false)
-  const [faceIdDisponivel, setFaceIdDisponivel] = useState(false)
+  const [usarBiometria, setUsarBiometria] = useState(false)
   const [temLoginSalvo, setTemLoginSalvo] = useState(false)
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
@@ -41,7 +42,7 @@ export function LoginPage() {
     setLoading(true)
     try {
       await login(emailValue, senhaValue)
-      if (native && usarFaceId && canSaveLoginLocally()) {
+      if (native && usarBiometria && canSaveLoginLocally()) {
         saveLoginLocally(emailValue, senhaValue)
       } else if (canSaveLoginLocally()) {
         clearSavedLogin()
@@ -56,29 +57,24 @@ export function LoginPage() {
     }
   }
 
-  async function entrarComFaceId() {
+  async function entrarComBiometria() {
     const saved = loadSavedLogin()
     if (!saved) {
       setErro('Nenhum acesso salvo neste aparelho. Entre com e-mail e senha.')
       return
     }
     setErro('')
-    const ok = await promptBiometric('Use Face ID para entrar no Portal CIOP')
+    const ok = await promptBiometric(labels.promptLogin)
     if (!ok) return
     await entrar(saved.email, saved.senha)
   }
-
-  useEffect(() => {
-    if (!native) return
-    void isBiometricAvailable().then(setFaceIdDisponivel)
-  }, [native])
 
   useEffect(() => {
     if (!canSaveLoginLocally()) return
     const saved = loadSavedLogin()
     if (!saved) return
     setEmail(saved.email)
-    setUsarFaceId(true)
+    setUsarBiometria(true)
     setTemLoginSalvo(true)
   }, [])
 
@@ -87,8 +83,8 @@ export function LoginPage() {
     await entrar(email, senha)
   }
 
-  function onFaceIdChange(checked: boolean) {
-    setUsarFaceId(checked)
+  function onBiometriaChange(checked: boolean) {
+    setUsarBiometria(checked)
     if (!checked) clearSavedLogin()
   }
 
@@ -119,14 +115,14 @@ export function LoginPage() {
           <span className="portal-brand-meta">TCGL · Operações</span>
         </div>
 
-        {native && temLoginSalvo && faceIdDisponivel ? (
+        {native && temLoginSalvo && biometriaDisponivel ? (
           <button
             type="button"
             className="btn-primary login-faceid-btn"
             disabled={loading}
-            onClick={() => void entrarComFaceId()}
+            onClick={() => void entrarComBiometria()}
           >
-            {loading ? 'Entrando…' : 'Entrar com Face ID'}
+            {loading ? 'Entrando…' : labels.loginButton}
           </button>
         ) : null}
 
@@ -151,14 +147,14 @@ export function LoginPage() {
           required
         />
 
-        {native && faceIdDisponivel ? (
+        {native && biometriaDisponivel ? (
           <label className="login-remember">
             <input
               type="checkbox"
-              checked={usarFaceId}
-              onChange={(e) => onFaceIdChange(e.target.checked)}
+              checked={usarBiometria}
+              onChange={(e) => onBiometriaChange(e.target.checked)}
             />
-            <span>Salvar acesso e exigir Face ID neste aparelho</span>
+            <span>{labels.saveAccessLabel}</span>
           </label>
         ) : null}
 

@@ -46,6 +46,6 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
-	<string>O Portal CIOP usa Face ID para proteger seu acesso operacional neste aparelho.</string>
+	<string>O Portal CIOP usa Face ID ou Touch ID para proteger seu acesso operacional neste aparelho.</string>
 </dict>
 </plist>

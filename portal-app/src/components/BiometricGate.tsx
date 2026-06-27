@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useBiometric } from '../context/biometric-context'
 import { useAuth } from '../hooks/useAuth'
+import { useBiometryLabels } from '../hooks/useBiometryLabels'
 import { isNativeApp } from '../lib/portal-origin'
 import { LoadingScreen } from './LoadingScreen'
 
@@ -11,10 +12,11 @@ type BiometricGateProps = {
 export function BiometricGate({ children }: BiometricGateProps) {
   const { user, loading } = useAuth()
   const { unlocked, locking, tryUnlock } = useBiometric()
+  const { labels } = useBiometryLabels()
   const native = isNativeApp()
 
   if (!native || !user) return <>{children}</>
-  if (loading || locking) return <LoadingScreen label="Verificando Face ID" />
+  if (loading || locking) return <LoadingScreen label={labels.verifyingLabel} />
 
   if (!unlocked) {
     return (
@@ -28,9 +30,9 @@ export function BiometricGate({ children }: BiometricGateProps) {
             </svg>
           </div>
           <h1>Portal CIOP</h1>
-          <p>Use Face ID para continuar</p>
+          <p>{labels.continueLabel}</p>
           <button type="button" className="btn-primary" onClick={() => void tryUnlock()}>
-            Desbloquear com Face ID
+            {labels.unlockButton}
           </button>
         </div>
       </div>

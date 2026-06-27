@@ -27,7 +27,7 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
     unlockInFlight.current = true
     setLocking(true)
     try {
-      const ok = await promptBiometric()
+      const ok = await promptBiometric(undefined)
       setUnlocked(ok)
       return ok
     } finally {
