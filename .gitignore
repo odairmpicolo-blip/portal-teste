@@ -1,6 +1,8 @@
 node_modules/
 backend/.env
 .secrets/
+dist-apk/
+dist-ipa/
 aws/incidentes-sync/.build/
 aws/incidentes-sync/incidentes-sync.zip
 assets/import/tabelas-horarias/_drive/
