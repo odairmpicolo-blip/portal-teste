@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { portalAsset } from '../lib/portal-origin'
 
 export function Header({ onMenuToggle }: { onMenuToggle: () => void }) {
   const { user, logout } = useAuth()
+  const brandSrc = portalAsset('/assets/img/titulo-portal-ciop.png')
 
   return (
     <header className="app-header">
@@ -15,9 +17,14 @@ export function Header({ onMenuToggle }: { onMenuToggle: () => void }) {
           </span>
         </button>
         <div className="brand portal-brand-mark" aria-label="Portal CIOP TCGL Operações">
-          <img className="portal-brand-art" src="/assets/img/titulo-portal-ciop.png" alt="Portal CIOP" />
+          <img className="portal-brand-art" src={brandSrc} alt="Portal CIOP" />
           <span className="portal-brand-meta">TCGL · Operações</span>
         </div>
+      </div>
+
+      <div className="header-brand-mobile portal-brand-mark" aria-hidden="true">
+        <img className="portal-brand-art" src={brandSrc} alt="" />
+        <span className="portal-brand-meta">TCGL · Operações</span>
       </div>
 
       <div className="header-right">

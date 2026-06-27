@@ -8,7 +8,23 @@ Apps **internos** (Capacitor + WebView) que abrem `https://www.portalciop.com.br
 | Android | `com.portalciop.internal` | `dist-apk/*.apk` |
 | iOS | `com.portalciop.internal` | `dist-ipa/*.ipa` ou Run no Xcode |
 
-Atualizações do portal no GitHub Pages aparecem no app **sem reinstalar** o binário.
+Atualizações do portal publicadas em **portalciop.com.br** aparecem no app **sem reinstalar** — basta fechar e abrir o app (modo URL remota, padrão).
+
+---
+
+## Atualizar no iPhone
+
+| O quê | Como |
+|-------|------|
+| Telas e dados do portal | Publicar no portal → fechar e abrir o app |
+| App expirou (~7 dias, Apple ID grátis) | `./scripts/install-ios-device.sh` |
+| Mudança no shell nativo (Capacitor) | `./scripts/install-ios-device.sh` |
+
+Modo **bundle local** (opcional, exige reinstalar a cada mudança):
+
+```bash
+CAPACITOR_BUNDLE=1 ./scripts/install-ios-device.sh
+```
 
 ---
 
@@ -23,10 +39,12 @@ Atualizações do portal no GitHub Pages aparecem no app **sem reinstalar** o bi
 - `export ANDROID_HOME="$HOME/Library/Android/sdk"`
 
 ### iOS (somente Mac)
-- [Xcode](https://developer.apple.com/xcode/) completo (App Store — **não** basta Command Line Tools)
-- Após instalar: `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`
+- [Xcode](https://developer.apple.com/xcode/) completo (App Store)
+- Se `xcode-select` apontar só para Command Line Tools, use sem `sudo`:
+  `export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`
 - [CocoaPods](https://cocoapods.org): `brew install cocoapods`
-- Conta Apple ID (grátis: instala no **seu** iPhone por ~7 dias; conta Developer paga: 1 ano + ad-hoc)
+- **Apple ID** no Xcode (Settings → Accounts) — obrigatório para iPhone físico
+- Conta grátis: ~7 dias no aparelho; Developer paga: 1 ano + ad-hoc
 
 ---
 
@@ -66,21 +84,36 @@ CAPACITOR_PORTAL_URL=https://odairmpicolo-blip.github.io/portal-teste/app/ \
 
 ## iOS — instalar no iPhone
 
-### Opção A — Xcode no aparelho (mais simples)
+### Primeira vez (assinatura — ~1 min no Xcode)
+
+O Xcode já deve estar aberto em `portal-app/ios/App/App.xcworkspace`. Se não:
 
 ```bash
-cd portal-app
-npm run cap:sync:ios
-npm run cap:open:ios
+cd portal-app && npm run cap:open:ios
 ```
 
-No Xcode:
-1. Conecte o iPhone
-2. **App** → **Signing & Capabilities** → **Team** (seu Apple ID)
-3. Selecione o iPhone como destino
-4. **Product → Run** (▶)
+1. **Xcode → Settings → Accounts** → **+** → entre com seu **Apple ID**
+2. No projeto, clique em **App** (target azul) → **Signing & Capabilities**
+3. Marque **Automatically manage signing** e escolha seu **Team**
+4. Conecte o **iPhone** (USB), desbloqueie e toque **Confiar neste computador**
+5. No iPhone: **Ajustes → Privacidade e Segurança → Modo Desenvolvedor → Ativar** (reinicia o aparelho)
+6. Instale pelo script ou Xcode:
 
-> Com Apple ID gratuito o app expira em ~7 dias; rode de novo no Xcode para renovar.
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+./scripts/install-ios-device.sh
+```
+
+Ou no Xcode: selecione o iPhone no topo → **Run (▶)**
+
+> Com Apple ID gratuito o app expira em ~7 dias; rode de novo para renovar.
+
+### Teste no simulador (Mac, sem Apple ID)
+
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+IOS_SIMULATOR="iPhone 17" ./scripts/run-ios-simulator.sh
+```
 
 ### Opção B — IPA (script)
 
