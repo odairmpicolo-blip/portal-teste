@@ -87,12 +87,14 @@
   GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
-  /**
-   * Planta da garagem TCGL (vista de cima, norte no topo).
-   * Faixa do PDF: MURO → Cor. 1–6 → Fila 1–4 (pátio principal, saída leste).
-   * Áreas oeste empilhadas: Bomba, Corujão, Caixa Dágua, Lavador, COT.
-   */
+  /** Gabarito Garagem (PDF) — vista de cima; setas = saídas. */
   const PLANTA_GARAGEM = {
+    saidas: {
+      norte: "Norte · Messias Wilmar de Souza",
+      oeste: "Oeste · José Dias Aro",
+      sul: "Sul · Tietê",
+      leste: "Leste · Duque de Caxias"
+    },
     faixaPrincipal: [
       { key: "muro", label: "MURO" },
       { key: "corredor_c1", label: "Cor. 1" },
@@ -108,20 +110,20 @@
     ],
     oeste: [
       { key: "bomba", label: "Bomba" },
-      { key: "corujao", label: "Corujão" },
+      { key: "corujao", label: "Corujão" }
+    ],
+    centro: [
       { key: "caixa_dagua", label: "Caixa Dágua" },
       { key: "latavador_f1", label: "Lavador" },
       { key: "cot", label: "COT" }
     ],
-    oficinaPesados: [
+    operacao: [
       { key: "oficina_f1", label: "Ofic. F1" },
       { key: "oficina_f2", label: "Ofic. F2" },
       { key: "pesados_f1", label: "Pes. F1" },
       { key: "pesados_f2", label: "Pes. F2" },
       { key: "pesados_f3", label: "Pes. F3" },
-      { key: "pesados_f4", label: "Pes. F4" }
-    ],
-    bloqueados: [
+      { key: "pesados_f4", label: "Pes. F4" },
       { key: "bloqueados_oficina", label: "Bloq. oficina" },
       { key: "reforma", label: "Reforma" }
     ]
@@ -495,14 +497,14 @@
 
     const saidaNorte = document.createElement("div");
     saidaNorte.className = "garagem-saida garagem-saida-norte";
-    saidaNorte.innerHTML = '<span class="garagem-saida-icone" aria-hidden="true">↑</span> Saída Norte · R. Messias W. de Souza';
+    saidaNorte.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">↑</span> ${PLANTA_GARAGEM.saidas.norte}`;
 
     const corpo = document.createElement("div");
     corpo.className = "garagem-corpo";
 
     const saidaOeste = document.createElement("div");
     saidaOeste.className = "garagem-saida garagem-saida-oeste";
-    saidaOeste.innerHTML = '<span class="garagem-saida-icone" aria-hidden="true">←</span><span>Saída Oeste<small>R. José Dias Aro</small></span>';
+    saidaOeste.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">←</span><span>Oeste<small>José Dias Aro</small></span>`;
 
     const patioVisual = document.createElement("div");
     patioVisual.className = "garagem-patio";
@@ -523,30 +525,35 @@
       stackOeste.appendChild(linha);
     });
 
-    const direita = document.createElement("div");
-    direita.className = "garagem-direita";
-    direita.appendChild(
-      montarLinhaColunas(PLANTA_GARAGEM.oficinaPesados, "garagem-linha-oficina")
-    );
-    direita.appendChild(
-      montarLinhaColunas(PLANTA_GARAGEM.bloqueados, "garagem-linha-bloq")
+    const centro = document.createElement("div");
+    centro.className = "garagem-centro";
+    centro.appendChild(
+      montarLinhaColunas(PLANTA_GARAGEM.centro, "garagem-linha-centro")
     );
 
-    meio.append(stackOeste, direita);
+    meio.append(stackOeste, centro);
     patioVisual.appendChild(meio);
 
     const saidaLeste = document.createElement("div");
     saidaLeste.className = "garagem-saida garagem-saida-leste";
-    saidaLeste.innerHTML = '<span>Saída Leste<small>Av. Duque de Caxias</small></span><span class="garagem-saida-icone" aria-hidden="true">→</span>';
+    saidaLeste.innerHTML = `<span>Leste<small>Duque de Caxias</small></span><span class="garagem-saida-icone" aria-hidden="true">→</span>`;
 
     corpo.append(saidaOeste, patioVisual, saidaLeste);
 
     const saidaSur = document.createElement("div");
     saidaSur.className = "garagem-saida garagem-saida-sur";
-    saidaSur.textContent = "R. Tietê";
+    saidaSur.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">↓</span> ${PLANTA_GARAGEM.saidas.sul}`;
 
     planta.append(saidaNorte, corpo, saidaSur);
     mapa.appendChild(planta);
+
+    const operacao = document.createElement("section");
+    operacao.className = "garagem-operacao";
+    operacao.innerHTML = "<h3 class=\"garagem-operacao-titulo\">Oficina, pesados e bloqueados</h3>";
+    operacao.appendChild(
+      montarLinhaColunas(PLANTA_GARAGEM.operacao, "garagem-linha-operacao")
+    );
+    mapa.appendChild(operacao);
 
     mapa.querySelectorAll(".garagem-col-head").forEach((btn) => {
       btn.addEventListener("click", () => {
