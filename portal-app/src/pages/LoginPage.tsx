@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { isBiometricAvailable, promptBiometric } from '../lib/biometric-auth'
 import { portalAsset, isNativeApp } from '../lib/portal-origin'
 import {
   canSaveLoginLocally,
@@ -8,6 +9,7 @@ import {
   loadSavedLogin,
   saveLoginLocally,
 } from '../lib/saved-login'
+import { markBiometricSatisfied } from '../lib/biometric-session'
 
 function mensagemErro(code: string, message: string): string {
   if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
@@ -23,11 +25,12 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const native = isNativeApp()
-  const autoLoginStarted = useRef(false)
 
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
-  const [lembrar, setLembrar] = useState(native && canSaveLoginLocally())
+  const [usarFaceId, setUsarFaceId] = useState(false)
+  const [faceIdDisponivel, setFaceIdDisponivel] = useState(false)
+  const [temLoginSalvo, setTemLoginSalvo] = useState(false)
   const [erro, setErro] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -38,11 +41,12 @@ export function LoginPage() {
     setLoading(true)
     try {
       await login(emailValue, senhaValue)
-      if (native && lembrar && canSaveLoginLocally()) {
+      if (native && usarFaceId && canSaveLoginLocally()) {
         saveLoginLocally(emailValue, senhaValue)
       } else if (canSaveLoginLocally()) {
         clearSavedLogin()
       }
+      markBiometricSatisfied()
       navigate(destino, { replace: true })
     } catch (error) {
       const err = error as { code?: string; message?: string }
@@ -52,30 +56,39 @@ export function LoginPage() {
     }
   }
 
+  async function entrarComFaceId() {
+    const saved = loadSavedLogin()
+    if (!saved) {
+      setErro('Nenhum acesso salvo neste aparelho. Entre com e-mail e senha.')
+      return
+    }
+    setErro('')
+    const ok = await promptBiometric('Use Face ID para entrar no Portal CIOP')
+    if (!ok) return
+    await entrar(saved.email, saved.senha)
+  }
+
+  useEffect(() => {
+    if (!native) return
+    void isBiometricAvailable().then(setFaceIdDisponivel)
+  }, [native])
+
   useEffect(() => {
     if (!canSaveLoginLocally()) return
     const saved = loadSavedLogin()
     if (!saved) return
     setEmail(saved.email)
-    setSenha(saved.senha)
-    setLembrar(true)
+    setUsarFaceId(true)
+    setTemLoginSalvo(true)
   }, [])
-
-  useEffect(() => {
-    if (!native || !lembrar || !email || !senha || autoLoginStarted.current) return
-    autoLoginStarted.current = true
-    void entrar(email, senha)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-login once on mount
-  }, [native, lembrar, email, senha])
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
-    autoLoginStarted.current = true
     await entrar(email, senha)
   }
 
-  function onLembrarChange(checked: boolean) {
-    setLembrar(checked)
+  function onFaceIdChange(checked: boolean) {
+    setUsarFaceId(checked)
     if (!checked) clearSavedLogin()
   }
 
@@ -106,6 +119,17 @@ export function LoginPage() {
           <span className="portal-brand-meta">TCGL · Operações</span>
         </div>
 
+        {native && temLoginSalvo && faceIdDisponivel ? (
+          <button
+            type="button"
+            className="btn-primary login-faceid-btn"
+            disabled={loading}
+            onClick={() => void entrarComFaceId()}
+          >
+            {loading ? 'Entrando…' : 'Entrar com Face ID'}
+          </button>
+        ) : null}
+
         <label htmlFor="email">E-mail</label>
         <input
           id="email"
@@ -121,27 +145,27 @@ export function LoginPage() {
         <input
           id="senha"
           type="password"
-          autoComplete={native ? 'current-password' : 'current-password'}
+          autoComplete="current-password"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           required
         />
 
-        {native ? (
+        {native && faceIdDisponivel ? (
           <label className="login-remember">
             <input
               type="checkbox"
-              checked={lembrar}
-              onChange={(e) => onLembrarChange(e.target.checked)}
+              checked={usarFaceId}
+              onChange={(e) => onFaceIdChange(e.target.checked)}
             />
-            <span>Lembrar login neste aparelho</span>
+            <span>Salvar acesso e exigir Face ID neste aparelho</span>
           </label>
         ) : null}
 
         {erro ? <p className="login-error" role="alert">{erro}</p> : null}
 
         <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Entrando…' : 'Entrar'}
+          {loading ? 'Entrando…' : 'Entrar com senha'}
         </button>
 
         <button type="button" className="btn-link" onClick={() => void onReset()}>

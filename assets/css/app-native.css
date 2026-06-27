@@ -693,6 +693,60 @@ html.native-app .login-remember input {
   accent-color: var(--app-accent);
 }
 
+html.native-app .login-faceid-btn {
+  margin-bottom: 4px;
+}
+
+html.native-app .biometric-lock-page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding:
+    calc(20px + var(--safe-top))
+    calc(16px + var(--safe-right))
+    calc(20px + var(--safe-bottom) + var(--app-nav-h))
+    calc(16px + var(--safe-left));
+}
+
+html.native-app .biometric-lock-card {
+  width: min(320px, 100%);
+  padding: 28px 22px;
+  border-radius: var(--app-glass-radius);
+  text-align: center;
+  display: grid;
+  gap: 12px;
+}
+
+html.native-app .biometric-lock-card h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--app-text);
+}
+
+html.native-app .biometric-lock-card p {
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.9rem;
+}
+
+html.native-app .biometric-lock-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border-radius: 16px;
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  border: 1px solid var(--app-glass-border);
+}
+
+html.native-app .biometric-lock-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
 html.native-app .btn-primary {
   background: linear-gradient(135deg, var(--app-accent), color-mix(in srgb, var(--app-accent-2) 40%, var(--app-accent)));
   box-shadow: 0 8px 24px var(--app-glow);

@@ -1,4 +1,6 @@
 PODS:
+  - AparajitaCapacitorBiometricAuth (9.1.2):
+    - Capacitor
   - Capacitor (7.6.7):
     - CapacitorCordova
   - CapacitorApp (7.1.2):
@@ -10,6 +12,7 @@ PODS:
     - Capacitor
 
 DEPENDENCIES:
+  - "AparajitaCapacitorBiometricAuth (from `../../node_modules/@aparajita/capacitor-biometric-auth`)"
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
@@ -17,6 +20,8 @@ DEPENDENCIES:
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
 
 EXTERNAL SOURCES:
+  AparajitaCapacitorBiometricAuth:
+    :path: "../../node_modules/@aparajita/capacitor-biometric-auth"
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorApp:
@@ -29,12 +34,13 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/status-bar"
 
 SPEC CHECKSUMS:
+  AparajitaCapacitorBiometricAuth: c7edb43d80486150b81224d3ff7e950b37a3c2f1
   Capacitor: 8ef25ba872436d2c5ac2a4791f7255529bdcd93b
   CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
   CapacitorCordova: 139e2ed3d91c54b5aeae7941135c9f9aefc6da1d
   CapacitorSplashScreen: 409eeaaeac603d264f209c0fcb718aa22fe1f7bb
   CapacitorStatusBar: 416e9e53fd6397e668d4a181cd2131617d949bd6
 
-PODFILE CHECKSUM: 4021bb844f4ff58f5c7f8076ca63cec2d85c10be
+PODFILE CHECKSUM: d428e2a7be91ead3bfe632e1d677108b3844be03
 
 COCOAPODS: 1.16.2
