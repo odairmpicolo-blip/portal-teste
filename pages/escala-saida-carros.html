@@ -390,7 +390,7 @@ body {
         <div class="table-head">
             <div>
                 <h2 class="card-title">Saída de carros</h2>
-                <div class="table-sub">Planilha × pátio — início 04:10–07:00 · saída livre: Oficina/Lavador/Mistos/Pesados Fila 1, Corredor 1–6, COT, Muro, Bomba · demais filas (2→3→4) conforme esvazia a anterior · Corujão após 06:00</div>
+                <div class="table-sub">Planilha × pátio — processamento cronológico por INÍCIO (04:10–07:00): 1º horário mais cedo, depois o seguinte · escalado livre usa o CARRO · indisponível: mesma tecnologia+cor → mesma tecnologia/outra cor → mesma cor/outra tecnologia → melhor livre · cada saída retira do pátio e libera fila seguinte (1→2→3→4)</div>
             </div>
         </div>
         <div class="table-wrap">
@@ -405,7 +405,7 @@ body {
             <span class="legend-item"><span class="legend-swatch subst"></span>Substituição</span>
             <span class="legend-item"><span class="legend-swatch troca-cor"></span>Troca de cor</span>
             <span class="legend-item"><span class="legend-swatch alerta"></span>F. CARRO após limite (pedido 10:45 · SUPER BUS 15:00)</span>
-            <span class="legend-item" style="font-size:11px;color:var(--muted)">Cronológico por INÍCIO — cada saída simula retirada do pátio e libera fila seguinte (1→2→3→4) · troca em SUBST</span>
+            <span class="legend-item" style="font-size:11px;color:var(--muted)">Ordem: INÍCIO crescente (04h→07h) · substituto: tech+cor → tech → cor → livre · filas 1→2→3→4 · Corujão após 06:00 · troca em SUBST</span>
         </div>
     </section>
 </main>

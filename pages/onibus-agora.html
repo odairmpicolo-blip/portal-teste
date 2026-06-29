@@ -1,7 +1,15 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<script>
+(function(){
+  var embed = new URLSearchParams(location.search).get("embed") === "native-app";
+  try {
+    if (!embed && window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) embed = true;
+  } catch (e) {}
+  if (!embed) document.documentElement.classList.add("portal-auth-pending");
+})();
+</script>
 <style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){visibility:hidden!important}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -406,6 +414,8 @@ body.oa-native-mode .oa-bottom-pont{
   try {
     if (new URLSearchParams(location.search).get("embed") === "native-app") {
       document.documentElement.classList.add("native-app", "native-embedded");
+      document.documentElement.classList.remove("portal-auth-pending");
+      document.getElementById("portalAuthBootStyle")?.remove();
     }
     if (window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) {
       document.documentElement.classList.add("native-app", "native-embedded");

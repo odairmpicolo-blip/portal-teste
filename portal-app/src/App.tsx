@@ -21,8 +21,8 @@ export default function App() {
   return (
     <AuthProvider>
       <AppPreferencesProvider>
-        <BiometricProvider>
         <BrowserRouter basename="/app">
+        <BiometricProvider>
           <SpaRedirect />
           <Routes>
             <Route element={<PublicOnlyRoute />}>
@@ -46,8 +46,8 @@ export default function App() {
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
         </BiometricProvider>
+        </BrowserRouter>
       </AppPreferencesProvider>
     </AuthProvider>
   )

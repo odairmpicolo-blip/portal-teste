@@ -356,83 +356,91 @@ function listarCandidatosPorOrdemFila(tecnologia, patio, frota, base) {
   return resultado;
 }
 
-function listarAlternativasPorOrdemFila(patio, base, perfilEsc, carroEscalado) {
-  const opcoes = [];
-  const vistos = new Set();
+function perfilCombinaMesmaTechOutraCor(perfilCand, perfilEsc) {
+  if (!perfilEsc.resto || !perfilEsc.cor) return false;
+  if (perfilCand.resto !== perfilEsc.resto) return false;
+  if (!perfilCand.cor) return false;
+  return perfilCand.cor !== perfilEsc.cor;
+}
 
-  const incluirOrdem = (ordem, meta, filtroPrefixo) => {
-    const cands = listarCandidatosSubstituto(perfilEsc.completo || "", patio, frota, {
+function perfilCombinaMesmaCorOutraTech(perfilCand, perfilEsc) {
+  if (!perfilEsc.cor) return false;
+  if (perfilCand.cor !== perfilEsc.cor) return false;
+  return perfilCand.resto !== perfilEsc.resto;
+}
+
+/** Carros livres Fila 1 → 2 → 3 → 4 com filtro de perfil (tecnologia/cor). */
+function listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtroPerfil) {
+  const resultado = [];
+  const vistos = new Set();
+  for (const ordem of ORDENS_FILA_ESCALA) {
+    const lista = listarCandidatosSubstituto("", patio, frota, {
       ...base,
       ordemFilaAlvo: ordem,
       incluirOutrasTecnologias: true,
-      filtroPrefixo
+      filtroPrefixo: (prefixo) => filtroPerfil(obterPerfilTecnologia(prefixo, frota), prefixo)
     });
-    cands.forEach((c) => {
+    lista.forEach((c) => {
       if (vistos.has(c.prefixo)) return;
       vistos.add(c.prefixo);
-      opcoes.push(montarOpcaoCarro(c, perfilEsc, carroEscalado, meta));
+      resultado.push(c);
     });
-  };
-
-  for (const ordem of ORDENS_FILA_ESCALA) {
-    if (perfilEsc.cor) {
-      incluirOrdem(
-        ordem,
-        { mudancaTecnologia: true, mudancaCor: false, semMesmaTecnologia: true },
-        (prefixo) => {
-          const perfil = obterPerfilTecnologia(prefixo, frota);
-          return perfil.cor === perfilEsc.cor && perfil.resto !== perfilEsc.resto;
-        }
-      );
-    }
-    if (perfilEsc.cor && perfilEsc.resto) {
-      incluirOrdem(
-        ordem,
-        { mudancaTecnologia: false, mudancaCor: true, semMesmaTecnologia: true },
-        (prefixo) => {
-          const perfil = obterPerfilTecnologia(prefixo, frota);
-          return perfil.resto === perfilEsc.resto && perfil.cor && perfil.cor !== perfilEsc.cor;
-        }
-      );
-    }
-    incluirOrdem(
-      ordem,
-      { semMesmaTecnologia: true },
-      (prefixo) => {
-        if (!perfilEsc.completo) return true;
-        const tech = normalizarTecnologia(obterTecnologia(prefixo, frota));
-        return tech !== perfilEsc.completo;
-      }
-    );
-    if (opcoes.length >= MAX_OPCOES_CARRO) break;
+    if (resultado.length >= MAX_OPCOES_CARRO) break;
   }
-
-  return opcoes.slice(0, MAX_OPCOES_CARRO);
+  return resultado.slice(0, MAX_OPCOES_CARRO);
 }
+
+const ROTULOS_BUSCA_SUBSTITUTO = {
+  mesma_tech_cor: "mesma tecnologia e cor",
+  mesma_tech_outra_cor: "mesma tecnologia, outra cor",
+  mesma_cor_outra_tech: "mesma cor, outra tecnologia",
+  melhor_livre: "melhor veículo livre"
+};
 
 function buscarSubstitutoParaHorario(patio, ctx, carroEscalado, linhaNorm) {
   const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
   const base = opcoesCarroLivre(ctx, carroEscalado, linhaNorm);
 
-  const mesmaTechCands = listarCandidatosPorOrdemFila(perfilEsc.completo, patio, frota, base);
-  if (mesmaTechCands.length) {
-    const opcoes = candidatosParaOpcoes(mesmaTechCands, perfilEsc, carroEscalado, {
-      mudancaTecnologia: false,
-      mudancaCor: false,
-      semMesmaTecnologia: false
-    }).slice(0, MAX_OPCOES_CARRO);
-    return {
-      tipo: "mesma_tech",
-      opcoes
-    };
-  }
+  const etapas = [
+    {
+      tipo: "mesma_tech_cor",
+      meta: { mudancaTecnologia: false, mudancaCor: false, semMesmaTecnologia: false },
+      buscar: () =>
+        perfilEsc.completo
+          ? listarCandidatosPorOrdemFila(perfilEsc.completo, patio, frota, base)
+          : []
+    },
+    {
+      tipo: "mesma_tech_outra_cor",
+      meta: { mudancaTecnologia: false, mudancaCor: true, semMesmaTecnologia: false },
+      buscar: () =>
+        listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, (perfil) =>
+          perfilCombinaMesmaTechOutraCor(perfil, perfilEsc)
+        )
+    },
+    {
+      tipo: "mesma_cor_outra_tech",
+      meta: { mudancaTecnologia: true, mudancaCor: false, semMesmaTecnologia: true },
+      buscar: () =>
+        listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, (perfil) =>
+          perfilCombinaMesmaCorOutraTech(perfil, perfilEsc)
+        )
+    },
+    {
+      tipo: "melhor_livre",
+      meta: { semMesmaTecnologia: true },
+      buscar: () => listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, () => true)
+    }
+  ];
 
-  const alternativas = listarAlternativasPorOrdemFila(patio, base, perfilEsc, carroEscalado);
-  if (alternativas.length) {
-    return {
-      tipo: "alternativa",
-      opcoes: alternativas
-    };
+  for (const etapa of etapas) {
+    const cands = etapa.buscar();
+    if (!cands.length) continue;
+    const opcoes = candidatosParaOpcoes(cands, perfilEsc, carroEscalado, etapa.meta).slice(
+      0,
+      MAX_OPCOES_CARRO
+    );
+    return { tipo: etapa.tipo, opcoes };
   }
 
   return null;
@@ -567,12 +575,13 @@ function processarLinha(row, patio, ctx) {
         flags.mudancaCor = aplicado._mudanca_cor;
         flags.aceitePendente = aplicado._aceite_pendente;
 
-        if (busca.tipo === "alternativa") {
-          alertas.push(`Troca: ${opcoesCarro.length} veículo(s) livre(s) — escolha em SUBST.`);
-        } else {
+        if (busca.tipo === "mesma_tech_cor") {
           alertas.push(
-            `Troca: ${opcoesCarro.length} veículo(s) livre(s) (mesma tecnologia) — escolha em SUBST.`
+            `Troca (${ROTULOS_BUSCA_SUBSTITUTO.mesma_tech_cor}): ${opcoesCarro.length} opção(ões) em SUBST.`
           );
+        } else {
+          const rotulo = ROTULOS_BUSCA_SUBSTITUTO[busca.tipo] || "substituto";
+          alertas.push(`Troca (${rotulo}): ${opcoesCarro.length} opção(ões) — escolha em SUBST.`);
         }
       } else {
         alertas.push(

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Header } from './Header'
 import { MobileTabBar } from './MobileTabBar'
+import { SharedBusFrame } from './SharedBusFrame'
 import { NoticeModal } from './NoticeModal'
 import { Sidebar } from './Sidebar'
 import { PortalShellContext } from '../context/portal-shell-context'
@@ -56,7 +57,7 @@ export function AppLayout() {
         >
           {tracking ? null : <Header onMenuToggle={toggleSidebar} native={native} home={native && (inHome || inAjustes)} />}
           <main className="app-content">
-            <Outlet />
+            {tracking ? <SharedBusFrame horarios={inHorarios} /> : <Outlet />}
           </main>
           {!native ? (
             <footer className="app-footer portal-site-footer">

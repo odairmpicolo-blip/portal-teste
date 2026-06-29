@@ -1,5 +1,6 @@
 import { App } from '@capacitor/app'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   isBiometricAvailable,
   preloadBiometricAuth,
@@ -18,7 +19,9 @@ import { BiometricContext, type BiometricContextValue } from './biometric-contex
 
 export function BiometricProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const { pathname } = useLocation()
   const native = useNativeApp()
+  const userEmail = user?.email ?? null
   const { biometricEnabled, setBiometricEnabled } = useAppPreferences()
   const [unlocked, setUnlocked] = useState(() => !native)
   const [locking, setLocking] = useState(false)
@@ -72,7 +75,7 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
       setUnlocked(true)
       return
     }
-    if (!user) {
+    if (!userEmail) {
       setUnlocked(false)
       return
     }
@@ -81,16 +84,21 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
       return
     }
     setUnlocked(false)
-  }, [native, user, biometricEnabled])
+  }, [native, userEmail, biometricEnabled])
 
   useEffect(() => {
-    if (!native || !user || !biometricEnabled) return
+    if (!native || !biometricEnabled || !userEmail) return
+    if (isBiometricSessionValid()) setUnlocked(true)
+  }, [pathname, native, biometricEnabled, userEmail])
+
+  useEffect(() => {
+    if (!native || !userEmail || !biometricEnabled) return
     let removed = false
     let handle: { remove: () => Promise<void> } | undefined
 
     void App.addListener('appStateChange', ({ isActive }) => {
       if (!isActive) return
-      if (!user) return
+      if (!userEmail) return
       if (isBiometricSessionValid()) {
         setUnlocked(true)
         return
@@ -108,7 +116,7 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
       removed = true
       void handle?.remove()
     }
-  }, [native, user, biometricEnabled])
+  }, [native, userEmail, biometricEnabled])
 
   const value = useMemo<BiometricContextValue>(
     () => ({
