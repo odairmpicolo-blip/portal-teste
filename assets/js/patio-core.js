@@ -5,49 +5,39 @@ export const HORA_MINIMA_CORUJAO = "06:00";
 
 export const GRUPOS_PATIO = [
   {
-    id: "oficina",
-    titulo: "Oficina",
+    id: "pesados",
+    titulo: "Carros Pesados",
     filas: [
-      { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-      { key: "oficina_f2", label: "Fila 2", ordem: 2 }
+      { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 21 },
+      { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 21 },
+      { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 22 },
+      { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 23 }
     ]
-  },
-  {
-    id: "latavador",
-    titulo: "Lavador",
-    filas: [{ key: "latavador_f1", label: "Fila 1", ordem: 1, saidaLivre: true }]
   },
   {
     id: "mistos",
     titulo: "Carros mistos",
     filas: [
-      { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-      { key: "mistos_f2", label: "Fila 2", ordem: 2 },
-      { key: "mistos_f3", label: "Fila 3", ordem: 3 },
-      { key: "mistos_f4", label: "Fila 4", ordem: 4 }
+      { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
+      { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+      { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 15 },
+      { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 15 }
     ]
   },
   {
-    id: "pesados",
-    titulo: "Carros Pesados",
+    id: "leves",
+    titulo: "Carros leves",
     filas: [
-      { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-      { key: "pesados_f2", label: "Fila 2", ordem: 2 },
-      { key: "pesados_f3", label: "Fila 3", ordem: 3 },
-      { key: "pesados_f4", label: "Fila 4", ordem: 4 }
+      { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 19 },
+      { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+      { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 7 },
+      { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 5 }
     ]
   },
   {
-    id: "corredor",
-    titulo: "Corredor",
-    filas: [
-      { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
-      { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
-      { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
-      { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
-      { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
-      { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
-    ]
+    id: "latavador",
+    titulo: "Lavador",
+    filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
   },
   {
     id: "cot",
@@ -60,19 +50,25 @@ export const GRUPOS_PATIO = [
     filas: [
       { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
       { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO },
-      { key: "caixa_dagua", label: "Caixa Dágua", ordem: 1, saidaLivre: true }
+      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
     ]
   }
 ];
 
 export const GRUPO_BLOQUEADOS = {
   id: "bloqueados",
-  titulo: "Carros bloqueados",
+  titulo: "Bloqueados",
   filas: [
-    { key: "bloqueados_oficina", label: "Bloq. oficina", bloqueado: true },
-    { key: "reforma", label: "Reforma", bloqueado: true }
+    { key: "reforma", label: "Reforma", bloqueado: true },
+    { key: "oficina", label: "Oficina", bloqueado: true }
   ]
+};
+
+/** Vagas bloqueadas por padrão (índice 0 = 1ª vaga). */
+export const BLOQUEIO_VAGAS_PADRAO = {
+  pesados_f1: [0],
+  pesados_f3: Array.from({ length: 22 }, (_, i) => i),
+  pesados_f4: Array.from({ length: 23 }, (_, i) => i)
 };
 
 const TODAS_FILAS = [
@@ -88,26 +84,20 @@ GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS
 
 /** Filas com saída livre — sem depender de fila anterior no grupo. */
 export const FILAS_SAIDA_LIVRE = new Set([
-  "oficina_f1",
   "latavador_f1",
   "mistos_f1",
   "pesados_f1",
-  "corredor_c1",
-  "corredor_c2",
-  "corredor_c3",
-  "corredor_c4",
-  "corredor_c5",
-  "corredor_c6",
+  "leves_f1",
   "cot",
   "muro",
-  "bomba",
-  "caixa_dagua"
+  "bomba"
 ]);
 
-/** Carros em bloqueio (bloq. oficina / reforma) não entram na escalação. */
+/** Carros em bloqueio (reforma / oficina) não entram na escalação. */
 const FILAS_NAO_UTILIZAVEIS = new Set([
-  "bloqueados_oficina",
-  "reforma"
+  "reforma",
+  "oficina",
+  "bloqueados_oficina"
 ]);
 
 export const ORDEM_MAXIMA_FILAS_SEQUENCIAIS = 4;
@@ -133,41 +123,134 @@ export function obterOrdemFilaSaida(filaKey) {
   return cfg.ordem || 1;
 }
 
+export function obterCapacidadeFila(filaKey) {
+  return FILA_MAP[filaKey]?.capacidade || 0;
+}
+
+export function filaUsaGradeVagas(filaKey) {
+  return obterCapacidadeFila(filaKey) > 0;
+}
+
+export function criarBloqueioVagasPadrao() {
+  const bloqueio = {};
+  Object.entries(BLOQUEIO_VAGAS_PADRAO).forEach(([key, indices]) => {
+    bloqueio[key] = [...indices];
+  });
+  return bloqueio;
+}
+
+function criarGradeVazia(filaKey) {
+  const cap = obterCapacidadeFila(filaKey);
+  return cap > 0 ? Array(cap).fill(null) : [];
+}
+
 function criarFilasVazias() {
   const filas = {};
-  TODAS_FILAS.forEach((f) => { filas[f.key] = []; });
+  TODAS_FILAS.forEach((f) => { filas[f.key] = criarGradeVazia(f.key); });
   return filas;
 }
 
+function normalizarListaCarros(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.filter((p) => p != null && String(p).trim() !== "");
+}
+
+function mapChaveFilaLegado(key) {
+  if (key.startsWith("corredor_") || key === "caixa_dagua") return "mistos_f1";
+  if (key === "oficina_f1" || key === "oficina_f2" || key === "bloqueados_oficina") return "oficina";
+  return key;
+}
+
+function colocarCarrosNaGrade(filas, bloqueioVagas, filaKey, carros) {
+  const cap = obterCapacidadeFila(filaKey);
+  if (!cap) {
+    filas[filaKey] = [...carros];
+    return;
+  }
+  const bloqueadas = new Set(bloqueioVagas[filaKey] || []);
+  const grade = criarGradeVazia(filaKey);
+  let cursor = 0;
+  carros.forEach((prefixo) => {
+    while (cursor < cap && (bloqueadas.has(cursor) || grade[cursor])) cursor += 1;
+    if (cursor >= cap) return;
+    grade[cursor] = String(prefixo);
+    cursor += 1;
+  });
+  filas[filaKey] = grade;
+}
+
+
 function migrarEstado(raw) {
-  if (raw?.versao === 3 && raw.filas) {
+  const pedidos = Array.isArray(raw?.pedidos) ? raw.pedidos : (raw?.rpl || []);
+  const analisados = Array.isArray(raw?.analisados) ? raw.analisados : [];
+
+  if (raw?.versao === 4 && raw.filas) {
     const filas = criarFilasVazias();
+    const bloqueioVagas = criarBloqueioVagasPadrao();
     Object.keys(filas).forEach((k) => {
-      if (Array.isArray(raw.filas[k])) filas[k] = raw.filas[k];
+      if (!Array.isArray(raw.filas[k])) return;
+      if (filaUsaGradeVagas(k)) {
+        bloqueioVagas[k] = Array.isArray(raw.bloqueioVagas?.[k])
+          ? [...raw.bloqueioVagas[k]]
+          : [...(BLOQUEIO_VAGAS_PADRAO[k] || [])];
+        colocarCarrosNaGrade(filas, bloqueioVagas, k, normalizarListaCarros(raw.filas[k]));
+      } else {
+        filas[k] = normalizarListaCarros(raw.filas[k]);
+      }
     });
-    return {
-      versao: 3,
-      filas,
-      analisados: Array.isArray(raw.analisados) ? raw.analisados : [],
-      pedidos: Array.isArray(raw.pedidos) ? raw.pedidos : (raw.rpl || [])
-    };
+    return { versao: 4, filas, bloqueioVagas, analisados, pedidos };
   }
-  if (raw && !raw.versao) {
-    const filas = criarFilasVazias();
-    filas.muro = raw.filaMuro || [];
-    filas.mistos_f1 = raw.fila1 || [];
-    filas.mistos_f2 = raw.fila2 || [];
-    filas.mistos_f3 = raw.fila3 || [];
-    filas.mistos_f4 = raw.fila4 || [];
-    filas.oficina_f1 = raw.oficina || [];
-    return {
-      versao: 3,
-      filas,
-      analisados: raw.analisados || [],
-      pedidos: raw.rpl || []
-    };
+
+  const legado = {};
+  if (raw?.versao === 3 && raw.filas) {
+    Object.entries(raw.filas).forEach(([k, v]) => { legado[k] = normalizarListaCarros(v); });
+  } else if (raw && !raw.versao) {
+    legado.muro = raw.filaMuro || [];
+    legado.mistos_f1 = raw.fila1 || [];
+    legado.mistos_f2 = raw.fila2 || [];
+    legado.mistos_f3 = raw.fila3 || [];
+    legado.mistos_f4 = raw.fila4 || [];
+    legado.oficina_f1 = raw.oficina || [];
   }
-  return { versao: 3, filas: criarFilasVazias(), analisados: [], pedidos: [] };
+
+  const filas = criarFilasVazias();
+  const bloqueioVagas = criarBloqueioVagasPadrao();
+  const acumulado = {};
+
+  Object.entries(legado).forEach(([key, lista]) => {
+    const dest = mapChaveFilaLegado(key);
+    if (!acumulado[dest]) acumulado[dest] = [];
+    acumulado[dest].push(...lista);
+  });
+
+  Object.entries(acumulado).forEach(([filaKey, carros]) => {
+    if (!filas[filaKey]) return;
+    colocarCarrosNaGrade(filas, bloqueioVagas, filaKey, carros);
+  });
+
+  return { versao: 4, filas, bloqueioVagas, analisados, pedidos };
+}
+
+export function obterBloqueioVagas(patio, filaKey) {
+  return patio.bloqueioVagas?.[filaKey] || BLOQUEIO_VAGAS_PADRAO[filaKey] || [];
+}
+
+export function ehVagaBloqueada(patio, filaKey, indice) {
+  return obterBloqueioVagas(patio, filaKey).includes(indice);
+}
+
+export function iterarCarrosNaFila(patio, filaKey) {
+  const lista = patio.filas?.[filaKey] || [];
+  const resultado = [];
+  lista.forEach((item, indice) => {
+    if (item == null || String(item).trim() === "") return;
+    resultado.push({ prefixo: String(item), indice });
+  });
+  return resultado;
+}
+
+export function contarCarrosNaFila(patio, filaKey) {
+  return iterarCarrosNaFila(patio, filaKey).length;
 }
 
 export function carregarPatio() {
@@ -178,10 +261,15 @@ export function carregarPatio() {
 
 /** Cópia mutável do pátio para simular saídas durante a escalação. */
 export function clonarPatio(patio) {
+  const bloqueioBase = patio.bloqueioVagas || criarBloqueioVagasPadrao();
   return {
     ...patio,
+    versao: 4,
     filas: Object.fromEntries(
       Object.entries(patio.filas).map(([key, lista]) => [key, [...lista]])
+    ),
+    bloqueioVagas: Object.fromEntries(
+      Object.entries(bloqueioBase).map(([key, lista]) => [key, [...lista]])
     ),
     pedidos: [...(patio.pedidos || [])],
     analisados: [...(patio.analisados || [])]
@@ -193,7 +281,11 @@ export function registrarSaidaVeiculo(prefixo, patio) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) return;
   Object.keys(patio.filas).forEach((key) => {
-    patio.filas[key] = patio.filas[key].filter((p) => String(p) !== alvo);
+    if (filaUsaGradeVagas(key)) {
+      patio.filas[key] = patio.filas[key].map((p) => (String(p) === alvo ? null : p));
+    } else {
+      patio.filas[key] = patio.filas[key].filter((p) => String(p) !== alvo);
+    }
   });
 }
 
@@ -201,7 +293,7 @@ export function localizarVeiculo(prefixo, patio) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) return null;
   for (const [key, lista] of Object.entries(patio.filas)) {
-    const idx = lista.findIndex((p) => String(p) === alvo);
+    const idx = lista.findIndex((p) => p != null && String(p) === alvo);
     if (idx !== -1) return { filaKey: key, posicao: idx };
   }
   return null;
@@ -435,7 +527,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
     if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return;
     if (typeof opcoes.filtroFilaKey === "function" && !opcoes.filtroFilaKey(filaKey)) return;
 
-    lista.forEach((prefixo) => {
+    iterarCarrosNaFila(patio, filaKey).forEach(({ prefixo, indice }) => {
       const p = String(prefixo);
       if (excluir.has(p) || usados.has(p)) return;
       if (opcoes.excluirPedidos && ehPedido(p, patio)) return;
@@ -456,7 +548,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
 
       candidatos.push({
         prefixo: p,
-        loc: saida.loc,
+        loc: { ...saida.loc, posicao: indice },
         ordemFila,
         mesmaTecnologia: mesmaTecnologia ? 1 : 0
       });

@@ -1,4 +1,4 @@
-/* Gerenciamento de Pátio — filas v3 (zonas operacionais) */
+/* Gerenciamento de Pátio — filas v4 (zonas + grade de vagas) */
 (function () {
   const STORAGE_KEY = "patio_tcgl_v3";
   const FILA_PREF_KEY = "patio_ultima_fila_v1";
@@ -7,49 +7,39 @@
 
   const GRUPOS_PATIO = [
     {
-      id: "oficina",
-      titulo: "Oficina",
+      id: "pesados",
+      titulo: "Carros Pesados",
       filas: [
-        { key: "oficina_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-        { key: "oficina_f2", label: "Fila 2", ordem: 2 }
+        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 21 },
+        { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 21 },
+        { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 22 },
+        { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 23 }
       ]
-    },
-    {
-      id: "latavador",
-      titulo: "Lavador",
-      filas: [{ key: "latavador_f1", label: "Fila 1", ordem: 1, saidaLivre: true }]
     },
     {
       id: "mistos",
       titulo: "Carros mistos",
       filas: [
-        { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-        { key: "mistos_f2", label: "Fila 2", ordem: 2 },
-        { key: "mistos_f3", label: "Fila 3", ordem: 3 },
-        { key: "mistos_f4", label: "Fila 4", ordem: 4 }
+        { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
+        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 15 },
+        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 15 }
       ]
     },
     {
-      id: "pesados",
-      titulo: "Carros Pesados",
+      id: "leves",
+      titulo: "Carros leves",
       filas: [
-        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true },
-        { key: "pesados_f2", label: "Fila 2", ordem: 2 },
-        { key: "pesados_f3", label: "Fila 3", ordem: 3 },
-        { key: "pesados_f4", label: "Fila 4", ordem: 4 }
+        { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 19 },
+        { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+        { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 7 },
+        { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 5 }
       ]
     },
     {
-      id: "corredor",
-      titulo: "Corredor",
-      filas: [
-        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
-        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
-        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
-        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
-        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
-        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
-      ]
+      id: "latavador",
+      titulo: "Lavador",
+      filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
     },
     {
       id: "cot",
@@ -62,19 +52,24 @@
       filas: [
         { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
         { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO },
-        { key: "caixa_dagua", label: "Caixa Dágua", ordem: 1, saidaLivre: true }
+        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
       ]
     }
   ];
 
   const GRUPO_BLOQUEADOS = {
     id: "bloqueados",
-    titulo: "Carros bloqueados",
+    titulo: "Bloqueados",
     filas: [
-      { key: "bloqueados_oficina", label: "Bloq. oficina", bloqueado: true },
-      { key: "reforma", label: "Reforma", bloqueado: true }
+      { key: "reforma", label: "Reforma", bloqueado: true },
+      { key: "oficina", label: "Oficina", bloqueado: true }
     ]
+  };
+
+  const BLOQUEIO_VAGAS_PADRAO = {
+    pesados_f1: [0],
+    pesados_f3: Array.from({ length: 22 }, (_, i) => i),
+    pesados_f4: Array.from({ length: 23 }, (_, i) => i)
   };
 
   const TODAS_FILAS = [
@@ -87,50 +82,112 @@
   GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
-  /** Gabarito Garagem (PDF) — vista de cima; setas = saídas. */
   const PLANTA_GARAGEM = {
-    saidas: {
-      norte: "Norte · Messias Wilmar de Souza",
-      oeste: "Oeste · José Dias Aro",
-      sul: "Sul · Tietê",
-      leste: "Leste · Duque de Caxias"
-    },
-    faixaPrincipal: [
-      { key: "muro", label: "MURO" },
-      { key: "corredor_c1", label: "Cor. 1" },
-      { key: "corredor_c2", label: "Cor. 2" },
-      { key: "corredor_c3", label: "Cor. 3" },
-      { key: "corredor_c4", label: "Cor. 4" },
-      { key: "corredor_c5", label: "Cor. 5" },
-      { key: "corredor_c6", label: "Cor. 6" },
-      { key: "mistos_f1", label: "Fila 1" },
-      { key: "mistos_f2", label: "Fila 2" },
-      { key: "mistos_f3", label: "Fila 3" },
-      { key: "mistos_f4", label: "Fila 4" }
-    ],
-    oeste: [
-      { key: "bomba", label: "Bomba" },
-      { key: "corujao", label: "Corujão" }
-    ],
-    centro: [
-      { key: "caixa_dagua", label: "Caixa Dágua" },
-      { key: "latavador_f1", label: "Lavador" },
-      { key: "cot", label: "COT" }
-    ],
-    operacao: [
-      { key: "oficina_f1", label: "Ofic. F1" },
-      { key: "oficina_f2", label: "Ofic. F2" },
+    pesados: [
       { key: "pesados_f1", label: "Pes. F1" },
       { key: "pesados_f2", label: "Pes. F2" },
       { key: "pesados_f3", label: "Pes. F3" },
-      { key: "pesados_f4", label: "Pes. F4" },
-      { key: "bloqueados_oficina", label: "Bloq. oficina" },
-      { key: "reforma", label: "Reforma" }
+      { key: "pesados_f4", label: "Pes. F4" }
+    ],
+    mistos: [
+      { key: "mistos_f1", label: "Mis. F1" },
+      { key: "mistos_f2", label: "Mis. F2" },
+      { key: "mistos_f3", label: "Mis. F3" },
+      { key: "mistos_f4", label: "Mis. F4" }
+    ],
+    leves: [
+      { key: "leves_f1", label: "Lev. F1" },
+      { key: "leves_f2", label: "Lev. F2" },
+      { key: "leves_f3", label: "Lev. F3" },
+      { key: "leves_f4", label: "Lev. F4" }
+    ],
+    auxiliares: [
+      { key: "latavador_f1", label: "Lavador" },
+      { key: "cot", label: "COT" },
+      { key: "muro", label: "Muro" },
+      { key: "bomba", label: "Bomba" },
+      { key: "corujao", label: "Corujão" }
+    ],
+    bloqueados: [
+      { key: "reforma", label: "Reforma" },
+      { key: "oficina", label: "Oficina" }
     ]
   };
 
   function ehFilaBloqueada(filaKey) {
     return Boolean(FILA_MAP[filaKey]?.bloqueado);
+  }
+
+  function obterCapacidadeFila(filaKey) {
+    return FILA_MAP[filaKey]?.capacidade || 0;
+  }
+
+  function filaUsaGrade(filaKey) {
+    return obterCapacidadeFila(filaKey) > 0;
+  }
+
+  function criarBloqueioPadrao() {
+    const bloqueio = {};
+    Object.entries(BLOQUEIO_VAGAS_PADRAO).forEach(([k, v]) => { bloqueio[k] = [...v]; });
+    return bloqueio;
+  }
+
+  function criarGradeVazia(filaKey) {
+    const cap = obterCapacidadeFila(filaKey);
+    return cap > 0 ? Array(cap).fill(null) : [];
+  }
+
+  function normalizarCarros(lista) {
+    if (!Array.isArray(lista)) return [];
+    return lista.filter((p) => p != null && String(p).trim() !== "");
+  }
+
+  function mapChaveLegado(key) {
+    if (key.startsWith("corredor_") || key === "caixa_dagua") return "mistos_f1";
+    if (key === "oficina_f1" || key === "oficina_f2" || key === "bloqueados_oficina") return "oficina";
+    return key;
+  }
+
+  function colocarCarrosNaGrade(filas, bloqueioVagas, filaKey, carros) {
+    const cap = obterCapacidadeFila(filaKey);
+    if (!cap) {
+      filas[filaKey] = [...carros];
+      return;
+    }
+    const bloqueadas = new Set(bloqueioVagas[filaKey] || []);
+    const grade = criarGradeVazia(filaKey);
+    let cursor = 0;
+    carros.forEach((prefixo) => {
+      while (cursor < cap && (bloqueadas.has(cursor) || grade[cursor])) cursor += 1;
+      if (cursor >= cap) return;
+      grade[cursor] = String(prefixo);
+      cursor += 1;
+    });
+    filas[filaKey] = grade;
+  }
+
+  function obterBloqueioVagas(filaKey) {
+    return patio.bloqueioVagas?.[filaKey] || BLOQUEIO_VAGAS_PADRAO[filaKey] || [];
+  }
+
+  function ehVagaBloqueada(filaKey, indice) {
+    return obterBloqueioVagas(filaKey).includes(indice);
+  }
+
+  function contarCarrosFila(filaKey) {
+    return (patio.filas[filaKey] || []).filter((p) => p != null && String(p).trim() !== "").length;
+  }
+
+  function primeiraVagaLivre(filaKey) {
+    const cap = obterCapacidadeFila(filaKey);
+    if (!cap) return -1;
+    const bloqueadas = new Set(obterBloqueioVagas(filaKey));
+    const grade = patio.filas[filaKey] || [];
+    for (let i = 0; i < cap; i += 1) {
+      if (bloqueadas.has(i)) continue;
+      if (!grade[i]) return i;
+    }
+    return -1;
   }
 
   function corujaoDisponivel() {
@@ -153,39 +210,56 @@
 
   function criarFilasVazias() {
     const filas = {};
-    TODAS_FILAS.forEach((f) => { filas[f.key] = []; });
+    TODAS_FILAS.forEach((f) => { filas[f.key] = criarGradeVazia(f.key); });
     return filas;
   }
 
   function migrarEstado(raw) {
-    if (raw?.versao === 3 && raw.filas) {
+    const pedidos = Array.isArray(raw?.pedidos) ? raw.pedidos : (raw?.rpl || []);
+    const analisados = Array.isArray(raw?.analisados) ? raw.analisados : [];
+
+    if (raw?.versao === 4 && raw.filas) {
       const filas = criarFilasVazias();
+      const bloqueioVagas = criarBloqueioPadrao();
       Object.keys(filas).forEach((k) => {
-        if (Array.isArray(raw.filas[k])) filas[k] = raw.filas[k];
+        if (!Array.isArray(raw.filas[k])) return;
+        if (filaUsaGrade(k)) {
+          bloqueioVagas[k] = Array.isArray(raw.bloqueioVagas?.[k])
+            ? [...raw.bloqueioVagas[k]]
+            : [...(BLOQUEIO_VAGAS_PADRAO[k] || [])];
+          colocarCarrosNaGrade(filas, bloqueioVagas, k, normalizarCarros(raw.filas[k]));
+        } else {
+          filas[k] = normalizarCarros(raw.filas[k]);
+        }
       });
-      return {
-        versao: 3,
-        filas,
-        analisados: Array.isArray(raw.analisados) ? raw.analisados : [],
-        pedidos: Array.isArray(raw.pedidos) ? raw.pedidos : (raw.rpl || [])
-      };
+      return { versao: 4, filas, bloqueioVagas, analisados, pedidos };
     }
-    if (raw && !raw.versao) {
-      const filas = criarFilasVazias();
-      filas.muro = raw.filaMuro || [];
-      filas.mistos_f1 = raw.fila1 || [];
-      filas.mistos_f2 = raw.fila2 || [];
-      filas.mistos_f3 = raw.fila3 || [];
-      filas.mistos_f4 = raw.fila4 || [];
-      filas.oficina_f1 = raw.oficina || [];
-      return {
-        versao: 3,
-        filas,
-        analisados: raw.analisados || [],
-        pedidos: raw.rpl || []
-      };
+
+    const legado = {};
+    if (raw?.versao === 3 && raw.filas) {
+      Object.entries(raw.filas).forEach(([k, v]) => { legado[k] = normalizarCarros(v); });
+    } else if (raw && !raw.versao) {
+      legado.muro = raw.filaMuro || [];
+      legado.mistos_f1 = raw.fila1 || [];
+      legado.mistos_f2 = raw.fila2 || [];
+      legado.mistos_f3 = raw.fila3 || [];
+      legado.mistos_f4 = raw.fila4 || [];
+      legado.oficina_f1 = raw.oficina || [];
     }
-    return { versao: 3, filas: criarFilasVazias(), analisados: [], pedidos: [] };
+
+    const filas = criarFilasVazias();
+    const bloqueioVagas = criarBloqueioPadrao();
+    const acumulado = {};
+    Object.entries(legado).forEach(([key, lista]) => {
+      const dest = mapChaveLegado(key);
+      if (!acumulado[dest]) acumulado[dest] = [];
+      acumulado[dest].push(...lista);
+    });
+    Object.entries(acumulado).forEach(([filaKey, carros]) => {
+      if (!filas[filaKey]) return;
+      colocarCarrosNaGrade(filas, bloqueioVagas, filaKey, carros);
+    });
+    return { versao: 4, filas, bloqueioVagas, analisados, pedidos };
   }
 
   let patio = migrarEstado(
@@ -289,19 +363,23 @@
 
   function localizarVeiculo(prefixo) {
     for (const [key, lista] of Object.entries(patio.filas)) {
-      const idx = lista.indexOf(prefixo);
+      const idx = lista.findIndex((p) => p != null && String(p) == prefixo);
       if (idx !== -1) return { filaKey: key, posicao: idx };
     }
     return null;
   }
 
   function totalAlocados() {
-    return Object.values(patio.filas).reduce((s, arr) => s + arr.length, 0);
+    return Object.keys(patio.filas).reduce((s, key) => s + contarCarrosFila(key), 0);
   }
 
   function removerVeiculoDeTudo(prefixo) {
     Object.keys(patio.filas).forEach((k) => {
-      patio.filas[k] = patio.filas[k].filter((p) => p != prefixo);
+      if (filaUsaGrade(k)) {
+        patio.filas[k] = patio.filas[k].map((p) => (String(p) == prefixo ? null : p));
+      } else {
+        patio.filas[k] = patio.filas[k].filter((p) => p != prefixo);
+      }
     });
     patio.analisados = patio.analisados.filter((p) => p != prefixo);
     patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
@@ -348,7 +426,7 @@
       filas.forEach((f) => {
         const opt = document.createElement("option");
         opt.value = f.key;
-        opt.textContent = `${f.label} (${patio.filas[f.key].length})`;
+        opt.textContent = `${f.label} (${contarCarrosFila(f.key)}${f.capacidade ? `/${f.capacidade}` : ""})`;
         og.appendChild(opt);
       });
       select.appendChild(og);
@@ -363,8 +441,10 @@
 
   function obterAlocadosSet() {
     const set = new Set();
-    Object.values(patio.filas).forEach((arr) => {
-      arr.forEach((p) => set.add(String(p)));
+    Object.keys(patio.filas).forEach((key) => {
+      (patio.filas[key] || []).forEach((p) => {
+        if (p != null && String(p).trim()) set.add(String(p));
+      });
     });
     return set;
   }
@@ -439,12 +519,51 @@
     return slot;
   }
 
-  function criarSlotVazio() {
-    const slot = document.createElement("div");
+  function criarSlotVazio(filaKey, indice) {
+    const slot = document.createElement("button");
+    slot.type = "button";
     slot.className = "garagem-slot garagem-slot-vazio";
-    slot.setAttribute("aria-hidden", "true");
-    slot.textContent = "—";
+    slot.title = "Clique para bloquear/desbloquear vaga";
+    slot.dataset.fila = filaKey;
+    slot.dataset.indice = String(indice);
+    slot.innerHTML = "<span class=\"garagem-slot-vazio-label\">+</span>";
+    slot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleBloqueioVaga(filaKey, indice);
+    });
     return slot;
+  }
+
+  function criarSlotBloqueado(filaKey, indice) {
+    const slot = document.createElement("button");
+    slot.type = "button";
+    slot.className = "garagem-slot garagem-slot-bloqueada";
+    slot.title = "Vaga bloqueada — clique para liberar";
+    slot.dataset.fila = filaKey;
+    slot.dataset.indice = String(indice);
+    slot.setAttribute("aria-label", "Vaga bloqueada");
+    slot.innerHTML = "<span class=\"garagem-slot-bloqueio-x\" aria-hidden=\"true\"></span>";
+    slot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleBloqueioVaga(filaKey, indice);
+    });
+    return slot;
+  }
+
+  function toggleBloqueioVaga(filaKey, indice) {
+    if (!filaUsaGrade(filaKey)) return;
+    const grade = patio.filas[filaKey] || [];
+    if (grade[indice]) {
+      mostrarErroLancamento("Remova o carro antes de bloquear a vaga.");
+      return;
+    }
+    if (!patio.bloqueioVagas) patio.bloqueioVagas = criarBloqueioPadrao();
+    const lista = new Set(patio.bloqueioVagas[filaKey] || []);
+    if (lista.has(indice)) lista.delete(indice);
+    else lista.add(indice);
+    patio.bloqueioVagas[filaKey] = [...lista].sort((a, b) => a - b);
+    salvarEstado();
+    renderizarPatio();
   }
 
   function criarColunaGaragem(filaKey, label, extraClass = "") {
@@ -452,29 +571,44 @@
     const col = document.createElement("div");
     col.className = `garagem-col${extraClass ? ` ${extraClass}` : ""}`;
 
-    const qtd = (patio.filas[filaKey] || []).length;
+    const qtd = contarCarrosFila(filaKey);
+    const cap = obterCapacidadeFila(filaKey);
     const livre = classeSaidaFila(filaCfg);
     const bloq = filaCfg.bloqueado ? " bloqueado-lane" : "";
     const corujaoHint = filaCfg.horarioMinimo && !corujaoDisponivel()
       ? ` · após ${filaCfg.horarioMinimo}`
       : "";
+    const capTxt = cap ? ` · ${cap} vagas` : "";
 
     const head = document.createElement("button");
     head.type = "button";
     head.className = `garagem-col-head${livre}${bloq}`;
     head.dataset.fila = filaKey;
-    head.innerHTML = `${label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${corujaoHint}</small>`;
+    head.innerHTML = `${label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${capTxt}${corujaoHint}</small>`;
 
     const slots = document.createElement("div");
     slots.className = "garagem-slots";
     slots.id = `fila_${filaKey}`;
 
     const carros = patio.filas[filaKey] || [];
-    if (!carros.length) {
-      slots.appendChild(criarSlotVazio());
+    if (filaUsaGrade(filaKey)) {
+      for (let i = 0; i < cap; i += 1) {
+        if (ehVagaBloqueada(filaKey, i)) {
+          slots.appendChild(criarSlotBloqueado(filaKey, i));
+        } else if (carros[i]) {
+          slots.appendChild(criarQuadroCarro(carros[i], filaKey));
+        } else {
+          slots.appendChild(criarSlotVazio(filaKey, i));
+        }
+      }
+    } else if (!carros.length) {
+      const vazio = document.createElement("div");
+      vazio.className = "garagem-slot garagem-slot-vazio garagem-slot-livre";
+      vazio.textContent = "—";
+      slots.appendChild(vazio);
     } else {
       carros.forEach((prefixo) => {
-        slots.appendChild(criarQuadroCarro(prefixo, filaKey));
+        if (prefixo) slots.appendChild(criarQuadroCarro(prefixo, filaKey));
       });
     }
 
@@ -491,6 +625,14 @@
     return row;
   }
 
+  function montarSecaoPlanta(titulo, cols, rowClass) {
+    const sec = document.createElement("section");
+    sec.className = "garagem-zona";
+    sec.innerHTML = `<h3 class="garagem-operacao-titulo">${titulo}</h3>`;
+    sec.appendChild(montarLinhaColunas(cols, rowClass));
+    return sec;
+  }
+
   function renderizarMapa() {
     const mapa = document.getElementById("patioMap");
     if (!mapa) return;
@@ -500,65 +642,13 @@
     const planta = document.createElement("div");
     planta.className = "garagem-planta-inner";
 
-    const saidaNorte = document.createElement("div");
-    saidaNorte.className = "garagem-saida garagem-saida-norte";
-    saidaNorte.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">↑</span> ${PLANTA_GARAGEM.saidas.norte}`;
+    planta.appendChild(montarSecaoPlanta("Carros Pesados", PLANTA_GARAGEM.pesados, "garagem-linha-operacao"));
+    planta.appendChild(montarSecaoPlanta("Carros mistos", PLANTA_GARAGEM.mistos, "garagem-linha-operacao"));
+    planta.appendChild(montarSecaoPlanta("Carros leves", PLANTA_GARAGEM.leves, "garagem-linha-operacao"));
+    planta.appendChild(montarSecaoPlanta("Lavador · COT · Muro · Bomba · Corujão", PLANTA_GARAGEM.auxiliares, "garagem-linha-centro"));
+    planta.appendChild(montarSecaoPlanta("Bloqueados", PLANTA_GARAGEM.bloqueados, "garagem-linha-operacao garagem-linha-bloqueados"));
 
-    const corpo = document.createElement("div");
-    corpo.className = "garagem-corpo";
-
-    const saidaOeste = document.createElement("div");
-    saidaOeste.className = "garagem-saida garagem-saida-oeste";
-    saidaOeste.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">←</span><span>Oeste<small>José Dias Aro</small></span>`;
-
-    const patioVisual = document.createElement("div");
-    patioVisual.className = "garagem-patio";
-
-    patioVisual.appendChild(
-      montarLinhaColunas(PLANTA_GARAGEM.faixaPrincipal, "garagem-faixa-principal")
-    );
-
-    const meio = document.createElement("div");
-    meio.className = "garagem-meio";
-
-    const stackOeste = document.createElement("div");
-    stackOeste.className = "garagem-stack-oeste";
-    PLANTA_GARAGEM.oeste.forEach(({ key, label }) => {
-      const linha = document.createElement("div");
-      linha.className = "garagem-stack-linha";
-      linha.appendChild(criarColunaGaragem(key, label, "garagem-col-larga"));
-      stackOeste.appendChild(linha);
-    });
-
-    const centro = document.createElement("div");
-    centro.className = "garagem-centro";
-    centro.appendChild(
-      montarLinhaColunas(PLANTA_GARAGEM.centro, "garagem-linha-centro")
-    );
-
-    meio.append(stackOeste, centro);
-    patioVisual.appendChild(meio);
-
-    const saidaLeste = document.createElement("div");
-    saidaLeste.className = "garagem-saida garagem-saida-leste";
-    saidaLeste.innerHTML = `<span>Leste<small>Duque de Caxias</small></span><span class="garagem-saida-icone" aria-hidden="true">→</span>`;
-
-    corpo.append(saidaOeste, patioVisual, saidaLeste);
-
-    const saidaSur = document.createElement("div");
-    saidaSur.className = "garagem-saida garagem-saida-sur";
-    saidaSur.innerHTML = `<span class="garagem-saida-icone" aria-hidden="true">↓</span> ${PLANTA_GARAGEM.saidas.sul}`;
-
-    planta.append(saidaNorte, corpo, saidaSur);
     mapa.appendChild(planta);
-
-    const operacao = document.createElement("section");
-    operacao.className = "garagem-operacao";
-    operacao.innerHTML = "<h3 class=\"garagem-operacao-titulo\">Oficina, pesados e bloqueados</h3>";
-    operacao.appendChild(
-      montarLinhaColunas(PLANTA_GARAGEM.operacao, "garagem-linha-operacao")
-    );
-    mapa.appendChild(operacao);
 
     mapa.querySelectorAll(".garagem-col-head").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -592,15 +682,52 @@
 
   function removerVeiculoDasFilas(prefixo) {
     Object.keys(patio.filas).forEach((k) => {
-      patio.filas[k] = patio.filas[k].filter((p) => p != prefixo);
+      if (filaUsaGrade(k)) {
+        patio.filas[k] = patio.filas[k].map((p) => (String(p) == prefixo ? null : p));
+      } else {
+        patio.filas[k] = patio.filas[k].filter((p) => p != prefixo);
+      }
     });
+  }
+
+  function colocarVeiculoNaFila(prefixo, filaKey) {
+    if (filaUsaGrade(filaKey)) {
+      const idx = primeiraVagaLivre(filaKey);
+      if (idx < 0) return false;
+      if (!Array.isArray(patio.filas[filaKey])) patio.filas[filaKey] = criarGradeVazia(filaKey);
+      patio.filas[filaKey][idx] = String(prefixo);
+      return true;
+    }
+    patio.filas[filaKey].push(String(prefixo));
+    return true;
+  }
+
+  function filaTemVagaLivre(filaKey, prefixoIgnorar = "") {
+    if (!filaUsaGrade(filaKey)) return true;
+    const cap = obterCapacidadeFila(filaKey);
+    const bloqueadas = new Set(obterBloqueioVagas(filaKey));
+    const grade = patio.filas[filaKey] || [];
+    for (let i = 0; i < cap; i += 1) {
+      if (bloqueadas.has(i)) continue;
+      const ocupante = grade[i];
+      if (!ocupante || String(ocupante) === String(prefixoIgnorar)) return true;
+    }
+    return false;
   }
 
   function aplicarAlocacao(prefixo, filaKey, input, mensagemOk) {
     lancamentoEmAndamento = true;
     try {
+      const locAtual = localizarVeiculo(prefixo);
+      if (!filaTemVagaLivre(filaKey, prefixo) && locAtual?.filaKey !== filaKey) {
+        mostrarErroLancamento(`Sem vaga livre em ${obterNomeFila(filaKey)}.`);
+        return;
+      }
       removerVeiculoDasFilas(prefixo);
-      patio.filas[filaKey].push(prefixo);
+      if (!colocarVeiculoNaFila(prefixo, filaKey)) {
+        mostrarErroLancamento(`Sem vaga livre em ${obterNomeFila(filaKey)}.`);
+        return;
+      }
       if (ehFilaBloqueada(filaKey)) {
         patio.pedidos = patio.pedidos.filter((p) => p != prefixo);
       }
@@ -724,7 +851,13 @@
 
   function limparTudo() {
     if (!confirm("Redefinir todo o pátio, pedidos e histórico de utilizados?")) return;
-    patio = { versao: 3, filas: criarFilasVazias(), analisados: [], pedidos: [] };
+    patio = {
+      versao: 4,
+      filas: criarFilasVazias(),
+      bloqueioVagas: criarBloqueioPadrao(),
+      analisados: [],
+      pedidos: []
+    };
     salvarEstado();
     renderizarPatio();
     const resultBox = document.getElementById("resultOutput");
@@ -775,7 +908,13 @@
 
   function exportarExcel() {
     const headers = TODAS_FILAS.map((f) => obterNomeFila(f.key).toUpperCase());
-    const maxLinhas = Math.max(...TODAS_FILAS.map((f) => patio.filas[f.key].length), 0);
+    const maxLinhas = Math.max(
+      ...TODAS_FILAS.map((f) => {
+        const cap = obterCapacidadeFila(f.key);
+        return cap || (patio.filas[f.key] || []).length;
+      }),
+      0
+    );
     const dadosExcel = [
       ["GERENCIAMENTO DO PÁTIO — CIOP / TCGL"],
       ["Gerado em", new Date().toLocaleString("pt-BR")],
@@ -787,8 +926,8 @@
     for (let i = 0; i < maxLinhas; i++) {
       dadosExcel.push(
         TODAS_FILAS.map((f) => {
-          const p = patio.filas[f.key][i];
-          if (!p) return "";
+          const p = patio.filas[f.key]?.[i];
+          if (!p) return ehVagaBloqueada(f.key, i) ? "[VAGA BLOQUEADA]" : "";
           let tag = "";
           if (ehFilaBloqueada(f.key)) tag = ` [BLOQUEADO — ${f.label.toUpperCase()}]`;
           else if (patio.pedidos.includes(p)) tag = " [PEDIDO]";

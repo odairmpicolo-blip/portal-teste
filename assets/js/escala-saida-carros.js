@@ -470,7 +470,7 @@ function montarOpcaoCarro(candidato, perfilEsc, carroEscalado, meta = {}) {
 const ORDENS_FILA_ESCALA = [1, 2, 3, 4];
 
 /** Oficina não entra na escalação de saída. */
-const FILAS_OFICINA_ESCALA = new Set(["oficina_f1", "oficina_f2"]);
+const FILAS_OFICINA_ESCALA = new Set(["oficina", "oficina_f1", "oficina_f2", "reforma", "bloqueados_oficina"]);
 
 function ehFilaUtilizavelEscala(filaKey) {
   if (ehFilaNaoUtilizavelEscala(filaKey)) return false;
