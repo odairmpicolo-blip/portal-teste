@@ -124,9 +124,41 @@ export function ehFilaNaoUtilizavelEscala(filaKey) {
   return FILAS_NAO_UTILIZAVEIS.has(filaKey);
 }
 
-/** Saída livre: Fila 1 (Oficina, Lavador, Mistos, Pesados), Corredor 1–6, COT, Muro, Bomba. */
+/** Saída livre na escalação — não depende de fila anterior no grupo. */
 export function ehSaidaLivre(filaKey) {
   return FILAS_SAIDA_LIVRE.has(filaKey);
+}
+
+/** Ordem de prioridade das filas livres na escalação de saída. */
+export const FILAS_LIVRE_ESCALA_ORDEM = [
+  "pesados_f1",
+  "mistos_f1",
+  "leves_f1",
+  "corredor_c1",
+  "corredor_c2",
+  "corredor_c3",
+  "corredor_c4",
+  "corredor_c5",
+  "corredor_c6",
+  "latavador_f1",
+  "muro",
+  "bomba",
+  "cot"
+];
+
+/** Filas sequenciais (Fila 2 → 3 → 4) nos grupos pesados, mistos e leves. */
+export const ORDENS_FILA_SEQUENCIAL_ESCALA = [2, 3, 4];
+
+const GRUPOS_FILA_SEQUENCIAL = new Set(["pesados", "mistos", "leves"]);
+
+export function ehFilaSequencialGrupo(filaKey) {
+  const grupo = GRUPO_POR_FILA[filaKey];
+  if (!grupo || !GRUPOS_FILA_SEQUENCIAL.has(grupo.id)) return false;
+  return !ehSaidaLivre(filaKey);
+}
+
+export function ordemSequencialFila(filaKey) {
+  return FILA_MAP[filaKey]?.ordem || 0;
 }
 
 /**
@@ -443,7 +475,7 @@ function filasAnterioresBloqueando(patio, filaKey) {
 }
 
 /** Verifica se o veículo pode sair do pátio conforme fila (ordem entre filas, não posição no array). */
-export function avaliarSaidaVeiculo(prefixo, patio) {
+export function avaliarSaidaVeiculo(prefixo, patio, opcoes = {}) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) {
     return { ok: false, motivo: "Sem prefixo informado." };
@@ -459,7 +491,9 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
   }
 
   const filaCfg = FILA_MAP[loc.filaKey];
-  if (filaCfg?.horarioMinimo && !corujaoDisponivel()) {
+  const horaRef = opcoes.horaReferenciaMinutos;
+  const agora = horaRef != null ? horaRef : horaAtualMinutos();
+  if (filaCfg?.horarioMinimo && !corujaoDisponivel(agora)) {
     return {
       ok: false,
       motivo: `Corujão: escalar somente após ${filaCfg.horarioMinimo}.`,
@@ -481,7 +515,7 @@ export function avaliarSaidaVeiculo(prefixo, patio) {
 }
 
 /** Situação do veículo no pátio (mesma lógica da Consulta de fila do gerenciapatio). */
-export function consultarSituacaoCarro(prefixo, patio) {
+export function consultarSituacaoCarro(prefixo, patio, opcoes = {}) {
   const alvo = String(prefixo || "").trim();
   if (!alvo) return { tipo: "vazio" };
 
@@ -506,7 +540,7 @@ export function consultarSituacaoCarro(prefixo, patio) {
     };
   }
 
-  const saida = avaliarSaidaVeiculo(alvo, patio);
+  const saida = avaliarSaidaVeiculo(alvo, patio, opcoes);
   if (saida.ok) {
     return { tipo: "livre", prefixo: alvo, loc: saida.loc, fila, tags };
   }
@@ -541,6 +575,9 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
   const candidatos = [];
 
   const ordemMax = opcoes.ordemMax;
+  const optsSaida = opcoes.horaReferenciaMinutos != null
+    ? { horaReferenciaMinutos: opcoes.horaReferenciaMinutos }
+    : {};
 
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
     if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return;
@@ -556,7 +593,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
       const mesmaTecnologia = Boolean(techAlvo && chaveCarro === techAlvo);
       if (techAlvo && !mesmaTecnologia && !incluirOutras) return;
 
-      const saida = avaliarSaidaVeiculo(p, patio);
+      const saida = avaliarSaidaVeiculo(p, patio, optsSaida);
       if (!saida.ok) return;
       if (typeof opcoes.filtroPrefixo === "function" && !opcoes.filtroPrefixo(p, saida.loc)) return;
       if (typeof filtroCarro === "function" && !filtroCarro(p, saida.loc)) return;
