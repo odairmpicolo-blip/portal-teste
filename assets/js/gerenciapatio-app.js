@@ -275,7 +275,9 @@
 
   function obterTecnologia(prefixo) {
     const veiculo = frotaDados.find((item) => item.veiculo == prefixo);
-    return veiculo ? veiculo.tecnologia : "—";
+    if (!veiculo) return "—";
+    if (veiculo.rotulo) return veiculo.rotulo;
+    return [veiculo.cor, veiculo.tecnologia, veiculo.climatizacao].filter(Boolean).join(" · ") || "—";
   }
 
   function obterNomeFila(key) {
@@ -312,7 +314,7 @@
     frotaDados.forEach((item) => {
       const option = document.createElement("option");
       option.value = item.veiculo;
-      option.textContent = item.tecnologia;
+      option.textContent = item.rotulo || obterTecnologia(item.veiculo);
       datalist.appendChild(option);
     });
   }
@@ -388,7 +390,10 @@
     }
 
     lista.innerHTML = carros
-      .map((item) => `<span class="patio-nao-util-chip" title="${item.tecnologia}">${item.veiculo}</span>`)
+      .map((item) => {
+        const rotulo = item.rotulo || obterTecnologia(item.veiculo);
+        return `<span class="patio-nao-util-chip" title="${rotulo}">${item.veiculo}</span>`;
+      })
       .join("");
   }
 

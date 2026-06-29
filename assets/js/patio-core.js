@@ -228,15 +228,54 @@ export function normalizarTecnologia(valor) {
 }
 
 export function obterTecnologia(prefixo, frota) {
+  const item = obterItemFrota(prefixo, frota);
+  if (!item) return "";
+  if (item.rotulo) return item.rotulo;
+  return formatarRotuloFrota(item);
+}
+
+export function obterItemFrota(prefixo, frota) {
   const alvo = String(prefixo || "").trim();
-  const item = (frota || []).find((f) => String(f.veiculo) === alvo);
-  return item ? item.tecnologia : "";
+  return (frota || []).find((f) => String(f.veiculo) === alvo) || null;
+}
+
+export function formatarRotuloFrota(item) {
+  if (!item) return "";
+  if (item.rotulo) return item.rotulo;
+  const partes = [item.cor, item.tecnologia, item.climatizacao].filter(Boolean);
+  return partes.join(" · ");
+}
+
+export function obterClimatizacao(prefixo, frota) {
+  const item = obterItemFrota(prefixo, frota);
+  return item?.climatizacao || "";
+}
+
+export function obterTipoTecnologia(prefixo, frota) {
+  const item = obterItemFrota(prefixo, frota);
+  if (item?.tecnologia) return normalizarTecnologia(item.tecnologia);
+  return extrairTipoDeRotulo(obterTecnologia(prefixo, frota));
 }
 
 const CORES_VEICULO = ["amarelo", "azul", "verde", "vermelho", "branco", "laranja", "roxo"];
 
+function extrairTipoDeRotulo(rotulo) {
+  const norm = normalizarTecnologia(rotulo);
+  let corpo = norm;
+  for (const cor of CORES_VEICULO) {
+    if (corpo.startsWith(`${cor} `)) {
+      corpo = corpo.slice(cor.length + 1).trim();
+      break;
+    }
+  }
+  corpo = corpo.replace(/\s*com\s*ar\s*/g, "").trim();
+  return corpo;
+}
+
 export function obterCor(prefixo, frota) {
-  const tech = normalizarTecnologia(obterTecnologia(prefixo, frota));
+  const item = obterItemFrota(prefixo, frota);
+  if (item?.cor) return normalizarTecnologia(item.cor);
+  const tech = normalizarTecnologia(item?.rotulo || obterTecnologia(prefixo, frota));
   for (const cor of CORES_VEICULO) {
     if (tech.startsWith(`${cor} `) || tech === cor) return cor;
   }
@@ -244,13 +283,15 @@ export function obterCor(prefixo, frota) {
 }
 
 export function obterPerfilTecnologia(prefixo, frota) {
-  const rotulo = obterTecnologia(prefixo, frota);
-  const completo = normalizarTecnologia(rotulo);
+  const item = obterItemFrota(prefixo, frota);
+  const rotulo = item ? formatarRotuloFrota(item) : obterTecnologia(prefixo, frota);
   const cor = obterCor(prefixo, frota);
-  const resto = cor && completo.startsWith(`${cor} `)
-    ? completo.slice(cor.length + 1).trim()
-    : completo;
-  return { cor, resto, completo, rotulo };
+  const tipo = item?.tecnologia
+    ? normalizarTecnologia(item.tecnologia)
+    : extrairTipoDeRotulo(rotulo);
+  const climatizacao = item?.climatizacao || "";
+  const completo = cor && tipo ? `${cor} ${tipo}` : tipo || cor;
+  return { cor, resto: tipo, tecnologia: tipo, climatizacao, completo, rotulo };
 }
 
 export function mesmaCorVeiculo(prefixoA, prefixoB, frota) {
@@ -398,8 +439,9 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
       if (excluir.has(p) || usados.has(p)) return;
       if (opcoes.excluirPedidos && ehPedido(p, patio)) return;
 
-      const techCarro = normalizarTecnologia(obterTecnologia(p, frota));
-      const mesmaTecnologia = Boolean(techAlvo && techCarro === techAlvo);
+      const perfilCarro = obterPerfilTecnologia(p, frota);
+      const chaveCarro = perfilCarro.completo || perfilCarro.resto;
+      const mesmaTecnologia = Boolean(techAlvo && chaveCarro === techAlvo);
       if (techAlvo && !mesmaTecnologia && !incluirOutras) return;
 
       const saida = avaliarSaidaVeiculo(p, patio);
