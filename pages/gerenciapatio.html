@@ -680,9 +680,125 @@ h1 {
 }
 .patio-resumo b { color: var(--blue); }
 .garagem-legenda {
-    margin: 0 0 10px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
+    margin: 0 0 10px;
+}
+.gabarito-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+}
+.gabarito-grid {
+    display: grid;
+    gap: 1px;
+    min-width: 1180px;
+    background: #94a3b8;
+    border: 1px solid #64748b;
+}
+.gabarito-celula {
+    min-width: 0;
+    min-height: 38px;
+    background: #fff;
+}
+.gabarito-vazio {
+    background: #f8fafc;
+    min-height: 28px;
+}
+.gabarito-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 3px;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1.15;
+    text-align: center;
+    color: #1e3a5f;
+    background: #e2e8f0;
+    border: none;
+    cursor: pointer;
+}
+.gabarito-label:hover { background: #cbd5e1; }
+.gabarito-label.saida-livre-label { box-shadow: inset 0 2px 0 var(--success); }
+.gabarito-label.bloqueado-label { background: #fee2e2; color: #991b1b; }
+.gabarito-label.corujao-aguardando-label { box-shadow: inset 0 2px 0 #f59e0b; }
+.gabarito-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #94a3b8;
+    background: #f1f5f9;
+}
+.gabarito-slot {
+    padding: 1px;
+    min-height: 46px;
+    display: flex;
+    flex-direction: column;
+}
+.gabarito-slot-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 1px;
+    min-height: 0;
+}
+.gabarito-vaga-num {
+    font-size: 7px;
+    font-weight: 700;
+    color: #64748b;
+    text-align: center;
+    line-height: 1;
+}
+.gabarito-area-lista {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 4px;
+}
+.gabarito-area-titulo {
+    font-size: 9px;
+    font-weight: 800;
+}
+.gabarito-area-carros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: center;
+}
+.gabarito-area-vazio {
+    font-size: 10px;
+    color: #94a3b8;
+}
+.garagem-slot-mini {
+    width: 100%;
+    min-height: 32px;
+    flex: 1 1 auto;
+    padding: 2px;
+    font-size: 9px;
+}
+.garagem-slot-mini .garagem-slot-prefixo {
+    font-size: 10px;
+}
+.garagem-slot-mini .btn-pedido,
+.garagem-slot-mini .remove-btn {
+    width: 14px;
+    height: 14px;
+    font-size: 8px;
+    padding: 0;
+}
+.garagem-linha-leves-extra {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px dashed var(--border);
+}
+.gabarito-erro {
+    padding: 12px;
+    color: #b91c1c;
+    font-size: 13px;
 }
 .lancamento-rapido .form-control { font-size: 16px; font-weight: 700; }
 .lancamento-dica {
@@ -1232,8 +1348,8 @@ h1 {
             <div class="card" style="margin-bottom: 0;">
                 <div class="card-title">🚘 Gabarito da Garagem</div>
                 <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
-                    Pesados (21+21+22+23 vagas), mistos (15×4), leves (19/15/7/5), corredor (Cor. 1–6), Lavador, COT, Muro, Bomba e Corujão (após 06h).
-                    Reforma e Oficina = bloqueados. Clique em vaga vazia para bloquear/desbloquear (barra vermelha).
+                    Layout espacial igual ao <b>Gabarito Garagem.xlsx</b>: cada célula é uma vaga — ao lançar o veículo, a próxima vaga livre da fila é preenchida no mapa.
+                    Carros leves ficam na faixa abaixo (não constam no Excel). Clique em área ou vaga vazia (+) para selecionar/bloquear.
                 </p>
                 <div id="patioResumo" class="patio-resumo"></div>
                 <p class="garagem-legenda" aria-hidden="true">
@@ -1255,6 +1371,7 @@ h1 {
 </footer>
 
 <script src="../assets/js/frota-patio-data.js"></script>
-<script src="../assets/js/gerenciapatio-app.js?v=20260630corredor"></script>
+<script src="../assets/js/gabarito-garagem-data.js"></script>
+<script src="../assets/js/gerenciapatio-app.js?v=20260625gabarito"></script>
 </body>
 </html>

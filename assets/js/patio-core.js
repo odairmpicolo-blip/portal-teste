@@ -7,22 +7,22 @@ export const GRUPOS_PATIO = [
   {
     id: "pesados",
     titulo: "Carros Pesados",
-    filas: [
-      { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 21 },
-      { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 21 },
-      { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 22 },
-      { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 23 }
-    ]
+      filas: [
+        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 20 },
+        { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
+        { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 23 },
+        { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 24 }
+      ]
   },
   {
     id: "mistos",
     titulo: "Carros mistos",
-    filas: [
-      { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
-      { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
-      { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 15 },
-      { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 15 }
-    ]
+      filas: [
+        { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
+        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
+        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 30 },
+        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 36 }
+      ]
   },
   {
     id: "leves",
@@ -37,19 +37,19 @@ export const GRUPOS_PATIO = [
   {
     id: "corredor",
     titulo: "Corredor",
-    filas: [
-      { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
-      { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
-      { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
-      { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
-      { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
-      { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
-    ]
+      filas: [
+        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true, capacidade: 3 }
+      ]
   },
   {
     id: "latavador",
     titulo: "Lavador",
-    filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
+      filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true, capacidade: 33 }]
   },
   {
     id: "cot",
@@ -59,11 +59,11 @@ export const GRUPOS_PATIO = [
   {
     id: "especiais",
     titulo: "Áreas especiais",
-    filas: [
-      { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
-      { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-      { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
-    ]
+      filas: [
+        { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
+        { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true, capacidade: 13 },
+        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO, capacidade: 5 }
+      ]
   }
 ];
 
@@ -79,8 +79,8 @@ export const GRUPO_BLOQUEADOS = {
 /** Vagas bloqueadas por padrão (índice 0 = 1ª vaga). */
 export const BLOQUEIO_VAGAS_PADRAO = {
   pesados_f1: [0],
-  pesados_f3: Array.from({ length: 22 }, (_, i) => i),
-  pesados_f4: Array.from({ length: 23 }, (_, i) => i)
+  pesados_f3: Array.from({ length: 23 }, (_, i) => i),
+  pesados_f4: Array.from({ length: 24 }, (_, i) => i)
 };
 
 const TODAS_FILAS = [

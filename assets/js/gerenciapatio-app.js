@@ -10,10 +10,10 @@
       id: "pesados",
       titulo: "Carros Pesados",
       filas: [
-        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 21 },
-        { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 21 },
-        { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 22 },
-        { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 23 }
+        { key: "pesados_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 20 },
+        { key: "pesados_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
+        { key: "pesados_f3", label: "Fila 3", ordem: 3, capacidade: 23 },
+        { key: "pesados_f4", label: "Fila 4", ordem: 4, capacidade: 24 }
       ]
     },
     {
@@ -21,9 +21,9 @@
       titulo: "Carros mistos",
       filas: [
         { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
-        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
-        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 15 },
-        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 15 }
+        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
+        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 30 },
+        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 36 }
       ]
     },
     {
@@ -40,18 +40,18 @@
       id: "corredor",
       titulo: "Corredor",
       filas: [
-        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
-        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
-        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
-        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
-        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
-        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
+        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true, capacidade: 3 },
+        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true, capacidade: 3 }
       ]
     },
     {
       id: "latavador",
       titulo: "Lavador",
-      filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
+      filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true, capacidade: 33 }]
     },
     {
       id: "cot",
@@ -63,8 +63,8 @@
       titulo: "Áreas especiais",
       filas: [
         { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
-        { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
+        { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true, capacidade: 13 },
+        { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO, capacidade: 5 }
       ]
     }
   ];
@@ -80,8 +80,8 @@
 
   const BLOQUEIO_VAGAS_PADRAO = {
     pesados_f1: [0],
-    pesados_f3: Array.from({ length: 22 }, (_, i) => i),
-    pesados_f4: Array.from({ length: 23 }, (_, i) => i)
+    pesados_f3: Array.from({ length: 23 }, (_, i) => i),
+    pesados_f4: Array.from({ length: 24 }, (_, i) => i)
   };
 
   const TODAS_FILAS = [
@@ -95,42 +95,11 @@
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
   const PLANTA_GARAGEM = {
-    pesados: [
-      { key: "pesados_f1", label: "Pes. F1" },
-      { key: "pesados_f2", label: "Pes. F2" },
-      { key: "pesados_f3", label: "Pes. F3" },
-      { key: "pesados_f4", label: "Pes. F4" }
-    ],
-    mistos: [
-      { key: "mistos_f1", label: "Mis. F1" },
-      { key: "mistos_f2", label: "Mis. F2" },
-      { key: "mistos_f3", label: "Mis. F3" },
-      { key: "mistos_f4", label: "Mis. F4" }
-    ],
     leves: [
       { key: "leves_f1", label: "Lev. F1" },
       { key: "leves_f2", label: "Lev. F2" },
       { key: "leves_f3", label: "Lev. F3" },
       { key: "leves_f4", label: "Lev. F4" }
-    ],
-    corredor: [
-      { key: "corredor_c1", label: "Cor. 1" },
-      { key: "corredor_c2", label: "Cor. 2" },
-      { key: "corredor_c3", label: "Cor. 3" },
-      { key: "corredor_c4", label: "Cor. 4" },
-      { key: "corredor_c5", label: "Cor. 5" },
-      { key: "corredor_c6", label: "Cor. 6" }
-    ],
-    auxiliares: [
-      { key: "latavador_f1", label: "Lavador" },
-      { key: "cot", label: "COT" },
-      { key: "muro", label: "Muro" },
-      { key: "bomba", label: "Bomba" },
-      { key: "corujao", label: "Corujão" }
-    ],
-    bloqueados: [
-      { key: "reforma", label: "Reforma" },
-      { key: "oficina", label: "Oficina" }
     ]
   };
 
@@ -252,6 +221,11 @@
         } else {
           filas[k] = normalizarCarros(raw.filas[k]);
         }
+      });
+      Object.keys(filas).forEach((k) => {
+        if (!filaUsaGrade(k)) return;
+        const carros = normalizarCarros(filas[k]);
+        colocarCarrosNaGrade(filas, bloqueioVagas, k, carros);
       });
       return { versao: 4, filas, bloqueioVagas, analisados, pedidos };
     }
@@ -511,7 +485,7 @@
     `;
   }
 
-  function criarQuadroCarro(prefixo, filaKey) {
+  function criarQuadroCarro(prefixo, filaKey, compacto = false) {
     const tech = obterTecnologia(prefixo);
     const filaCfg = FILA_MAP[filaKey] || {};
     const slot = document.createElement("div");
@@ -527,27 +501,39 @@
       ? ""
       : `<button type="button" class="btn-pedido" title="Marcar/desmarcar Pedido" data-prefixo="${prefixo}">P</button>`;
 
-    slot.className = `garagem-slot car-tag ${statusClass}`;
+    slot.className = `garagem-slot car-tag${compacto ? " garagem-slot-mini" : ""} ${statusClass}`.trim();
     slot.title = `${prefixo} — ${tech}`;
-    slot.innerHTML = `
-      <span class="garagem-slot-prefixo">${prefixo}</span>
-      <span class="garagem-slot-tech">${tech}</span>
-      <div class="garagem-slot-actions">
-        ${btnPedido}
-        <button type="button" class="remove-btn" title="Remover" data-prefixo="${prefixo}">×</button>
-      </div>
-    `;
+    if (compacto) {
+      slot.innerHTML = `
+        <span class="garagem-slot-prefixo">${prefixo}</span>
+        <div class="garagem-slot-actions">
+          ${btnPedido}
+          <button type="button" class="remove-btn" title="Remover" data-prefixo="${prefixo}">×</button>
+        </div>
+      `;
+    } else {
+      slot.innerHTML = `
+        <span class="garagem-slot-prefixo">${prefixo}</span>
+        <span class="garagem-slot-tech">${tech}</span>
+        <div class="garagem-slot-actions">
+          ${btnPedido}
+          <button type="button" class="remove-btn" title="Remover" data-prefixo="${prefixo}">×</button>
+        </div>
+      `;
+    }
     return slot;
   }
 
-  function criarSlotVazio(filaKey, indice) {
+  function criarSlotVazio(filaKey, indice, compacto = false) {
     const slot = document.createElement("button");
     slot.type = "button";
-    slot.className = "garagem-slot garagem-slot-vazio";
+    slot.className = `garagem-slot garagem-slot-vazio${compacto ? " garagem-slot-mini" : ""}`;
     slot.title = "Clique para bloquear/desbloquear vaga";
     slot.dataset.fila = filaKey;
     slot.dataset.indice = String(indice);
-    slot.innerHTML = "<span class=\"garagem-slot-vazio-label\">+</span>";
+    slot.innerHTML = compacto
+      ? "<span class=\"garagem-slot-vazio-label\">+</span>"
+      : "<span class=\"garagem-slot-vazio-label\">+</span>";
     slot.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleBloqueioVaga(filaKey, indice);
@@ -555,10 +541,10 @@
     return slot;
   }
 
-  function criarSlotBloqueado(filaKey, indice) {
+  function criarSlotBloqueado(filaKey, indice, compacto = false) {
     const slot = document.createElement("button");
     slot.type = "button";
-    slot.className = "garagem-slot garagem-slot-bloqueada";
+    slot.className = `garagem-slot garagem-slot-bloqueada${compacto ? " garagem-slot-mini" : ""}`;
     slot.title = "Vaga bloqueada — clique para liberar";
     slot.dataset.fila = filaKey;
     slot.dataset.indice = String(indice);
@@ -569,6 +555,170 @@
       toggleBloqueioVaga(filaKey, indice);
     });
     return slot;
+  }
+
+  function criarConteudoVagaGabarito(filaKey, indice, rotuloVaga) {
+    const wrap = document.createElement("div");
+    wrap.className = "gabarito-slot-inner";
+    if (rotuloVaga) {
+      const num = document.createElement("span");
+      num.className = "gabarito-vaga-num";
+      num.textContent = rotuloVaga.replace(/^Vaga\s*/i, "");
+      wrap.appendChild(num);
+    }
+    const grade = patio.filas[filaKey] || [];
+    if (ehVagaBloqueada(filaKey, indice)) {
+      wrap.appendChild(criarSlotBloqueado(filaKey, indice, true));
+    } else if (grade[indice]) {
+      wrap.appendChild(criarQuadroCarro(grade[indice], filaKey, true));
+    } else {
+      wrap.appendChild(criarSlotVazio(filaKey, indice, true));
+    }
+    return wrap;
+  }
+
+  function criarCelulaAreaLista(filaKey, label) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "gabarito-celula gabarito-label gabarito-area-lista";
+    el.dataset.fila = filaKey;
+
+    const titulo = document.createElement("span");
+    titulo.className = "gabarito-area-titulo";
+    titulo.textContent = label;
+    el.appendChild(titulo);
+
+    const lista = document.createElement("div");
+    lista.className = "gabarito-area-carros";
+    const carros = (patio.filas[filaKey] || []).filter((p) => p != null && String(p).trim());
+    if (!carros.length) {
+      lista.innerHTML = "<span class=\"gabarito-area-vazio\">—</span>";
+    } else {
+      carros.forEach((prefixo) => {
+        lista.appendChild(criarQuadroCarro(prefixo, filaKey, true));
+      });
+    }
+    el.appendChild(lista);
+    return el;
+  }
+
+  function anexarOuvintesMapa(mapa) {
+    mapa.querySelectorAll("[data-fila]").forEach((btn) => {
+      if (btn.classList.contains("garagem-slot")) return;
+      btn.addEventListener("click", () => {
+        definirFilaSelecionada(btn.dataset.fila);
+        document.getElementById("inputFilaBus")?.focus();
+      });
+    });
+
+    mapa.querySelectorAll(".remove-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        liberarCarro(btn.dataset.prefixo);
+      });
+    });
+
+    mapa.querySelectorAll(".btn-pedido").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePedido(btn.dataset.prefixo);
+      });
+    });
+  }
+
+  function renderizarMapaGabarito() {
+    const gab = window.GABARITO_GARAGEM;
+    const mapa = document.getElementById("patioMap");
+    if (!mapa || !gab?.cells?.length) return false;
+
+    mapa.innerHTML = "";
+    mapa.className = "patio-map garagem-planta";
+
+    const planta = document.createElement("div");
+    planta.className = "garagem-planta-inner";
+
+    const scroll = document.createElement("div");
+    scroll.className = "gabarito-scroll";
+
+    const grid = document.createElement("div");
+    grid.className = "gabarito-grid";
+    grid.style.gridTemplateColumns = `repeat(${gab.cols}, minmax(0, 1fr))`;
+    grid.style.gridTemplateRows = `repeat(${gab.rows}, auto)`;
+
+    const AREAS_LISTA = new Set(["cot", "muro", "reforma", "oficina"]);
+
+    gab.cells.forEach((cell) => {
+      const rowSpan = cell.rowSpan || 1;
+      const colSpan = cell.colSpan || 1;
+      const gridPos = {
+        gridColumn: `${cell.c + 1} / span ${colSpan}`,
+        gridRow: `${cell.r + 1} / span ${rowSpan}`
+      };
+
+      if (cell.type === "slot") {
+        const el = document.createElement("div");
+        el.className = "gabarito-celula gabarito-slot";
+        Object.assign(el.style, gridPos);
+        el.appendChild(criarConteudoVagaGabarito(cell.filaKey, cell.slotIndex, cell.label));
+        grid.appendChild(el);
+        return;
+      }
+
+      if (cell.type === "sep") {
+        const el = document.createElement("div");
+        el.className = "gabarito-celula gabarito-sep";
+        Object.assign(el.style, gridPos);
+        el.textContent = "×";
+        grid.appendChild(el);
+        return;
+      }
+
+      if (cell.type === "label" && cell.areaKey && AREAS_LISTA.has(cell.areaKey)) {
+        const el = criarCelulaAreaLista(cell.areaKey, cell.label);
+        el.style.gridColumn = gridPos.gridColumn;
+        el.style.gridRow = gridPos.gridRow;
+        grid.appendChild(el);
+        return;
+      }
+
+      if (cell.type === "label") {
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "gabarito-celula gabarito-label";
+        Object.assign(el.style, gridPos);
+        el.textContent = cell.label;
+        if (cell.areaKey && FILA_MAP[cell.areaKey]) {
+          el.dataset.fila = cell.areaKey;
+          const filaCfg = FILA_MAP[cell.areaKey];
+          if (filaCfg.saidaLivre) el.classList.add("saida-livre-label");
+          if (filaCfg.bloqueado) el.classList.add("bloqueado-label");
+          if (filaCfg.horarioMinimo && !corujaoDisponivel()) el.classList.add("corujao-aguardando-label");
+        }
+        grid.appendChild(el);
+        return;
+      }
+
+      if (cell.type !== "empty") return;
+      const el = document.createElement("div");
+      el.className = "gabarito-celula gabarito-vazio";
+      Object.assign(el.style, gridPos);
+      grid.appendChild(el);
+    });
+
+    scroll.appendChild(grid);
+    planta.appendChild(scroll);
+
+    if (PLANTA_GARAGEM.leves?.length) {
+      planta.appendChild(montarSecaoPlanta(
+        "Carros leves (fora do gabarito Excel)",
+        PLANTA_GARAGEM.leves,
+        "garagem-linha-operacao garagem-linha-leves-extra"
+      ));
+    }
+
+    mapa.appendChild(planta);
+    anexarOuvintesMapa(mapa);
+    return true;
   }
 
   function toggleBloqueioVaga(filaKey, indice) {
@@ -655,43 +805,11 @@
   }
 
   function renderizarMapa() {
+    if (renderizarMapaGabarito()) return;
+
     const mapa = document.getElementById("patioMap");
     if (!mapa) return;
-    mapa.innerHTML = "";
-    mapa.className = "patio-map garagem-planta";
-
-    const planta = document.createElement("div");
-    planta.className = "garagem-planta-inner";
-
-    planta.appendChild(montarSecaoPlanta("Carros Pesados", PLANTA_GARAGEM.pesados, "garagem-linha-operacao"));
-    planta.appendChild(montarSecaoPlanta("Carros mistos", PLANTA_GARAGEM.mistos, "garagem-linha-operacao"));
-    planta.appendChild(montarSecaoPlanta("Carros leves", PLANTA_GARAGEM.leves, "garagem-linha-operacao"));
-    planta.appendChild(montarSecaoPlanta("Corredor", PLANTA_GARAGEM.corredor, "garagem-linha-operacao"));
-    planta.appendChild(montarSecaoPlanta("Lavador · COT · Muro · Bomba · Corujão", PLANTA_GARAGEM.auxiliares, "garagem-linha-centro"));
-    planta.appendChild(montarSecaoPlanta("Bloqueados", PLANTA_GARAGEM.bloqueados, "garagem-linha-operacao garagem-linha-bloqueados"));
-
-    mapa.appendChild(planta);
-
-    mapa.querySelectorAll(".garagem-col-head").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        definirFilaSelecionada(btn.dataset.fila);
-        document.getElementById("inputFilaBus")?.focus();
-      });
-    });
-
-    mapa.querySelectorAll(".remove-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        liberarCarro(btn.dataset.prefixo);
-      });
-    });
-
-    mapa.querySelectorAll(".btn-pedido").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        togglePedido(btn.dataset.prefixo);
-      });
-    });
+    mapa.innerHTML = "<p class=\"gabarito-erro\">Gabarito da garagem não carregado.</p>";
   }
 
   function renderizarPatio() {
