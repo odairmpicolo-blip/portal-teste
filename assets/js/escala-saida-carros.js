@@ -24,6 +24,14 @@ const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const HORA_LIMITE_RECOLHIMENTO_BRT = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
 const LINHAS_BRT = new Set(["800", "801", "802", "803", "806", "904", "913"]);
+
+/** Ordem de preferência de prefixos por linha (entre candidatos com perfil válido). */
+const PREFERENCIA_VEICULOS_POR_LINHA = {
+  "307": [
+    "3001", "3004", "3008", "3009", "3010", "3012", "3015",
+    "3024", "3025", "3027", "3032", "3037", "3048", "3050", "3100"
+  ]
+};
 const CHAVES_HORARIO_INICIO = ["inicio", "horario_de_inicio", "horario_inicio", "inicio_programado"];
 
 /** Colunas oficiais — planilha + TECNOLOGIA, OBS, ALERTA. */
@@ -485,6 +493,22 @@ function escaladoPodeSerPriorizado(consultaEsc, carroEscalado, usados, temPedido
   return true;
 }
 
+function indicePreferenciaVeiculoLinha(prefixo, linhaNorm) {
+  const lista = PREFERENCIA_VEICULOS_POR_LINHA[linhaNorm];
+  if (!lista?.length) return Number.MAX_SAFE_INTEGER;
+  const idx = lista.indexOf(normalizarPrefixo(prefixo));
+  return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
+}
+
+/** Entre candidatos válidos, prioriza prefixos configurados para a linha. */
+function ordenarCandidatosPreferenciaLinha(candidatos, linhaNorm) {
+  if (!PREFERENCIA_VEICULOS_POR_LINHA[linhaNorm]?.length) return candidatos;
+  return candidatos
+    .map((c, i) => ({ c, i, p: indicePreferenciaVeiculoLinha(c.prefixo, linhaNorm) }))
+    .sort((a, b) => a.p - b.p || a.i - b.i)
+    .map((x) => x.c);
+}
+
 function candidatosParaOpcoes(candidatos, perfilEsc, carroEscalado, meta = {}) {
   return candidatos.map((c) => montarOpcaoCarro(c, perfilEsc, carroEscalado, meta));
 }
@@ -547,10 +571,13 @@ function listarVeiculosNoPatio(
 ) {
   const base = opcoesCarroLivre(ctx, carroEscalado, linhaNorm, opcoesBusca);
   const filtro = (perfil) => combinar(perfil, perfilReq);
+  let lista;
   if (opcoesBusca.priorizarFilasLivres) {
-    return listarCandidatosAposPreferenciaEscalado(patio, frota, base, filtro);
+    lista = listarCandidatosAposPreferenciaEscalado(patio, frota, base, filtro);
+  } else {
+    lista = listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtro);
   }
-  return listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtro);
+  return ordenarCandidatosPreferenciaLinha(lista, linhaNorm);
 }
 
 function buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm, opcoesHorario = {}) {
