@@ -433,6 +433,7 @@ export function listarCandidatosSubstituto(tecnologia, patio, frota, opcoes = {}
 
   Object.entries(patio.filas).forEach(([filaKey, lista]) => {
     if (FILAS_NAO_UTILIZAVEIS.has(filaKey)) return;
+    if (typeof opcoes.filtroFilaKey === "function" && !opcoes.filtroFilaKey(filaKey)) return;
 
     lista.forEach((prefixo) => {
       const p = String(prefixo);

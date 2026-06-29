@@ -10,12 +10,15 @@ import {
   obterPerfilTecnologia,
   obterTecnologia,
   obterOrdemFilaSaida,
+  ehSaidaLivre,
+  ehFilaNaoUtilizavelEscala,
   normalizarTecnologia,
   registrarSaidaVeiculo
 } from "./patio-core.js";
 
 const HORA_INICIO_MIN = "04:10";
 const HORA_INICIO_MAX = "07:00";
+const HORA_PREFERENCIA_ESCALADO = "05:30";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
 const HORA_LIMITE_RECOLHIMENTO_BRT = "15:00";
@@ -458,20 +461,49 @@ function montarOpcaoCarro(candidato, perfilEsc, carroEscalado, meta = {}) {
 
 const ORDENS_FILA_ESCALA = [1, 2, 3, 4];
 
+/** Oficina não entra na escalação de saída. */
+const FILAS_OFICINA_ESCALA = new Set(["oficina_f1", "oficina_f2"]);
+
+function ehFilaUtilizavelEscala(filaKey) {
+  if (ehFilaNaoUtilizavelEscala(filaKey)) return false;
+  if (FILAS_OFICINA_ESCALA.has(filaKey)) return false;
+  return true;
+}
+
+function inicioAtePreferenciaEscalado(row) {
+  const mins = minutosHorarioInicio(row);
+  const limite = horaParaMinutos(HORA_PREFERENCIA_ESCALADO);
+  if (mins == null || limite == null) return false;
+  return mins <= limite;
+}
+
+function escaladoPodeSerPriorizado(consultaEsc, carroEscalado, usados, temPedido) {
+  if (!carroEscalado || usados.has(carroEscalado) || temPedido) return false;
+  if (consultaEsc.tipo === "ausente" || consultaEsc.tipo === "vazio") return false;
+  const filaKey = consultaEsc.loc?.filaKey;
+  if (filaKey && !ehFilaUtilizavelEscala(filaKey)) return false;
+  return true;
+}
+
 function candidatosParaOpcoes(candidatos, perfilEsc, carroEscalado, meta = {}) {
   return candidatos.map((c) => montarOpcaoCarro(c, perfilEsc, carroEscalado, meta));
 }
 
 /** Carros livres na ordem Fila 1 → 2 → 3 → 4 com perfil exato. */
-function listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtroPerfil) {
+function listarCandidatosPorOrdemFilaFiltrado(patio, frotaRef, base, filtroPerfil, opcoesLista = {}) {
   const resultado = [];
   const vistos = new Set();
+  const filtroFila = opcoesLista.filtroFilaKey;
   for (const ordem of ORDENS_FILA_ESCALA) {
-    const lista = listarCandidatosSubstituto("", patio, frota, {
+    const lista = listarCandidatosSubstituto("", patio, frotaRef, {
       ...base,
       ordemFilaAlvo: ordem,
       incluirOutrasTecnologias: true,
-      filtroPrefixo: (prefixo) => filtroPerfil(obterPerfilTecnologia(prefixo, frota), prefixo)
+      filtroFilaKey: (filaKey) => {
+        if (!ehFilaUtilizavelEscala(filaKey)) return false;
+        return typeof filtroFila === "function" ? filtroFila(filaKey) : true;
+      },
+      filtroPrefixo: (prefixo) => filtroPerfil(obterPerfilTecnologia(prefixo, frotaRef), prefixo)
     });
     lista.forEach((c) => {
       if (vistos.has(c.prefixo)) return;
@@ -481,6 +513,24 @@ function listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtroPerfil) 
     if (resultado.length >= MAX_OPCOES_CARRO) break;
   }
   return resultado.slice(0, MAX_OPCOES_CARRO);
+}
+
+/**
+ * Após 05:30: primeiro filas de saída livre; depois filas sequenciais (2→3→4).
+ * Cada saída simulada libera a fila seguinte no grupo.
+ */
+function listarCandidatosAposPreferenciaEscalado(patio, frotaRef, base, filtroPerfil) {
+  const fases = [
+    (filaKey) => ehSaidaLivre(filaKey),
+    (filaKey) => !ehSaidaLivre(filaKey)
+  ];
+  for (const filtroFilaKey of fases) {
+    const lista = listarCandidatosPorOrdemFilaFiltrado(patio, frotaRef, base, filtroPerfil, {
+      filtroFilaKey
+    });
+    if (lista.length) return lista;
+  }
+  return [];
 }
 
 /**
@@ -496,12 +546,14 @@ function listarVeiculosNoPatio(
   opcoesBusca = {}
 ) {
   const base = opcoesCarroLivre(ctx, carroEscalado, linhaNorm, opcoesBusca);
-  return listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, (perfil) =>
-    combinar(perfil, perfilReq)
-  );
+  const filtro = (perfil) => combinar(perfil, perfilReq);
+  if (opcoesBusca.priorizarFilasLivres) {
+    return listarCandidatosAposPreferenciaEscalado(patio, frota, base, filtro);
+  }
+  return listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtro);
 }
 
-function buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm) {
+function buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm, opcoesHorario = {}) {
   const perfilReq = obterPerfilTecnologia(carroEscalado, frota);
 
   const etapas = [{ combinar: perfilCombinaExato, perfil: perfilReq, meta: {} }];
@@ -532,7 +584,7 @@ function buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm) {
       linhaNorm,
       carroEscalado,
       etapa.combinar,
-      etapa.opcoesBusca || {}
+      { ...(etapa.opcoesBusca || {}), ...opcoesHorario }
     );
     if (!cands.length) continue;
     return {
@@ -646,12 +698,21 @@ function processarLinha(row, patio, ctx) {
 
   if (carroEscalado) {
     const consultaEsc = consultarSituacaoCarro(carroEscalado, patio);
+    const preferirEscalado = inicioAtePreferenciaEscalado(row);
     const escaladoLivre = consultaEsc.tipo === "livre" && !usados.has(carroEscalado);
+    const escaladoPriorizado = preferirEscalado
+      && escaladoPodeSerPriorizado(consultaEsc, carroEscalado, usados, temPedido);
 
-    if (escaladoLivre) {
+    if (escaladoLivre || escaladoPriorizado) {
       carroSaida = carroEscalado;
       obsEscala = formatarLocalEscala(consultaEsc.loc);
-      alertas.push(`Consulta fila: ${formatarConsultaFila(consultaEsc)} — saída liberada.`);
+      if (escaladoLivre) {
+        alertas.push(`Consulta fila: ${formatarConsultaFila(consultaEsc)} — saída liberada.`);
+      } else {
+        alertas.push(
+          `Até ${HORA_PREFERENCIA_ESCALADO}: prioridade ao escalado ${carroEscalado} — ${consultaEsc.motivo}`
+        );
+      }
     } else {
       if (consultaEsc.tipo === "indisponivel") {
         alertas.push(`Escalado ${formatarConsultaFila(consultaEsc)} — ${consultaEsc.motivo}`);
@@ -665,7 +726,9 @@ function processarLinha(row, patio, ctx) {
         alertas.push(`Pedido ${carroEscalado}: buscar carro livre para saída.`);
       }
 
-      const busca = buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm);
+      const busca = buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm, {
+        priorizarFilasLivres: !preferirEscalado
+      });
       if (busca?.opcoes?.length) {
         opcoesCarro = busca.opcoes;
         escolhaPendente = true;
@@ -694,6 +757,10 @@ function processarLinha(row, patio, ctx) {
         } else if (busca.fallbackSemAr) {
           alertas.push(
             `Sem Pesado Com AR — ${opcoesCarro.length} opção(ões) Pesado Sem AR em SUBST (aceite pendente).`
+          );
+        } else if (!preferirEscalado) {
+          alertas.push(
+            `Após ${HORA_PREFERENCIA_ESCALADO}: filas livres primeiro — ${opcoesCarro.length} opção(ões) em SUBST.`
           );
         } else {
           alertas.push(
