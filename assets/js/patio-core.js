@@ -62,7 +62,6 @@ export const GRUPOS_PATIO = [
     filas: [
       { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
       { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true },
-      { key: "caixa_dagua", label: "Caixa Dágua", ordem: 1, saidaLivre: true },
       { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO }
     ]
   }
@@ -109,8 +108,7 @@ export const FILAS_SAIDA_LIVRE = new Set([
   "corredor_c6",
   "cot",
   "muro",
-  "bomba",
-  "caixa_dagua"
+  "bomba"
 ]);
 
 /** Carros em bloqueio (reforma / oficina) não entram na escalação. */
@@ -208,6 +206,7 @@ function normalizarListaCarros(lista) {
 }
 
 function mapChaveFilaLegado(key) {
+  if (key === "caixa_dagua") return "mistos_f1";
   if (key.startsWith("corredor_")) return key;
   if (key === "oficina_f1" || key === "oficina_f2" || key === "bloqueados_oficina") return "oficina";
   return key;
