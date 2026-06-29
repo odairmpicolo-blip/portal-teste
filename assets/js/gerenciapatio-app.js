@@ -37,6 +37,18 @@
       ]
     },
     {
+      id: "corredor",
+      titulo: "Corredor",
+      filas: [
+        { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
+        { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
+        { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
+        { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
+        { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
+        { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
+      ]
+    },
+    {
       id: "latavador",
       titulo: "Lavador",
       filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
@@ -101,6 +113,14 @@
       { key: "leves_f3", label: "Lev. F3" },
       { key: "leves_f4", label: "Lev. F4" }
     ],
+    corredor: [
+      { key: "corredor_c1", label: "Cor. 1" },
+      { key: "corredor_c2", label: "Cor. 2" },
+      { key: "corredor_c3", label: "Cor. 3" },
+      { key: "corredor_c4", label: "Cor. 4" },
+      { key: "corredor_c5", label: "Cor. 5" },
+      { key: "corredor_c6", label: "Cor. 6" }
+    ],
     auxiliares: [
       { key: "latavador_f1", label: "Lavador" },
       { key: "cot", label: "COT" },
@@ -143,7 +163,8 @@
   }
 
   function mapChaveLegado(key) {
-    if (key.startsWith("corredor_") || key === "caixa_dagua") return "mistos_f1";
+    if (key === "caixa_dagua") return "mistos_f1";
+    if (key.startsWith("corredor_")) return key;
     if (key === "oficina_f1" || key === "oficina_f2" || key === "bloqueados_oficina") return "oficina";
     return key;
   }
@@ -645,6 +666,7 @@
     planta.appendChild(montarSecaoPlanta("Carros Pesados", PLANTA_GARAGEM.pesados, "garagem-linha-operacao"));
     planta.appendChild(montarSecaoPlanta("Carros mistos", PLANTA_GARAGEM.mistos, "garagem-linha-operacao"));
     planta.appendChild(montarSecaoPlanta("Carros leves", PLANTA_GARAGEM.leves, "garagem-linha-operacao"));
+    planta.appendChild(montarSecaoPlanta("Corredor", PLANTA_GARAGEM.corredor, "garagem-linha-operacao"));
     planta.appendChild(montarSecaoPlanta("Lavador · COT · Muro · Bomba · Corujão", PLANTA_GARAGEM.auxiliares, "garagem-linha-centro"));
     planta.appendChild(montarSecaoPlanta("Bloqueados", PLANTA_GARAGEM.bloqueados, "garagem-linha-operacao garagem-linha-bloqueados"));
 

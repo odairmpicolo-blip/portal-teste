@@ -35,6 +35,18 @@ export const GRUPOS_PATIO = [
     ]
   },
   {
+    id: "corredor",
+    titulo: "Corredor",
+    filas: [
+      { key: "corredor_c1", label: "Cor. 1", ordem: 1, saidaLivre: true },
+      { key: "corredor_c2", label: "Cor. 2", ordem: 2, saidaLivre: true },
+      { key: "corredor_c3", label: "Cor. 3", ordem: 3, saidaLivre: true },
+      { key: "corredor_c4", label: "Cor. 4", ordem: 4, saidaLivre: true },
+      { key: "corredor_c5", label: "Cor. 5", ordem: 5, saidaLivre: true },
+      { key: "corredor_c6", label: "Cor. 6", ordem: 6, saidaLivre: true }
+    ]
+  },
+  {
     id: "latavador",
     titulo: "Lavador",
     filas: [{ key: "latavador_f1", label: "Lavador", ordem: 1, saidaLivre: true }]
@@ -88,6 +100,12 @@ export const FILAS_SAIDA_LIVRE = new Set([
   "mistos_f1",
   "pesados_f1",
   "leves_f1",
+  "corredor_c1",
+  "corredor_c2",
+  "corredor_c3",
+  "corredor_c4",
+  "corredor_c5",
+  "corredor_c6",
   "cot",
   "muro",
   "bomba"
@@ -156,7 +174,8 @@ function normalizarListaCarros(lista) {
 }
 
 function mapChaveFilaLegado(key) {
-  if (key.startsWith("corredor_") || key === "caixa_dagua") return "mistos_f1";
+  if (key === "caixa_dagua") return "mistos_f1";
+  if (key.startsWith("corredor_")) return key;
   if (key === "oficina_f1" || key === "oficina_f2" || key === "bloqueados_oficina") return "oficina";
   return key;
 }
