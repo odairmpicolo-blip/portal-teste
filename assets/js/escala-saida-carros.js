@@ -18,7 +18,9 @@ const HORA_INICIO_MIN = "04:10";
 const HORA_INICIO_MAX = "07:00";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
+const HORA_LIMITE_RECOLHIMENTO_BRT = "15:00";
 const LINHAS_SUPER_BUS = new Set(["800", "801", "802", "803", "806", "913"]);
+const LINHAS_BRT = new Set(["800", "801", "802", "803", "806", "904", "913"]);
 const CHAVES_HORARIO_INICIO = ["inicio", "horario_de_inicio", "horario_inicio", "inicio_programado"];
 
 /** Colunas oficiais — planilha + TECNOLOGIA, OBS, ALERTA. */
@@ -90,6 +92,12 @@ function ehSuperBusPorPrefixo(prefixo, frotaRef) {
   return ehSuperBus(obterTecnologia(prefixo, frotaRef));
 }
 
+function ehBrtPorPrefixo(prefixo, frotaRef) {
+  const perfil = obterPerfilTecnologia(prefixo, frotaRef);
+  const tipo = normalizarTecnologia(perfil.resto || perfil.tecnologia || "");
+  return tipo === "brt";
+}
+
 function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
   const tech = obterTecnologia(prefixo, frotaRef);
   if (!ehSuperBus(tech)) return { ok: true };
@@ -103,6 +111,29 @@ function validarSuperBusLinha(prefixo, linhaNorm, frotaRef) {
     };
   }
   return { ok: true };
+}
+
+function validarBrtLinha(prefixo, linhaNorm, frotaRef) {
+  if (!ehBrtPorPrefixo(prefixo, frotaRef)) return { ok: true };
+  if (!linhaNorm) {
+    return {
+      ok: false,
+      motivo: "BRT exige linha definida (800–803, 806, 904 ou 913)"
+    };
+  }
+  if (!LINHAS_BRT.has(linhaNorm)) {
+    return {
+      ok: false,
+      motivo: `BRT: preferência nas linhas 800, 801, 802, 803, 806, 904 ou 913 (linha ${linhaNorm})`
+    };
+  }
+  return { ok: true };
+}
+
+function validarVeiculoLinha(prefixo, linhaNorm, frotaRef) {
+  const vSuper = validarSuperBusLinha(prefixo, linhaNorm, frotaRef);
+  if (!vSuper.ok) return vSuper;
+  return validarBrtLinha(prefixo, linhaNorm, frotaRef);
 }
 
 function extrairHorarioInicio(row) {
@@ -132,6 +163,59 @@ function normalizarClima(valor) {
 function ehMinionibus(perfil) {
   const tipo = normalizarTecnologia(perfil?.resto || perfil?.tecnologia || "");
   return tipo === "minionibus" || tipo.includes("minionibus");
+}
+
+function ehLeve(perfil) {
+  const tipo = normalizarTecnologia(perfil?.resto || perfil?.tecnologia || "");
+  return tipo === "leve";
+}
+
+function ehPesado(perfil) {
+  const tipo = normalizarTecnologia(perfil?.resto || perfil?.tecnologia || "");
+  return tipo === "pesado";
+}
+
+function criarPerfilSemArFallback(perfil) {
+  if (normalizarClima(perfil.climatizacao) !== "com ar") return null;
+  if (!ehPesado(perfil)) return null;
+  if (perfil.cor !== "azul" && perfil.cor !== "amarelo") return null;
+  const corRotulo = perfil.cor.charAt(0).toUpperCase() + perfil.cor.slice(1);
+  return {
+    cor: perfil.cor,
+    resto: "pesado",
+    tecnologia: "pesado",
+    climatizacao: "Sem AR",
+    completo: `${perfil.cor} pesado`,
+    rotulo: `${corRotulo} · Pesado · Sem AR`
+  };
+}
+
+/** Mesma cor + Pesado + Sem AR (fallback do Com AR). */
+function perfilCombinaSemAr(perfilCand, perfilReqSemAr) {
+  if (!ehPesado(perfilCand)) return false;
+  if (perfilReqSemAr.cor && perfilCand.cor !== perfilReqSemAr.cor) return false;
+  return normalizarClima(perfilCand.climatizacao) === "sem ar";
+}
+
+function criarPerfilLeveFallback(perfilMinibus) {
+  const clima = perfilMinibus.climatizacao || "";
+  return {
+    cor: "",
+    resto: "leve",
+    tecnologia: "leve",
+    climatizacao: clima,
+    completo: "leve",
+    rotulo: clima ? `Leve · ${clima}` : "Leve"
+  };
+}
+
+/** Leve com mesma climatização (cor ignorada). */
+function perfilCombinaLeve(perfilCand, perfilReqLeve) {
+  if (!ehLeve(perfilCand)) return false;
+  const climaReq = normalizarClima(perfilReqLeve.climatizacao);
+  const climaCand = normalizarClima(perfilCand.climatizacao);
+  if (climaReq && climaCand && climaReq !== climaCand) return false;
+  return true;
 }
 
 /** Exige tipo e climatização; cor só fora de Minionibus. */
@@ -293,6 +377,22 @@ function aplicarAlertasSuperBus(prefixos, horaFimCarro, alertas, flags) {
   });
 }
 
+function aplicarAlertasBrt(prefixos, horaFimCarro, alertas, flags) {
+  const vistos = new Set();
+  prefixos.forEach((prefixo) => {
+    const alvo = String(prefixo || "").trim();
+    if (!alvo || vistos.has(alvo) || !ehBrtPorPrefixo(alvo, frota)) return;
+    vistos.add(alvo);
+    flags.temBrt = true;
+    alertas.push(`BRT ${alvo}: recolher até ${HORA_LIMITE_RECOLHIMENTO_BRT} (F. CARRO)`);
+    if (recolhimentoAposLimite(horaFimCarro, HORA_LIMITE_RECOLHIMENTO_BRT)) {
+      alertas.push(
+        `BRT ${alvo}: recolhimento (F. CARRO ${horaFimCarro}) após ${HORA_LIMITE_RECOLHIMENTO_BRT}`
+      );
+    }
+  });
+}
+
 function aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm) {
   if (!carroSaida) return;
 
@@ -302,15 +402,30 @@ function aplicarAlertasCarroSaida(carroSaida, alertas, flags, linhaNorm) {
     flags.superBusAlerta = true;
     flags.aceitePendente = true;
   }
+
+  const vBrt = validarBrtLinha(carroSaida, linhaNorm, frota);
+  if (!vBrt.ok) {
+    alertas.push(vBrt.motivo);
+    flags.brtAlerta = true;
+    flags.aceitePendente = true;
+  }
 }
 
-function opcoesCarroLivre(ctx, carroEscalado, linhaNorm) {
+function opcoesCarroLivre(ctx, carroEscalado, linhaNorm, opcoesBusca = {}) {
   const { usados } = ctx;
+  const perfilEsc = obterPerfilTecnologia(carroEscalado, frota);
   return {
     usados,
     excluir: [carroEscalado].filter(Boolean),
     excluirPedidos: true,
-    filtroCarro: (prefixo) => validarSuperBusLinha(prefixo, linhaNorm, frota).ok
+    filtroCarro: (prefixo) => {
+      if (!validarVeiculoLinha(prefixo, linhaNorm, frota).ok) return false;
+      const cand = obterPerfilTecnologia(prefixo, frota);
+      if (ehLeve(cand) && !opcoesBusca.permiteLeveFallback && !ehLeve(perfilEsc)) {
+        return false;
+      }
+      return true;
+    }
   };
 }
 
@@ -321,7 +436,7 @@ function montarAlertaTroca(carroEscalado, substituto, frotaRef, extra = "") {
   return extra ? `${base} — ${extra}` : base;
 }
 
-function montarOpcaoCarro(candidato, perfilEsc, carroEscalado) {
+function montarOpcaoCarro(candidato, perfilEsc, carroEscalado, meta = {}) {
   const tech = obterTecnologia(candidato.prefixo, frota);
   return {
     prefixo: candidato.prefixo,
@@ -331,16 +446,20 @@ function montarOpcaoCarro(candidato, perfilEsc, carroEscalado) {
     ordemFila: candidato.ordemFila,
     origem: candidato.origem || "patio",
     horarioFuturo: candidato.horarioFuturo || "",
-    mudancaTecnologia: false,
-    mudancaCor: false,
-    semMesmaTecnologia: false
+    fallbackLeve: Boolean(meta.fallbackLeve),
+    fallbackSemAr: Boolean(meta.fallbackSemAr),
+    mudancaTecnologia: Boolean(meta.fallbackLeve || meta.mudancaTecnologia),
+    mudancaCor: Boolean(meta.mudancaCor),
+    semMesmaTecnologia: Boolean(
+      meta.fallbackLeve || meta.fallbackSemAr || meta.semMesmaTecnologia
+    )
   };
 }
 
 const ORDENS_FILA_ESCALA = [1, 2, 3, 4];
 
-function candidatosParaOpcoes(candidatos, perfilEsc, carroEscalado) {
-  return candidatos.map((c) => montarOpcaoCarro(c, perfilEsc, carroEscalado));
+function candidatosParaOpcoes(candidatos, perfilEsc, carroEscalado, meta = {}) {
+  return candidatos.map((c) => montarOpcaoCarro(c, perfilEsc, carroEscalado, meta));
 }
 
 /** Carros livres na ordem Fila 1 → 2 → 3 → 4 com perfil exato. */
@@ -365,60 +484,67 @@ function listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, filtroPerfil) 
 }
 
 /**
- * Busca carro com cor + tecnologia + climatização do escalado.
- * Inclui veículos no pátio e escalados de horários posteriores (antecipação).
+ * Carros livres no pátio (filas 1→4), simulação 1 a 1 — sem antecipar escalados futuros.
  */
-function listarVeiculosPerfilExato(patio, ctx, perfilReq, linhaNorm, carroEscalado) {
-  const { usados, ordenadas, indice } = ctx;
-  const base = opcoesCarroLivre(ctx, carroEscalado, linhaNorm);
-  const vistos = new Set();
-  const resultado = [];
-
-  const incluir = (cand, meta = {}) => {
-    if (!cand?.prefixo || vistos.has(cand.prefixo)) return;
-    vistos.add(cand.prefixo);
-    resultado.push({ ...cand, ...meta });
-  };
-
-  listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, (perfil) =>
-    perfilCombinaExato(perfil, perfilReq)
-  ).forEach((c) => incluir(c, { origem: "patio" }));
-
-  if (Array.isArray(ordenadas) && indice != null) {
-    for (let j = indice + 1; j < ordenadas.length; j++) {
-      const prefixo = extrairCarroEscalado(ordenadas[j]);
-      if (!prefixo || vistos.has(prefixo)) continue;
-      const perfil = obterPerfilTecnologia(prefixo, frota);
-      if (!perfilCombinaExato(perfil, perfilReq)) continue;
-      if (usados.has(prefixo)) continue;
-      const consulta = consultarSituacaoCarro(prefixo, patio);
-      if (consulta.tipo !== "livre") continue;
-      if (!validarSuperBusLinha(prefixo, linhaNorm, frota).ok) continue;
-      incluir(
-        {
-          prefixo,
-          loc: consulta.loc,
-          ordemFila: obterOrdemFilaSaida(consulta.loc.filaKey)
-        },
-        {
-          origem: "futuro",
-          horarioFuturo: extrairHorarioInicio(ordenadas[j])
-        }
-      );
-      if (resultado.length >= MAX_OPCOES_CARRO) break;
-    }
-  }
-
-  return resultado.slice(0, MAX_OPCOES_CARRO);
+function listarVeiculosNoPatio(
+  patio,
+  ctx,
+  perfilReq,
+  linhaNorm,
+  carroEscalado,
+  combinar = perfilCombinaExato,
+  opcoesBusca = {}
+) {
+  const base = opcoesCarroLivre(ctx, carroEscalado, linhaNorm, opcoesBusca);
+  return listarCandidatosPorOrdemFilaFiltrado(patio, frota, base, (perfil) =>
+    combinar(perfil, perfilReq)
+  );
 }
 
 function buscarCarroParaHorario(patio, ctx, carroEscalado, linhaNorm) {
   const perfilReq = obterPerfilTecnologia(carroEscalado, frota);
-  const cands = listarVeiculosPerfilExato(patio, ctx, perfilReq, linhaNorm, carroEscalado);
-  if (!cands.length) return null;
-  return {
-    opcoes: candidatosParaOpcoes(cands, perfilReq, carroEscalado).slice(0, MAX_OPCOES_CARRO)
-  };
+
+  const etapas = [{ combinar: perfilCombinaExato, perfil: perfilReq, meta: {} }];
+
+  const perfilSemAr = criarPerfilSemArFallback(perfilReq);
+  if (perfilSemAr) {
+    etapas.push({
+      combinar: perfilCombinaSemAr,
+      perfil: perfilSemAr,
+      meta: { fallbackSemAr: true }
+    });
+  }
+
+  if (ehMinionibus(perfilReq)) {
+    etapas.push({
+      combinar: perfilCombinaLeve,
+      perfil: criarPerfilLeveFallback(perfilReq),
+      meta: { fallbackLeve: true },
+      opcoesBusca: { permiteLeveFallback: true }
+    });
+  }
+
+  for (const etapa of etapas) {
+    const cands = listarVeiculosNoPatio(
+      patio,
+      ctx,
+      etapa.perfil,
+      linhaNorm,
+      carroEscalado,
+      etapa.combinar,
+      etapa.opcoesBusca || {}
+    );
+    if (!cands.length) continue;
+    return {
+      ...etapa.meta,
+      opcoes: candidatosParaOpcoes(cands, perfilReq, carroEscalado, etapa.meta).slice(
+        0,
+        MAX_OPCOES_CARRO
+      )
+    };
+  }
+
+  return null;
 }
 
 function montarResultadoTroca(opcao, carroEscalado, tecnologiaHorario) {
@@ -428,11 +554,13 @@ function montarResultadoTroca(opcao, carroEscalado, tecnologiaHorario) {
   let tecnologiaExibicao = perfilEsc.rotulo || tecnologiaHorario;
 
   if (opcao.prefixo !== carroEscalado) {
-    const extra =
-      opcao.origem === "futuro" && opcao.horarioFuturo
-        ? `antecipado do horário ${opcao.horarioFuturo}`
-        : "";
-    alertas.push(montarAlertaTroca(carroEscalado, opcao.prefixo, frota, extra));
+    alertas.push(montarAlertaTroca(carroEscalado, opcao.prefixo, frota));
+    if (opcao.fallbackSemAr) {
+      alertas.push("Sem Pesado Com AR disponível — sugerido Pesado Sem AR (mesma cor).");
+    }
+    if (opcao.fallbackLeve) {
+      alertas.push("Sem Minionibus disponível — sugerido carro Leve (mesma climatização).");
+    }
     if (perfilSaida.rotulo && perfilSaida.rotulo !== perfilEsc.rotulo) {
       tecnologiaExibicao = `${perfilEsc.rotulo} → ${perfilSaida.rotulo}`;
     }
@@ -440,10 +568,14 @@ function montarResultadoTroca(opcao, carroEscalado, tecnologiaHorario) {
 
   return {
     flags: {
-      mudancaTecnologia: false,
-      mudancaCor: false,
-      aceitePendente: false,
-      semMesmaTecnologia: false
+      mudancaTecnologia: Boolean(opcao.fallbackLeve || opcao.mudancaTecnologia),
+      mudancaCor: Boolean(opcao.mudancaCor),
+      aceitePendente: Boolean(
+        opcao.fallbackLeve || opcao.fallbackSemAr || opcao.semMesmaTecnologia
+      ),
+      semMesmaTecnologia: Boolean(
+        opcao.fallbackLeve || opcao.fallbackSemAr || opcao.semMesmaTecnologia
+      )
     },
     alertas,
     tecnologiaExibicao
@@ -492,7 +624,9 @@ function processarLinha(row, patio, ctx) {
     mudancaCor: false,
     superBusAlerta: false,
     aceitePendente: false,
-    temSuperBus: false
+    temSuperBus: false,
+    temBrt: false,
+    brtAlerta: false
   };
   let carroSaida = "";
   let subst = "";
@@ -506,6 +640,7 @@ function processarLinha(row, patio, ctx) {
     !fCarroHora || recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_PEDIDO)
   );
   const fCarroAtrasadoSuperBus = recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_SUPER_BUS);
+  const fCarroAtrasadoBrt = recolhimentoAposLimite(fCarroHora, HORA_LIMITE_RECOLHIMENTO_BRT);
 
   aplicarAlertasRecolhimentoPedido(carroEscalado, fCarroHora, patio, alertas);
 
@@ -552,9 +687,19 @@ function processarLinha(row, patio, ctx) {
         flags.mudancaTecnologia = aplicado._mudanca_tecnologia;
         flags.mudancaCor = aplicado._mudanca_cor;
         flags.aceitePendente = aplicado._aceite_pendente;
-        alertas.push(
-          `Perfil exigido: ${perfilReqLabel(carroEscalado)} — ${opcoesCarro.length} opção(ões) em SUBST.`
-        );
+        if (busca.fallbackLeve) {
+          alertas.push(
+            `Sem Minionibus livre — ${opcoesCarro.length} carro(s) Leve em SUBST (aceite pendente).`
+          );
+        } else if (busca.fallbackSemAr) {
+          alertas.push(
+            `Sem Pesado Com AR — ${opcoesCarro.length} opção(ões) Pesado Sem AR em SUBST (aceite pendente).`
+          );
+        } else {
+          alertas.push(
+            `Perfil exigido: ${perfilReqLabel(carroEscalado)} — ${opcoesCarro.length} opção(ões) em SUBST.`
+          );
+        }
       } else {
         alertas.push(
           `Sem carro livre com ${perfilReqLabel(carroEscalado)} (escalado ${carroEscalado}).`
@@ -570,6 +715,7 @@ function processarLinha(row, patio, ctx) {
   }
 
   aplicarAlertasSuperBus([carroSaida || carroEscalado], fCarroHora, alertas, flags);
+  aplicarAlertasBrt([carroSaida || carroEscalado], fCarroHora, alertas, flags);
 
   const temSubstituicao = Boolean(carroSaida && carroEscalado && carroSaida !== carroEscalado);
   if (temSubstituicao && !subst) {
@@ -593,11 +739,16 @@ function processarLinha(row, patio, ctx) {
     _mudanca_tecnologia: flags.mudancaTecnologia,
     _mudanca_cor: flags.mudancaCor,
     _super_bus_alerta: flags.superBusAlerta,
+    _brt_alerta: flags.brtAlerta,
     _aceite_pendente: flags.aceitePendente,
     _tem_pedido: temPedido,
     _tem_substituicao: temSubstituicao,
     _tem_super_bus: flags.temSuperBus,
-    _f_carro_atrasado: fCarroAtrasadoPedido || (flags.temSuperBus && fCarroAtrasadoSuperBus),
+    _tem_brt: flags.temBrt,
+    _f_carro_atrasado:
+      fCarroAtrasadoPedido
+      || (flags.temSuperBus && fCarroAtrasadoSuperBus)
+      || (flags.temBrt && fCarroAtrasadoBrt),
     _opcoes_carro: opcoesCarro,
     _escolha_pendente: escolhaPendente
   };
@@ -642,15 +793,19 @@ function processarEscala(linhas) {
           mudancaCor: row._mudanca_cor,
           superBusAlerta: false,
           aceitePendente: row._aceite_pendente,
-          temSuperBus: false
+          temSuperBus: false,
+          temBrt: false,
+          brtAlerta: false
         };
         aplicarAlertasCarroSaida(row.carro_saida, alertasPos, flagsPos, linhaNorm);
         aplicarAlertasSuperBus([row.carro_saida, row.carro_escalado], row.f_carro, alertasPos, flagsPos);
+        aplicarAlertasBrt([row.carro_saida, row.carro_escalado], row.f_carro, alertasPos, flagsPos);
         alertasPos.push(`Carro escolhido: ${opcao.prefixo} (${opcao.tecnologia})`);
         row = {
           ...row,
           _alerta: alertasPos.join(" | "),
           _super_bus_alerta: flagsPos.superBusAlerta,
+          _brt_alerta: flagsPos.brtAlerta,
           _tem_super_bus: flagsPos.temSuperBus,
           _aceite_pendente: flagsPos.aceitePendente || row._aceite_pendente
         };
