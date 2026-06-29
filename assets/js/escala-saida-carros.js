@@ -129,10 +129,15 @@ function normalizarClima(valor) {
   return n;
 }
 
-/** Exige cor, tipo e climatização do carro escalado (quando informados). */
+function ehMinionibus(perfil) {
+  const tipo = normalizarTecnologia(perfil?.resto || perfil?.tecnologia || "");
+  return tipo === "minionibus" || tipo.includes("minionibus");
+}
+
+/** Exige tipo e climatização; cor só fora de Minionibus. */
 function perfilCombinaExato(perfilCand, perfilReq) {
   if (perfilReq.resto && perfilCand.resto !== perfilReq.resto) return false;
-  if (perfilReq.cor && perfilCand.cor !== perfilReq.cor) return false;
+  if (!ehMinionibus(perfilReq) && perfilReq.cor && perfilCand.cor !== perfilReq.cor) return false;
   const climaReq = normalizarClima(perfilReq.climatizacao);
   const climaCand = normalizarClima(perfilCand.climatizacao);
   if (climaReq && climaCand && climaReq !== climaCand) return false;
@@ -466,6 +471,10 @@ function aplicarOpcaoCarroSaida(row, opcao, carroEscalado, tecnologia, linhaNorm
 
 function perfilReqLabel(prefixo) {
   const p = obterPerfilTecnologia(prefixo, frota);
+  if (ehMinionibus(p)) {
+    const partes = [p.resto || p.tecnologia, p.climatizacao].filter(Boolean);
+    return partes.join(" · ") || prefixo;
+  }
   return p.rotulo || [p.cor, p.resto, p.climatizacao].filter(Boolean).join(" · ") || prefixo;
 }
 
