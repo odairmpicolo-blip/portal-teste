@@ -17,8 +17,8 @@ import {
   registrarSaidaVeiculo
 } from "./patio-core.js";
 
-const HORA_INICIO_MIN = "04:10";
-const HORA_INICIO_MAX = "07:00";
+export const HORA_INICIO_MIN = "04:10";
+export const HORA_INICIO_MAX = "07:00";
 const HORA_PREFERENCIA_ESCALADO = "05:30";
 const HORA_LIMITE_RECOLHIMENTO_PEDIDO = "10:45";
 const HORA_LIMITE_RECOLHIMENTO_SUPER_BUS = "15:00";
@@ -310,7 +310,7 @@ function entreHorarios(horario, minimo, maximo) {
   return mins >= min && mins <= max;
 }
 
-function filtrarHorarioInicio(linhas) {
+export function filtrarHorarioInicio(linhas) {
   return linhas.filter((row) => {
     const hora = extrairHorarioInicio(row);
     if (!hora) return true;
@@ -844,9 +844,12 @@ function processarLinha(row, patio, ctx) {
   };
 }
 
-function processarEscala(linhas) {
+export function processarEscala(linhas, opcoes = {}) {
+  const escolhasCarro = opcoes.escolhasCarro ?? state.escolhasCarro;
   const ordenadas = ordenarPorInicio(linhas);
-  const patio = clonarPatio(carregarPatio());
+  const patio = opcoes.patio
+    ? clonarPatio(opcoes.patio)
+    : clonarPatio(carregarPatio());
   const ctx = {
     usados: new Set(),
     total: ordenadas.length,
@@ -855,7 +858,7 @@ function processarEscala(linhas) {
   const resultados = [];
   for (let indice = 0; indice < ordenadas.length; indice++) {
     let row = processarLinha(ordenadas[indice], patio, { ...ctx, indice });
-    const escolha = state.escolhasCarro.get(row._chave_servico);
+    const escolha = escolhasCarro.get(row._chave_servico);
     if (escolha && row._opcoes_carro?.length) {
       const opcao = row._opcoes_carro.find((op) => op.prefixo === escolha);
       if (opcao) {
@@ -910,7 +913,7 @@ function processarEscala(linhas) {
   return resultados;
 }
 
-function ordenarPorInicio(linhas) {
+export function ordenarPorInicio(linhas) {
   return [...linhas].sort((a, b) => {
     const ha = minutosHorarioInicio(a) ?? 9999;
     const hb = minutosHorarioInicio(b) ?? 9999;
@@ -988,6 +991,17 @@ function contarPorTurno(linhas) {
     map[turno] = (map[turno] || 0) + 1;
   });
   return map;
+}
+
+/** Resumo numérico da escalação (para painéis integrados ao pátio). */
+export function resumirEscala(resultados) {
+  const total = resultados.length;
+  const comSubst = resultados.filter((r) => r._tem_substituicao).length;
+  const pedidos = resultados.filter((r) => r._tem_pedido).length;
+  const alertas = resultados.filter((r) => r._alerta).length;
+  const aceitesPendentes = resultados.filter((r) => r._aceite_pendente).length;
+  const proxima = resultados.find((r) => r.carro_saida) || null;
+  return { total, comSubst, pedidos, alertas, aceitesPendentes, proxima };
 }
 
 function atualizarResumo() {
@@ -1179,8 +1193,10 @@ function iniciar() {
   renderTabela();
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", iniciar);
-} else {
-  iniciar();
+if (document.getElementById("escalaTabelaBody")) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", iniciar);
+  } else {
+    iniciar();
+  }
 }

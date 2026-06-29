@@ -21,7 +21,10 @@ document.documentElement.classList.add("portal-auth-pending");
 <link rel="stylesheet" href="../assets/css/portal-titulos.css">
 <link rel="stylesheet" href="../assets/css/portal-brand.css">
 <link rel="stylesheet" href="../assets/css/portal-header.css">
-<link rel="stylesheet" href="../assets/css/portal-session.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/patio-hub.css">
 <script type="module" src="../assets/js/auth.js"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 <style>
@@ -389,8 +392,15 @@ h1 {
     flex-direction: column;
     gap: 10px;
     min-height: 340px;
-    background: #f8fafc;
+    background: #eef2f8 url("../assets/img/garagem-tcgl-planta.png") center / cover no-repeat;
     border-inline: 1px solid #cbd5e1;
+}
+.garagem-patio::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    pointer-events: none;
 }
 .garagem-faixa-principal,
 .garagem-meio,
@@ -471,13 +481,17 @@ h1 {
     overflow-x: auto;
 }
 .garagem-col {
-    flex: 0 1 auto;
-    min-width: 72px;
-    width: auto;
-    max-width: none;
+    flex: 0 0 auto;
+    min-width: 68px;
+    max-width: 92px;
+    width: 68px;
     display: flex;
     flex-direction: column;
     min-height: 0;
+}
+.garagem-col-grade {
+    min-width: 72px;
+    max-width: 80px;
 }
 .garagem-col-head {
     width: 100%;
@@ -512,13 +526,15 @@ h1 {
 }
 .garagem-slots {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
-    align-content: flex-start;
-    gap: 4px;
+    gap: 3px;
     flex: 1;
-    min-height: 58px;
+    min-height: 56px;
+    max-height: min(420px, 55vh);
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 4px;
     border: 1px solid #cbd5e1;
     border-top: none;
@@ -526,11 +542,11 @@ h1 {
     background: #fff;
 }
 .garagem-slot {
-    flex: 0 0 62px;
-    width: 62px;
-    min-height: 58px;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 48px;
     border: 1px solid var(--border);
-    border-top: 3px solid var(--blue2);
+    border-left: 3px solid var(--blue2);
     border-radius: 4px;
     background: #fff;
     display: flex;
@@ -538,20 +554,18 @@ h1 {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    padding: 4px 2px 16px;
+    padding: 3px 2px 14px;
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .garagem-slot-vazio {
-    flex: 1 1 62px;
-    min-width: 62px;
     border-style: dashed;
-    border-top-style: dashed;
-    border-top-color: #cbd5e1;
+    border-left-style: dashed;
+    border-left-color: #cbd5e1;
     color: #94a3b8;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 700;
-    min-height: 58px;
+    min-height: 44px;
     padding-bottom: 4px;
     cursor: pointer;
     background: #f8fafc;
@@ -561,12 +575,11 @@ h1 {
     background: #f1f5f9;
 }
 .garagem-slot-bloqueada {
-    flex: 1 1 62px;
-    min-width: 62px;
+    width: 100%;
     border: 1px solid #fecaca;
     background: #fef2f2;
     cursor: pointer;
-    min-height: 58px;
+    min-height: 44px;
     padding: 0;
 }
 .garagem-slot-bloqueio-x {
@@ -624,7 +637,7 @@ h1 {
     gap: 3px;
 }
 .garagem-slot.pedidos-status {
-    border-top-color: #031b44;
+    border-left-color: #031b44;
     background: var(--pedidos);
 }
 .garagem-slot.pedidos-status .garagem-slot-prefixo,
@@ -632,8 +645,18 @@ h1 {
     color: #fff;
 }
 .garagem-slot.bloqueado-status {
-    border-top-color: #000;
+    border-left-color: #000;
     background: #1f2937;
+}
+.garagem-linha-leves {
+    margin-top: 8px;
+}
+.garagem-linha-bloqueados {
+    margin-top: 8px;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(254, 242, 242, 0.9);
+    border: 1px solid #fecaca;
 }
 .garagem-slot.bloqueado-status .garagem-slot-prefixo,
 .garagem-slot.bloqueado-status .garagem-slot-tech {
@@ -1144,7 +1167,7 @@ h1 {
 
 </style>
 </head>
-<body data-require-perfis="Administrador,Supervisor" data-require-usuarios="pedroisrael2009@gmail.com">
+<body class="patio-hub" data-require-perfis="Administrador,Supervisor" data-require-usuarios="pedroisrael2009@gmail.com">
 
 <div class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
@@ -1152,7 +1175,7 @@ h1 {
         <h1 class="patio-title-art" aria-label="Gerenciamento do Pátio">
             <img src="../assets/img/titulo-patio.png" alt="Gerenciamento do Pátio">
         </h1>
-        <div class="header-subtitle">Saída de carros e filas operacionais</div>
+        <div class="header-subtitle">Pátio inteligente · lançamento + escalação automática</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session" aria-label="Sessão do usuário">
@@ -1180,14 +1203,14 @@ h1 {
     </div>
 
 
-    <div class="dashboard-grid">
-        <div>
+    <div class="hub-shell">
+        <aside class="hub-command">
             <div class="card lancamento-rapido">
-                <div class="card-title">📍 Lançamento rápido</div>
-                <p class="lancamento-dica">Escolha a fila, digite o prefixo (só números da frota) e pressione <b>Enter uma vez</b>.</p>
+                <div class="card-title">Lançamento rápido</div>
+                <p class="lancamento-dica">Escolha a fila, digite o prefixo e pressione <b>Enter</b>. A escalação recalcula automaticamente.</p>
                 <div class="lancamento-atalhos" aria-label="Atalhos carros bloqueados">
-                    <button type="button" class="btn-atalho-fila bloqueado" data-atalho-fila="reforma">🛑 Reforma</button>
-                    <button type="button" class="btn-atalho-fila bloqueado" data-atalho-fila="oficina">🛠 Oficina</button>
+                    <button type="button" class="btn-atalho-fila bloqueado" data-atalho-fila="reforma">Reforma</button>
+                    <button type="button" class="btn-atalho-fila bloqueado" data-atalho-fila="oficina">Oficina</button>
                 </div>
                 <div class="form-group">
                     <label for="selectFila">Fila de destino</label>
@@ -1201,9 +1224,20 @@ h1 {
                 <div id="lancamentoOk" class="lancamento-ok" aria-live="polite"></div>
             </div>
 
+            <div class="card lancamento-pedidos">
+                <div class="card-title">Carros pedidos</div>
+                <p class="lancamento-dica">Veículo no pátio · Enter para marcar pedido · recolher até <b>10:45</b>.</p>
+                <div class="form-group">
+                    <label for="pedidosBus">Prefixo</label>
+                    <input type="text" id="pedidosBus" class="form-control" placeholder="3105 + Enter" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="6">
+                </div>
+                <div id="pedidoErro" class="lancamento-erro" role="alert"></div>
+                <div id="pedidoOk" class="lancamento-ok" aria-live="polite"></div>
+            </div>
+
             <div class="clear-data">
                 <div class="clear-data-actions">
-                    <button class="btn btn-excel" type="button" onclick="exportarExcel()">📊 Exportar Excel</button>
+                    <button class="btn btn-excel" type="button" onclick="exportarExcel()">Exportar Excel</button>
                     <button class="btn-text" type="button" onclick="limparTudo()">Resetar tudo</button>
                 </div>
                 <div class="patio-nao-utilizados" aria-label="Carros não utilizados no pátio">
@@ -1214,37 +1248,24 @@ h1 {
                     <div id="listaNaoUtilizados" class="patio-nao-utilizados-lista"></div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div>
-            <div class="card lancamento-rapido lancamento-pedidos">
-                <div class="card-title">📦 Carros Pedidos</div>
-                <p class="lancamento-dica">Veículo já lançado no pátio. Digite o prefixo e pressione <b>Enter uma vez</b> para marcar como Pedido. Carros pedido devem ser recolhidos até <b>10:45</b> (F. CARRO na escalação).</p>
-                <div class="form-group">
-                    <label for="pedidosBus">Prefixo do veículo</label>
-                    <input type="text" id="pedidosBus" class="form-control" placeholder="Ex.: 3105 + Enter" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="6">
-                </div>
-                <div id="pedidoErro" class="lancamento-erro" role="alert"></div>
-                <div id="pedidoOk" class="lancamento-ok" aria-live="polite"></div>
-                <p class="lancamento-dica">Use o botão <b>P</b> no mapa para desmarcar.</p>
-            </div>
-
-            <div class="card" style="margin-bottom: 0;">
-                <div class="card-title">🚘 Gabarito da Garagem</div>
-                <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
-                    Pesados (21+21+22+23 vagas), mistos (15×4), leves (19/15/7/5), corredor (Cor. 1–6), Lavador, COT, Muro, Bomba e Corujão (após 06h).
-                    Reforma e Oficina = bloqueados. Clique em vaga vazia para bloquear/desbloquear (barra vermelha).
+        <main class="hub-main">
+            <div class="card">
+                <div class="card-title">Gabarito da garagem TCGL</div>
+                <p class="lancamento-dica" style="margin-top:-6px">
+                    <b style="color:var(--hub-success)">■</b> Próxima saída ·
+                    <b style="color:var(--hub-warn)">■</b> Substituto ·
+                    Faixa MURO → Cor. 1–6 → Fila 1–4
                 </p>
                 <div id="patioResumo" class="patio-resumo"></div>
-                <p class="garagem-legenda" aria-hidden="true">
-                    <span style="color:#dc2626;font-weight:700">■ Vaga bloqueada</span> ·
-                    <span style="color:var(--success);font-weight:700">■ Saída livre</span> ·
-                    <span style="color:var(--pedidos);font-weight:700">■ Pedido (até 10:45)</span> ·
-                    <span style="color:#1f2937;font-weight:700">■ Bloqueado</span>
-                </p>
                 <div id="patioMap" class="patio-map" aria-live="polite"></div>
             </div>
-        </div>
+        </main>
+
+        <aside class="hub-escala-host">
+            <div id="hubEscalaPanel"></div>
+        </aside>
     </div>
 </div>
 
@@ -1255,6 +1276,7 @@ h1 {
 </footer>
 
 <script src="../assets/js/frota-patio-data.js"></script>
-<script src="../assets/js/gerenciapatio-app.js?v=20260630corredor"></script>
+<script src="../assets/js/gerenciapatio-app.js?v=20260701hub"></script>
+<script type="module" src="../assets/js/patio-hub-escala.js"></script>
 </body>
 </html>
