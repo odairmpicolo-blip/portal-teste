@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   atualizar:
@@ -58,3 +59,10 @@ jobs:
 
       - name: Publicar JSON no GitHub Pages
         run: bash scripts/ci-git-commit-push.sh "Atualiza incidentes TCGL" assets/data/incidentes-tcgl.json
+
+      # Push com GITHUB_TOKEN não dispara deploy-github-pages.yml automaticamente.
+      - name: Republicar GitHub Pages
+        if: success()
+        run: gh workflow run deploy-github-pages.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
