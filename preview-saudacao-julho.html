@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — saudação profissional</title>
+<link rel="stylesheet" href="assets/css/portal-header.css">
+<link rel="stylesheet" href="assets/css/portal-home-v2.css?v=20260702b">
+<link rel="stylesheet" href="assets/css/portal-saudacao-pro.css?v=20260703c">
+<style>
+:root { --azul: #2563eb; --azul-hover: #1d4ed8; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%, #e2e8f0 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 16px;
+  gap: 20px;
+}
+h2 { margin: 0; font-size: 0.95rem; color: #475569; font-weight: 600; letter-spacing: 0.02em; }
+.preview-wrap {
+  width: min(960px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+  padding: 8px 0;
+}
+.header.header-v2 {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  width: 100%;
+  background: #fff;
+}
+.placeholder { opacity: 0.3; font-size: 0.72rem; padding: 12px; text-align: center; color: #94a3b8; }
+.nav-meses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 960px;
+}
+.nav-meses button {
+  border: 1px solid #cbd5e1;
+  background: rgba(255,255,255,0.9);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.nav-meses button:hover { border-color: #94a3b8; }
+.nav-meses button.active {
+  background: #0f172a;
+  color: #fff;
+  border-color: #0f172a;
+}
+</style>
+</head>
+<body>
+<h2 id="previewTitulo">Preview — saudação do portal</h2>
+<div class="preview-wrap">
+  <header class="header header-v2">
+    <div class="placeholder">Marca TCGL</div>
+    <section class="header-hero header-hero-pro" id="headerHero" aria-label="Boas-vindas">
+      <div class="hero-pro-aura" aria-hidden="true"></div>
+      <div class="header-hero-inner">
+        <div class="hero-pro-panel" id="heroSaudacaoBloc">
+          <div class="hero-pro-copy">
+            <p class="header-hero-welcome hero-pro-welcome">
+              <span class="hero-pro-saudacao-label" id="heroSaudacao">Bem-vinda</span>
+              <span class="hero-pro-nome" id="heroNomeUsuario">Maria</span>
+            </p>
+          </div>
+          <div class="hero-pro-sep" aria-hidden="true"></div>
+          <div class="hero-pro-brand">
+            <figure class="hero-pro-logo hero-pro-logo--emblem" id="heroLogoMes" hidden>
+              <img id="heroCampanhaBanner" class="hero-pro-logo-img" alt="" decoding="async">
+              <span class="hero-pro-logo-frame" aria-hidden="true"></span>
+            </figure>
+            <div class="hero-pro-campanha-meta" id="heroCampanhaMeta" hidden>
+              <div class="header-hero-campanha" id="heroCampanha">
+                <span class="header-hero-ribbon" id="heroRibbon" aria-hidden="true"></span>
+                <div class="header-hero-campanha-texto">
+                  <p class="header-hero-campanha-titulo">
+                    <span class="header-hero-mes-nome" id="heroMesNome">Junho</span>
+                    <span class="header-hero-campanha-destaque" id="heroCampanhaDestaque">Violeta</span>
+                  </p>
+                  <p class="header-hero-mes" id="heroMesConsciencia">…</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="placeholder">Sessão</div>
+  </header>
+</div>
+<nav class="nav-meses" id="navMeses" aria-label="Trocar mês"></nav>
+<script type="module">
+import { MESES_PORTAL, aplicarSaudacaoHero } from "./assets/js/portal-saudacao.js?v=20260703c";
+
+function mesDaUrl() {
+  const raw = new URLSearchParams(window.location.search).get("mes");
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
+  if (Number.isFinite(n) && n >= 1 && n <= 12) return n - 1;
+  const norm = raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const idx = MESES_PORTAL.findIndex((t) =>
+    t.mes.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === norm
+  );
+  return idx >= 0 ? idx : null;
+}
+
+function aplicarMes(idx) {
+  aplicarSaudacaoHero("Maria", { genero: "f", temaOverride: MESES_PORTAL[idx] });
+  document.getElementById("previewTitulo").textContent =
+    "Preview — " + MESES_PORTAL[idx].campanha;
+  document.querySelectorAll("#navMeses button").forEach((btn, i) => {
+    btn.classList.toggle("active", i === idx);
+  });
+  const url = new URL(window.location.href);
+  url.searchParams.set("mes", String(idx + 1));
+  history.replaceState(null, "", url);
+}
+
+const nav = document.getElementById("navMeses");
+MESES_PORTAL.forEach((t, i) => {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = t.mes;
+  btn.addEventListener("click", () => aplicarMes(i));
+  nav.appendChild(btn);
+});
+
+aplicarMes(mesDaUrl() ?? 6);
+</script>
+</body>
+</html>
