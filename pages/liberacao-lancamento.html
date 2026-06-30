@@ -697,9 +697,9 @@ async function apiGet(params){
     return data;
 }
 async function apiPost(payload){
-    const res=await fetch(API_URL,{
-        method:"POST",
-        body:new URLSearchParams(Object.assign({liberacao:"1"},payload)),
+    const p=Object.assign({liberacao:"1"},payload);
+    const res=await fetch(API_URL+"?"+new URLSearchParams(p),{
+        cache:"no-store",
         redirect:"follow"
     });
     const texto=await res.text();
@@ -711,13 +711,15 @@ async function apiPost(payload){
 
 async function salvarPlanilhaLinha(payload){
     try{
-        const mod=await import("../assets/js/liberacao-aws.js?v=20260630a");
+        const mod=await import("../assets/js/liberacao-aws.js?v=20260630b");
         if(await mod.liberacaoAwsDisponivel()){
             await mod.salvarLinhaPlanilhaAws(payload);
             return;
         }
     }catch(err){
-        if(err?.message==="Sessão expirada"||err?.message==="API AWS não configurada") throw err;
+        const msg=String(err?.message||"");
+        if(msg==="Sessão expirada"||msg==="API AWS não configurada") throw err;
+        if(!/404|não encontrada|Rota/i.test(msg)) throw err;
     }
     await apiPost(payload);
 }

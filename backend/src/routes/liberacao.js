@@ -2,8 +2,7 @@ import { Router } from "express";
 import { query } from "../db.js";
 import { requireFirebaseUser } from "../middleware/auth.js";
 import {
-  enviarLinhaPlanilha,
-  montarPayloadUpdatePlanilha
+  enviarLinhaPlanilha
 } from "../lib/liberacao-planilha.js";
 
 const router = Router();
@@ -59,8 +58,7 @@ router.put("/:dataIso/:rowId", requireFirebaseUser, async (req, res) => {
          atualizado_em = NOW()`,
       [dataIso, rowId, JSON.stringify(clean), req.user?.email || null]
     );
-    const planilha = await enviarLinhaPlanilha(montarPayloadUpdatePlanilha(rowId, clean));
-    res.json({ ok: true, planilha });
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, erro: err.message });
   }
