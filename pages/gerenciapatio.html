@@ -483,8 +483,8 @@ h1 {
     width: 100%;
     font-weight: 800;
     text-align: center;
-    font-size: 10px;
-    line-height: 1.15;
+    font-size: 12px;
+    line-height: 1.2;
     color: var(--blue);
     background: #edf2f7;
     padding: 5px 3px;
@@ -498,7 +498,7 @@ h1 {
 .garagem-col-head small {
     display: block;
     font-weight: 600;
-    font-size: 8px;
+    font-size: 10px;
     color: var(--muted);
     margin-top: 2px;
     line-height: 1.1;
@@ -684,122 +684,251 @@ h1 {
     color: var(--muted);
     margin: 0 0 10px;
 }
-.gabarito-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 4px;
-}
-.gabarito-grid {
-    display: grid;
-    gap: 1px;
-    min-width: 1180px;
-    background: #94a3b8;
-    border: 1px solid #64748b;
-}
-.gabarito-celula {
-    min-width: 0;
-    min-height: 38px;
-    background: #fff;
-}
-.gabarito-vazio {
-    background: #f8fafc;
-    min-height: 28px;
-}
-.gabarito-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 3px;
-    font-size: 8px;
-    font-weight: 800;
-    line-height: 1.15;
-    text-align: center;
-    color: #1e3a5f;
-    background: #e2e8f0;
-    border: none;
-    cursor: pointer;
-}
-.gabarito-label:hover { background: #cbd5e1; }
-.gabarito-label.saida-livre-label { box-shadow: inset 0 2px 0 var(--success); }
-.gabarito-label.bloqueado-label { background: #fee2e2; color: #991b1b; }
-.gabarito-label.corujao-aguardando-label { box-shadow: inset 0 2px 0 #f59e0b; }
-.gabarito-sep {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 900;
-    color: #94a3b8;
+
+/* Planta operacional — layout por zonas (legível) */
+.patio-planta-pro {
     background: #f1f5f9;
 }
-.gabarito-slot {
-    padding: 1px;
-    min-height: 46px;
+.patio-saida {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 12px;
+    background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+    border-block: 1px solid #fcd34d;
+    color: #92400e;
+}
+.patio-saida-icone {
+    font-size: 20px;
+    font-weight: 900;
+    color: #d97706;
+    line-height: 1;
+}
+.patio-saida-texto {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1.2;
 }
-.gabarito-slot-inner {
+.patio-saida-texto strong {
+    font-size: 12px;
+    font-weight: 800;
+}
+.patio-saida-texto small {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+.patio-saida-sul {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+.patio-planta-corpo {
+    display: grid;
+    grid-template-columns: 52px 1fr 52px;
+    min-height: 200px;
+}
+.patio-saida-oeste,
+.patio-saida-leste {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 12px 6px;
+    border-inline: 2px dashed #f59e0b;
+}
+.patio-saida-oeste .patio-saida-texto,
+.patio-saida-leste .patio-saida-texto {
+    align-items: center;
+}
+.patio-planta-centro {
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    gap: 1px;
-    min-height: 0;
+    gap: 14px;
+    min-width: 0;
 }
-.gabarito-vaga-num {
-    font-size: 7px;
+.patio-secao {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.patio-secao-head {
+    padding: 10px 14px;
+    background: linear-gradient(90deg, #eff6ff 0%, #fff 100%);
+    border-bottom: 1px solid #e2e8f0;
+    border-left: 4px solid var(--blue);
+}
+.patio-secao-titulo {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--blue);
+}
+.patio-secao-sub {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.35;
+}
+.patio-secao-corpo {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.patio-fila-linha {
+    display: grid;
+    grid-template-columns: minmax(120px, 148px) 1fr;
+    gap: 8px;
+    align-items: stretch;
+}
+.patio-fila-head {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    min-height: 64px;
+}
+.patio-fila-head:hover { background: #f1f5f9; }
+.patio-fila-head.saida-livre { border-left: 4px solid var(--success); }
+.patio-fila-head.corujao-aguardando { border-left: 4px solid #f59e0b; }
+.patio-fila-head.bloqueado-lane {
+    border-left: 4px solid var(--danger);
+    background: #fef2f2;
+}
+.patio-fila-nome {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--blue);
+    line-height: 1.2;
+}
+.patio-fila-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+}
+.patio-fila-vagas {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px;
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    min-height: 78px;
+    align-items: flex-start;
+}
+.patio-fila-vazio {
+    font-size: 12px;
+    color: #94a3b8;
+    padding: 8px;
+}
+.patio-vaga-celula {
+    flex: 0 0 68px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: stretch;
+}
+.patio-vaga-celula .garagem-slot {
+    width: 68px;
+    flex: 0 0 auto;
+}
+.patio-vaga-numero {
+    font-size: 10px;
     font-weight: 700;
     color: #64748b;
     text-align: center;
     line-height: 1;
 }
-.gabarito-area-lista {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 3px;
-    padding: 4px;
+.patio-oeste-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+    padding: 10px;
 }
-.gabarito-area-titulo {
-    font-size: 9px;
+.patio-dual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 10px;
+}
+.patio-dual-col {
+    min-width: 0;
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.patio-dual-titulo {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 12px;
     font-weight: 800;
+    color: #334155;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
 }
-.gabarito-area-carros {
+.patio-dual-col .patio-secao-corpo {
+    padding: 8px;
+}
+.patio-corredor-linha {
     display: flex;
-    flex-wrap: wrap;
-    gap: 2px;
-    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px;
 }
-.gabarito-area-vazio {
-    font-size: 10px;
-    color: #94a3b8;
+.patio-corredor-linha .garagem-col {
+    min-width: 88px;
 }
-.garagem-slot-mini {
+.patio-corredor-linha .garagem-slots {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+.patio-corredor-linha .patio-vaga-celula {
+    flex: 0 0 auto;
     width: 100%;
-    min-height: 32px;
-    flex: 1 1 auto;
-    padding: 2px;
-    font-size: 9px;
 }
-.garagem-slot-mini .garagem-slot-prefixo {
-    font-size: 10px;
+.patio-corredor-linha .garagem-slot {
+    width: 100%;
 }
-.garagem-slot-mini .btn-pedido,
-.garagem-slot-mini .remove-btn {
-    width: 14px;
-    height: 14px;
-    font-size: 8px;
-    padding: 0;
+.patio-col-lista .garagem-slots {
+    min-height: 72px;
 }
-.garagem-linha-leves-extra {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 2px dashed var(--border);
+
+@media (max-width: 900px) {
+    .patio-planta-corpo {
+        grid-template-columns: 1fr;
+    }
+    .patio-saida-oeste,
+    .patio-saida-leste {
+        writing-mode: horizontal-tb;
+        border-inline: none;
+        border-block: 2px dashed #f59e0b;
+    }
+    .patio-dual {
+        grid-template-columns: 1fr;
+    }
+    .patio-fila-linha {
+        grid-template-columns: 1fr;
+    }
 }
-.gabarito-erro {
-    padding: 12px;
-    color: #b91c1c;
-    font-size: 13px;
-}
+
 .lancamento-rapido .form-control { font-size: 16px; font-weight: 700; }
 .lancamento-dica {
     font-size: 12px;
@@ -1348,8 +1477,8 @@ h1 {
             <div class="card" style="margin-bottom: 0;">
                 <div class="card-title">🚘 Gabarito da Garagem</div>
                 <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
-                    Layout espacial igual ao <b>Gabarito Garagem.xlsx</b>: cada célula é uma vaga — ao lançar o veículo, a próxima vaga livre da fila é preenchida no mapa.
-                    Carros leves ficam na faixa abaixo (não constam no Excel). Clique em área ou vaga vazia (+) para selecionar/bloquear.
+                    Mapa operacional da garagem TCGL: zonas nomeadas, filas com vagas numeradas e ocupação (ex.: 5/15).
+                    Ao lançar, o veículo ocupa a próxima vaga livre. Clique no nome da fila para selecioná-la no lançamento; clique em <b>+</b> para bloquear vaga.
                 </p>
                 <div id="patioResumo" class="patio-resumo"></div>
                 <p class="garagem-legenda" aria-hidden="true">
@@ -1371,7 +1500,6 @@ h1 {
 </footer>
 
 <script src="../assets/js/frota-patio-data.js"></script>
-<script src="../assets/js/gabarito-garagem-data.js"></script>
-<script src="../assets/js/gerenciapatio-app.js?v=20260625gabarito"></script>
+<script src="../assets/js/gerenciapatio-app.js?v=20260625planta"></script>
 </body>
 </html>
