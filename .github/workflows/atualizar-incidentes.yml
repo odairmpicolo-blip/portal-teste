@@ -1,8 +1,8 @@
 name: Atualizar incidentes TCGL
 
-# Agendamento automático DESATIVADO (erros recorrentes).
-# Para rodar manualmente: Actions → Atualizar incidentes TCGL → Run workflow
-# Ou no Mac: botão na Mesa / bash scripts/executar-atualizacao-incidentes.sh manual
+# Agendamento automático DESATIVADO neste repositório (portal-teste).
+# Produção: portalCIOP — 03:00, 09:00, 15:00 e 21:00 (BRT).
+# Manual aqui: Actions → Run workflow, ou botão no Mac.
 
 on:
   workflow_dispatch:
