@@ -204,6 +204,9 @@ h1 {
     width: 100%;
     flex: 1;
 }
+.container.patio-container-wide {
+    max-width: min(1920px, 100%);
+}
 
 .portal-toolbar {
     display: flex;
@@ -238,10 +241,48 @@ h1 {
     grid-template-columns: 1fr;
     gap: 25px;
 }
-@media (min-width: 992px) {
-    .dashboard-grid {
-        grid-template-columns: 320px 1fr;
+
+/* Pátio: lançamento em cima, gabarito completo embaixo */
+.patio-page-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.patio-lancamento-top {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+@media (min-width: 900px) {
+    .patio-lancamento-top {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
     }
+}
+.patio-lancamento-top .card {
+    margin-bottom: 0;
+}
+.patio-lancamento-extra {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+@media (min-width: 900px) {
+    .patio-lancamento-extra {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+    }
+}
+.patio-gabarito-full {
+    width: 100%;
+    margin-bottom: 0;
+}
+.patio-gabarito-full .patio-map {
+    width: 100%;
+}
+.patio-gabarito-full .garagem-planta-inner {
+    width: 100%;
 }
 
 .card {
@@ -749,6 +790,7 @@ h1 {
     flex-direction: column;
     gap: 14px;
     min-width: 0;
+    width: 100%;
 }
 .patio-secao {
     background: #fff;
@@ -803,6 +845,34 @@ h1 {
 }
 .patio-fila-head:hover { background: #f1f5f9; }
 .patio-fila-head.saida-livre { border-left: 4px solid var(--success); }
+.patio-fila-head.saida-ordem-2 { border-left: 4px solid var(--warning); }
+.patio-fila-head.saida-ordem-3 { border-left: 4px solid #e67e22; }
+.patio-fila-head.saida-ordem-4 { border-left: 4px solid var(--danger); }
+.patio-fila-head.saida-ordem-seq { border-left: 4px solid var(--muted); }
+.garagem-col-head.saida-ordem-2,
+.garagem-col-head.saida-ordem-3,
+.garagem-col-head.saida-ordem-4,
+.garagem-col-head.saida-ordem-seq { border-top: 3px solid var(--warning); }
+.patio-ordem-saida {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    vertical-align: middle;
+}
+.patio-ordem-saida--livre {
+    background: #ecfdf3;
+    color: #027a48;
+    border: 1px solid #6ce9a6;
+}
+.patio-ordem-saida--seq {
+    background: #fffaeb;
+    color: #b54708;
+    border: 1px solid #fec84b;
+}
 .patio-fila-head.corujao-aguardando { border-left: 4px solid #f59e0b; }
 .patio-fila-head.bloqueado-lane {
     border-left: 4px solid var(--danger);
@@ -865,6 +935,7 @@ h1 {
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     padding: 10px;
+    width: 100%;
 }
 .patio-dual-col {
     min-width: 0;
@@ -884,6 +955,30 @@ h1 {
 }
 .patio-dual-col .patio-secao-corpo {
     padding: 8px;
+}
+.patio-linhas-gabarito {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+.patio-gabarito-linha {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+.patio-dual-linha {
+    padding: 0;
+    background: transparent;
+    border: none;
+    gap: 8px;
+}
+.patio-dual-linha .patio-dual-col {
+    background: #fff;
 }
 .patio-corredor-linha {
     display: flex;
@@ -1124,6 +1219,16 @@ h1 {
     flex-direction: column;
     gap: 12px;
     margin-top: 10px;
+}
+.clear-data-compact {
+    margin-top: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+}
+.patio-lancamento-extra .patio-nao-utilizados-lista {
+    max-height: 120px;
 }
 .clear-data-actions {
     display: flex;
@@ -1411,7 +1516,7 @@ h1 {
     </div>
 </div>
 
-<div class="container">
+<div class="container patio-container-wide">
     <div class="portal-toolbar">
         <a href="../index.html" class="btn-portal">Portal CIOP</a>
         <div class="consulta-panel" aria-label="Consulta de fila">
@@ -1425,8 +1530,8 @@ h1 {
     </div>
 
 
-    <div class="dashboard-grid">
-        <div>
+    <div class="patio-page-layout">
+        <div class="patio-lancamento-top">
             <div class="card lancamento-rapido">
                 <div class="card-title">📍 Lançamento rápido</div>
                 <p class="lancamento-dica">Escolha a fila, digite o prefixo (só números da frota) e pressione <b>Enter uma vez</b>.</p>
@@ -1446,22 +1551,6 @@ h1 {
                 <div id="lancamentoOk" class="lancamento-ok" aria-live="polite"></div>
             </div>
 
-            <div class="clear-data">
-                <div class="clear-data-actions">
-                    <button class="btn btn-excel" type="button" onclick="exportarExcel()">📊 Exportar Excel</button>
-                    <button class="btn-text" type="button" onclick="limparTudo()">Resetar tudo</button>
-                </div>
-                <div class="patio-nao-utilizados" aria-label="Carros não utilizados no pátio">
-                    <div class="patio-nao-utilizados-titulo">
-                        <span>Carros não utilizados</span>
-                        <span id="naoUtilizadosQtd" class="patio-nao-utilizados-qtd">0</span>
-                    </div>
-                    <div id="listaNaoUtilizados" class="patio-nao-utilizados-lista"></div>
-                </div>
-            </div>
-        </div>
-
-        <div>
             <div class="card lancamento-rapido lancamento-pedidos">
                 <div class="card-title">📦 Carros Pedidos</div>
                 <p class="lancamento-dica">Veículo já lançado no pátio. Digite o prefixo e pressione <b>Enter uma vez</b> para marcar como Pedido. Carros pedido devem ser recolhidos até <b>10:45</b> (F. CARRO na escalação).</p>
@@ -1474,21 +1563,37 @@ h1 {
                 <p class="lancamento-dica">Use o botão <b>P</b> no mapa para desmarcar.</p>
             </div>
 
-            <div class="card" style="margin-bottom: 0;">
-                <div class="card-title">🚘 Gabarito da Garagem</div>
-                <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
-                    Mapa operacional da garagem TCGL: zonas nomeadas, filas com vagas numeradas e ocupação (ex.: 5/15).
-                    Ao lançar, o veículo ocupa a próxima vaga livre. Clique no nome da fila para selecioná-la no lançamento; clique em <b>+</b> para bloquear vaga.
-                </p>
-                <div id="patioResumo" class="patio-resumo"></div>
-                <p class="garagem-legenda" aria-hidden="true">
-                    <span style="color:#dc2626;font-weight:700">■ Vaga bloqueada</span> ·
-                    <span style="color:var(--success);font-weight:700">■ Saída livre</span> ·
-                    <span style="color:var(--pedidos);font-weight:700">■ Pedido (até 10:45)</span> ·
-                    <span style="color:#1f2937;font-weight:700">■ Bloqueado</span>
-                </p>
-                <div id="patioMap" class="patio-map" aria-live="polite"></div>
+            <div class="patio-lancamento-extra">
+                <div class="clear-data clear-data-compact">
+                    <div class="clear-data-actions">
+                        <button class="btn btn-excel" type="button" onclick="exportarExcel()">📊 Exportar Excel</button>
+                        <button class="btn-text" type="button" onclick="limparTudo()">Resetar tudo</button>
+                    </div>
+                </div>
+                <div class="patio-nao-utilizados" aria-label="Carros não utilizados no pátio">
+                    <div class="patio-nao-utilizados-titulo">
+                        <span>Carros não utilizados</span>
+                        <span id="naoUtilizadosQtd" class="patio-nao-utilizados-qtd">0</span>
+                    </div>
+                    <div id="listaNaoUtilizados" class="patio-nao-utilizados-lista"></div>
+                </div>
             </div>
+        </div>
+
+        <div class="card patio-gabarito-full">
+            <div class="card-title">🚘 Gabarito da Garagem</div>
+            <p style="font-size: 13px; color: var(--muted); margin-top: -10px; margin-bottom: 12px;">
+                Mapa completo da garagem TCGL: zonas, filas com vagas numeradas e ocupação (ex.: 5/15).
+                Ao lançar, o veículo ocupa a próxima vaga livre. Clique no nome da fila para selecioná-la; clique em <b>+</b> para bloquear vaga.
+            </p>
+            <div id="patioResumo" class="patio-resumo"></div>
+            <p class="garagem-legenda" aria-hidden="true">
+                <span style="color:#dc2626;font-weight:700">■ Vaga bloqueada</span> ·
+                <span style="color:var(--success);font-weight:700">■ Saída livre</span> ·
+                <span style="color:var(--pedidos);font-weight:700">■ Pedido (até 10:45)</span> ·
+                <span style="color:#1f2937;font-weight:700">■ Bloqueado</span>
+            </p>
+            <div id="patioMap" class="patio-map" aria-live="polite"></div>
         </div>
     </div>
 </div>
@@ -1500,6 +1605,7 @@ h1 {
 </footer>
 
 <script src="../assets/js/frota-patio-data.js"></script>
-<script src="../assets/js/gerenciapatio-app.js?v=20260625planta"></script>
+<script src="../assets/js/gabarito-garagem-data.js?v=20260625gabarito"></script>
+<script src="../assets/js/gerenciapatio-app.js?v=20260625gabarito"></script>
 </body>
 </html>

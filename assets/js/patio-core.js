@@ -19,19 +19,19 @@ export const GRUPOS_PATIO = [
     titulo: "Carros mistos",
       filas: [
         { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
-        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
-        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 30 },
-        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 36 }
+        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 29 },
+        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 34 }
       ]
   },
   {
     id: "leves",
     titulo: "Carros leves",
     filas: [
-      { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 19 },
-      { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
-      { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 7 },
-      { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 5 }
+      { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 7 },
+      { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 0 },
+      { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 0 },
+      { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 0 }
     ]
   },
   {
@@ -60,7 +60,7 @@ export const GRUPOS_PATIO = [
     id: "especiais",
     titulo: "Áreas especiais",
       filas: [
-        { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
+        { key: "muro", label: "Muro", ordem: 1, saidaLivre: true, capacidade: 35 },
         { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true, capacidade: 13 },
         { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO, capacidade: 5 }
       ]
@@ -462,6 +462,20 @@ export function corujaoDisponivel(agora = horaAtualMinutos()) {
   return agora >= horaTextoParaMinutos(HORA_MINIMA_CORUJAO);
 }
 
+/** Rótulo de ordem de saída conforme legenda do Gabarito (linha 14: LIVRE · 2º · 3º · 4º). */
+export function obterRotuloOrdemSaida(filaKey) {
+  const cfg = FILA_MAP[filaKey];
+  if (!cfg || FILAS_NAO_UTILIZAVEIS.has(filaKey)) return "";
+  if (cfg.horarioMinimo) return "LIVRE";
+  if (ehSaidaLivre(filaKey)) return "LIVRE";
+  const ordem = cfg.ordem || 0;
+  if (ordem === 2) return "2º";
+  if (ordem === 3) return "3º";
+  if (ordem === 4) return "4º";
+  if (ordem >= 5) return `${ordem}º`;
+  return "";
+}
+
 /** Filas anteriores no mesmo grupo que ainda têm carros (Fila 1 → 2 → 3 → 4). */
 function filasAnterioresBloqueando(patio, filaKey) {
   const filaCfg = FILA_MAP[filaKey];
@@ -470,7 +484,7 @@ function filasAnterioresBloqueando(patio, filaKey) {
   if (!filaCfg.ordem || filaCfg.ordem <= 1) return [];
 
   return grupo.filas.filter(
-    (f) => f.ordem < filaCfg.ordem && (patio.filas[f.key]?.length || 0) > 0
+    (f) => f.ordem < filaCfg.ordem && contarCarrosNaFila(patio, f.key) > 0
   );
 }
 
@@ -507,7 +521,9 @@ export function avaliarSaidaVeiculo(prefixo, patio, opcoes = {}) {
 
   const bloqueadas = filasAnterioresBloqueando(patio, loc.filaKey);
   if (bloqueadas.length) {
-    const nomes = bloqueadas.map((f) => `${f.label} (${patio.filas[f.key].length})`).join(", ");
+    const nomes = bloqueadas
+      .map((f) => `${f.label} (${contarCarrosNaFila(patio, f.key)})`)
+      .join(", ");
     return { ok: false, motivo: `Saída bloqueada — filas anteriores com veículos: ${nomes}.`, loc };
   }
 

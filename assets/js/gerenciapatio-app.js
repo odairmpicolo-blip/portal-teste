@@ -21,19 +21,19 @@
       titulo: "Carros mistos",
       filas: [
         { key: "mistos_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 15 },
-        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 22 },
-        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 30 },
-        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 36 }
+        { key: "mistos_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
+        { key: "mistos_f3", label: "Fila 3", ordem: 3, capacidade: 29 },
+        { key: "mistos_f4", label: "Fila 4", ordem: 4, capacidade: 34 }
       ]
     },
     {
       id: "leves",
       titulo: "Carros leves",
       filas: [
-        { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 19 },
-        { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 15 },
-        { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 7 },
-        { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 5 }
+        { key: "leves_f1", label: "Fila 1", ordem: 1, saidaLivre: true, capacidade: 7 },
+        { key: "leves_f2", label: "Fila 2", ordem: 2, capacidade: 0 },
+        { key: "leves_f3", label: "Fila 3", ordem: 3, capacidade: 0 },
+        { key: "leves_f4", label: "Fila 4", ordem: 4, capacidade: 0 }
       ]
     },
     {
@@ -62,7 +62,7 @@
       id: "especiais",
       titulo: "Áreas especiais",
       filas: [
-        { key: "muro", label: "Muro", ordem: 1, saidaLivre: true },
+        { key: "muro", label: "Muro", ordem: 1, saidaLivre: true, capacidade: 35 },
         { key: "bomba", label: "Bomba", ordem: 1, saidaLivre: true, capacidade: 13 },
         { key: "corujao", label: "Corujão", ordem: 1, horarioMinimo: HORA_MINIMA_CORUJAO, capacidade: 5 }
       ]
@@ -94,6 +94,49 @@
   GRUPOS_PATIO.forEach((g) => g.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = g; }));
   GRUPO_BLOQUEADOS.filas.forEach((f) => { GRUPO_POR_FILA[f.key] = GRUPO_BLOQUEADOS; });
 
+  const ROTULO_VAGA = {};
+
+  function parseNumeroRotuloVaga(text) {
+    const m = String(text || "").match(/(?:vaga|muro|bomba)\s*(\d+)/i);
+    return m ? m[1] : null;
+  }
+
+  function aplicarCapacidadesGabarito() {
+    const gab = window.GABARITO_GARAGEM;
+    if (!gab?.capacidades) return;
+    Object.entries(gab.capacidades).forEach(([key, n]) => {
+      if (FILA_MAP[key]) FILA_MAP[key].capacidade = n;
+    });
+  }
+
+  function construirRotulosGabarito() {
+    Object.keys(ROTULO_VAGA).forEach((k) => { delete ROTULO_VAGA[k]; });
+    const slots = window.GABARITO_GARAGEM?.slots;
+    if (!Array.isArray(slots)) return;
+    slots.forEach((s) => {
+      const n = parseNumeroRotuloVaga(s.rotulo || s.label);
+      ROTULO_VAGA[`${s.filaKey}:${s.slotIndex}`] = n || String(s.slotIndex + 1);
+    });
+  }
+
+  function obterPlantaGaragem() {
+    const gab = window.GABARITO_GARAGEM;
+    if (gab?.layout) {
+      return { ...PLANTA_GARAGEM, ...gab.layout };
+    }
+    return PLANTA_GARAGEM;
+  }
+
+  function obterRotuloVaga(filaKey, indice) {
+    return ROTULO_VAGA[`${filaKey}:${indice}`] || String(indice + 1);
+  }
+
+  function filaVisivelNoMapa(filaKey) {
+    if (ehFilaBloqueada(filaKey)) return true;
+    if (filaUsaGrade(filaKey)) return obterCapacidadeFila(filaKey) > 0;
+    return true;
+  }
+
   const PLANTA_GARAGEM = {
     saidas: {
       norte: { titulo: "Norte", via: "Messias Wilmar de Souza", icone: "↑" },
@@ -102,8 +145,8 @@
       sul: { titulo: "Sul", via: "Rua Tietê", icone: "↓" }
     },
     faixaNorte: [
-      { key: "latavador_f1", label: "Lavador", layout: "horizontal" },
-      { key: "muro", label: "Muro", layout: "lista" }
+      { key: "muro", label: "Muro", layout: "horizontal" },
+      { key: "latavador_f1", label: "Lavador", layout: "lista" }
     ],
     oeste: [
       { key: "reforma", label: "Reforma", layout: "lista" },
@@ -139,6 +182,9 @@
       { key: "leves_f4", label: "Fila 4" }
     ]
   };
+
+  aplicarCapacidadesGabarito();
+  construirRotulosGabarito();
 
   function ehFilaBloqueada(filaKey) {
     return Boolean(FILA_MAP[filaKey]?.bloqueado);
@@ -228,7 +274,20 @@
     if (filaCfg.horarioMinimo) {
       return corujaoDisponivel() ? " saida-livre" : " corujao-aguardando";
     }
-    return filaCfg.saidaLivre ? " saida-livre" : "";
+    if (filaCfg.saidaLivre) return " saida-livre";
+    const ordem = filaCfg.ordem || 0;
+    if (ordem >= 2 && ordem <= 4) return ` saida-ordem-${ordem}`;
+    if (ordem >= 5) return " saida-ordem-seq";
+    return "";
+  }
+
+  function rotuloOrdemSaidaFila(filaKey, filaCfg) {
+    const gab = window.GABARITO_GARAGEM?.ordemSaida?.[filaKey];
+    if (gab) return gab;
+    if (filaCfg.horarioMinimo || filaCfg.saidaLivre) return "LIVRE";
+    const ordem = filaCfg.ordem || 0;
+    if (ordem >= 2) return `${ordem}º`;
+    return "";
   }
 
   function contarPedidos() {
@@ -587,7 +646,7 @@
     celula.className = "patio-vaga-celula";
     const num = document.createElement("span");
     num.className = "patio-vaga-numero";
-    num.textContent = String(indice + 1);
+    num.textContent = obterRotuloVaga(filaKey, indice);
     celula.appendChild(num);
 
     const grade = patio.filas[filaKey] || [];
@@ -610,6 +669,10 @@
     const corujaoHint = filaCfg.horarioMinimo && !corujaoDisponivel()
       ? ` · após ${filaCfg.horarioMinimo}`
       : "";
+    const ordemSaida = rotuloOrdemSaidaFila(filaKey, filaCfg);
+    const ordemBadge = ordemSaida
+      ? `<span class="patio-ordem-saida patio-ordem-saida--${ordemSaida === "LIVRE" ? "livre" : "seq"}" title="Ordem de saída">${ordemSaida}</span>`
+      : "";
 
     const head = document.createElement("button");
     head.type = "button";
@@ -618,11 +681,11 @@
     if (variante === "coluna") {
       head.className = `garagem-col-head${livre}${bloq}`;
       const capTxt = cap ? ` · ${cap} vagas` : "";
-      head.innerHTML = `${label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${capTxt}${corujaoHint}</small>`;
+      head.innerHTML = `${ordemBadge}${label}<small>${qtd} carro${qtd !== 1 ? "s" : ""}${capTxt}${corujaoHint}</small>`;
     } else {
       head.className = `patio-fila-head${livre}${bloq}`;
       head.innerHTML = `
-        <span class="patio-fila-nome">${label}</span>
+        <span class="patio-fila-nome">${ordemBadge}${label}</span>
         <span class="patio-fila-meta">${cap ? `${qtd}/${cap} vagas` : `${qtd} carro${qtd !== 1 ? "s" : ""}`}${corujaoHint}</span>
       `;
     }
@@ -708,10 +771,11 @@
     mapa.innerHTML = "";
     mapa.className = "patio-map garagem-planta";
 
+    const plantaCfg = obterPlantaGaragem();
     const planta = document.createElement("div");
     planta.className = "garagem-planta-inner patio-planta-pro";
 
-    const S = PLANTA_GARAGEM.saidas;
+    const S = plantaCfg.saidas;
     planta.appendChild(criarFaixaSaida("norte", S.norte));
 
     const corpo = document.createElement("div");
@@ -721,10 +785,11 @@
     const centro = document.createElement("div");
     centro.className = "patio-planta-centro";
 
-    const secNorte = criarSecaoPlanta("Entrada norte", "Lavador e muro — faixa superior da garagem");
+    const secNorte = criarSecaoPlanta("Entrada norte", "Muro e lavador — faixa superior da garagem");
     const norteCorpo = document.createElement("div");
     norteCorpo.className = "patio-secao-corpo";
-    PLANTA_GARAGEM.faixaNorte.forEach(({ key, label, layout }) => {
+    plantaCfg.faixaNorte.forEach(({ key, label, layout }) => {
+      if (!filaVisivelNoMapa(key)) return;
       if (layout === "horizontal") {
         norteCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
       } else {
@@ -737,7 +802,8 @@
     const secOeste = criarSecaoPlanta("Lateral oeste", "Reforma, Corujão, COT e Oficina");
     const oesteCorpo = document.createElement("div");
     oesteCorpo.className = "patio-oeste-grid";
-    PLANTA_GARAGEM.oeste.forEach(({ key, label, layout }) => {
+    plantaCfg.oeste.forEach(({ key, label, layout }) => {
+      if (!filaVisivelNoMapa(key)) return;
       if (layout === "coluna") {
         oesteCorpo.appendChild(criarColunaGaragem(key, label));
       } else {
@@ -750,7 +816,8 @@
     const secBomba = criarSecaoPlanta("Bomba");
     const bombaCorpo = document.createElement("div");
     bombaCorpo.className = "patio-secao-corpo";
-    PLANTA_GARAGEM.bomba.forEach(({ key, label }) => {
+    plantaCfg.bomba.forEach(({ key, label }) => {
+      if (!filaVisivelNoMapa(key)) return;
       bombaCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
     });
     secBomba.appendChild(bombaCorpo);
@@ -758,47 +825,87 @@
 
     const secPatio = criarSecaoPlanta(
       "Pátio principal",
-      "Carros mistos (esquerda) e pesados (direita) — conforme gabarito Excel"
+      "Filas conforme gabarito Excel — mistos à esquerda, pesados à direita"
     );
-    const patioDual = document.createElement("div");
-    patioDual.className = "patio-dual";
+    const patioCorpo = document.createElement("div");
+    patioCorpo.className = "patio-secao-corpo patio-linhas-gabarito";
 
-    const colMistos = document.createElement("div");
-    colMistos.className = "patio-dual-col";
-    colMistos.innerHTML = "<h4 class=\"patio-dual-titulo\">Carros mistos</h4>";
-    const mistosCorpo = document.createElement("div");
-    mistosCorpo.className = "patio-secao-corpo";
-    PLANTA_GARAGEM.mistos.forEach(({ key, label }) => {
-      mistosCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
-    });
-    colMistos.appendChild(mistosCorpo);
+    function montarDualMistosPesados(mistos, pesados) {
+      const dual = document.createElement("div");
+      dual.className = "patio-dual patio-dual-linha";
+      const colMistos = document.createElement("div");
+      colMistos.className = "patio-dual-col";
+      if (mistos && filaVisivelNoMapa(mistos.key)) {
+        colMistos.appendChild(criarLinhaFilaHorizontal(mistos.key, mistos.label));
+      }
+      const colPesados = document.createElement("div");
+      colPesados.className = "patio-dual-col";
+      if (pesados && filaVisivelNoMapa(pesados.key)) {
+        colPesados.appendChild(criarLinhaFilaHorizontal(pesados.key, pesados.label));
+      }
+      dual.append(colMistos, colPesados);
+      return dual;
+    }
 
-    const colPesados = document.createElement("div");
-    colPesados.className = "patio-dual-col";
-    colPesados.innerHTML = "<h4 class=\"patio-dual-titulo\">Carros pesados</h4>";
-    const pesadosCorpo = document.createElement("div");
-    pesadosCorpo.className = "patio-secao-corpo";
-    PLANTA_GARAGEM.pesados.forEach(({ key, label }) => {
-      pesadosCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
-    });
-    colPesados.appendChild(pesadosCorpo);
+    if (Array.isArray(plantaCfg.linhasPatio) && plantaCfg.linhasPatio.length) {
+      plantaCfg.linhasPatio.forEach((linha) => {
+        const row = document.createElement("div");
+        row.className = "patio-gabarito-linha";
+        if (linha.leves && filaVisivelNoMapa(linha.leves.key)) {
+          row.appendChild(criarLinhaFilaHorizontal(linha.leves.key, linha.leves.label));
+        }
+        row.appendChild(montarDualMistosPesados(linha.mistos, linha.pesados));
+        patioCorpo.appendChild(row);
+      });
+    } else {
+      const patioDual = document.createElement("div");
+      patioDual.className = "patio-dual";
+      const colMistos = document.createElement("div");
+      colMistos.className = "patio-dual-col";
+      colMistos.innerHTML = "<h4 class=\"patio-dual-titulo\">Carros mistos</h4>";
+      const mistosCorpo = document.createElement("div");
+      mistosCorpo.className = "patio-secao-corpo";
+      (plantaCfg.mistos || []).forEach(({ key, label }) => {
+        if (!filaVisivelNoMapa(key)) return;
+        mistosCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
+      });
+      colMistos.appendChild(mistosCorpo);
+      const colPesados = document.createElement("div");
+      colPesados.className = "patio-dual-col";
+      colPesados.innerHTML = "<h4 class=\"patio-dual-titulo\">Carros pesados</h4>";
+      const pesadosCorpo = document.createElement("div");
+      pesadosCorpo.className = "patio-secao-corpo";
+      (plantaCfg.pesados || []).forEach(({ key, label }) => {
+        if (!filaVisivelNoMapa(key)) return;
+        pesadosCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
+      });
+      colPesados.appendChild(pesadosCorpo);
+      patioDual.append(colMistos, colPesados);
+      patioCorpo.appendChild(patioDual);
+    }
 
-    patioDual.append(colMistos, colPesados);
-    secPatio.appendChild(patioDual);
+    secPatio.appendChild(patioCorpo);
     centro.appendChild(secPatio);
 
     const secCorredor = criarSecaoPlanta("Corredor", "Cor. 1 a 6 — três vagas cada");
-    secCorredor.appendChild(montarLinhaColunas(PLANTA_GARAGEM.corredor, "patio-corredor-linha"));
+    secCorredor.appendChild(montarLinhaColunas(
+      (plantaCfg.corredor || []).filter(({ key }) => filaVisivelNoMapa(key)),
+      "patio-corredor-linha"
+    ));
     centro.appendChild(secCorredor);
 
-    const secLeves = criarSecaoPlanta("Carros leves");
-    const levesCorpo = document.createElement("div");
-    levesCorpo.className = "patio-secao-corpo";
-    PLANTA_GARAGEM.leves.forEach(({ key, label }) => {
-      levesCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
-    });
-    secLeves.appendChild(levesCorpo);
-    centro.appendChild(secLeves);
+    const levesExtras = (plantaCfg.levesExtras || plantaCfg.leves || [])
+      .filter(({ key }) => filaVisivelNoMapa(key));
+    if (levesExtras.length) {
+      const secLeves = criarSecaoPlanta("Carros leves");
+      const levesCorpo = document.createElement("div");
+      levesCorpo.className = "patio-secao-corpo";
+      levesExtras.forEach(({ key, label }) => {
+        levesCorpo.appendChild(criarLinhaFilaHorizontal(key, label));
+      });
+      secLeves.appendChild(levesCorpo);
+      centro.appendChild(secLeves);
+    }
 
     corpo.append(centro, criarFaixaSaida("leste", S.leste));
     planta.appendChild(corpo);
