@@ -65,12 +65,14 @@ fi
 
 if "$NODE_BIN" "$PORTAL_ROOT/scripts/sync-incidentes-completo.mjs" >> "$LOG_FILE" 2>&1; then
   mark_success
-  if tail -5 "$LOG_FILE" | grep -q '"dsql":true'; then
+  if tail -20 "$LOG_FILE" | grep -q '\[sync\] Etapas opcionais com aviso'; then
+    log "Atualização TCGL concluída (JSON local). Algumas etapas opcionais falharam — veja o log."
+  elif tail -5 "$LOG_FILE" | grep -q '"dsql":true'; then
     log "Atualização concluída com sucesso (TCGL → DSQL)."
   elif tail -8 "$LOG_FILE" | grep -q '"git":true'; then
-    log "Atualização concluída (TCGL → DSQL). JSON publicado no Git (backup)."
+    log "Atualização concluída (TCGL → JSON). Backup Git publicado."
   else
-    log "Atualização concluída com sucesso (TCGL → DSQL)."
+    log "Atualização concluída com sucesso (TCGL → JSON local)."
   fi
 else
   log "Primeira tentativa falhou. Nova tentativa em 120 segundos..."

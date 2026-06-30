@@ -92,10 +92,21 @@ function publicarGitIncidentes() {
   return true;
 }
 
+function runOpcional(etapa, fn) {
+  try {
+    return fn();
+  } catch (err) {
+    const msg = err?.message || String(err);
+    console.warn(`[sync] Aviso (${etapa}):`, msg);
+    return { ok: false, error: msg };
+  }
+}
+
 export async function syncIncidentes() {
   const publishGit = process.env.SYNC_INCIDENTES_PUBLISH_GIT === "1";
   const skipDsql = process.env.SYNC_INCIDENTES_SKIP_DSQL === "1";
   const steps = { s3Pull: false, fetch: false, s3Push: false, dsql: false, git: false };
+  const warnings = [];
 
   process.env.PORTAL_ROOT = portalRoot;
 
@@ -116,20 +127,27 @@ export async function syncIncidentes() {
   steps.s3Push = await enviarEstadoIncidentesS3(jsonPath);
 
   if (publishGit) {
-    console.log("[sync] Publicando JSON no Git (backup)...");
-    steps.git = publicarGitIncidentes();
+    const gitRes = runOpcional("git", () => {
+      steps.git = publicarGitIncidentes();
+      return { ok: true };
+    });
+    if (gitRes?.error) warnings.push(`Git: ${gitRes.error}`);
   }
 
   if (!skipDsql) {
-    console.log("[sync] Importando incidentes no Aurora DSQL...");
-    const backendScripts = path.join(portalRoot, "backend", "scripts", "importar-planilha-dsql.mjs");
-    run(nodeBin, [backendScripts, "incidentes"], {
-      env: { ...process.env, PORTAL_ROOT: portalRoot, PORTAL_DATA_DIR: dataDir }
+    const dsqlRes = runOpcional("DSQL", () => {
+      console.log("[sync] Importando incidentes no Aurora DSQL...");
+      const backendScripts = path.join(portalRoot, "backend", "scripts", "importar-planilha-dsql.mjs");
+      run(nodeBin, [backendScripts, "incidentes"], {
+        env: { ...process.env, PORTAL_ROOT: portalRoot, PORTAL_DATA_DIR: dataDir }
+      });
+      steps.dsql = true;
+      return { ok: true };
     });
-    steps.dsql = true;
+    if (dsqlRes?.error) warnings.push(`DSQL: ${dsqlRes.error}`);
   }
 
-  return { ok: true, steps };
+  return { ok: true, steps, warnings };
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -138,6 +156,9 @@ if (isMain) {
   syncIncidentes()
     .then((result) => {
       console.log("[sync] Concluído:", JSON.stringify(result.steps));
+      if (result.warnings?.length) {
+        console.warn("[sync] Etapas opcionais com aviso:", result.warnings.join(" | "));
+      }
     })
     .catch((err) => {
       console.error("[sync] ERRO:", err.message);
