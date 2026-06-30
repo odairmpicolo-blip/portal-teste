@@ -709,6 +709,19 @@ async function apiPost(payload){
     return data;
 }
 
+async function salvarPlanilhaLinha(payload){
+    try{
+        const mod=await import("../assets/js/liberacao-aws.js?v=20260630a");
+        if(await mod.liberacaoAwsDisponivel()){
+            await mod.salvarLinhaPlanilhaAws(payload);
+            return;
+        }
+    }catch(err){
+        if(err?.message==="Sessão expirada"||err?.message==="API AWS não configurada") throw err;
+    }
+    await apiPost(payload);
+}
+
 function aplicarFiltroMaquina(){
     const maquina=$("maquinaFiltro").value;
     state.dados=maquina
@@ -1124,7 +1137,7 @@ async function salvarLinha(i){
         payload[k]=val(row,k)||"";
     });
     try{
-        await apiPost(payload);
+        await salvarPlanilhaLinha(payload);
         row._dirty=false;
         row._syncErro=false;
         const idxSem=state.semana.findIndex(r=>r._row===row._row);

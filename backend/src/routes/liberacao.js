@@ -1,8 +1,21 @@
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireFirebaseUser } from "../middleware/auth.js";
+import {
+  enviarLinhaPlanilha,
+  montarPayloadUpdatePlanilha
+} from "../lib/liberacao-planilha.js";
 
 const router = Router();
+
+function sanitizarPayload(row, dataIso) {
+  const payload = { ...row };
+  delete payload._dirty;
+  delete payload._syncErro;
+  delete payload._ultimoCampoEditado;
+  if (!payload.data_iso) payload.data_iso = dataIso;
+  return payload;
+}
 
 router.get("/", requireFirebaseUser, async (req, res) => {
   const dataDe = String(req.query.de || "").slice(0, 10);
@@ -34,6 +47,9 @@ router.put("/:dataIso/:rowId", requireFirebaseUser, async (req, res) => {
     return;
   }
   try {
+    const clean = sanitizarPayload(payload, dataIso);
+    clean._row = rowId;
+    clean.origem = "portal";
     await query(
       `INSERT INTO liberacao_linhas (data_iso, row_id, payload, atualizado_por, atualizado_em)
        VALUES ($1::date, $2, $3::jsonb, $4, NOW())
@@ -41,9 +57,24 @@ router.put("/:dataIso/:rowId", requireFirebaseUser, async (req, res) => {
          payload = EXCLUDED.payload,
          atualizado_por = EXCLUDED.atualizado_por,
          atualizado_em = NOW()`,
-      [dataIso, rowId, JSON.stringify(payload), req.user?.email || null]
+      [dataIso, rowId, JSON.stringify(clean), req.user?.email || null]
     );
-    res.json({ ok: true });
+    const planilha = await enviarLinhaPlanilha(montarPayloadUpdatePlanilha(rowId, clean));
+    res.json({ ok: true, planilha });
+  } catch (err) {
+    res.status(500).json({ ok: false, erro: err.message });
+  }
+});
+
+router.post("/planilha-linha", requireFirebaseUser, async (req, res) => {
+  const payload = req.body;
+  if (!payload || typeof payload !== "object") {
+    res.status(400).json({ ok: false, erro: "Payload inválido" });
+    return;
+  }
+  try {
+    const planilha = await enviarLinhaPlanilha(payload);
+    res.json({ ok: true, planilha });
   } catch (err) {
     res.status(500).json({ ok: false, erro: err.message });
   }
