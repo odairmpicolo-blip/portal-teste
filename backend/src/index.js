@@ -6,6 +6,7 @@ import liberacaoRouter from "./routes/liberacao.js";
 import terminaisRouter from "./routes/terminais.js";
 import snapshotsRouter from "./routes/snapshots.js";
 import bus2Router from "./routes/bus2.js";
+import telemetriaRouter from "./routes/telemetria.js";
 
 const app = express();
 app.use(express.json({ limit: "15mb" }));
@@ -37,6 +38,7 @@ app.use("/liberacao", liberacaoRouter);
 app.use("/terminais", terminaisRouter);
 app.use("/snapshots", snapshotsRouter);
 app.use("/bus2", bus2Router);
+app.use("/telemetria", telemetriaRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ ok: false, erro: "Rota não encontrada" });
