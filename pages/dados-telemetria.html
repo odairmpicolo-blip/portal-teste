@@ -66,10 +66,20 @@ table.telemetria thead th{position:sticky;top:0;background:#2c3e50;color:#fff;pa
 table.telemetria tbody td{padding:7px 10px;border-bottom:1px solid #eef2f7;vertical-align:middle}
 table.telemetria tbody tr:nth-child(even){background:#fafbfc}
 table.telemetria tbody tr:hover{background:#eef5ff}
+table.telemetria tbody tr.row-sem-dados{background:#fee2e2}
+table.telemetria tbody tr.row-sem-dados:nth-child(even){background:#fecaca}
+table.telemetria tbody tr.row-sem-dados:hover{background:#fca5a5}
+table.telemetria tbody tr.row-incoerente{background:#fef3c7}
+table.telemetria tbody tr.row-incoerente:nth-child(even){background:#fde68a}
+table.telemetria tbody tr.row-incoerente:hover{background:#fcd34d}
 table.telemetria .num{text-align:right;font-variant-numeric:tabular-nums}
 table.telemetria .col-fix{position:sticky;left:0;background:inherit;z-index:1;box-shadow:2px 0 4px rgba(0,0,0,.04)}
 table.telemetria thead .col-fix{z-index:3;background:#2c3e50}
+table.telemetria tbody tr.row-sem-dados .col-fix{background:inherit}
+table.telemetria tbody tr.row-incoerente .col-fix{background:inherit}
 table.telemetria .veiculo{font-weight:800;color:var(--blue);min-width:72px}
+table.telemetria tr.row-sem-dados .veiculo{color:#991b1b}
+table.telemetria tr.row-incoerente .veiculo{color:#92400e}
 table.telemetria .perfil{min-width:140px;max-width:200px;font-size:11px;color:var(--muted)}
 .cell-ok{color:var(--green);font-weight:900;text-align:center}
 .cell-part{color:var(--amber);font-weight:900;text-align:center}
@@ -133,7 +143,7 @@ table.telemetria .perfil{min-width:140px;max-width:200px;font-size:11px;color:va
       <input type="file" id="csvInput" accept=".csv,text/csv">
     </div>
     <p class="info-upload" id="infoUpload"></p>
-    <p class="legenda-celulas"><span class="cell-ok">✓</span> em todos os registros · <span class="cell-part">◐</span> em parte · <span class="cell-bad">✗</span> ausente · <span class="cell-miss">—</span> veículo fora do CSV</p>
+    <p class="legenda-celulas"><span class="cell-ok">✓</span> em todos os registros · <span class="cell-part">◐</span> em parte · <span class="cell-bad">✗</span> ausente · <span class="cell-miss">—</span> veículo fora do CSV · linha <span style="background:#fee2e2;padding:0 6px;border-radius:4px">vermelha</span> sem dados · <span style="background:#fef3c7;padding:0 6px;border-radius:4px">amarela</span> dados incoerentes</p>
   </section>
 
   <div id="painelVazio" class="panel empty-state">

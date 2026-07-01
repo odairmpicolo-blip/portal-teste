@@ -267,6 +267,18 @@
         return "st-bad";
     }
 
+    function classeLinhaVeiculo(v) {
+        if (v.status === "parcial") return "row-incoerente";
+        if (v.status === "vazio" || !v.noCsv) return "row-sem-dados";
+        return "";
+    }
+
+    function sufixoVeiculoFiltro(status) {
+        if (status === "parcial") return " ◐";
+        if (status === "vazio" || status === "sem_registro") return " ✗";
+        return "";
+    }
+
     let dadosBrutos = null;
     let analiseAtual = null;
     let filtroAtual = "todos";
@@ -343,14 +355,27 @@
         atualizarRotuloColunas();
     }
 
-    function montarFiltroVeiculos() {
+    function montarFiltroVeiculos(statusPorId) {
         const sel = $("filtroVeiculo");
         if (!sel) return;
         const atual = sel.value;
-        sel.innerHTML = `<option value="">Todos (${FROTA.length})</option>${FROTA.map((f) =>
-            `<option value="${escapeHtml(normVeiculo(f.veiculo))}">${escapeHtml(f.veiculo)}</option>`
-        ).join("")}`;
+        const mapa = statusPorId || new Map();
+        sel.innerHTML = `<option value="">Todos (${FROTA.length})</option>${FROTA.map((f) => {
+            const id = normVeiculo(f.veiculo);
+            const st = mapa.get(id) || "";
+            const marca = sufixoVeiculoFiltro(st);
+            return `<option value="${escapeHtml(id)}">${escapeHtml(f.veiculo)}${marca}</option>`;
+        }).join("")}`;
         if ([...sel.options].some((o) => o.value === atual)) sel.value = atual;
+    }
+
+    function atualizarFiltroVeiculosStatus() {
+        if (!analiseAtual) return;
+        const mapa = new Map(analiseAtual.veiculos.map((v) => [v.id, v.status]));
+        const sel = $("filtroVeiculo");
+        const atual = sel && sel.value;
+        montarFiltroVeiculos(mapa);
+        if (sel && atual && [...sel.options].some((o) => o.value === atual)) sel.value = atual;
     }
 
     function montarFiltroDatas() {
@@ -407,6 +432,7 @@
         hintFiltrosAtivos();
         renderResumo(analiseAtual.stats);
         renderColunas(analiseAtual.resumoColunas);
+        atualizarFiltroVeiculosStatus();
         renderFrota();
         renderForaFrota(analiseAtual.foraFrota);
     }
@@ -492,7 +518,8 @@
                 if (st === "part") return `<td class="cell-part" title="${title}">◐</td>`;
                 return `<td class="cell-bad" title="${title}">✗</td>`;
             }).join("");
-            return `<tr>
+            const rowCls = classeLinhaVeiculo(v);
+            return `<tr${rowCls ? ` class="${rowCls}"` : ""}>
                 <td class="col-fix veiculo">${escapeHtml(v.veiculo)}</td>
                 <td class="col-fix perfil">${escapeHtml(v.rotulo)}</td>
                 <td class="col-fix num">${v.linhasCsv || "—"}</td>
