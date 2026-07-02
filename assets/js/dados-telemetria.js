@@ -5,6 +5,7 @@ import {
   aguardarAuthTelemetria,
   renovarSessaoTelemetria
 } from "./telemetria-aws.js";
+import { carregarSnapshotTelemetriaJson } from "./telemetria-dados-leitura.js";
 import { initPortalAwsRuntime } from "./portal-aws-config.js";
 import {
   agregarLinhasTelemetria,
@@ -373,6 +374,26 @@ function rowsFromSource(src, headersIniciais, colVeiculoGuess, colDataGuess) {
 
 function aguardar(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function formatarDataHoraBr(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+
+async function carregarSnapshotInicial() {
+  const snap = await carregarSnapshotTelemetriaJson();
+  if (!snap?.dados?.length) return false;
+  aplicarRegistrosAws({ dados: snap.dados });
+  const quando = snap.atualizadoEm ? formatarDataHoraBr(snap.atualizadoEm) : "—";
+  const periodo = snap.data_de && snap.data_ate
+    ? `${formatarDataBr(snap.data_de)} a ${formatarDataBr(snap.data_ate)}`
+    : "";
+  atualizarInfoBanco(
+    `Exibindo snapshot JSON (${snap.total || snap.dados.length} registros${periodo ? ` · ${periodo}` : ""} · ${quando}) · sincronizando AWS…`
+  );
+  return true;
 }
 
 function formatarDataBr(iso) {
@@ -1079,8 +1100,14 @@ async function iniciar() {
   $("statFrota").textContent = FROTA.length;
   limparCacheTelemetriaLegado();
   renderResumoVazio();
-  renderTabelaVazia("Carregando dados do banco AWS…");
-  atualizarInfoBanco("Carregando dados do banco AWS…");
+  renderTabelaVazia("Carregando dados…");
+  atualizarInfoBanco("Carregando snapshot…");
+
+  const temSnapshot = await carregarSnapshotInicial();
+  if (!temSnapshot) {
+    renderTabelaVazia("Carregando dados do banco AWS…");
+    atualizarInfoBanco("Carregando dados do banco AWS…");
+  }
 
   const input = $("csvInput");
   const zona = $("uploadZona");
