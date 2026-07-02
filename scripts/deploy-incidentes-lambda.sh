@@ -2,6 +2,9 @@
 # Deploy infra Lambda (CloudFormation) + secret + teste de alcance TCGL.
 set -euo pipefail
 
+echo "Deploy Lambda de incidentes desativado no portal-teste. Use o repositorio portalCIOP." >&2
+exit 2
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 AWS_DIR="$ROOT/aws/incidentes-sync"
 STACK="${INCIDENTES_STACK_NAME:-portal-ciop-incidentes-sync}"

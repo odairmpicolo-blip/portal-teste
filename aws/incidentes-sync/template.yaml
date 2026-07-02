@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Portal CIOP — sync incidentes TCGL → S3 cache → Aurora DSQL (sa-east-1)
+Description: Portal CIOP — sync incidentes TCGL desativado no portal-teste
 
 Parameters:
   DsqlClusterId:
@@ -11,7 +11,7 @@ Parameters:
   ScheduleExpression:
     Type: String
     Default: cron(0 9 * * ? *)
-    Description: "09:00 UTC = 06:00 horário de Brasília"
+    Description: "Desativado no portal-teste. Use o portalCIOP."
 
 Resources:
   IncidentesStateBucket:
@@ -63,7 +63,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: portal-ciop-incidentes-sync
-      Description: Busca incidentes TCGL e importa no Aurora DSQL
+      Description: Desativado no portal-teste. Use o portalCIOP
       Runtime: nodejs20.x
       Handler: index.handler
       Role: !GetAtt IncidentesSyncRole.Arn
@@ -85,14 +85,14 @@ Resources:
           CIOP_INCIDENTES_DATA_MIN: "2026-01-01"
       Code:
         ZipFile: |
-          export const handler = async () => ({ ok: false, error: "Deploy o pacote com scripts/build-incidentes-lambda.sh" });
+          export const handler = async () => ({ ok: false, disabled: true, repository: "portal-teste", message: "Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP." });
 
   IncidentesSchedule:
     Type: AWS::Events::Rule
     Properties:
-      Description: Sync diário incidentes TCGL → DSQL
+      Description: Desativado no portal-teste. Use o portalCIOP
       ScheduleExpression: !Ref ScheduleExpression
-      State: ENABLED
+      State: DISABLED
       Targets:
         - Arn: !GetAtt IncidentesSyncFunction.Arn
           Id: IncidentesSyncTarget

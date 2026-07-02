@@ -2,6 +2,9 @@
 # Monta o pacote Lambda (scripts portal + dependências) e atualiza a função.
 set -euo pipefail
 
+echo "Build Lambda de incidentes desativado no portal-teste. Use o repositorio portalCIOP." >&2
+exit 2
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 AWS_DIR="$ROOT/aws/incidentes-sync"
 BUILD="$AWS_DIR/.build"

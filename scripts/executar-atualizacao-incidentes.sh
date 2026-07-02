@@ -3,6 +3,9 @@
 # Ignora se a data de hoje (America/Sao_Paulo) já foi atualizada com sucesso.
 set -euo pipefail
 
+echo "Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP." >&2
+exit 2
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PORTAL_ROOT="${CIOP_PORTAL_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 STATE_DIR="${CIOP_STATE_DIR:-$HOME/.config/ciop-portal}"

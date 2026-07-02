@@ -2,6 +2,9 @@
 # Fallback EC2: instância em sa-east-1 com cron diário (TCGL → DSQL).
 set -euo pipefail
 
+echo "Deploy EC2 de incidentes desativado no portal-teste. Use o repositorio portalCIOP." >&2
+exit 2
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REGION="${AWS_REGION:-sa-east-1}"
 INSTANCE_TYPE="${INCIDENTES_EC2_TYPE:-t3.small}"

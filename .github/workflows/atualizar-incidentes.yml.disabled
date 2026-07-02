@@ -1,8 +1,8 @@
 name: Atualizar incidentes TCGL
 
-# Agendamento automático DESATIVADO neste repositório (portal-teste).
-# Produção: portalCIOP — 03:00, 09:00, 15:00 e 21:00 (BRT).
-# Manual aqui: Actions → Run workflow, ou botão no Mac.
+# DESATIVADO no portal-teste.
+# Incidentes TCGL devem ser atualizados apenas pelo portalCIOP.
+# Arquivo mantido como histórico com extensão .disabled para o GitHub Actions ignorar.
 
 on:
   workflow_dispatch:

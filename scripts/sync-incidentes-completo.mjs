@@ -13,6 +13,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { baixarEstadoIncidentesS3, enviarEstadoIncidentesS3 } from "./lib/incidentes-state-s3.mjs";
 
+throw new Error("Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP.");
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const portalRoot = process.env.PORTAL_ROOT || path.resolve(scriptDir, "..");
 const nodeBin = process.env.CIOP_NODE_BIN || process.execPath;

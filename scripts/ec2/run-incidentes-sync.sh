@@ -1,6 +1,10 @@
 #!/bin/bash
 # Cron EC2: sync incidentes TCGL → DSQL (sem git).
 set -euo pipefail
+
+echo "Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP."
+exit 0
+
 LOG=/var/log/portal-incidentes-sync.log
 ENV_FILE=/etc/portal-ciop/incidentes.env
 

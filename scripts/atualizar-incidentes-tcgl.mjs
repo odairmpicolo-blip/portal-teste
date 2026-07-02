@@ -5,6 +5,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+throw new Error('Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP.');
+
 const portalRoot = process.env.PORTAL_ROOT || process.cwd();
 const outputDir = process.env.PORTAL_DATA_DIR || path.join(portalRoot, 'assets', 'data');
 const outputFile = path.join(outputDir, 'incidentes-tcgl.json');

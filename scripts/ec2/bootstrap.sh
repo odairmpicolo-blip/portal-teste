@@ -3,6 +3,9 @@
 set -euo pipefail
 exec > /var/log/portal-incidentes-bootstrap.log 2>&1
 
+echo "Bootstrap EC2 de incidentes desativado no portal-teste. Use o repositorio portalCIOP."
+exit 0
+
 dnf install -y git nodejs22 npm
 
 APP=/opt/portal-ciop
