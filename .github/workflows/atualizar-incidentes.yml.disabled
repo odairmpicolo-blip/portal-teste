@@ -1,8 +1,9 @@
 name: Atualizar incidentes TCGL
 
-# DESATIVADO no portal-teste.
-# Incidentes TCGL devem ser atualizados apenas pelo portalCIOP.
-# Arquivo mantido como histórico com extensão .disabled para o GitHub Actions ignorar.
+# DESATIVADO — incidentes TCGL são atualizados somente pelo Mac (repositório portalCIOP).
+#   bash scripts/instalar-agendamento-incidentes.sh   — todo dia às 04:00 + ao ligar
+#   bash scripts/instalar-botao-incidentes-macos.sh   — botão manual na Mesa
+# Arquivo mantido como histórico (.disabled) para o GitHub Actions ignorar.
 
 on:
   workflow_dispatch:

@@ -1,15 +1,15 @@
 #!/bin/bash
-# Atualização automática de incidentes DESATIVADA (erros recorrentes no Mac).
-# Use o botão na Mesa ou: bash scripts/executar-atualizacao-incidentes.sh manual
+# Incidentes TCGL: use o repositório portalCIOP no Mac (GitHub Actions desativado).
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-bash "$SCRIPT_DIR/desinstalar-agendamento-incidentes.sh" 2>/dev/null || true
+CIOP_ROOT="${CIOP_PORTAL_ROOT:-$HOME/portalCIOP}"
+INSTALLER="$CIOP_ROOT/scripts/instalar-agendamento-incidentes.sh"
 
-echo "Atualização automática de incidentes está DESATIVADA."
-echo ""
-echo "Para atualizar manualmente:"
-echo "  · Botão na Mesa: Atualizar Incidentes TCGL.app"
-echo "  · Terminal: bash \"$SCRIPT_DIR/executar-atualizacao-incidentes.sh\" manual"
-echo ""
-echo "Log: $HOME/Library/Logs/ciop-portal/atualizar-incidentes.log"
+if [[ ! -f "$INSTALLER" ]]; then
+  echo "Repositório portalCIOP não encontrado em: $CIOP_ROOT"
+  echo "Clone ou ajuste CIOP_PORTAL_ROOT e execute:"
+  echo "  bash scripts/instalar-agendamento-incidentes.sh"
+  exit 1
+fi
+
+exec bash "$INSTALLER"
