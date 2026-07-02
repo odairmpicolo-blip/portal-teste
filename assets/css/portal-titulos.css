@@ -10,12 +10,14 @@
 .incidentes-title-art,
 .km-title-art,
 .icv-title-art,
+.telemetria-title-art,
 .relatorio-title-art,
 .saida-carros-title-art,
 .escala-title-art,
 .header-title,
 .pontualidade-title-wrap,
 .icv-title-wrap,
+.telemetria-title-wrap,
 .autuacoes-title-wrap,
 .relatorio-title-wrap,
 .km-title-wrap,
@@ -35,6 +37,7 @@
 .incidentes-title-art,
 .km-title-art,
 .icv-title-art,
+.telemetria-title-art,
 .relatorio-title-art,
 .saida-carros-title-art,
 .escala-title-art {
@@ -57,6 +60,7 @@
 .incidentes-title-art img,
 .km-title-art img,
 .icv-title-art img,
+.telemetria-title-art img,
 .relatorio-title-art img,
 .saida-carros-title-art img,
 .escala-title-art img {
@@ -83,6 +87,7 @@
     .incidentes-title-art img,
     .km-title-art img,
     .icv-title-art img,
+    .telemetria-title-art img,
     .relatorio-title-art img,
     .saida-carros-title-art img,
     .escala-title-art img {
@@ -104,6 +109,7 @@
     .incidentes-title-art img,
     .km-title-art img,
     .icv-title-art img,
+    .telemetria-title-art img,
     .relatorio-title-art img,
     .saida-carros-title-art img,
     .escala-title-art img {
