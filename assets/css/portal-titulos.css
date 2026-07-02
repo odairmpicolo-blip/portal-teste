@@ -9,11 +9,13 @@
 .liberacao-title-art,
 .incidentes-title-art,
 .km-title-art,
+.icv-title-art,
 .relatorio-title-art,
 .saida-carros-title-art,
 .escala-title-art,
 .header-title,
 .pontualidade-title-wrap,
+.icv-title-wrap,
 .autuacoes-title-wrap,
 .relatorio-title-wrap,
 .km-title-wrap,
@@ -32,6 +34,7 @@
 .liberacao-title-art,
 .incidentes-title-art,
 .km-title-art,
+.icv-title-art,
 .relatorio-title-art,
 .saida-carros-title-art,
 .escala-title-art {
@@ -53,6 +56,7 @@
 .liberacao-title-art img,
 .incidentes-title-art img,
 .km-title-art img,
+.icv-title-art img,
 .relatorio-title-art img,
 .saida-carros-title-art img,
 .escala-title-art img {
@@ -78,6 +82,7 @@
     .liberacao-title-art img,
     .incidentes-title-art img,
     .km-title-art img,
+    .icv-title-art img,
     .relatorio-title-art img,
     .saida-carros-title-art img,
     .escala-title-art img {
@@ -98,6 +103,7 @@
     .liberacao-title-art img,
     .incidentes-title-art img,
     .km-title-art img,
+    .icv-title-art img,
     .relatorio-title-art img,
     .saida-carros-title-art img,
     .escala-title-art img {
