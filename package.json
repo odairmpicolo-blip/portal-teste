@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "atualizar-terminais-planilha": "node scripts/atualizar-terminais-planilha.mjs",
+    "import-telemetria-planilha": "node scripts/importar-telemetria-planilha-google.mjs",
     "import-planilha-dsql": "cd backend && npm run import:planilha-dsql --"
   },
   "repository": {
