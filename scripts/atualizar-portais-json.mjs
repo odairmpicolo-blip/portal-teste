@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const TIMEOUT_MS = Number(process.env.PORTAL_JSON_TIMEOUT_MS || 120000);
+const FETCH_RETRIES = Number(process.env.PORTAL_JSON_RETRIES || 4);
+const RETRY_DELAY_MS = Number(process.env.PORTAL_JSON_RETRY_DELAY_MS || 6000);
 const portalRoot = process.env.PORTAL_ROOT || process.cwd();
 
 const PONTUALIDADE = {
@@ -62,9 +64,27 @@ function isoDiasAtras(dias) {
 }
 
 async function fetchJson(url, timeoutMs = TIMEOUT_MS) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
-  if (!response.ok) throw new Error(`HTTP ${response.status} ao acessar ${url}`);
-  return response.json();
+  let lastError;
+  for (let tentativa = 1; tentativa <= FETCH_RETRIES; tentativa++) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ao acessar ${url}`);
+      }
+      const text = await response.text();
+      if (/^\s*</.test(text)) {
+        throw new Error("Apps Script retornou HTML em vez de JSON.");
+      }
+      return JSON.parse(text);
+    } catch (error) {
+      lastError = error;
+      if (tentativa < FETCH_RETRIES) {
+        console.warn(`  tentativa ${tentativa}/${FETCH_RETRIES} falhou: ${error.message || error}`);
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+      }
+    }
+  }
+  throw lastError;
 }
 
 function escreverJson(arquivo, payload) {

@@ -305,7 +305,10 @@ function listarAnosDashboard_() {
   var cacheKeyAnos = "folha-anos-" + SCRIPT_VERSAO;
   try {
     var emCacheAnos = CacheService.getScriptCache().get(cacheKeyAnos);
-    if (emCacheAnos) return JSON.parse(emCacheAnos);
+    if (emCacheAnos) {
+      var parsedAnos = JSON.parse(emCacheAnos);
+      if (Array.isArray(parsedAnos) && parsedAnos.length) return parsedAnos;
+    }
   } catch (errCacheAnos) {}
 
   var sheetAnos = abrirAba_();
@@ -342,7 +345,9 @@ function listarAnosDashboard_() {
   });
 
   try {
-    CacheService.getScriptCache().put(cacheKeyAnos, JSON.stringify(anosOrdenados), FOLHA_CACHE_TTL);
+    if (anosOrdenados.length) {
+      CacheService.getScriptCache().put(cacheKeyAnos, JSON.stringify(anosOrdenados), FOLHA_CACHE_TTL);
+    }
   } catch (errPutAnos) {}
 
   return anosOrdenados;
