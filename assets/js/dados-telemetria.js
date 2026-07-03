@@ -104,7 +104,7 @@ function cabecalhosComparacao() {
     "Km Percorrido (FleetBus)",
     "Clever / TCGL %",
     "FleetBus / TCGL %",
-    "Clever / FleetBus %"
+    "FleetBus / Clever %"
   ];
 }
 
@@ -528,7 +528,7 @@ function calcularStats(rows, colVeiculo, colunasKpi) {
 
   const parCleverTcgl = somaPar(cleverMap, tcglMap);
   const parFleetbusTcgl = somaPar(fleetbusMap, tcglMap);
-  const parCleverFleetbus = somaPar(cleverMap, fleetbusMap);
+  const parFleetbusClever = somaPar(fleetbusMap, cleverMap);
 
   const pctStr = (num, den) => {
     if (!Number.isFinite(num) || !Number.isFinite(den) || den <= 0) return "—";
@@ -542,7 +542,7 @@ function calcularStats(rows, colVeiculo, colunasKpi) {
     noArquivo: noArquivo.size,
     pctCleverTcgl: pctStr(parCleverTcgl.somaA, parCleverTcgl.somaB),
     pctFleetbusTcgl: pctStr(parFleetbusTcgl.somaA, parFleetbusTcgl.somaB),
-    pctCleverFleetbus: pctStr(parCleverFleetbus.somaA, parCleverFleetbus.somaB)
+    pctFleetbusClever: pctStr(parFleetbusClever.somaA, parFleetbusClever.somaB)
   };
 }
 
@@ -866,7 +866,7 @@ function montarLinhasComparacao() {
       "Km Percorrido (FleetBus)": kmFleetbus,
       "Clever / TCGL %": calcPct(kmClever, kmTcgl),
       "FleetBus / TCGL %": calcPct(kmFleetbus, kmTcgl),
-      "Clever / FleetBus %": calcPct(kmClever, kmFleetbus)
+      "FleetBus / Clever %": calcPct(kmFleetbus, kmClever)
     };
 
     rows.push(row);
@@ -1310,7 +1310,7 @@ function renderResumo(stats) {
   $("statNoArquivo").textContent = stats.noArquivo;
   $("statPctCleverTcgl").textContent = stats.pctCleverTcgl;
   $("statPctFleetbusTcgl").textContent = stats.pctFleetbusTcgl;
-  $("statPctCleverFleetbus").textContent = stats.pctCleverFleetbus;
+  $("statPctCleverFleetbus").textContent = stats.pctFleetbusClever;
 }
 
 function renderTabelaDados(rows, cols) {
