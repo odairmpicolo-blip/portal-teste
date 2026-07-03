@@ -495,6 +495,7 @@ function calcularStats(rows, colVeiculo, colunasKpi) {
     noArquivo.add(id);
   });
 
+  const KM_DIARIO_MAX = 1000;
   const kmPorFonte = (regs) => {
     const mapa = new Map();
     regs.forEach((reg) => {
@@ -502,7 +503,7 @@ function calcularStats(rows, colVeiculo, colunasKpi) {
       if (typeof payload === "string") try { payload = JSON.parse(payload); } catch (_) { payload = {}; }
       const row = normalizarLinhaTelemetria({ ...payload });
       const km = parseNumero(row["Km Percorrido"]);
-      if (!Number.isFinite(km) || km <= 0) return;
+      if (!Number.isFinite(km) || km <= 0 || km > KM_DIARIO_MAX) return;
       const key = `${reg.data_iso}|${normVeiculo(reg.veiculo)}`;
       mapa.set(key, (mapa.get(key) || 0) + km);
     });
@@ -813,7 +814,7 @@ function payloadParaRow(reg, colVeiculo, colData) {
 function calcPct(numerador, divisor) {
   const n = parseNumero(numerador);
   const d = parseNumero(divisor);
-  if (!Number.isFinite(n) || !Number.isFinite(d) || d <= 0) return "";
+  if (!Number.isFinite(n) || !Number.isFinite(d) || d <= 0 || n > 1000 || d > 1000) return "";
   let pct = (n / d) * 100;
   if (pct > 100) pct = 200 - pct;
   return `${formatarDecimal(pct, 1)}%`;
