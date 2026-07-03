@@ -122,6 +122,13 @@ h1.telemetria-title-art{margin:0;display:flex;align-items:center;justify-content
 </main>
 
 <footer class="page-footer">Portal CIOP · Dados de telemetria · TCGL</footer>
-<script type="module" src="../assets/js/dados-telemetria.js?v=20260703h"></script>
+<script>
+(function(){
+  var s=document.createElement('script');
+  s.type='module';
+  s.src='../assets/js/dados-telemetria.js?t='+Date.now();
+  document.body.appendChild(s);
+})();
+</script>
 </body>
 </html>
