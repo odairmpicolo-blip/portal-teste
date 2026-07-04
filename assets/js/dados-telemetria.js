@@ -748,7 +748,7 @@ async function atualizarDaPlanilha() {
     el.textContent = "Carregando planilha…";
     el.className = "status-json muted";
   }
-  const snap = await carregarSnapshotTelemetriaPlanilha({ fonte, de, ate });
+  const snap = await carregarSnapshotTelemetriaPlanilha({ fonte, de, ate, skipCache: true });
   if (!snap?.dados?.length) return false;
   if (fonte === "todos") {
     const outros = (snapshotRaw?.dados || []).filter((d) => {
@@ -1633,7 +1633,7 @@ async function recarregarComFiltroDatas() {
         el.className = "status-json muted";
       }
       const fonte = fontePlanilhaAtual();
-      const snap = await carregarSnapshotTelemetriaPlanilha({ fonte, de, ate });
+      const snap = await carregarSnapshotTelemetriaPlanilha({ fonte, de, ate, skipCache: true });
       if (snap?.dados?.length) {
         if (fonte === "todos") {
           aplicarSnapshotBruto(snap);

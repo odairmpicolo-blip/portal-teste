@@ -301,10 +301,12 @@ async function carregarFleetbusDiretoDaPlanilha(de, ate) {
   }
 }
 
-async function carregarSnapshotTelemetriaPlanilhaFonte(fonte, de, ate) {
+async function carregarSnapshotTelemetriaPlanilhaFonte(fonte, de, ate, { skipCache = false } = {}) {
   const opcoes = { fonte, de, ate };
-  const cached = lerCacheSnapshot(opcoes);
-  if (cached) return cached;
+  if (!skipCache) {
+    const cached = lerCacheSnapshot(opcoes);
+    if (cached) return cached;
+  }
 
   if (fonte === "fleetbus") {
     const direct = await carregarFleetbusDiretoDaPlanilha(de, ate);
@@ -337,24 +339,27 @@ async function carregarSnapshotTelemetriaPlanilhaFonte(fonte, de, ate) {
 
 /**
  * fonte=todos busca Clever e TCGL em paralelo (fonte=todos no Apps Script estoura timeout).
+ * skipCache=true forca busca fresca (usado pelo modo "ao vivo").
  */
-export async function carregarSnapshotTelemetriaPlanilha({ fonte = "todos", de = "", ate = "" } = {}) {
+export async function carregarSnapshotTelemetriaPlanilha({ fonte = "todos", de = "", ate = "", skipCache = false } = {}) {
   if (fonte === "todos") {
     const opcoes = { fonte: "todos", de, ate };
-    const cached = lerCacheSnapshot(opcoes);
-    if (cached) return cached;
+    if (!skipCache) {
+      const cached = lerCacheSnapshot(opcoes);
+      if (cached) return cached;
+    }
 
     const [cleverSnap, tcglSnap, fleetbusSnap] = await Promise.all([
-      carregarSnapshotTelemetriaPlanilhaFonte("clever", de, ate),
-      carregarSnapshotTelemetriaPlanilhaFonte("tcgl", de, ate),
-      carregarSnapshotTelemetriaPlanilhaFonte("fleetbus", de, ate)
+      carregarSnapshotTelemetriaPlanilhaFonte("clever", de, ate, { skipCache }),
+      carregarSnapshotTelemetriaPlanilhaFonte("tcgl", de, ate, { skipCache }),
+      carregarSnapshotTelemetriaPlanilhaFonte("fleetbus", de, ate, { skipCache })
     ]);
     const comb = combinarSnapshotsPlanilha(cleverSnap, tcglSnap, de, ate, fleetbusSnap);
     if (comb) gravarCacheSnapshot(comb, opcoes, "planilha");
     return comb;
   }
 
-  return carregarSnapshotTelemetriaPlanilhaFonte(fonte, de, ate);
+  return carregarSnapshotTelemetriaPlanilhaFonte(fonte, de, ate, { skipCache });
 }
 
 /**
