@@ -686,10 +686,22 @@ function complementarPlanilhaBackground(origem){
     },400);
 }
 
+function fetchComTimeout(url,opts,ms){
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),ms);
+    return fetch(url,Object.assign({},opts,{signal:ctrl.signal}))
+        .finally(()=>clearTimeout(timer));
+}
 async function apiGet(params){
     const p=Object.assign({liberacao:"1"},params);
     if(p.vivo==="1") p._=String(Date.now());
-    const res=await fetch(API_URL+"?"+new URLSearchParams(p),{cache:"no-store",redirect:"follow"});
+    let res;
+    try{
+        res=await fetchComTimeout(API_URL+"?"+new URLSearchParams(p),{cache:"no-store",redirect:"follow"},60000);
+    }catch(e){
+        if(e.name==="AbortError") throw new Error("Timeout — a planilha demorou mais de 60s. Tente novamente.");
+        throw e;
+    }
     const texto=await res.text();
     let data;
     try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha."); }
@@ -698,10 +710,13 @@ async function apiGet(params){
 }
 async function apiPost(payload){
     const p=Object.assign({liberacao:"1",_:String(Date.now())},payload);
-    const res=await fetch(API_URL+"?"+new URLSearchParams(p),{
-        cache:"no-store",
-        redirect:"follow"
-    });
+    let res;
+    try{
+        res=await fetchComTimeout(API_URL+"?"+new URLSearchParams(p),{cache:"no-store",redirect:"follow"},30000);
+    }catch(e){
+        if(e.name==="AbortError") throw new Error("Timeout ao salvar — a planilha demorou mais de 30s. Tente novamente.");
+        throw e;
+    }
     const texto=await res.text();
     let data;
     try{ data=JSON.parse(texto); }catch(_){ throw new Error("Resposta inválida da planilha ao salvar."); }
@@ -709,8 +724,16 @@ async function apiPost(payload){
     return data;
 }
 
-async function salvarPlanilhaLinha(payload){
-    await apiPost(payload);
+async function salvarPlanilhaLinha(payload,tentativa=1){
+    try{
+        await apiPost(payload);
+    }catch(err){
+        if(tentativa<3&&(err.message.includes("Timeout")||err.message.includes("Failed to fetch"))){
+            await new Promise(r=>setTimeout(r,1500*tentativa));
+            return salvarPlanilhaLinha(payload,tentativa+1);
+        }
+        throw err;
+    }
     try{
         const mod=await import("../assets/js/liberacao-aws.js?v=20260630c");
         if(await mod.liberacaoAwsDisponivel()){
