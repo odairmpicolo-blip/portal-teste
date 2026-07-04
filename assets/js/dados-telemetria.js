@@ -1439,22 +1439,24 @@ function montarFiltroDatas(forceReset) {
   const datas = dadosBrutos.rows.map((r) => parseDataCsv(r[dadosBrutos.colData])).filter(Boolean).sort();
   const de = $("filtroDataDe");
   const ate = $("filtroDataAte");
+  const hoje = dataIsoPadrao(0);
   if (!datas.length) {
     if (forceReset) {
       de.value = dataIsoPadrao(-30);
-      ate.value = dataIsoPadrao(0);
+      ate.value = hoje;
     }
     return;
   }
   const min = datas[0];
-  const max = datas[datas.length - 1];
+  const maxDados = datas[datas.length - 1];
+  const max = maxDados > hoje ? maxDados : hoje;
   de.min = min;
   de.max = max;
   ate.min = min;
   ate.max = max;
   if (forceReset || !de.value || !ate.value) {
     de.value = min;
-    ate.value = max;
+    ate.value = hoje;
   } else {
     if (de.value < min) de.value = min;
     if (de.value > max) de.value = max;
