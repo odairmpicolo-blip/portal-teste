@@ -1,11 +1,11 @@
 {
-  "atualizadoEm": "2026-07-26T06:41:21.587Z",
+  "atualizadoEm": "2026-07-26T10:05:37.251Z",
   "arquivo": "dados.json",
   "origem": "google-sheets",
-  "total": 9273,
+  "total": 9344,
   "total_clever": 6493,
   "total_tcgl": 0,
-  "total_fleetbus": 2780,
+  "total_fleetbus": 2851,
   "data_de": "2026-06-14",
-  "data_ate": "2026-07-24"
+  "data_ate": "2026-07-25"
 }
