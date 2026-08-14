@@ -1,6 +1,4 @@
-import { App } from '@capacitor/app'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { useLocation } from 'react-router-dom'
 import {
   isBiometricAvailable,
   preloadBiometricAuth,
@@ -8,6 +6,7 @@ import {
 } from '../lib/biometric-auth'
 import { isBiometricEnabled, setBiometricEnabled as persistBiometricEnabled } from '../lib/app-preferences'
 import {
+  clearBiometricSession,
   consumeBiometricSkip,
   isBiometricSessionValid,
   markBiometricUnlocked,
@@ -19,9 +18,7 @@ import { BiometricContext, type BiometricContextValue } from './biometric-contex
 
 export function BiometricProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const { pathname } = useLocation()
   const native = useNativeApp()
-  const userEmail = user?.email ?? null
   const { biometricEnabled, setBiometricEnabled } = useAppPreferences()
   const [unlocked, setUnlocked] = useState(() => !native)
   const [locking, setLocking] = useState(false)
@@ -70,12 +67,22 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
     setUnlocked(true)
   }, [setBiometricEnabled])
 
+  /* eslint-disable react-hooks/set-state-in-effect --
+     Sincroniza o estado de trava com login/preferência de biometria —
+     é derivado de props externas (native, user, biometricEnabled), não
+     um efeito colateral evitável. */
   useEffect(() => {
     if (!native || !biometricEnabled) {
       setUnlocked(true)
       return
     }
-    if (!userEmail) {
+    if (!user) {
+      // Sessão encerrada (logout) — limpa o desbloqueio salvo pra o
+      // próximo login pedir Face ID de novo. Face ID valida só uma vez
+      // por sessão: não trava mais o app por causa de tempo ou de ter
+      // ido pro background, só quando a sessão de login realmente
+      // termina.
+      clearBiometricSession()
       setUnlocked(false)
       return
     }
@@ -84,39 +91,8 @@ export function BiometricProvider({ children }: { children: ReactNode }) {
       return
     }
     setUnlocked(false)
-  }, [native, userEmail, biometricEnabled])
-
-  useEffect(() => {
-    if (!native || !biometricEnabled || !userEmail) return
-    if (isBiometricSessionValid()) setUnlocked(true)
-  }, [pathname, native, biometricEnabled, userEmail])
-
-  useEffect(() => {
-    if (!native || !userEmail || !biometricEnabled) return
-    let removed = false
-    let handle: { remove: () => Promise<void> } | undefined
-
-    void App.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive) return
-      if (!userEmail) return
-      if (isBiometricSessionValid()) {
-        setUnlocked(true)
-        return
-      }
-      setUnlocked(false)
-    }).then((listener) => {
-      if (removed) {
-        void listener.remove()
-        return
-      }
-      handle = listener
-    })
-
-    return () => {
-      removed = true
-      void handle?.remove()
-    }
-  }, [native, userEmail, biometricEnabled])
+  }, [native, user, biometricEnabled])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const value = useMemo<BiometricContextValue>(
     () => ({

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Header } from './Header'
 import { MobileTabBar } from './MobileTabBar'
-import { SharedBusFrame } from './SharedBusFrame'
 import { NoticeModal } from './NoticeModal'
 import { Sidebar } from './Sidebar'
 import { PortalShellContext } from '../context/portal-shell-context'
@@ -41,7 +40,7 @@ export function AppLayout() {
   const inOnibus = pathname.includes('onibus-agora') && !inHorarios
   const inAjustes = pathname === '/ajustes'
   const tracking = inOnibus || inHorarios
-  const inHome = pathname === '/' || pathname === '/modulos'
+  const inHome = pathname === '/' || pathname === '/modulos' || pathname === '/ciop'
   const nativeShell = native || tracking
 
   return (
@@ -57,7 +56,9 @@ export function AppLayout() {
         >
           {tracking ? null : <Header onMenuToggle={toggleSidebar} native={native} home={native && (inHome || inAjustes)} />}
           <main className="app-content">
-            {tracking ? <SharedBusFrame horarios={inHorarios} /> : <Outlet />}
+            <div key={pathname} className="route-transition">
+              <Outlet />
+            </div>
           </main>
           {!native ? (
             <footer className="app-footer portal-site-footer">

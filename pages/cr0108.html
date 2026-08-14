@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CR-0108 — Pontualidade por Ponto de Controle | Portal CIOP</title>
+<style>
+:root{
+  --blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;--bg:#f5f7fb;--border:#dfe5ef;
+  --text:#101828;--muted:#3f4757;--surface:#fff;--surface-2:#f1f5f9;
+  /* Régua de pontualidade do CIOP — mesmas cores dos KPIs do Monitoramento Ao Vivo. */
+  --c-nohorario:#22c55e;--c-nohorario-txt:#15803d;--c-nohorario-bg:#f0fdf4;--c-nohorario-bd:#bbf7d0;
+  --c-adiantado:#dc2626;--c-adiantado-txt:#b91c1c;--c-adiantado-bg:#fef2f2;--c-adiantado-bd:#fecaca;
+  --c-atrasado:#facc15;--c-atrasado-txt:#a16207;--c-atrasado-bg:#fefce8;--c-atrasado-bd:#fde68a;
+  --c-divergente:#7c3aed;--c-divergente-txt:#6d28d9;--c-divergente-bg:#f5f3ff;--c-divergente-bd:#ddd6fe;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--surface);display:grid;grid-template-columns:minmax(180px,1fr) auto minmax(280px,1fr);gap:16px;align-items:center;padding:8px 20px;border-bottom:1px solid #e8edf6}
+.header > a:first-child.portal-brand-mark{justify-self:start}
+.logo-tcgl{height:46px;object-fit:contain}
+.title-wrap{justify-self:center;text-align:center}
+.header-title{margin:0;color:var(--blue);font-size:18px;font-weight:900}
+.header-subtitle{margin-top:4px;color:var(--muted);font-size:11px;font-weight:700}
+.header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
+.container{max-width:1680px;margin:16px auto 32px;padding:0 20px;flex:1;width:100%}
+.toolbar{display:flex;align-items:flex-end;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+/* Barra única com navegação + filtros: tudo alinhado pela base, senão o botão
+   desencontra a altura dos campos, que têm rótulo em cima. */
+.toolbar-filtros{align-items:flex-end;gap:10px 12px;padding:10px 12px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 20px rgba(16,24,40,.06)}
+.toolbar-filtros .btn-portal{min-height:38px}
+.toolbar-filtros .campo-linha select{min-width:210px}
+.toolbar-filtros .campo-data input{width:140px}
+.btn-portal{display:inline-flex;align-items:center;gap:8px;min-height:40px;text-decoration:none;border-radius:10px;font-size:14px;font-weight:800;padding:8px 14px;background:var(--blue);color:#fff;border:0;cursor:pointer}
+.btn-portal:hover{background:var(--blue2)}
+.btn-icon{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
+.btn-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---- Filtros ---------------------------------------------------------------- */
+.filtros{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 20px rgba(16,24,40,.06);padding:12px 14px;margin-bottom:14px;
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px}
+.campo{display:flex;flex-direction:column;gap:4px;min-width:0}
+.campo label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.campo select,.campo input{height:38px;border:1px solid var(--border);border-radius:10px;padding:0 10px;font:inherit;font-size:13px;font-weight:600;background:var(--surface-2);color:var(--text)}
+.campo select:focus,.campo input:focus{outline:none;border-color:#7dd3dc;box-shadow:0 0 0 4px rgba(45,180,191,.15);background:#fff}
+.campo-data input{width:150px}.campo-linha select{min-width:230px}.campo-atalho select{min-width:160px}
+.filtros .btn-portal{min-height:38px}
+.btn-ghost{background:var(--surface-2);color:var(--blue);border:1px solid var(--border)}
+.btn-ghost:hover{background:#e8eef8}
+
+/* ---- KPIs ------------------------------------------------------------------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:12px;padding:11px 13px;box-shadow:0 8px 20px rgba(16,24,40,.06)}
+.kpi .label{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.03em}
+.kpi .value{font-size:23px;font-weight:900;color:var(--blue);margin-top:3px;letter-spacing:-.02em}
+.kpi .sub{font-size:11px;font-weight:700;color:var(--muted);margin-top:2px}
+.kpi .delta{font-size:11px;font-weight:800;margin-top:3px}
+.delta.up{color:#15803d}.delta.down{color:#b91c1c}.delta.flat{color:var(--muted)}
+.kpi-nohorario{border-left-color:var(--c-nohorario);background:var(--c-nohorario-bg)}
+.kpi-nohorario .value{color:var(--c-nohorario-txt)}
+.kpi-adiantado{border-left-color:var(--c-adiantado);background:var(--c-adiantado-bg)}
+.kpi-adiantado .value{color:var(--c-adiantado-txt)}
+.kpi-atrasado{border-left-color:var(--c-atrasado);background:var(--c-atrasado-bg)}
+.kpi-atrasado .value{color:var(--c-atrasado-txt)}
+.kpi-divergente{border-left-color:var(--c-divergente);background:var(--c-divergente-bg)}
+.kpi-divergente .value{color:var(--c-divergente-txt)}
+
+/* ---- Cards e tabelas -------------------------------------------------------- */
+.grid{display:grid;gap:14px;margin-bottom:14px}
+.grid-2{grid-template-columns:1fr 1fr}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 28px rgba(16,24,40,.07);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-title{margin:0;color:var(--blue);font-size:14px;font-weight:900}
+.card-sub{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.card-body{padding:12px 14px;min-width:0}
+.card-body.sem-pad{padding:0}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{border:1px solid var(--border);background:var(--surface-2);color:var(--muted);border-radius:8px;padding:5px 10px;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.tab.ativo{background:var(--blue);border-color:var(--blue);color:#fff}
+.tabela-wrap{overflow:auto;max-height:420px}
+table.rel{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px}
+table.rel thead th{position:sticky;top:0;z-index:2;background:var(--blue);color:#fff;padding:8px 6px;font-size:9px;font-weight:900;text-transform:uppercase;text-align:center;white-space:nowrap}
+table.rel tbody td{border-bottom:1px solid #edf2f7;padding:6px 6px;text-align:center;background:var(--surface)}
+table.rel tbody tr:nth-child(even) td{background:#fafbfd}
+table.rel td.txt,table.rel th.txt{text-align:left}
+table.rel tbody tr:hover td{background:#eef6ff}
+.barra{position:relative;height:16px;border-radius:5px;background:var(--surface-2);overflow:hidden;min-width:70px}
+.barra i{position:absolute;inset:0 auto 0 0;display:block}
+.pct{font-weight:900}
+.chip{display:inline-flex;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800}
+.aviso{padding:22px 16px;text-align:center;color:var(--muted);font-size:12.5px;font-weight:700}
+.legenda{font-size:11px;color:var(--muted);font-weight:700;line-height:1.5}
+.legenda b{color:var(--text)}
+canvas{max-width:100%}
+.page-footer{padding:14px;text-align:center;color:var(--muted);font-size:11px;font-weight:700;border-top:1px solid var(--border);background:var(--surface)}
+@media(max-width:1080px){.grid-2{grid-template-columns:1fr}}
+@media(max-width:720px){.header{grid-template-columns:1fr;text-align:center}.campo{flex:1 1 100%}.campo select,.campo input{width:100%}}
+
+/* ===== Fundo padrão do portal + largura total ==============================
+   Mesmo tratamento das demais páginas: wallpaper fixo + mancha azul, com os
+   painéis em vidro por cima. O portal-glass-desktop.css já cobre .card, .kpi,
+   .toolbar e .panel; aqui ficam só os containers próprios desta página. */
+.container{max-width:none;padding:0 14px}
+@media (min-width:721px){
+  body{background:transparent !important}
+  .body-bg-wall{
+    position:fixed;inset:0;z-index:-3;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+  .header,.page-footer{
+    background:rgba(255,255,255,.7) !important;
+    backdrop-filter:blur(18px) saturate(200%);
+    -webkit-backdrop-filter:blur(18px) saturate(200%);
+  }
+  .filtros,.explica,.restrito{
+    background:rgba(255,255,255,.58) !important;
+    border:1px solid rgba(255,255,255,.5) !important;
+    backdrop-filter:blur(32px) saturate(165%);
+    -webkit-backdrop-filter:blur(32px) saturate(165%);
+  }
+  .restrito{background:rgba(255,244,232,.74) !important;border-color:rgba(253,186,116,.6) !important}
+  /* Células transparentes para o vidro do card aparecer sob a tabela. */
+  table.rel tbody td{background:transparent}
+  table.rel tbody tr:nth-child(even) td{background:rgba(255,255,255,.26)}
+  table.rel tbody tr:hover td{background:rgba(255,255,255,.52)}
+  table.mini td{background:rgba(255,255,255,.62)}
+  table.mini th{background:rgba(255,255,255,.4)}
+  tr.detalhe td{background:rgba(255,255,255,.34) !important}
+  .card-head{border-bottom-color:rgba(255,255,255,.45)}
+}
+</style>
+<link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
+<script src="../assets/js/loading.js?v=20260718d"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
+<script src="../assets/js/portal-senha.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
+<style>
+/* Selo de atualizacao: mostra ate quando os dados vao e destaca quando o agregado
+   passa de 48h sem rodar. Fica depois do portal-glass/futuristic para nao ser
+   sobrescrito pelos !important daqueles arquivos. */
+.selo-atualizacao{margin-left:auto;align-self:center;display:inline-flex;align-items:center;gap:7px;
+    padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:600;letter-spacing:.2px;
+    color:#0b3b2e;background:rgba(214,247,231,.92);border:1px solid rgba(16,140,100,.45);
+    box-shadow:0 1px 2px rgba(0,0,0,.10);white-space:nowrap}
+.selo-atualizacao::before{content:"";width:8px;height:8px;border-radius:50%;background:#12a06f;
+    box-shadow:0 0 0 3px rgba(18,160,111,.22)}
+.selo-atualizacao.selo-velho{color:#5a2a00;background:rgba(255,236,206,.95);border-color:rgba(200,110,0,.55)}
+.selo-atualizacao.selo-velho::before{background:#e07b00;box-shadow:0 0 0 3px rgba(224,123,0,.22)}
+.selo-atualizacao:empty{display:none}
+/* Detalhamento em cascata do ranking */
+tr.linha-drill{cursor:pointer}
+tr.linha-drill:hover>td{background:rgba(31,111,235,.07)}
+tr.linha-drill.aberta>td{background:rgba(31,111,235,.10)}
+.disclosure{display:inline-block;width:14px;color:var(--muted);font-size:11px}
+tr.detalhe>td{padding:0!important;background:rgba(15,25,40,.045)}
+.det-bloco{padding:10px 12px 12px 30px}
+.det-bloco2{padding:8px 10px 10px 26px}
+.det-titulo{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+    color:var(--muted);margin-bottom:6px}
+.det-tabela{width:100%;background:rgba(255,255,255,.55);border-radius:8px;overflow:hidden}
+.det-tabela th{font-size:11px}
+.det-tabela td{font-size:12.5px}
+tr.det-ponto,tr.det-horario{cursor:pointer}
+tr.det-ponto:hover>td,tr.det-horario:hover>td{background:rgba(31,111,235,.08)}
+tr.det-ponto.aberta>td,tr.det-horario.aberta>td{background:rgba(31,111,235,.12)}
+.det-sentido{color:var(--muted);font-weight:700;font-size:11px}
+.det-pct{font-weight:800}
+.det-sugestao{font-weight:800;color:#0b6b45}
+.det-sub>td{padding:0!important;background:transparent}
+.det-carregando{padding:10px 14px;color:var(--muted);font-style:italic}
+.det-sugestao-box{margin:2px 8px 8px 26px;padding:9px 12px;border-radius:8px;font-size:12.5px;
+    line-height:1.5;background:rgba(255,244,214,.75);border:1px solid rgba(190,150,40,.35)}
+/* Seta de ordenacao nos cabecalhos de tabela. */
+.th-ord{cursor:pointer;user-select:none;position:relative;padding-right:17px!important}
+.th-ord::after{content:"";position:absolute;right:5px;top:50%;margin-top:-2px;
+    border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:5px solid currentColor;opacity:.28}
+.th-ord:hover::after{opacity:.6}
+.th-ord.ord-asc::after{border-top:none;border-bottom:5px solid currentColor;opacity:.95}
+.th-ord.ord-desc::after{opacity:.95}
+.th-ord:focus-visible{outline:2px solid rgba(31,111,235,.65);outline-offset:-2px}
+
+</style>
+</head>
+<body data-require-perfis="Administrador">
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
+<header class="header">
+    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
+    <div class="title-wrap">
+        <h1 class="header-title">CR-0108 · Pontualidade por Ponto de Controle</h1>
+        <div class="header-subtitle" id="subCabecalho">Carregando…</div>
+    </div>
+    <div class="header-actions">
+        <div class="ciop-session" aria-label="Sessão do usuário">
+            <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+            <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+            <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
+            <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+        </div>
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
+    </div>
+</header>
+
+<main class="container">
+    <!-- Barra única: navegação e filtros na mesma linha. -->
+    <div class="toolbar toolbar-filtros">
+        <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>Portal</a>
+
+        <div class="campo campo-atalho">
+            <label for="fAtalho">Período</label>
+            <select id="fAtalho">
+                <option value="tudo">Todo o histórico</option>
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+                <option value="mes">Mês atual</option>
+                <option value="mesAnterior">Mês anterior</option>
+                <option value="custom">Personalizado</option>
+            </select>
+        </div>
+        <div class="campo campo-data"><label for="fDe">De</label><input type="date" id="fDe"></div>
+        <div class="campo campo-data"><label for="fAte">Até</label><input type="date" id="fAte"></div>
+        <div class="campo campo-linha"><label for="fLinha">Linha</label><select id="fLinha"><option value="">Todas as linhas</option></select></div>
+        <div class="campo"><label for="fSentido">Sentido</label><select id="fSentido"><option value="">Ambos</option><option value="IDA">IDA</option><option value="VOLTA">VOLTA</option></select></div>
+        <div class="campo"><label for="fComparar">Comparar</label><select id="fComparar">
+            <option value="">Sem comparação</option>
+            <option value="anterior">Período anterior</option>
+        </select></div>
+        <button type="button" class="btn-portal btn-ghost" id="btnLimpar">Limpar</button>
+        <span class="selo-atualizacao" id="seloAtual"></span>
+    </div>
+
+    <section class="kpis" id="kpis"></section>
+
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-head">
+                <div><h2 class="card-title">Evolução no tempo</h2><div class="card-sub" id="subEvolucao">—</div></div>
+                <div class="tabs" id="tabsEvolucao">
+                    <button type="button" class="tab ativo" data-gran="dia">Diário</button>
+                    <button type="button" class="tab" data-gran="mes">Mensal</button>
+                </div>
+            </div>
+            <div class="card-body"><canvas id="graficoEvolucao" height="150"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="card-head">
+                <div><h2 class="card-title">Faixa horária</h2><div class="card-sub" id="subHora">—</div></div>
+            </div>
+            <div class="card-body"><canvas id="graficoHora" height="150"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+        <div class="card-head">
+            <div><h2 class="card-title">Ranking</h2><div class="card-sub" id="subRanking">—</div></div>
+            <div class="tabs" id="tabsRanking">
+                <button type="button" class="tab ativo" data-dim="linha">Linhas</button>
+                <button type="button" class="tab" data-dim="ponto">Pontos de controle</button>
+                <button type="button" class="tab" data-dim="operador">Operadores</button>
+                <button type="button" class="tab" data-dim="veiculo">Veículos</button>
+            </div>
+        </div>
+        <div class="card-body sem-pad">
+            <div class="tabela-wrap"><table class="rel" id="tabelaRanking"></table></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><div><h2 class="card-title">Régua de classificação</h2><div class="card-sub">Critério do CIOP, calculado a partir da coluna Diferença do relatório</div></div></div>
+        <div class="card-body">
+            <p class="legenda" style="margin:0">
+                <span class="chip" style="background:var(--c-nohorario-bg);color:var(--c-nohorario-txt)">No horário</span> de <b>−2 min</b> a <b>+6 min</b> &nbsp;·&nbsp;
+                <span class="chip" style="background:var(--c-adiantado-bg);color:var(--c-adiantado-txt)">Adiantado</span> de <b>−10 min</b> a <b>−3 min</b> &nbsp;·&nbsp;
+                <span class="chip" style="background:var(--c-atrasado-bg);color:var(--c-atrasado-txt)">Atrasado</span> de <b>+7 min</b> a <b>+15 min</b> &nbsp;·&nbsp;
+                <span class="chip" style="background:var(--c-divergente-bg);color:var(--c-divergente-txt)">Divergente</span> a partir de <b>+16 min</b> ou <b>−11 min</b>
+                <br>Valor negativo = passou antes do programado. As colunas <i>Status</i> e <i>OTP Status</i> do arquivo original não são usadas — elas divergem entre si.
+            </p>
+        </div>
+    </div>
+</main>
+
+<footer class="page-footer">Portal CIOP · TCGL — CR-0108 gerado a partir dos relatórios diários de ponto de controle</footer>
+
+<!-- Estes dois definem window.CR0108Serie e window.Fonte e PRECISAM vir antes do
+     bloco abaixo. Estavam depois: iniciar() espera os JSONs e, quando eles vinham
+     do cache antes do download do fonte.js, retomava com Fonte ainda indefinida.
+     Uma corrida que so aparecia quando o script nao estava em cache. -->
+<script src="../assets/js/cr0108-serie.js?v=20260731b"></script>
+<script src="../assets/js/cr0108-fonte.js?v=20260805f"></script>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const BASE = "../assets/data/cr0108/";
+const CLASSES = [
+    { chave: "noHorario",  rotulo: "No horário",  cor: "#22c55e", txt: "#15803d" },
+    { chave: "adiantado",  rotulo: "Adiantado",   cor: "#dc2626", txt: "#b91c1c" },
+    { chave: "atrasado",   rotulo: "Atrasado",    cor: "#facc15", txt: "#a16207" },
+    { chave: "divergente", rotulo: "Divergente",  cor: "#7c3aed", txt: "#6d28d9" }
+];
+
+const DADOS = {};
+const estado = { gran: "dia", dim: "linha", serie: null, hora: null, serieAnterior: null,
+                 drill: { linha: null, ponto: null, sentido: null, horario: null } };
+
+const nInt = n => Number(n || 0).toLocaleString("pt-BR");
+const nPct = n => n == null || !Number.isFinite(n) ? "—"
+    : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dataBR = iso => { const p = String(iso || "").split("-"); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso; };
+const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const mesBR = m => { const p = String(m || "").split("-"); return p.length === 2 ? `${MESES[+p[1] - 1]}/${p[0].slice(2)}` : m; };
+
+function vazio(){ return { noHorario: 0, adiantado: 0, atrasado: 0, divergente: 0, total: 0, somaDif: 0 }; }
+function acumular(acc, r){
+    acc.noHorario += r.noHorario || 0;
+    acc.adiantado += r.adiantado || 0;
+    acc.atrasado  += r.atrasado  || 0;
+    acc.divergente += r.divergente || 0;
+    acc.total     += r.total     || 0;
+    acc.somaDif   += r.somaDif   || 0;
+    return acc;
+}
+const pct = (parte, total) => total ? (parte / total) * 100 : null;
+
+async function baixar(nome){
+    const res = await fetch(BASE + nome + "?v=" + (DADOS.meta?.gerado || ""), { cache: "no-store" });
+    if (!res.ok) throw new Error(nome + ": HTTP " + res.status);
+    return res.json();
+}
+
+/* ---- Filtro ------------------------------------------------------------------
+   O recorte de período vale para todas as visões. Linha e sentido usam as bases
+   com essas dimensões; ranking de ponto/operador/veículo é mensal (o diário nessas
+   granularidades daria ~12 MB de JSON, inviável para carregar no navegador). */
+function periodo(){
+    const de = $("fDe").value || DADOS.meta.primeiroDia;
+    const ate = $("fAte").value || DADOS.meta.ultimoDia;
+    return de <= ate ? { de, ate } : { de: ate, ate: de };
+}
+const dentro = (iso, p) => iso >= p.de && iso <= p.ate;
+const mesesDoPeriodo = p => {
+    const set = new Set();
+    DADOS.porDia.forEach(r => { if (dentro(r.data, p)) set.add(r.data.slice(0, 7)); });
+    return set;
+};
+
+/* A série e a faixa horária são buscadas uma vez por render (em renderTudo) e ficam
+   em estado.serie / estado.hora. Vêm do banco quando ele responde e dos arquivos quando
+   não — a Fonte resolve isso. null significa "este recorte não existe nesta fonte":
+   acontece só no modo arquivo com filtro de sentido, porque o agregado com sentido é
+   mensal. Com o banco, o SQL filtra sentido direto na passagem crua. */
+function seriePeriodo(){ return estado.serie; }
+
+function totalPeriodo(p, serie){
+    const lista = serie === undefined ? estado.serie : serie;
+    if (lista) return lista.reduce(acumular, vazio());
+    // Sem série (arquivo + filtro de sentido): o total sai do agregado mensal por sentido.
+    const meses = mesesDoPeriodo(p);
+    return DADOS.porMesSentido
+        .filter(r => meses.has(r.mes) && r.sentido === $("fSentido").value)
+        .reduce(acumular, vazio());
+}
+
+function periodoAnterior(p){
+    const d1 = new Date(p.de + "T00:00:00"), d2 = new Date(p.ate + "T00:00:00");
+    const dias = Math.round((d2 - d1) / 86400000) + 1;
+    const fim = new Date(d1.getTime() - 86400000);
+    const ini = new Date(fim.getTime() - (dias - 1) * 86400000);
+    const iso = d => d.toISOString().slice(0, 10);
+    return { de: iso(ini), ate: iso(fim) };
+}
+
+/* ---- KPIs --------------------------------------------------------------------- */
+function renderKpis(){
+    const p = periodo();
+    const t = totalPeriodo(p);
+    const comparar = $("fComparar").value === "anterior";
+    const ant = comparar ? totalPeriodo(periodoAnterior(p), estado.serieAnterior) : null;
+
+    const mediaDif = t.total ? t.somaDif / t.total : null;
+    const cartoes = [];
+    cartoes.push(`<div class="kpi"><div class="label">Passagens apuradas</div>
+        <div class="value">${nInt(t.total)}</div>
+        <div class="sub">${dataBR(p.de)} a ${dataBR(p.ate)}</div></div>`);
+
+    CLASSES.forEach(c => {
+        const v = pct(t[c.chave], t.total);
+        let delta = "";
+        if (ant && ant.total){
+            const va = pct(ant[c.chave], ant.total);
+            const d = (v ?? 0) - (va ?? 0);
+            // "Melhor" = mais no horário, menos de todo o resto.
+            const bom = c.chave === "noHorario" ? d > 0 : d < 0;
+            const cls = Math.abs(d) < 0.005 ? "flat" : (bom ? "up" : "down");
+            const sinal = d > 0 ? "+" : "";
+            delta = `<div class="delta ${cls}">${sinal}${d.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} p.p. vs período anterior</div>`;
+        }
+        cartoes.push(`<div class="kpi kpi-${c.chave.toLowerCase()}">
+            <div class="label">${c.rotulo}</div>
+            <div class="value">${nPct(v)}</div>
+            <div class="sub">${nInt(t[c.chave])} passagens</div>${delta}</div>`);
+    });
+
+    cartoes.push(`<div class="kpi"><div class="label">Desvio médio</div>
+        <div class="value">${mediaDif == null ? "—" : (mediaDif >= 0 ? "+" : "") + mediaDif.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " min"}</div>
+        <div class="sub">negativo = adiantado</div></div>`);
+
+    $("kpis").innerHTML = cartoes.join("");
+}
+
+/* ---- Gráficos ----------------------------------------------------------------- */
+let gEvolucao = null, gHora = null;
+
+function renderEvolucao(){
+    const p = periodo();
+    const serie = seriePeriodo();
+    const sub = $("subEvolucao");
+    if (!serie){
+        sub.textContent = "O recorte por sentido só existe na base mensal — remova o filtro de sentido para ver a série diária.";
+    } else {
+        sub.textContent = ($("fLinha").value ? "Linha " + $("fLinha").value : "Todas as linhas") + " · % de cada classe";
+    }
+    const bruto = serie || [];
+    let rotulos = [], grupos = [];
+    if (estado.gran === "mes" || !serie){
+        const mapa = new Map();
+        (serie || []).forEach(r => {
+            const m = r.data.slice(0, 7);
+            if (!mapa.has(m)) mapa.set(m, vazio());
+            acumular(mapa.get(m), r);
+        });
+        rotulos = [...mapa.keys()].sort();
+        grupos = rotulos.map(m => mapa.get(m));
+        rotulos = rotulos.map(mesBR);
+    } else {
+        const ord = bruto.slice().sort((a, b) => a.data.localeCompare(b.data));
+        rotulos = ord.map(r => dataBR(r.data));
+        grupos = ord;
+    }
+    const dados = {
+        labels: rotulos,
+        datasets: CLASSES.map(c => ({
+            label: c.rotulo,
+            data: grupos.map(g => pct(g[c.chave], g.total)),
+            borderColor: c.cor, backgroundColor: c.cor,
+            borderWidth: 2, pointRadius: rotulos.length > 60 ? 0 : 2, tension: .25
+        }))
+    };
+    const opcoes = {
+        responsive: true, maintainAspectRatio: true,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { labels: { boxWidth: 10, font: { size: 11, weight: "bold" } } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ": " + nPct(ctx.parsed.y) } } },
+        scales: { y: { ticks: { callback: v => v + "%", font: { size: 10 } }, grid: { color: "#eef2f7" } },
+                  x: { ticks: { font: { size: 9 }, maxRotation: 60, autoSkip: true, maxTicksLimit: 16 }, grid: { display: false } } }
+    };
+    if (gEvolucao) gEvolucao.destroy();
+    gEvolucao = new Chart($("graficoEvolucao"), { type: "line", data: dados, options: opcoes });
+}
+
+function renderHora(){
+    const p = periodo();
+    const linha = $("fLinha").value;
+    const sentido = $("fSentido").value;
+    const mapa = new Map();
+
+    // Já vem filtrada da Fonte: recorte exato quando o banco responde; no arquivo, o
+    // cruzamento hora x linha x sentido só existe mensal (o diário daria ~487 mil linhas).
+    (estado.hora || []).forEach(r => mapa.set(r.hora, r));
+    const doBanco = Fonte.origem() === "banco";
+    if (!linha && !sentido){
+        $("subHora").textContent = "Pontualidade por hora programada de passagem · recorte diário do período";
+    } else {
+        const recorte = [linha ? "linha " + linha : null, sentido].filter(Boolean).join(" · ");
+        $("subHora").textContent = "Pontualidade por hora · " + recorte
+            + (doBanco ? " · recorte diário do período" : " · recorte mensal (meses tocados pelo período)");
+    }
+    const horas = [...mapa.keys()].sort();
+    const dados = {
+        labels: horas.map(h => h + "h"),
+        datasets: CLASSES.map(c => ({
+            label: c.rotulo,
+            data: horas.map(h => pct(mapa.get(h)[c.chave], mapa.get(h).total)),
+            backgroundColor: c.cor, borderWidth: 0
+        }))
+    };
+    const opcoes = {
+        responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { labels: { boxWidth: 10, font: { size: 11, weight: "bold" } } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ": " + nPct(ctx.parsed.y) } } },
+        scales: { x: { stacked: true, ticks: { font: { size: 9 } }, grid: { display: false } },
+                  y: { stacked: true, max: 100, ticks: { callback: v => v + "%", font: { size: 10 } }, grid: { color: "#eef2f7" } } }
+    };
+    if (gHora) gHora.destroy();
+    gHora = new Chart($("graficoHora"), { type: "bar", data: dados, options: opcoes });
+}
+
+/* ---- Ranking ------------------------------------------------------------------ */
+/* O ranking passa a vir da Fonte: Aurora DSQL quando o banco responde, arquivos
+   estáticos quando não. Os dois caminhos devolvem o mesmo formato, então o render
+   abaixo não mudou. `diario` diz se o recorte de data foi aplicado sobre a passagem
+   crua (banco) ou arredondado para meses inteiros (arquivo, para ponto/operador/veículo). */
+async function dadosRanking(){
+    const p = periodo();
+    const dim = estado.dim;
+    const filtro = { de: p.de, ate: p.ate, linha: $("fLinha").value, sentido: $("fSentido").value };
+    const r = await Fonte.ranking(dim, filtro);
+    const titulos = { linha: "Linha", ponto: "Ponto de controle", operador: "Operador", veiculo: "Veículo" };
+    return { titulo: titulos[dim] || dim, diario: r.exato, cascata: dim === "linha", itens: r.itens };
+}
+
+async function renderRanking(){
+    const { titulo, diario, itens, cascata } = await dadosRanking();
+    // Ordena pelo pior desempenho: menor % no horário primeiro, com um piso de
+    // volume para uma linha com 3 passagens não liderar o ranking por acaso.
+    const piso = Math.max(30, Math.round(itens.reduce((s, i) => s + i.total, 0) / Math.max(1, itens.length) * 0.05));
+    const lista = itens.filter(i => i.total > 0)
+        .sort((a, b) => {
+            const ra = a.total >= piso ? 0 : 1, rb = b.total >= piso ? 0 : 1;
+            if (ra !== rb) return ra - rb;
+            return (pct(a.noHorario, a.total) ?? 0) - (pct(b.noHorario, b.total) ?? 0);
+        }).slice(0, 200);
+
+    $("subRanking").textContent = (diario
+        ? "Recorte diário exato do período"
+        : "Recorte mensal — meses tocados pelo período selecionado")
+        + " · ordenado do pior para o melhor · " + nInt(lista.length) + " itens";
+
+    if (!lista.length){
+        $("tabelaRanking").innerHTML = '<tbody><tr><td class="aviso">Nenhum dado no período selecionado.</td></tr></tbody>';
+        return;
+    }
+    const cab = `<thead><tr>
+        <th style="width:44px">#</th>
+        <th class="txt">${esc(titulo)}</th>
+        <th style="width:90px">Passagens</th>
+        <th style="width:150px">No horário</th>
+        <th style="width:80px">Adiantado</th>
+        <th style="width:80px">Atrasado</th>
+        <th style="width:88px">Divergente</th>
+        <th style="width:92px">Desvio médio</th>
+    </tr></thead>`;
+    const corpo = lista.map((i, idx) => {
+        const p1 = pct(i.noHorario, i.total) ?? 0;
+        const media = i.total ? i.somaDif / i.total : 0;
+        const rot = esc(i.rotulo) + (i.extra ? ' <span style="color:var(--muted);font-weight:600">' + esc(i.extra) + "</span>" : "");
+        const aberta = cascata && estado.drill.linha === i.chave;
+        return `<tr${cascata ? ` class="linha-drill${aberta ? " aberta" : ""}" data-linha="${esc(i.chave)}"` : ""}>
+            <td>${idx + 1}</td>
+            <td class="txt">${cascata ? `<span class="disclosure">${aberta ? "▾" : "▸"}</span>` : ""}${rot}</td>
+            <td>${nInt(i.total)}</td>
+            <td><div style="display:flex;align-items:center;gap:6px">
+                <span class="barra"><i style="width:${p1.toFixed(1)}%;background:var(--c-nohorario)"></i></span>
+                <span class="pct" style="color:var(--c-nohorario-txt)">${nPct(p1)}</span></div></td>
+            <td style="color:var(--c-adiantado-txt);font-weight:800">${nPct(pct(i.adiantado, i.total))}</td>
+            <td style="color:var(--c-atrasado-txt);font-weight:800">${nPct(pct(i.atrasado, i.total))}</td>
+            <td style="color:var(--c-divergente-txt);font-weight:800">${nPct(pct(i.divergente, i.total))}</td>
+            <td>${(media >= 0 ? "+" : "") + media.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} min</td>
+        </tr>`
+        + (aberta ? linhaDetalhe() : "");
+    }).join("");
+    $("tabelaRanking").innerHTML = cab + "<tbody>" + corpo + "</tbody>";
+}
+
+/* ---- Detalhamento em cascata --------------------------------------------------
+   Linha -> pontos de controle -> horários com problema -> sugestão de ajuste.
+   Tudo vem da série diária (assets/data/cr0108/serie-diaria.json), que guarda um
+   desvio por dia por viagem programada. Como ela cobre 100% das passagens, os
+   totais fecham com os do ranking. O download só acontece no primeiro clique. */
+const estado_drill_vazio = { linha: null, ponto: null, sentido: null, horario: null };
+let serieCtx = null;
+let baixandoSerie = null;
+
+async function carregarSerie(){
+    if (serieCtx) return serieCtx;
+    if (!baixandoSerie){
+        baixandoSerie = (async () => {
+            const res = await fetch("../assets/data/cr0108/serie-diaria.json", { cache: "force-cache" });
+            if (!res.ok) throw new Error("serie-diaria: HTTP " + res.status);
+            serieCtx = window.CR0108Serie.preparar(await res.json());
+            return serieCtx;
+        })();
+    }
+    return baixandoSerie;
+}
+
+const pctTxt = (a, b) => b ? nPct(100 * a / b) : "—";
+
+function linhaDetalhe(){
+    const d = estado.drill;
+    if (d.carregando) return `<tr class="detalhe"><td colspan="8" class="det-carregando">carregando o detalhamento…</td></tr>`;
+    if (d.erro) return `<tr class="detalhe"><td colspan="8" class="aviso">${esc(d.erro)}</td></tr>`;
+    if (!d.pontos) return "";
+    if (!d.pontos.length) return `<tr class="detalhe"><td colspan="8" class="aviso">Sem viagens programadas no período.</td></tr>`;
+
+    const pontos = d.pontos.map(pt => {
+        const id = pt.sentido + "|" + pt.ponto;
+        const ab = d.ponto === id;
+        const linhas = ab ? horariosDetalhe() : "";
+        return `<tr class="det-ponto${ab ? " aberta" : ""}" data-ponto="${esc(id)}">
+            <td class="txt"><span class="disclosure">${ab ? "▾" : "▸"}</span>${esc(pt.ponto)}</td>
+            <td class="det-sentido">${esc(pt.sentido)}</td>
+            <td>${nInt(pt.total)}</td>
+            <td class="det-pct">${pctTxt(pt.noHorario, pt.total)}</td>
+            <td>${pctTxt(pt.adiantado, pt.total)}</td>
+            <td>${pctTxt(pt.atrasado, pt.total)}</td>
+            <td>${pctTxt(pt.divergente, pt.total)}</td>
+        </tr>` + linhas;
+    }).join("");
+
+    return `<tr class="detalhe"><td colspan="8"><div class="det-bloco">
+        <div class="det-titulo">Pontos de controle da linha ${esc(d.linha)} · do pior para o melhor</div>
+        <table class="mini det-tabela"><thead><tr>
+            <th class="txt">Ponto de controle</th><th style="width:64px">Sentido</th>
+            <th style="width:80px">Passagens</th><th style="width:90px">No horário</th>
+            <th style="width:80px">Adiantado</th><th style="width:80px">Atrasado</th><th style="width:84px">Divergente</th>
+        </tr></thead><tbody>${pontos}</tbody></table>
+    </div></td></tr>`;
+}
+
+function horariosDetalhe(){
+    const d = estado.drill;
+    if (!d.horarios) return `<tr class="det-sub"><td colspan="7" class="det-carregando">carregando os horários…</td></tr>`;
+    /* Só interessa o que tem problema: horário cujo desempenho no horário não é pleno. */
+    const ruins = d.horarios.filter(h => h.noHorario < h.total);
+    if (!ruins.length) return `<tr class="det-sub"><td colspan="7" class="aviso">Nenhum horário com problema neste ponto.</td></tr>`;
+    const linhas = ruins.map(h => {
+        const id = h.sentido + "|" + h.programado;
+        const ab = d.horario === id;
+        return `<tr class="det-horario${ab ? " aberta" : ""}" data-horario="${esc(id)}">
+            <td class="txt"><span class="disclosure">${ab ? "▾" : "▸"}</span><b>${esc(h.programado)}</b></td>
+            <td>${nInt(h.total)}</td>
+            <td class="det-pct">${pctTxt(h.noHorario, h.total)}</td>
+            <td>${h.sugerido ? `<span class="det-sugestao">${esc(h.sugerido)}</span>` : "—"}</td>
+            <td>${h.shift ? (h.shift > 0 ? "+" : "") + h.shift + " min" : "—"}</td>
+        </tr>` + (ab ? sugestaoDetalhe(h) : "");
+    }).join("");
+    return `<tr class="det-sub"><td colspan="7"><div class="det-bloco2">
+        <div class="det-titulo">Horários com problema · clique para ver a sugestão</div>
+        <table class="mini det-tabela"><thead><tr>
+            <th class="txt">Programado</th><th style="width:74px">Passagens</th>
+            <th style="width:86px">No horário</th><th style="width:86px">Sugerido</th><th style="width:74px">Ajuste</th>
+        </tr></thead><tbody>${linhas}</tbody></table>
+    </div></td></tr>`;
+}
+
+function sugestaoDetalhe(h){
+    let corpo;
+    if (!h.massaSuficiente){
+        corpo = `<b>Sem massa para recomendar.</b> Só ${nInt(h.total)} passagem${h.total === 1 ? "" : "s"} no período — `
+            + "são necessárias ao menos 20 para o deslocamento não ser sorte. Amplie o período.";
+    } else if (!h.shift){
+        corpo = "<b>Mexer no horário não resolve.</b> Nenhum deslocamento entre −20 e +20 min melhora este horário: "
+            + "a variação vem da operação (trânsito, embarque), não da tabela.";
+    } else if (Math.abs(h.shift) <= 2){
+        corpo = `<b>Orientar o motorista.</b> O ajuste ideal é de apenas ${Math.abs(h.shift)} min, `
+            + "dentro do que a condução controla — não compensa mexer na tabela horária.";
+    } else {
+        corpo = `<b>Alterar a tabela horária:</b> ${esc(h.programado)} → <b>${esc(h.sugerido)}</b> `
+            + `(${h.shift > 0 ? "+" : ""}${h.shift} min). No horário iria de ${pctTxt(h.noHorario, h.total)} `
+            + `para ${nPct(h.pctPotencial)}, recuperando ${nInt(h.recuperadas)} das ${nInt(h.total)} passagens.`;
+    }
+    return `<tr class="det-sub"><td colspan="5"><div class="det-sugestao-box">${corpo}</div></td></tr>`;
+}
+
+async function carregarDrill(){
+    const d = estado.drill;
+    const p = periodo();
+    try {
+        const ctx = await carregarSerie();
+        const sentidoFiltro = $("fSentido").value;
+        d.pontos = window.CR0108Serie.pontosDaLinha(ctx, d.linha, sentidoFiltro, p.de, p.ate);
+        if (d.ponto){
+            const [sent, pto] = d.ponto.split("|");
+            d.horarios = window.CR0108Serie.horariosDoPonto(ctx, d.linha, sent, pto, p.de, p.ate);
+        } else {
+            d.horarios = null;
+        }
+    } catch (err){
+        console.error(err);
+        d.erro = "Não foi possível carregar o detalhamento.";
+    }
+    d.carregando = false;
+    renderRanking();
+}
+
+function ligarCascata(){
+    $("tabelaRanking").addEventListener("click", e => {
+        const trH = e.target.closest("tr.det-horario");
+        if (trH){
+            const id = trH.dataset.horario;
+            estado.drill.horario = estado.drill.horario === id ? null : id;
+            renderRanking();
+            return;
+        }
+        const trP = e.target.closest("tr.det-ponto");
+        if (trP){
+            const id = trP.dataset.ponto;
+            const mesmo = estado.drill.ponto === id;
+            estado.drill.ponto = mesmo ? null : id;
+            estado.drill.horario = null;
+            estado.drill.horarios = null;
+            if (mesmo){ renderRanking(); } else { renderRanking(); carregarDrill(); }
+            return;
+        }
+        const trL = e.target.closest("tr.linha-drill");
+        if (!trL) return;
+        const linha = trL.dataset.linha;
+        if (estado.drill.linha === linha){
+            estado.drill = { ...estado_drill_vazio };
+            renderRanking();
+            return;
+        }
+        estado.drill = { ...estado_drill_vazio, linha, carregando: true };
+        renderRanking();
+        carregarDrill();
+    });
+}
+
+/* Um render = uma ida à fonte. Busca série, faixa horária e (se comparando) a série
+   do período anterior, guarda em `estado` e só então desenha — assim todos os blocos
+   da tela mostram o mesmo recorte, vindo do mesmo lugar. */
+/* Cada chamada recebe um numero. Se o usuario mexer nos filtros antes de a segunda
+   passada terminar, o resultado velho e descartado em vez de sobrescrever a tela. */
+let renderSeq = 0;
+
+async function buscarTudo(filtro, p){
+    const dados = { serie: null, hora: null, serieAnterior: null };
+    dados.serie = await Fonte.serie(filtro);
+    dados.hora  = await Fonte.hora(filtro);
+    dados.serieAnterior = $("fComparar").value === "anterior"
+        ? await Fonte.serie({ ...filtro, ...periodoAnterior(p) })
+        : null;
+    return dados;
+}
+
+function pintar(dados){
+    /* Se uma fonte devolver vazio, mantemos o que ja esta na tela em vez de apagar.
+       Some dado bom por dado nenhum era o que fazia a tela "piscar" em branco. */
+    if (dados.serie) estado.serie = dados.serie;
+    if (dados.hora) estado.hora = dados.hora;
+    estado.serieAnterior = dados.serieAnterior;
+    renderKpis();
+    renderEvolucao();
+    renderHora();
+    renderRanking();
+}
+
+/* Duas passadas: o arquivo pinta na hora, o banco corrige depois.
+   O banco varre a passagem crua e leva segundos; o arquivo ja esta carregado e responde
+   em milissegundos. Esperar so pelo banco deixava a tela vazia nesse intervalo. */
+async function renderTudo(){
+    const seq = ++renderSeq;
+    const p = periodo();
+    const filtro = { de: p.de, ate: p.ate, linha: $("fLinha").value, sentido: $("fSentido").value };
+
+    Fonte.usarSoArquivo(true);
+    try {
+        pintar(await buscarTudo(filtro, p));
+    } catch (err){
+        console.error("CR-0108: falha ao ler os arquivos.", err);
+    } finally {
+        Fonte.usarSoArquivo(false);
+    }
+
+    /* 2º plano: nao damos await, para a tela nao ficar presa esperando o banco. */
+    (async () => {
+        try {
+            if (!(await Fonte.disponivel())) return;
+            const dados = await buscarTudo(filtro, p);
+            if (seq !== renderSeq) return;          // os filtros mudaram no meio do caminho
+            if (dados.serie) pintar(dados);
+        } catch (err){
+            console.info("CR-0108: banco nao respondeu; a tela segue com os arquivos.", err && err.message);
+        }
+    })();
+}
+
+/* ---- Atalhos de período -------------------------------------------------------- */
+function aplicarAtalho(){
+    const v = $("fAtalho").value;
+    const meta = DADOS.meta;
+    if (v === "custom") return;
+    const ultimo = new Date(meta.ultimoDia + "T00:00:00");
+    const iso = d => d.toISOString().slice(0, 10);
+    if (v === "tudo"){ $("fDe").value = meta.primeiroDia; $("fAte").value = meta.ultimoDia; }
+    else if (v === "7" || v === "30"){
+        const ini = new Date(ultimo.getTime() - (Number(v) - 1) * 86400000);
+        $("fDe").value = iso(ini) < meta.primeiroDia ? meta.primeiroDia : iso(ini);
+        $("fAte").value = meta.ultimoDia;
+    } else if (v === "mes"){
+        $("fDe").value = meta.ultimoDia.slice(0, 8) + "01";
+        $("fAte").value = meta.ultimoDia;
+    } else if (v === "mesAnterior"){
+        const [y, m] = meta.ultimoDia.split("-").map(Number);
+        const ini = new Date(y, m - 2, 1), fim = new Date(y, m - 1, 0);
+        $("fDe").value = iso(ini); $("fAte").value = iso(fim);
+    }
+}
+
+/* Trocar filtro invalida o que está aberto: o detalhe é de um recorte, a linha de outro. */
+function fecharCascata(){ estado.drill = { linha: null, ponto: null, sentido: null, horario: null }; }
+
+function ligarEventos(){
+    ligarCascata();
+    $("fAtalho").addEventListener("change", () => { fecharCascata(); aplicarAtalho(); renderTudo(); });
+    ["fDe", "fAte"].forEach(id => $(id).addEventListener("change", () => {
+        fecharCascata(); $("fAtalho").value = "custom"; renderTudo();
+    }));
+    ["fLinha", "fSentido", "fComparar"].forEach(id =>
+        $(id).addEventListener("change", () => { fecharCascata(); renderTudo(); }));
+    $("btnLimpar").addEventListener("click", () => {
+        $("fAtalho").value = "tudo"; $("fLinha").value = ""; $("fSentido").value = ""; $("fComparar").value = "";
+        fecharCascata(); aplicarAtalho(); renderTudo();
+    });
+    $("tabsEvolucao").addEventListener("click", e => {
+        const b = e.target.closest(".tab"); if (!b) return;
+        estado.gran = b.dataset.gran;
+        [...$("tabsEvolucao").children].forEach(x => x.classList.toggle("ativo", x === b));
+        renderEvolucao();
+    });
+    $("tabsRanking").addEventListener("click", e => {
+        const b = e.target.closest(".tab"); if (!b) return;
+        estado.dim = b.dataset.dim;
+        fecharCascata();
+        [...$("tabsRanking").children].forEach(x => x.classList.toggle("ativo", x === b));
+        renderRanking();
+    });
+}
+
+async function iniciar(){
+/* Aviso de defasagem: a pagina le arquivo estatico, entao dado velho tem cara de dado
+   atual. O selo mostra ate quando vai a base e fica ambar quando o agregado passa de 48h. */
+function selarAtualizacao(meta){
+    const el = $("seloAtual");
+    if (!el || !meta || !meta.gerado) return;
+    const gerado = new Date(meta.gerado);
+    const horas = (Date.now() - gerado.getTime()) / 36e5;
+    const quando = gerado.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit",
+        year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const velho = horas >= 48;
+    const dias = Math.floor(horas / 24);
+    el.textContent = velho
+        ? `Dados até ${dataBR(meta.ultimoDia)} · sem atualizar há ${dias} dia${dias === 1 ? "" : "s"}`
+        : `Dados até ${dataBR(meta.ultimoDia)}`;
+    el.title = `Agregado gerado em ${quando}.` + (velho
+        ? " Rode scripts/cr0108-incremental.py para carregar os dias novos da pasta."
+        : "");
+    el.classList.toggle("selo-velho", velho);
+}
+
+    try {
+        const [meta, porDia, porDiaLinha, porDiaHora, porMesPonto, porMesOperador, porMesVeiculo, porMesSentido, porMesHoraLinha] =
+            await Promise.all([
+                baixar("meta.json"), baixar("por-dia.json"), baixar("por-dia-linha.json"),
+                baixar("por-dia-hora.json"), baixar("por-mes-ponto.json"),
+                baixar("por-mes-operador.json"), baixar("por-mes-veiculo.json"), baixar("por-mes-sentido.json"),
+                baixar("por-mes-hora-linha.json")
+            ]);
+        Object.assign(DADOS, { meta, porDia, porDiaLinha, porDiaHora, porMesPonto, porMesOperador, porMesVeiculo, porMesSentido, porMesHoraLinha });
+
+        $("subCabecalho").textContent =
+            `${dataBR(meta.primeiroDia)} a ${dataBR(meta.ultimoDia)} · ${nInt(meta.registros)} passagens · ${meta.arquivos} relatórios diários`;
+        selarAtualizacao(meta);
+
+        const sel = $("fLinha");
+        Object.entries(meta.linhas).sort((a, b) =>
+            String(a[0]).localeCompare(String(b[0]), "pt-BR", { numeric: true })
+        ).forEach(([cod, nome]) => {
+            const o = document.createElement("option");
+            o.value = cod; o.textContent = cod + (nome ? " — " + nome : "");
+            sel.appendChild(o);
+        });
+
+        $("fDe").min = meta.primeiroDia; $("fDe").max = meta.ultimoDia;
+        $("fAte").min = meta.primeiroDia; $("fAte").max = meta.ultimoDia;
+        Fonte.usarEstaticos(DADOS);
+
+        /* Nada de API antes da primeira pintura. Estas duas chamadas — a sondagem do
+           banco e o meta — ficavam com await aqui, e a tela so aparecia depois das
+           duas. Era esse o gargalo: nao o volume de dados, mas a espera. */
+        aplicarAtalho();
+        ligarEventos();
+        /* O await nao espera o banco: renderTudo() so aguarda a primeira pintura, feita com os arquivos ja carregados. Ele existe por causa de usarSoArquivo(): renderTudo() liga esse modo de forma sincrona e so devolve o controle no primeiro await, entao sem esperar aqui o bloco de 2o plano abaixo rodava com SO_ARQUIVO ligado e disponivel() desistia na primeira linha (if SO_ARQUIVO return false). O selo ficava congelado na data do meta.json em 100% dos carregamentos. */ await renderTudo();
+
+        /* 2º plano: confirma o banco e corrige cabeçalho, selo e limites de data.
+           `linhas` fica de fora de propósito: no banco vem sem os nomes, e o arquivo
+           os tem. Falhando, a tela permanece com o que ja esta desenhado. */
+        (async () => {
+            try {
+                if (!(await Fonte.disponivel())) return;
+                const metaBanco = await Fonte.meta();
+                if (!metaBanco) return;
+                const { linhas: _ignorar, ...doBanco } = metaBanco;
+                Object.assign(meta, doBanco, { arquivos: doBanco.dias, gerado: new Date().toISOString() });
+                $("subCabecalho").textContent =
+                    `${dataBR(meta.primeiroDia)} a ${dataBR(meta.ultimoDia)} · ${nInt(meta.registros)} passagens · ${meta.arquivos} relatórios diários`;
+                selarAtualizacao(meta);
+                $("fDe").min = meta.primeiroDia; $("fDe").max = meta.ultimoDia;
+                $("fAte").min = meta.primeiroDia; $("fAte").max = meta.ultimoDia;
+            } catch (err){
+                console.info("CR-0108: meta do banco nao veio; seguimos com o arquivo.", err && err.message);
+            }
+        })();
+    } catch (err){
+        $("subCabecalho").textContent = "Falha ao carregar os dados";
+        $("kpis").innerHTML = '<div class="card"><p class="aviso">Não foi possível carregar os dados do CR-0108.<br>' + esc(err.message) + "</p></div>";
+        console.error(err);
+    }
+}
+
+iniciar();
+</script>
+<script src="../assets/js/ordenar-tabela.js?v=20260731"></script>
+</body>
+</html>

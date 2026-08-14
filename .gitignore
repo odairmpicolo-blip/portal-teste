@@ -1,10 +1,27 @@
-node_modules/
-backend/.env
-.secrets/
-dist-apk/
-dist-ipa/
+backup-*/
+*.backup-*.html
+assets/data/incidentes-tcgl.partial.json
+.DS_Store
 aws/incidentes-sync/.build/
 aws/incidentes-sync/incidentes-sync.zip
-assets/import/tabelas-horarias/_drive/
-assets/import/tabelas-horarias/**/*.xlsx
-scripts/baixar-tabelas-horarias.log
+aws/portal-api/.build/
+aws/portal-api/portal-api.zip
+aws/portal-api/node_modules/
+aws/liberacao-sync/.build/
+aws/liberacao-sync/liberacao-sync.zip
+
+node_modules/
+backend/node_modules/
+.firebase/
+backend/.env
+app/assets/*.map
+
+# Credencial do Firebase. O scripts/build-portal-api-lambda.sh copia
+# .secrets/serviceAccount.json para dentro do pacote do Lambda, entao o arquivo
+# existe na maquina de quem faz deploy local. Este repositorio e publico: sem
+# esta linha, um "git add ." mandaria a conta de servico para o mundo.
+.secrets/
+
+# Caches dos agregadores do CR-0108: sao estado local de cada maquina, ficam
+# na pasta de dados so por conveniencia e nao devem ir para o repositorio.
+assets/data/cr0108/_*

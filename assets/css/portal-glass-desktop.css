@@ -1,0 +1,673 @@
+/* Portal CIOP — Liquid Glass iOS 27 (Control Center)
+   Escopo: home (.bg-wall) e páginas (.body-bg-wall).
+   Carregar por último nas páginas; na home, após os CSS de sessão/header. */
+
+:root {
+  --lg-fill: rgba(255, 255, 255, 0.32);
+  --lg-fill-strong: rgba(255, 255, 255, 0.58);
+  --lg-fill-hover: rgba(255, 255, 255, 0.42);
+  /* Painéis de dados (gráficos/tabelas): branco vidro fosco (leitoso + blur) */
+  --lg-fill-data: rgba(255, 255, 255, 0.58);
+  --lg-fill-data-head: rgba(255, 255, 255, 0.72);
+  --lg-blur: blur(40px) saturate(190%);
+  --lg-blur-soft: blur(28px) saturate(170%);
+  --lg-blur-data: blur(32px) saturate(165%);
+  --lg-border: rgba(255, 255, 255, 0.5);
+  --lg-edge: 1px solid rgba(255, 255, 255, 0.5);
+  --lg-shadow:
+    0 18px 48px -24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -0.5px 0 rgba(255, 255, 255, 0.12);
+  --lg-text: #0f172a;
+  --lg-label: #334155;
+  --lg-muted: #475569;
+
+  --ciop-glass-bg: var(--lg-fill);
+  --ciop-glass-bg-hover: var(--lg-fill-hover);
+  --ciop-glass-blur: var(--lg-blur);
+  --ciop-glass-border: var(--lg-edge);
+  --ciop-glass-shadow: var(--lg-shadow);
+}
+
+/* Sem mancha azul — wallpaper limpa atrás do vidro */
+body:has(.bg-wall) .bg-blobs,
+body:has(.bg-wall) .bg-blob-mid,
+body:has(.body-bg-wall) .body-bg-stain {
+  display: none !important;
+  background: none !important;
+  opacity: 0 !important;
+}
+
+/* Wallpaper sempre visível nas páginas internas */
+body:has(.body-bg-wall) .body-bg-wall {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.ciop-liquid-glass,
+body:has(.bg-wall) .header,
+body:has(.bg-wall) .header.header-v2,
+body:has(.bg-wall) .hero-pro-panel,
+body:has(.bg-wall) .ciop-session,
+body:has(.bg-wall) .ciop-session.ciop-session-modern,
+body:has(.bg-wall) .ciop-header-clock,
+body:has(.bg-wall) .card,
+body:has(.bg-wall) .notice-board,
+body:has(.bg-wall) .notice-item,
+body:has(.bg-wall) .toolbar-whatsapp,
+body:has(.bg-wall) .menu-toggle,
+body:has(.bg-wall) footer.portal-site-footer,
+body:has(.body-bg-wall) .header,
+body:has(.body-bg-wall) .header.header-v2,
+body:has(.body-bg-wall) .ciop-session,
+body:has(.body-bg-wall) .ciop-session.ciop-session-modern,
+body:has(.body-bg-wall) .topbar,
+body:has(.body-bg-wall) .toolbar,
+body:has(.body-bg-wall) .filters-panel,
+body:has(.body-bg-wall) .filters,
+body:has(.body-bg-wall) .filter-bar,
+body:has(.body-bg-wall) .portal-filters-bar,
+body:has(.body-bg-wall) .sidebar.portal-filters-bar,
+body:has(.body-bg-wall) .panel,
+body:has(.body-bg-wall) .kpi,
+body:has(.body-bg-wall) .kpi-card,
+body:has(.body-bg-wall) .stat-card,
+body:has(.body-bg-wall) .empty-page,
+body:has(.body-bg-wall) .card,
+body:has(.body-bg-wall) .lancamento-card,
+body:has(.body-bg-wall) .result-box,
+body:has(.body-bg-wall) .password-panel,
+body:has(.body-bg-wall) footer.portal-site-footer {
+  background: var(--lg-fill) !important;
+  backdrop-filter: var(--lg-blur) !important;
+  -webkit-backdrop-filter: var(--lg-blur) !important;
+  border-color: var(--lg-border) !important;
+  box-shadow: var(--lg-shadow) !important;
+  color: var(--lg-text);
+}
+
+/* Barras full-bleed */
+body:has(.bg-wall) .header,
+body:has(.bg-wall) .header.header-v2,
+body:has(.body-bg-wall) .header,
+body:has(.body-bg-wall) .header.header-v2 {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--lg-border) !important;
+}
+
+body:has(.bg-wall) footer.portal-site-footer,
+body:has(.body-bg-wall) footer.portal-site-footer {
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  border-top: 1px solid var(--lg-border) !important;
+  box-shadow:
+    0 -14px 40px -22px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+}
+
+body:has(.bg-wall) footer.portal-site-footer .footer-text,
+body:has(.body-bg-wall) footer.portal-site-footer .footer-text {
+  color: var(--lg-muted) !important;
+}
+
+/* Pílulas / cards arredondados */
+body:has(.bg-wall) .hero-pro-panel,
+body:has(.bg-wall) .card,
+body:has(.bg-wall) .notice-board,
+body:has(.body-bg-wall) .panel,
+body:has(.body-bg-wall) .kpi-card,
+body:has(.body-bg-wall) .stat-card,
+body:has(.body-bg-wall) .kpi,
+body:has(.body-bg-wall) .topbar,
+body:has(.body-bg-wall) .card {
+  border: var(--lg-edge) !important;
+  border-radius: 22px !important;
+}
+
+body:has(.bg-wall) .ciop-session,
+body:has(.bg-wall) .ciop-session.ciop-session-modern,
+body:has(.body-bg-wall) .ciop-session,
+body:has(.body-bg-wall) .ciop-session.ciop-session-modern {
+  border: var(--lg-edge) !important;
+  border-radius: 999px !important;
+}
+
+body:has(.bg-wall) .menu-toggle,
+body:has(.bg-wall) .toolbar-whatsapp {
+  border: var(--lg-edge) !important;
+  border-radius: 16px !important;
+}
+
+body:has(.bg-wall) .card:hover,
+body:has(.bg-wall) .card:focus-visible,
+body:has(.body-bg-wall) .card:hover,
+body:has(.body-bg-wall) .card:focus-visible {
+  background: var(--lg-fill-hover) !important;
+}
+
+/* Filtros: sem vidro duplo na grade interna */
+body:has(.body-bg-wall) .filters-panel .filters,
+body:has(.body-bg-wall) .panel.filters-panel .filters {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+}
+
+/*
+ * Campos de filtro: vidro sem backdrop-filter.
+ * backdrop-filter em <select>/<input type="date"> (e no .toolbar pai)
+ * quebra o dropdown nativo no Chrome/Safari.
+ */
+body:has(.body-bg-wall) .toolbar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  overflow: visible !important;
+}
+
+body:has(.body-bg-wall) .filters-panel input,
+body:has(.body-bg-wall) .filters-panel select,
+body:has(.body-bg-wall) .filter-field input,
+body:has(.body-bg-wall) .filter-field select,
+body:has(.body-bg-wall) .filters input,
+body:has(.body-bg-wall) .filters select,
+body:has(.body-bg-wall) .filters-inline input,
+body:has(.body-bg-wall) .filters-inline select,
+body:has(.body-bg-wall) .toolbar-filtros-linha input,
+body:has(.body-bg-wall) .toolbar-filtros-linha select,
+body:has(.body-bg-wall) .filter-multi-btn {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  color: #0f172a !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.body-bg-wall) .filters-panel input::placeholder,
+body:has(.body-bg-wall) .filter-field input::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+body:has(.body-bg-wall) .filters-panel input:hover,
+body:has(.body-bg-wall) .filters-panel select:hover,
+body:has(.body-bg-wall) .filter-field input:hover,
+body:has(.body-bg-wall) .filter-field select:hover {
+  background: rgba(255, 255, 255, 0.68) !important;
+  border-color: rgba(11, 58, 138, 0.28) !important;
+}
+
+body:has(.body-bg-wall) .filters-panel input:focus,
+body:has(.body-bg-wall) .filters-panel select:focus,
+body:has(.body-bg-wall) .filter-field input:focus,
+body:has(.body-bg-wall) .filter-field select:focus {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(11, 58, 138, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(11, 58, 138, 0.12) !important;
+}
+
+/* KPIs: fill mais fosco + tipografia legível sobre o wallpaper */
+body:has(.body-bg-wall) .cards .card,
+body:has(.body-bg-wall) .cards-kpi .card {
+  background: var(--lg-fill-data) !important;
+  backdrop-filter: var(--lg-blur-data) !important;
+  -webkit-backdrop-filter: var(--lg-blur-data) !important;
+}
+
+body:has(.body-bg-wall) .cards .card:hover,
+body:has(.body-bg-wall) .cards-kpi .card:hover {
+  background: var(--lg-fill-data-head) !important;
+}
+
+body:has(.body-bg-wall) .cards .card-title,
+body:has(.body-bg-wall) .cards-kpi .card-title {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+body:has(.body-bg-wall) .cards .card-value,
+body:has(.body-bg-wall) .cards-kpi .card-value {
+  color: #06245c !important;
+  font-weight: 800 !important;
+}
+
+body:has(.body-bg-wall) .cards .card-sub,
+body:has(.body-bg-wall) .cards-kpi .card-sub {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+body:has(.body-bg-wall) .cards .card-sub-money,
+body:has(.body-bg-wall) .cards-kpi .card-sub-money {
+  color: #c2410c !important;
+}
+
+body:has(.body-bg-wall) .cards .card-highlight .card-title,
+body:has(.body-bg-wall) .cards-kpi .card-highlight .card-title {
+  color: #9a3412 !important;
+}
+
+body:has(.body-bg-wall) .cards .card-highlight .card-value,
+body:has(.body-bg-wall) .cards-kpi .card-highlight .card-value {
+  color: #ea580c !important;
+}
+
+body:has(.body-bg-wall) .cards .card-highlight .card-sub,
+body:has(.body-bg-wall) .cards-kpi .card-highlight .card-sub {
+  color: #9a3412 !important;
+}
+
+/* —— Dados: gráficos e tabelas em branco vidro fosco —— */
+body:has(.body-bg-wall) .chart-card,
+body:has(.body-bg-wall) .chart-box,
+body:has(.body-bg-wall) .chart-panel,
+body:has(.body-bg-wall) .charts-grid > *,
+body:has(.body-bg-wall) .charts > .chart-card,
+body:has(.body-bg-wall) .table-card,
+body:has(.body-bg-wall) .table-panel,
+body:has(.body-bg-wall) .telemetria-table-panel,
+body:has(.body-bg-wall) .telemetria-filters,
+body:has(.body-bg-wall) .data-table-wrap,
+body:has(.body-bg-wall) .table-wrap,
+body:has(.body-bg-wall) .km-content,
+body:has(.body-bg-wall) .report-panel,
+body:has(.body-bg-wall) .planilha-wrap,
+body:has(.body-bg-wall) .grid-panel,
+body:has(.body-bg-wall) .lista-panel,
+body:has(.body-bg-wall) .detail-panel,
+body:has(.body-bg-wall) .content-card,
+body:has(.body-bg-wall) .main-panel,
+body:has(.body-bg-wall) .chart-body,
+body:has(.body-bg-wall) .charts .chart-card,
+body:has(.body-bg-wall) .panel.editor,
+body:has(.body-bg-wall) .panel.side,
+body:has(.body-bg-wall) .lancamento-card,
+body:has(.body-bg-wall) .result-box,
+body:has(.body-bg-wall) .modal-card,
+body:has(.body-bg-wall) .user-modal,
+body:has(.body-bg-wall) .console-card,
+body:has(.body-bg-wall) .lista-card,
+body:has(.body-bg-wall) .detail-card,
+body:has(.body-bg-wall) .folha-card,
+body:has(.body-bg-wall) .relatorio-card,
+body:has(.body-bg-wall) .dash-card,
+body:has(.body-bg-wall) .map-side-panel,
+body:has(.body-bg-wall) .empty-page,
+body:has(.body-bg-wall) .status-pill,
+body:has(.body-bg-wall) .pdf-sheet-top,
+body:has(.body-bg-wall) .wrap-table,
+body:has(.body-bg-wall) .tabela-wrap,
+body:has(.body-bg-wall) .grafico-card,
+body:has(.body-bg-wall) .grafico-box,
+body:has(.body-bg-wall) .charts-root,
+body:has(.body-bg-wall) #chartsRoot .chart-card,
+body:has(.body-bg-wall):not(.oa-page) .card.theme-orange,
+body:has(.body-bg-wall):not(.oa-page) .card.theme-blue {
+  background: var(--lg-fill-data) !important;
+  backdrop-filter: var(--lg-blur-data) !important;
+  -webkit-backdrop-filter: var(--lg-blur-data) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow:
+    0 16px 40px -20px rgba(6, 36, 92, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.18) !important;
+  border-radius: 20px !important;
+  color: var(--lg-text) !important;
+}
+
+/* Área interna do gráfico: mantém o fosco sem “placa” branca opaca */
+body:has(.body-bg-wall) .chart-body,
+body:has(.body-bg-wall) .chart-card .chart-body,
+body:has(.body-bg-wall) .chart-box .chart-body {
+  background: rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(18px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+}
+
+/* Cabeçalhos de tabela / planilha: fosco um pouco mais denso */
+body:has(.body-bg-wall) .table-card-header,
+body:has(.body-bg-wall) .table-head,
+body:has(.body-bg-wall) .chart-head,
+body:has(.body-bg-wall) thead th,
+body:has(.body-bg-wall) table.planilha th,
+body:has(.body-bg-wall) table.planilha-detalhe th,
+body:has(.body-bg-wall) .data-table thead th {
+  background: var(--lg-fill-data-head) !important;
+  color: var(--lg-label) !important;
+  backdrop-filter: blur(18px) saturate(155%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(155%) !important;
+}
+
+/* Corpo da tabela: vidro fosco (não branco sólido) */
+body:has(.body-bg-wall) .table-wrap,
+body:has(.body-bg-wall) .table-wrap table,
+body:has(.body-bg-wall) table.planilha,
+body:has(.body-bg-wall) table.planilha-detalhe,
+body:has(.body-bg-wall) .data-table {
+  background: rgba(255, 255, 255, 0.38) !important;
+  color: var(--lg-text) !important;
+}
+
+body:has(.body-bg-wall) .table-wrap tbody tr,
+body:has(.body-bg-wall) table.planilha tbody tr,
+body:has(.body-bg-wall) table.planilha-detalhe tbody tr,
+body:has(.body-bg-wall) .data-table tbody tr {
+  background: rgba(255, 255, 255, 0.28) !important;
+}
+
+body:has(.body-bg-wall) .table-wrap tbody tr:nth-child(even),
+body:has(.body-bg-wall) table.planilha tbody tr:nth-child(even),
+body:has(.body-bg-wall) table.planilha-detalhe tbody tr:nth-child(even),
+body:has(.body-bg-wall) .data-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+body:has(.body-bg-wall) .table-wrap td,
+body:has(.body-bg-wall) table.planilha td,
+body:has(.body-bg-wall) table.planilha-detalhe td {
+  color: var(--lg-text) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+body:has(.body-bg-wall) .chart-card .card-title,
+body:has(.body-bg-wall) .chart-box h3,
+body:has(.body-bg-wall) .table-card .card-title,
+body:has(.body-bg-wall) .table-head .card-title,
+body:has(.body-bg-wall) .panel-title {
+  color: var(--lg-text) !important;
+  text-shadow: none !important;
+}
+
+/* Tipografia sobre vidro */
+body:has(.bg-wall) .card-title,
+body:has(.bg-wall) .card-desc {
+  color: #fff !important;
+}
+
+body:has(.body-bg-wall) .kpi-label,
+body:has(.body-bg-wall) .kpi-title,
+body:has(.body-bg-wall) .kpi-sub,
+body:has(.body-bg-wall) .kpi-card .lbl,
+body:has(.body-bg-wall) .stat-card .lbl,
+body:has(.body-bg-wall) .card-note,
+body:has(.body-bg-wall) .chart-note,
+body:has(.body-bg-wall) .chart-total,
+body:has(.body-bg-wall) .field label,
+body:has(.body-bg-wall) .status-line,
+body:has(.body-bg-wall) .header-subtitle,
+body:has(.body-bg-wall) .subtitle,
+body:has(.body-bg-wall) .pdf-status,
+body:has(.body-bg-wall) .title-wrap .title-sub,
+body:has(.body-bg-wall) .no-data,
+body:has(.body-bg-wall) .empty,
+body:has(.body-bg-wall) .chart-empty,
+body:has(.body-bg-wall) .muted,
+body:has(.body-bg-wall) .help-text,
+body:has(.body-bg-wall) .table-sub {
+  color: var(--lg-label) !important;
+}
+
+body:has(.bg-wall) .card-title {
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+body:has(.bg-wall) .card-desc {
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+body:has(.body-bg-wall) .kpi-value,
+body:has(.body-bg-wall) .stat-card .val,
+body:has(.body-bg-wall) .kpi-card .val {
+  color: var(--lg-text) !important;
+}
+
+body:has(.body-bg-wall) .btn-secondary {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid var(--lg-border) !important;
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* Sem aura colorida na saudação — mantém só a barra lateral do mês */
+body:has(.bg-wall) .hero-pro-aura,
+body:has(.bg-wall) .header-hero-pro .hero-pro-aura,
+body:has(.bg-wall) .header::before,
+body:has(.bg-wall) .header::after {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+}
+
+/* Mapas: não forçar fosco no canvas/mapa */
+body.oa-page .map-shell,
+body.oa-page #map,
+body.oa-page .leaflet-container {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --lg-fill: rgba(255, 255, 255, 0.52);
+    --lg-fill-strong: rgba(255, 255, 255, 0.7);
+    --lg-fill-data: rgba(255, 255, 255, 0.66);
+    --lg-fill-data-head: rgba(255, 255, 255, 0.78);
+    --lg-blur: blur(28px) saturate(180%);
+    --lg-blur-data: blur(26px) saturate(160%);
+  }
+}
+
+/* Dark mode — vidro cinza + wallpaper noturno */
+html.dk-dark {
+  --lg-fill: rgba(32, 36, 42, 0.72);
+  --lg-fill-strong: rgba(26, 30, 36, 0.86);
+  --lg-fill-hover: rgba(44, 48, 56, 0.8);
+  --lg-fill-data: rgba(34, 38, 44, 0.88);
+  --lg-fill-data-head: rgba(40, 44, 50, 0.94);
+  --lg-border: rgba(168, 178, 188, 0.34);
+  --lg-edge: 1px solid rgba(168, 178, 188, 0.34);
+  --lg-text: #f4f6f8;
+  --lg-label: #e8edf2;
+  --lg-muted: #c5ced8;
+  --ciop-glass-bg: var(--lg-fill);
+  --ciop-glass-bg-hover: var(--lg-fill-hover);
+}
+
+html.dk-dark .bg-wall,
+html.dk-dark .body-bg-wall {
+  background-image: url("../img/portal-bg-noite.jpg?v=20260720a") !important;
+  filter: none;
+}
+
+html.dk-dark body:has(.body-bg-wall) .table-wrap,
+html.dk-dark body:has(.body-bg-wall) .table-wrap table,
+html.dk-dark body:has(.body-bg-wall) table.planilha,
+html.dk-dark body:has(.body-bg-wall) table.planilha-detalhe,
+html.dk-dark body:has(.body-bg-wall) .data-table {
+  background: rgba(34, 38, 44, 0.9) !important;
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .table-wrap td,
+html.dk-dark body:has(.body-bg-wall) table.planilha td,
+html.dk-dark body:has(.body-bg-wall) table.planilha-detalhe td {
+  color: #e8edf2 !important;
+  border-color: rgba(200, 210, 220, 0.42) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .table-wrap thead th,
+html.dk-dark body:has(.body-bg-wall) .table-card thead th {
+  border-color: rgba(200, 210, 220, 0.45) !important;
+  border-bottom-color: rgba(210, 220, 230, 0.55) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .pill,
+html.dk-dark body:has(.body-bg-wall) a.pill {
+  background: rgba(14, 116, 144, 0.45) !important;
+  color: #f0f9ff !important;
+  border: 1px solid rgba(125, 211, 252, 0.7) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) a.pill:hover {
+  background: rgba(14, 165, 233, 0.55) !important;
+  color: #ffffff !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .filters-panel input,
+html.dk-dark body:has(.body-bg-wall) .filters-panel select,
+html.dk-dark body:has(.body-bg-wall) .filter-field input,
+html.dk-dark body:has(.body-bg-wall) .filter-field select,
+html.dk-dark body:has(.body-bg-wall) .filters input,
+html.dk-dark body:has(.body-bg-wall) .filters select,
+html.dk-dark body:has(.body-bg-wall) .filters-inline input,
+html.dk-dark body:has(.body-bg-wall) .filters-inline select,
+html.dk-dark body:has(.body-bg-wall) .toolbar-filtros-linha input,
+html.dk-dark body:has(.body-bg-wall) .toolbar-filtros-linha select,
+html.dk-dark body:has(.body-bg-wall) .filter-multi-btn {
+  background: rgba(28, 32, 38, 0.88) !important;
+  border-color: rgba(168, 178, 188, 0.34) !important;
+  color: #f4f6f8 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .toolbar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(32, 36, 42, 0.78) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .filters-panel input::placeholder,
+html.dk-dark body:has(.body-bg-wall) .filter-field input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .cards .card-title,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-title {
+  color: #e2e8f0 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .cards .card-value,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-value {
+  color: #ffffff !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .cards .card-sub,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-sub {
+  color: #cbd5e1 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .cards .card-sub-money,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-sub-money,
+html.dk-dark body:has(.body-bg-wall) .cards .card-highlight .card-value,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-highlight .card-value {
+  color: #ff9a52 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .cards .card-highlight .card-title,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-highlight .card-title,
+html.dk-dark body:has(.body-bg-wall) .cards .card-highlight .card-sub,
+html.dk-dark body:has(.body-bg-wall) .cards-kpi .card-highlight .card-sub {
+  color: #fdba74 !important;
+}
+
+/* Páginas sem portal-futuristic: contraste dos controles e textos */
+html.dk-dark {
+  --text: #f4f6f8;
+  --muted: #c5ced8;
+}
+
+html.dk-dark .btn-secondary,
+html.dk-dark .btn-ghost,
+html.dk-dark a.btn-secondary,
+html.dk-dark a.btn-ghost,
+html.dk-dark .topbar-actions .btn-ghost {
+  color: #f4f6f8 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(168, 178, 188, 0.34) !important;
+}
+
+html.dk-dark .topbar-actions .btn-ghost:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+html.dk-dark .page-footer,
+html.dk-dark .status-line,
+html.dk-dark .field-hint,
+html.dk-dark .terminal-name,
+html.dk-dark .person-line,
+html.dk-dark .person-line b,
+html.dk-dark .count-pill,
+html.dk-dark .time-chip,
+html.dk-dark .panel-title,
+html.dk-dark .kpi-value,
+html.dk-dark .card-title {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark .page-footer,
+html.dk-dark .status-line,
+html.dk-dark .field-hint {
+  color: #c5ced8 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .page-footer,
+html.dk-dark body:has(.body-bg-wall) .topbar-actions .btn-ghost,
+html.dk-dark body:has(.body-bg-wall) .topbar-actions .btn-ghost:hover {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .page-footer {
+  color: #c5ced8 !important;
+  background: rgba(32, 36, 42, 0.72) !important;
+  border-top-color: rgba(168, 178, 188, 0.28) !important;
+}
+
+/* Dark: rodapé nu e page-footer no mesmo vidro do site */
+html.dk-dark body:has(.body-bg-wall) footer.portal-site-footer,
+html.dk-dark body:has(.body-bg-wall) .page-footer,
+html.dk-dark body:has(.body-bg-wall) footer:not([class]),
+html.dk-dark body:has(.body-bg-wall) body > footer,
+html.dk-dark body:has(.body-bg-wall) > footer {
+  background: var(--lg-fill) !important;
+  border-top-color: var(--lg-border) !important;
+  color: var(--lg-muted, #c5ced8) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) footer.portal-site-footer .footer-text,
+html.dk-dark body:has(.body-bg-wall) footer .footer-text,
+html.dk-dark body:has(.body-bg-wall) .page-footer {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html.dk-dark body:has(.body-bg-wall) .portal-brand-art,
+html.dk-dark body:has(.body-bg-wall) [class$="-title-art"] img,
+html.dk-dark body:has(.body-bg-wall) .header-title img,
+html.dk-dark body:has(.body-bg-wall) .title-wrap > img {
+  filter: brightness(0) invert(1);
+  opacity: 0.96;
+}
+
+html.dk-dark body:has(.body-bg-wall) img.logo-tcgl,
+html.dk-dark body:has(.body-bg-wall) img.logo-right,
+html.dk-dark body:has(.body-bg-wall) img[src*="LOGO_TCGL"] {
+  filter: none !important;
+  opacity: 1 !important;
+}

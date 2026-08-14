@@ -462,4 +462,35 @@ section.filters .field:first-child {
         width: 100%;
         min-height: 36px;
     }
+    .filters-head {
+                flex-wrap: wrap;
+                row-gap: 10px;
+    }
+
+        .filters-panel .filters,
+        .panel .filters,
+        .panel .controls,
+        .sidebar.portal-filters-bar {
+                    grid-template-columns: 1fr !important;
+        }
+}
+
+/* Dark mode contraste */
+html.dk-dark .section-icon {
+  color: #93c5fd !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(168, 178, 188, 0.28) !important;
+  box-shadow: none !important;
+}
+html.dk-dark .filter-label-icon,
+html.dk-dark .field-icon {
+  color: #93c5fd !important;
+}
+html.dk-dark .filter-group label,
+html.dk-dark .filter-field label,
+html.dk-dark .filters .field label,
+html.dk-dark .panel .filters label,
+html.dk-dark .sidebar .filter-group label,
+html.dk-dark .panel .controls > div > label {
+  color: #f4f6f8 !important;
 }

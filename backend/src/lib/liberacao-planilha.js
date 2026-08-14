@@ -2,37 +2,6 @@ import { config } from "../config.js";
 
 const TIMEOUT_MS = Number(process.env.LIBERACAO_FETCH_TIMEOUT_MS || 120000);
 
-const CAMPOS_EDITAVEIS = [
-  "carro",
-  "motorista",
-  "saida_real",
-  "trajeto_ocioso_correto",
-  "inicio_real",
-  "observacoes"
-];
-
-const CAMPOS_FORMULA_PLANILHA = [
-  "saiu_no_horario",
-  "saiu_no_horaro",
-  "saida_atrasado_adiantado",
-  "minutos_atrasado_garagem",
-  "minutos_adiantado_garagem",
-  "inicio_no_horario",
-  "minutos_atrasado_no_inicio",
-  "minutos_adiantado_no_inicio"
-];
-
-export function montarPayloadUpdatePlanilha(rowId, row) {
-  const payload = { action: "update", _row: String(rowId) };
-  CAMPOS_EDITAVEIS.forEach((chave) => {
-    payload[chave] = String(row?.[chave] ?? "");
-  });
-  CAMPOS_FORMULA_PLANILHA.forEach((chave) => {
-    payload[chave] = String(row?.[chave] ?? "");
-  });
-  return payload;
-}
-
 function listarDatasIso(dataDe, dataAte) {
   if (!dataDe || !dataAte || dataAte < dataDe) return [];
   const out = [];
@@ -76,11 +45,59 @@ export async function buscarLiberacaoPlanilhaDia(dataIso) {
   return data.dados || [];
 }
 
+export async function buscarLiberacaoPlanilhaPeriodo(dataDe, dataAte) {
+  if (dataDe === dataAte) return buscarLiberacaoPlanilhaDia(dataDe);
+  const data = await fetchPlanilhaJson({
+    recurso: "acompanhamento",
+    data_de: dataDe,
+    data_ate: dataAte,
+    ultima_semana: "0",
+    vivo: "1"
+  });
+  return data.dados || [];
+}
+
+const CAMPOS_EDITAVEIS = [
+  "carro",
+  "motorista",
+  "saida_real",
+  "trajeto_ocioso_correto",
+  "inicio_real",
+  "observacoes"
+];
+
+const CAMPOS_FORMULA_PLANILHA = [
+  "saiu_no_horario",
+  "saiu_no_horaro",
+  "saida_atrasado_adiantado",
+  "minutos_atrasado_garagem",
+  "minutos_adiantado_garagem",
+  "inicio_no_horario",
+  "minutos_atrasado_no_inicio",
+  "minutos_adiantado_no_inicio"
+];
+
+export function montarPayloadUpdatePlanilha(rowId, row) {
+  const payload = { action: "update", _row: String(rowId) };
+  CAMPOS_EDITAVEIS.forEach((chave) => {
+    payload[chave] = String(row?.[chave] ?? "");
+  });
+  CAMPOS_FORMULA_PLANILHA.forEach((chave) => {
+    payload[chave] = String(row?.[chave] ?? "");
+  });
+  return payload;
+}
+
 export async function enviarLinhaPlanilha(payload) {
-  const body = new URLSearchParams({ liberacao: "1", ...payload });
-  const res = await fetch(config.liberacaoApiUrl, {
-    method: "POST",
-    body,
+  // GET com query string: POST do Apps Script perde o body no redirect 302 do Google.
+  const flat = { liberacao: "1", _: String(Date.now()) };
+  Object.entries(payload || {}).forEach(([chave, valor]) => {
+    if (valor == null) return;
+    flat[chave] = String(valor);
+  });
+  const url = `${config.liberacaoApiUrl}?${new URLSearchParams(flat)}`;
+  const res = await fetch(url, {
+    method: "GET",
     redirect: "follow",
     signal: AbortSignal.timeout(TIMEOUT_MS)
   });
@@ -89,9 +106,18 @@ export async function enviarLinhaPlanilha(payload) {
   try {
     data = JSON.parse(texto);
   } catch {
-    throw new Error("Resposta inválida da planilha ao salvar");
+    const trecho = String(texto || "").replace(/\s+/g, " ").slice(0, 120);
+    throw new Error(
+      trecho
+        ? `Resposta inválida da planilha ao salvar (${trecho})`
+        : "Resposta inválida da planilha ao salvar"
+    );
   }
   if (!data.ok) throw new Error(data.erro || "Erro ao salvar na planilha");
+  const acaoEsperada = String(payload?.action || "").toLowerCase();
+  if (acaoEsperada === "update" && data.acao && String(data.acao).toLowerCase() !== "update") {
+    throw new Error("Planilha não confirmou a atualização. Reimplante o Web App no Google.");
+  }
   return data;
 }
 

@@ -1,0 +1,1718 @@
+/* Portal CIOP — pack futurístico (Liquid Glass + HUD + cockpit) */
+
+:root {
+  --fx-cyan: #38bdf8;
+  --fx-orange: #ff6b00;
+  --fx-blue: #06245c;
+  --fx-glow: 0 0 24px rgba(56, 189, 248, 0.28);
+  --fx-accent: linear-gradient(135deg, #06245c 0%, #0b3a8a 45%, #ff6b00 100%);
+}
+
+/* —— HUD overlay (circuitos sutis) —— */
+.portal-hud-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+  background:
+    radial-gradient(ellipse 40% 30% at 8% 12%, rgba(56, 189, 248, 0.35), transparent 70%),
+    radial-gradient(ellipse 35% 28% at 92% 88%, rgba(255, 107, 0, 0.22), transparent 70%),
+    linear-gradient(90deg, transparent 0 48%, rgba(56, 189, 248, 0.06) 50%, transparent 52%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 72px,
+      rgba(56, 189, 248, 0.04) 72px 73px
+    );
+  mix-blend-mode: screen;
+}
+
+.portal-hud-scan {
+  pointer-events: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 50;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.65), transparent);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+  animation: portal-hud-scan 7s ease-in-out infinite;
+  opacity: 0.45;
+}
+
+@keyframes portal-hud-scan {
+  0% { top: -2%; opacity: 0; }
+  8% { opacity: 0.5; }
+  92% { opacity: 0.35; }
+  100% { top: 102%; opacity: 0; }
+}
+
+/* —— Tema: seletor em 3 quadrados na barra lateral —— */
+.header-actions .live-pill,
+.header-actions .ciop-live-pill,
+.header-actions .dk-theme-toggle,
+.header .dk-theme-toggle:not(.side-link),
+.dk-theme-toggle:not(.side-link) {
+  display: none !important;
+}
+
+.sidebar .dk-theme-picker {
+  margin-top: 14px;
+  padding: 10px 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .dk-theme-picker-label {
+  display: block;
+  margin: 0 0 8px 2px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.sidebar .dk-theme-picker-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sidebar .dk-theme-opt {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sidebar .dk-theme-opt:hover,
+.sidebar .dk-theme-opt:focus-visible {
+  background: rgba(255, 107, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.35);
+  outline: none;
+}
+
+.sidebar .dk-theme-opt.is-active {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+html.dk-dark .sidebar .dk-theme-picker {
+  border-color: rgba(168, 178, 188, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html.dk-dark .sidebar .dk-theme-opt.is-active {
+  background: rgba(168, 178, 188, 0.28);
+  border-color: rgba(226, 232, 240, 0.55);
+}
+
+/* Logo TCGL escuro: asset circular parece menor — amplia para igualar o claro */
+html.dk-dark img.logo-tcgl-dark-mode,
+html.dk-dark img.logo-tcgl[src*="LOGO_TCGL-dark"],
+html.dk-dark img.logo-right[src*="LOGO_TCGL-dark"] {
+  width: auto !important;
+  height: 88px !important;
+  max-height: 88px !important;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Cabeçalhos Operação/Dashboards: sem barra/vidro */
+.card-section-head,
+html.dk-dark .card-section-head,
+body:has(.bg-wall) .card-section-head {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  padding-bottom: 0 !important;
+}
+
+/* —— HUD desativado (sem barrinha descendo) —— */
+.portal-hud-overlay,
+.portal-hud-scan {
+  display: none !important;
+}
+
+/* —— Command center + busca —— */
+.ciop-command-row {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: block;
+}
+
+.ciop-command {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ciop-command-inner {
+  position: relative;
+  height: auto;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0;
+  padding: 6px 10px 6px 14px;
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.14) 100%);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  box-shadow:
+    0 8px 22px -16px rgba(6, 36, 92, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  overflow: hidden;
+}
+
+.ciop-command-inner::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--fx-accent);
+  opacity: 0.95;
+}
+
+.ciop-command-inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 42%);
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.ciop-zone {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.ciop-zone-contexto {
+  flex: 0 1 auto;
+  gap: 0;
+}
+
+.ciop-zone-status {
+  flex: 0 0 auto;
+  margin-left: 4px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.ciop-kpi {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 2px 8px 2px 10px;
+  border-left: 1px solid rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+}
+
+.ciop-zone > .ciop-kpi:first-child {
+  border-left: none;
+  padding-left: 4px;
+}
+
+.ciop-kpi-clima {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.ciop-kpi-clima:hover {
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.ciop-kpi-clima:focus-visible {
+  outline: 2px solid rgba(37, 99, 235, 0.55);
+  outline-offset: 2px;
+}
+
+.ciop-kpi-value-clima {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.ciop-clima-range {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+html.dk-dark .ciop-clima-range {
+  color: rgba(226, 232, 240, 0.78) !important;
+}
+
+.ciop-clima-icon {
+  flex: 0 0 auto;
+  width: 0.9rem;
+  height: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  align-self: center;
+}
+
+.ciop-clima-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ciop-kpi-online {
+  align-items: center;
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 8px;
+}
+
+.ciop-kpi-data .ciop-kpi-value-data {
+  max-width: 9.5rem;
+}
+
+html.dk-dark .ciop-kpi-clima:hover {
+  background: rgba(148, 163, 184, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.28);
+}
+
+html.dk-dark .ciop-zone-status {
+  border-left-color: rgba(148, 163, 184, 0.28);
+}
+
+.ciop-online-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px 0 7px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #047857;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  user-select: none;
+}
+
+.ciop-online-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+  animation: ciop-online-pulse 1.6s ease-out infinite;
+}
+
+.ciop-online-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(16, 185, 129, 0.55);
+  animation: ciop-online-ring 1.6s ease-out infinite;
+}
+
+.ciop-online-chip.is-offline {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #b91c1c;
+}
+
+.ciop-online-chip.is-offline .ciop-online-dot {
+  background: #ef4444;
+  box-shadow: none;
+  animation: none;
+}
+
+.ciop-online-chip.is-offline .ciop-online-dot::after {
+  display: none;
+}
+
+@keyframes ciop-online-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+  70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes ciop-online-ring {
+  0% { transform: scale(0.7); opacity: 0.9; }
+  70% { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(0.7); opacity: 0; }
+}
+
+html.dk-dark .ciop-online-chip {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+  color: #6ee7b7 !important;
+}
+
+html.dk-dark .ciop-online-chip.is-offline {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+.ciop-kpi-label {
+  display: block;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #334155;
+  margin-bottom: 0;
+  line-height: 1.05;
+  opacity: 1;
+}
+
+.ciop-kpi-value {
+  display: block;
+  font-size: clamp(0.86rem, 1.25vw, 1rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #04101f;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.12;
+  opacity: 1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ciop-kpi-value-data {
+  font-size: clamp(0.72rem, 0.95vw, 0.84rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ciop-kpi-value-hora {
+  font-size: clamp(1.02rem, 1.45vw, 1.22rem);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ciop-kpi-sub {
+  display: none;
+}
+
+/* Busca embutida — altura da barra, visual limpo */
+.ciop-search {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  align-self: stretch;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 140px;
+  max-width: none;
+  height: auto;
+  min-height: 32px;
+  margin: 1px 0 1px 10px;
+  padding: 0 8px 0 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.48);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.ciop-search::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--fx-accent);
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ciop-search:focus-within {
+  border-color: rgba(255, 107, 0, 0.48);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.12);
+}
+
+.ciop-search-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  color: #0b3a8a;
+  margin-left: 2px;
+}
+
+.ciop-search-icon svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ciop-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  min-height: 30px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #04101f;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ciop-search-input::placeholder {
+  color: #475569;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.ciop-search-input::-webkit-search-decoration,
+.ciop-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ciop-search-clear {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(6, 36, 92, 0.1);
+  color: #0b3a8a;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.ciop-search-clear:hover {
+  background: rgba(255, 107, 0, 0.18);
+  color: #c2410c;
+}
+
+/* Barras centralizadas com 2cm de cada lado; menu/WhatsApp nas laterais */
+body:has(.bg-wall) .toolbar-inner {
+  display: block !important;
+  position: relative;
+  padding: 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+body:has(.bg-wall) .toolbar-inner > .menu-toggle {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: auto;
+  z-index: 3;
+  width: 80px !important;
+  height: 56px !important;
+  min-width: 80px !important;
+  min-height: 56px !important;
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 16px !important;
+  box-sizing: border-box !important;
+}
+
+body:has(.bg-wall) .toolbar-inner > .toolbar-whatsapp {
+  position: absolute;
+  right: 10px;
+  top: 0;
+  z-index: 3;
+  width: 80px !important;
+  height: 56px !important;
+  min-width: 80px !important;
+  min-height: 56px !important;
+  margin: 0;
+  padding: 0 !important;
+  border-radius: 16px !important;
+  color: #25d366 !important;
+  box-sizing: border-box !important;
+}
+
+body:has(.bg-wall) .toolbar-whatsapp-icon,
+body:has(.bg-wall) .toolbar-whatsapp-icon svg {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+body:has(.bg-wall) .toolbar-whatsapp-icon svg {
+  fill: none !important;
+}
+
+body:has(.bg-wall) .menu-bars {
+  width: 34px !important;
+  gap: 7px !important;
+}
+
+body:has(.bg-wall) .menu-bars span {
+  height: 4.5px !important;
+}
+
+/* Barras centralizadas com 4cm de cada lado; menu/WhatsApp nas laterais */
+body:has(.bg-wall) .toolbar-main {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 8cm);
+  max-width: calc(100% - 8cm);
+  margin: 0 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body:has(.bg-wall) .toolbar-inner > .notice-board,
+body:has(.bg-wall) .toolbar-main > .notice-board {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+body:has(.bg-wall) .toolbar-main > .ciop-command-row {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body:has(.bg-wall) .notice-board {
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  align-items: center !important;
+}
+
+html.dk-dark .ciop-command-inner {
+  background:
+    linear-gradient(135deg, rgba(40, 44, 50, 0.55) 0%, rgba(28, 32, 38, 0.4) 100%) !important;
+  border-color: rgba(168, 178, 188, 0.32) !important;
+  box-shadow:
+    0 8px 22px -16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+html.dk-dark .ciop-kpi-label,
+html.dk-dark .ciop-kpi-value,
+html.dk-dark .ciop-kpi-sub {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+html.dk-dark .ciop-kpi {
+  border-left-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+html.dk-dark .ciop-search {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+html.dk-dark .ciop-search:focus-within {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dk-dark .ciop-search-input,
+html.dk-dark .ciop-search-icon,
+html.dk-dark .ciop-search-clear {
+  color: #f8fafc !important;
+}
+
+html.dk-dark .ciop-search-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dk-dark .ciop-search-clear {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.grid .card.ciop-search-hidden {
+  display: none !important;
+}
+
+.card-section.ciop-search-empty .card-section-corpo::after {
+  content: "Nenhum módulo encontrado";
+  display: block;
+  padding: 18px 8px;
+  text-align: center;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Saudação: barra lateral com cores do mês */
+body:has(.bg-wall) .hero-pro-panel {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+body:has(.bg-wall) .hero-pro-panel::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 10px !important;
+  bottom: 10px !important;
+  width: 3px !important;
+  border-radius: 999px !important;
+  background: var(--hero-mes-gradiente, var(--fx-accent)) !important;
+  opacity: 0.95 !important;
+  z-index: 3 !important;
+  pointer-events: none !important;
+}
+
+/* Avisos sempre em negrito */
+.notice-item-title,
+.notice-item-text,
+.notice-item-title-inner,
+.notice-item-text-inner,
+.notice-board-title {
+  font-weight: 800 !important;
+}
+
+/* —— Relógio no cabeçalho removido —— */
+
+/* Tipografia cockpit */
+.card-section-title {
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  text-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
+}
+
+/* Textos dos cards da home em branco */
+body:has(.bg-wall) .grid .card-title,
+body:has(.bg-wall) .grid .card-desc,
+html.dk-dark body:not(.oa-page) .grid .card-title,
+html.dk-dark body:not(.oa-page) .grid .card-desc {
+  color: #fff !important;
+  opacity: 1 !important;
+}
+
+body:has(.bg-wall) .grid .card-title,
+html.dk-dark body:not(.oa-page) .grid .card-title {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+body:has(.bg-wall) .grid .card-desc,
+html.dk-dark body:not(.oa-page) .grid .card-desc {
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Ícones CIOP duotone: disco suave + traço azul→laranja */
+body:has(.bg-wall) .grid .card-figure {
+  position: relative !important;
+  width: clamp(46px, 15cqi, 58px);
+  height: clamp(46px, 15cqi, 58px);
+  border-radius: 16px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 107, 0, 0.28) 0%,
+      rgba(11, 58, 138, 0.36) 52%,
+      rgba(6, 36, 92, 0.42) 100%
+    ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(6, 36, 92, 0.12),
+    0 6px 14px -6px rgba(6, 36, 92, 0.35) !important;
+  overflow: hidden;
+  opacity: 1 !important;
+}
+
+body:has(.bg-wall) .grid .card-figure::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 28% 22%,
+    rgba(255, 255, 255, 0.55),
+    transparent 58%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+body:has(.bg-wall) .grid .card-figure svg {
+  position: relative;
+  z-index: 1;
+  width: clamp(22px, 7.5cqi, 28px);
+  height: clamp(22px, 7.5cqi, 28px);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.3));
+}
+
+body:has(.bg-wall) .grid .card-figure .ciop-duo-soft {
+  fill-opacity: 0.18 !important;
+  stroke: none !important;
+}
+
+body:has(.bg-wall) .grid .card-figure circle:not(.ciop-duo-soft),
+body:has(.bg-wall) .grid .card-figure rect {
+  fill: #ff6b00 !important;
+  fill-opacity: 0.2 !important;
+  stroke: #0b3a8a !important;
+  opacity: 1 !important;
+}
+
+body:has(.bg-wall) .grid .card-figure path,
+body:has(.bg-wall) .grid .card-figure line,
+body:has(.bg-wall) .grid .card-figure polyline,
+body:has(.bg-wall) .grid .card-figure polygon {
+  color: #0b3a8a !important;
+  stroke: #0b3a8a !important;
+  fill: none !important;
+  opacity: 1 !important;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* —— Liquid Glass 2.0 nos cards da HOME (não afeta mapas .oa-page) —— */
+body:not(.oa-page) .grid .card {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background 0.22s ease;
+}
+
+body:not(.oa-page) .grid .card::after {
+  content: "";
+  position: absolute;
+  left: -40%;
+  top: -60%;
+  width: 50%;
+  height: 220%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 62%
+  );
+  transform: translateX(-120%) rotate(12deg);
+  pointer-events: none;
+  opacity: 0;
+}
+
+body:not(.oa-page) .grid .card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  box-shadow:
+    0 18px 40px -18px rgba(6, 36, 92, 0.35),
+    0 0 0 1px rgba(255, 107, 0, 0.18),
+    var(--fx-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+
+body:not(.oa-page) .grid .card:hover::after {
+  opacity: 1;
+  animation: ciop-shine 0.85s ease forwards;
+}
+
+@keyframes ciop-shine {
+  to { transform: translateX(320%) rotate(12deg); }
+}
+
+body:not(.oa-page) .grid .card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--fx-accent);
+  opacity: 0.85;
+  z-index: 2;
+}
+
+body:not(.oa-page) .grid .card-figure {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+}
+
+body:not(.oa-page) .grid .card:hover .card-figure {
+  transform: scale(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 22px rgba(255, 107, 0, 0.28),
+    0 0 18px rgba(56, 189, 248, 0.22) !important;
+  filter: saturate(1.08);
+}
+
+/* Stagger entrance */
+body:not(.oa-page) .grid .card.ciop-card-enter {
+  opacity: 0;
+  transform: translateY(14px) scale(0.98);
+  animation: ciop-card-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ciop-card-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Ripple no botão do card */
+body:not(.oa-page) .grid .card-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.ciop-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ciop-ripple 0.55s ease-out;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+@keyframes ciop-ripple {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Skeleton loading (vidro) */
+.ciop-skeleton {
+  border-radius: 16px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.42) 50%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  background-size: 200% 100%;
+  animation: ciop-skel 1.2s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(16px);
+}
+
+@keyframes ciop-skel {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Feedback flash */
+.ciop-flash-ok {
+  animation: ciop-flash-ok 0.7s ease;
+}
+
+@keyframes ciop-flash-ok {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  40% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* —— Dark mode: fundo noturno + vidro cinza escuro + texto claro —— */
+html.dk-dark {
+  --lg-fill: rgba(32, 36, 42, 0.72);
+  --lg-fill-strong: rgba(26, 30, 36, 0.86);
+  --lg-fill-hover: rgba(44, 48, 56, 0.8);
+  --lg-fill-data: rgba(34, 38, 44, 0.88);
+  --lg-fill-data-head: rgba(40, 44, 50, 0.94);
+  --lg-border: rgba(168, 178, 188, 0.34);
+  --lg-edge: 1px solid rgba(168, 178, 188, 0.34);
+  --lg-shadow:
+    0 18px 48px -24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --lg-text: #f4f6f8;
+  --lg-label: #e8edf2;
+  --lg-muted: #c5ced8;
+  --ciop-glass-bg: var(--lg-fill);
+  --ciop-glass-bg-hover: var(--lg-fill-hover);
+  --ciop-glass-border: var(--lg-edge);
+  --ciop-glass-shadow: var(--lg-shadow);
+  --azul: #a8c5e8;
+  --azul-hover: #c5d8f0;
+  --cinza: #d7dde5;
+  --texto: #f4f6f8;
+  --text: #f4f6f8;
+  --muted: #c5ced8;
+  color-scheme: dark;
+}
+
+html.dk-dark body {
+  color: #f4f6f8;
+  background: #12151a !important;
+}
+
+/* Wallpaper noturno real (sem escurecer a foto diurna) */
+html.dk-dark .bg-wall,
+html.dk-dark .body-bg-wall {
+  background-image: url("../img/portal-bg-noite.jpg?v=20260720a") !important;
+  filter: none;
+}
+
+html.dk-dark .bg-blobs,
+html.dk-dark .bg-blob-mid,
+html.dk-dark .body-bg-stain {
+  display: none !important;
+}
+
+/* Todos os vidros escuros */
+html.dk-dark .header,
+html.dk-dark .header.header-v2,
+html.dk-dark .hero-pro-panel,
+html.dk-dark .ciop-session,
+html.dk-dark .ciop-session.ciop-session-modern,
+html.dk-dark .card,
+html.dk-dark .grid .card,
+html.dk-dark .notice-board,
+html.dk-dark .notice-item,
+html.dk-dark .toolbar-whatsapp,
+html.dk-dark .menu-toggle,
+html.dk-dark footer.portal-site-footer,
+html.dk-dark .ciop-command-inner,
+html.dk-dark .ciop-live-pill,
+html.dk-dark .live-pill,
+html.dk-dark .header-actions .dk-theme-toggle,
+html.dk-dark .password-panel,
+html.dk-dark .sidebar,
+html.dk-dark .notice-modal,
+html.dk-dark .topbar,
+html.dk-dark .panel,
+html.dk-dark .filters-panel,
+html.dk-dark .filters,
+html.dk-dark .filter-bar,
+html.dk-dark .kpi-card,
+html.dk-dark .stat-card,
+html.dk-dark .chart-card,
+html.dk-dark .table-card {
+  background: var(--lg-fill) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  border-color: var(--lg-border) !important;
+  color: #f8fafc !important;
+  box-shadow: var(--lg-shadow) !important;
+}
+
+html.dk-dark .sidebar {
+  background: linear-gradient(
+    165deg,
+    rgba(28, 32, 38, 0.92) 0%,
+    rgba(36, 40, 46, 0.9) 100%
+  ) !important;
+}
+
+html.dk-dark .side-link {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #f8fafc !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+html.dk-dark .side-link:hover,
+html.dk-dark .side-link:focus-visible {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+/* Textos / ícones que precisam ficar claros */
+html.dk-dark .card-title,
+html.dk-dark .card-desc,
+html.dk-dark .card-section-title,
+html.dk-dark .hero-pro-nome,
+html.dk-dark .hero-pro-saudacao-label,
+html.dk-dark .ciop-session-user,
+html.dk-dark .ciop-session-cargo,
+html.dk-dark .ciop-session-profile,
+html.dk-dark .ciop-kpi-value,
+html.dk-dark .ciop-kpi-label,
+html.dk-dark .ciop-kpi-sub,
+html.dk-dark .notice-board-title,
+html.dk-dark .notice-item-title,
+html.dk-dark .notice-item-title-inner,
+html.dk-dark .notice-item-text,
+html.dk-dark .notice-item-text-inner,
+html.dk-dark .notice-empty,
+html.dk-dark .toolbar-whatsapp-label,
+html.dk-dark footer.portal-site-footer .footer-text,
+html.dk-dark .password-panel h2,
+html.dk-dark .password-panel-note,
+html.dk-dark .password-status,
+html.dk-dark .side-text,
+html.dk-dark .sidebar-header,
+html.dk-dark .portal-brand-meta,
+html.dk-dark h1,
+html.dk-dark h2,
+html.dk-dark h3,
+html.dk-dark .page-title,
+html.dk-dark .header-subtitle,
+html.dk-dark .muted,
+html.dk-dark label {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+html.dk-dark .card-desc,
+html.dk-dark .ciop-kpi-label,
+html.dk-dark .ciop-kpi-sub,
+html.dk-dark .ciop-session-cargo,
+html.dk-dark .notice-item-text,
+html.dk-dark .password-panel-note,
+html.dk-dark .portal-brand-meta,
+html.dk-dark footer.portal-site-footer .footer-text {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 600 !important;
+}
+
+html.dk-dark .side-icon svg,
+html.dk-dark .side-icon path,
+html.dk-dark .card-section-toggle svg,
+html.dk-dark .card-section-toggle path {
+  color: #fff !important;
+  stroke: #fff !important;
+  fill: none !important;
+  opacity: 1 !important;
+}
+
+/* Ícones CIOP duotone no dark */
+html.dk-dark .grid .card-figure {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 107, 0, 0.34) 0%,
+      rgba(14, 40, 90, 0.55) 55%,
+      rgba(8, 20, 48, 0.65) 100%
+    ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 6px 16px -6px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dk-dark .grid .card-figure .ciop-duo-soft {
+  fill-opacity: 0.28 !important;
+  stroke: none !important;
+}
+
+html.dk-dark .grid .card-figure circle:not(.ciop-duo-soft),
+html.dk-dark .grid .card-figure rect {
+  fill: #ff8f3d !important;
+  fill-opacity: 0.22 !important;
+  stroke: #38bdf8 !important;
+}
+
+html.dk-dark .grid .card-figure path,
+html.dk-dark .grid .card-figure line,
+html.dk-dark .grid .card-figure polyline,
+html.dk-dark .grid .card-figure polygon {
+  color: #38bdf8 !important;
+  stroke: #38bdf8 !important;
+  fill: none !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.2));
+}
+
+html.dk-dark .menu-bars span {
+  background: #f8fafc !important;
+}
+
+html.dk-dark .ciop-live-pill,
+html.dk-dark .ciop-live-pill #ciopLiveText,
+html.dk-dark .live-pill {
+  color: #f8fafc !important;
+}
+
+/* Botões dos cards: azul no modo escuro */
+html.dk-dark .card-btn {
+  background: #0b3a8a !important;
+  color: #fff !important;
+  border: 1px solid rgba(147, 197, 253, 0.35) !important;
+  font-weight: 800 !important;
+}
+
+html.dk-dark .card:hover .card-btn,
+html.dk-dark .card:focus-visible .card-btn {
+  background: #1557b8 !important;
+  color: #fff !important;
+}
+
+html.dk-dark .btn-senha-portal {
+  background: rgba(56, 189, 248, 0.4) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+html.dk-dark .btn-logout:not(.btn-senha-portal) {
+  background: rgba(248, 113, 113, 0.35) !important;
+  color: #fff !important;
+  border-color: rgba(254, 202, 202, 0.4) !important;
+}
+
+html.dk-dark .notice-count {
+  background: #ff6b00 !important;
+  color: #fff !important;
+}
+
+html.dk-dark .password-panel input,
+html.dk-dark input,
+html.dk-dark select,
+html.dk-dark textarea {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border-color: rgba(148, 163, 184, 0.4) !important;
+}
+
+html.dk-dark .password-panel input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+html.dk-dark .btn-small {
+  background: rgba(56, 189, 248, 0.35) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+html.dk-dark .btn-small.secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+html.dk-dark .sidebar .dk-theme-toggle {
+  color: #f8fafc !important;
+  background: rgba(56, 189, 248, 0.18) !important;
+}
+
+/* —— Páginas internas: acento CIOP nos painéis (sem HUD) —— */
+body:has(.body-bg-wall):not(.oa-page) .chart-card,
+body:has(.body-bg-wall):not(.oa-page) .table-card,
+body:has(.body-bg-wall):not(.oa-page) .kpi,
+body:has(.body-bg-wall):not(.oa-page) .kpi-card,
+body:has(.body-bg-wall):not(.oa-page) .stat-card,
+body:has(.body-bg-wall):not(.oa-page) .panel {
+  position: relative;
+  overflow: hidden;
+}
+
+body:has(.body-bg-wall):not(.oa-page) .chart-card::before,
+body:has(.body-bg-wall):not(.oa-page) .table-card::before,
+body:has(.body-bg-wall):not(.oa-page) .kpi::before,
+body:has(.body-bg-wall):not(.oa-page) .kpi-card::before,
+body:has(.body-bg-wall):not(.oa-page) .stat-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--fx-accent);
+  opacity: 0.9;
+  z-index: 2;
+  pointer-events: none;
+}
+
+html.dk-dark .chart-card,
+html.dk-dark .table-card,
+html.dk-dark .chart-box,
+html.dk-dark .chart-panel,
+html.dk-dark .table-wrap,
+html.dk-dark .planilha-wrap,
+html.dk-dark .grafico-card,
+html.dk-dark .grafico-box {
+  background: var(--lg-fill-data, rgba(34, 38, 44, 0.88)) !important;
+  color: #f4f6f8 !important;
+  border-color: var(--lg-border) !important;
+}
+
+html.dk-dark .table-card-header,
+html.dk-dark .table-head,
+html.dk-dark .chart-head,
+html.dk-dark thead th,
+html.dk-dark table.planilha th,
+html.dk-dark table.planilha-detalhe th,
+html.dk-dark .data-table thead th {
+  background: var(--lg-fill-data-head, rgba(40, 44, 50, 0.94)) !important;
+  color: #e8edf2 !important;
+  border-color: rgba(168, 178, 188, 0.28) !important;
+}
+
+html.dk-dark .table-wrap td,
+html.dk-dark table.planilha td,
+html.dk-dark table.planilha-detalhe td,
+html.dk-dark .data-table td {
+  color: #e8edf2 !important;
+  border-color: rgba(200, 210, 220, 0.42) !important;
+}
+
+html.dk-dark .table-wrap thead th,
+html.dk-dark .table-card thead th,
+html.dk-dark table thead th {
+  border-bottom-color: rgba(210, 220, 230, 0.5) !important;
+  border-color: rgba(200, 210, 220, 0.42) !important;
+}
+
+html.dk-dark .table-wrap tbody tr:nth-child(even),
+html.dk-dark table.planilha tbody tr:nth-child(even),
+html.dk-dark table.planilha-detalhe tbody tr:nth-child(even),
+html.dk-dark .data-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Número do incidente (pill): contraste alto no escuro */
+html.dk-dark .pill,
+html.dk-dark a.pill,
+html.dk-dark .table-wrap .pill,
+html.dk-dark .table-card .pill {
+  background: rgba(14, 116, 144, 0.45) !important;
+  color: #f0f9ff !important;
+  border: 1px solid rgba(125, 211, 252, 0.7) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+html.dk-dark a.pill:hover,
+html.dk-dark .table-wrap a.pill:hover {
+  background: rgba(14, 165, 233, 0.55) !important;
+  color: #ffffff !important;
+  border-color: rgba(186, 230, 253, 0.9) !important;
+}
+
+html.dk-dark .muted,
+html.dk-dark .kpi-label,
+html.dk-dark .kpi-sub,
+html.dk-dark .header-subtitle,
+html.dk-dark .subtitle,
+html.dk-dark .help-text,
+html.dk-dark .chart-note,
+html.dk-dark .table-sub,
+html.dk-dark .no-data,
+html.dk-dark .empty,
+html.dk-dark .chart-empty {
+  color: #c5ced8 !important;
+}
+
+/* Gráficos de barras (incidentes): legendas/valores em branco no escuro */
+html.dk-dark .bar-label,
+html.dk-dark .bar-count,
+html.dk-dark .charts .bar-label,
+html.dk-dark .charts .bar-count {
+  color: #ffffff !important;
+}
+
+/* —— Contraste global: textos/botões/chips que ficavam azul-escuro no vidro —— */
+html.dk-dark .btn-secondary,
+html.dk-dark .btn-ghost,
+html.dk-dark a.btn-secondary,
+html.dk-dark a.btn-ghost,
+html.dk-dark .topbar-actions .btn-ghost,
+html.dk-dark .topbar-actions .btn-secondary,
+html.dk-dark #pdfTopoBtn,
+html.dk-dark #emailTopoBtn,
+html.dk-dark #anexosBtn {
+  color: #f4f6f8 !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(168, 178, 188, 0.34) !important;
+}
+
+html.dk-dark .btn-secondary:hover,
+html.dk-dark .btn-ghost:hover,
+html.dk-dark a.btn-secondary:hover,
+html.dk-dark a.btn-ghost:hover,
+html.dk-dark .topbar-actions .btn-ghost:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+html.dk-dark .page-footer,
+html.dk-dark .status-line,
+html.dk-dark .field-hint,
+html.dk-dark .sync-status,
+html.dk-dark .sort-icon,
+html.dk-dark .chart-note,
+html.dk-dark .card-note,
+html.dk-dark .title-sub,
+html.dk-dark .title-wrap .title-sub {
+  color: #c5ced8 !important;
+}
+
+html.dk-dark .panel-title,
+html.dk-dark .section-title,
+html.dk-dark .section-title h2,
+html.dk-dark .terminal-name,
+html.dk-dark .person-line,
+html.dk-dark .person-line b,
+html.dk-dark .count-pill,
+html.dk-dark .time-chip,
+html.dk-dark .scenario-label,
+html.dk-dark .scenario-button:not(.active),
+html.dk-dark .cargo-vinculado,
+html.dk-dark .cell-readonly,
+html.dk-dark .cell-hora-sep,
+html.dk-dark .filter-checkbox-opt,
+html.dk-dark .ai-feature-text,
+html.dk-dark .ai-feature-text strong,
+html.dk-dark .user-meta,
+html.dk-dark .user-meta span,
+html.dk-dark .panel-head h2,
+html.dk-dark .kpi-value,
+html.dk-dark .card-title,
+html.dk-dark .table-card h3,
+html.dk-dark .chart-card h3 {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark .scenario-button:not(.active) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(168, 178, 188, 0.28) !important;
+}
+
+html.dk-dark .section-icon,
+html.dk-dark .filter-label-icon,
+html.dk-dark .field-icon {
+  color: #93c5fd !important;
+}
+
+html.dk-dark .section-icon {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(168, 178, 188, 0.28) !important;
+  box-shadow: none !important;
+}
+
+html.dk-dark .bubble.theirs {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #f4f6f8 !important;
+  border-color: rgba(168, 178, 188, 0.28) !important;
+}
+
+html.dk-dark .bubble .who,
+html.dk-dark .bubble.theirs .who {
+  color: #93c5fd !important;
+}
+
+html.dk-dark .sidebar-chat,
+html.dk-dark .thread,
+html.dk-dark .composer {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark .alerta-incidentes-box {
+  background: rgba(34, 38, 44, 0.96) !important;
+  color: #f4f6f8 !important;
+  border: 1px solid rgba(168, 178, 188, 0.34);
+}
+
+html.dk-dark .alerta-incidentes-titulo {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark .alerta-incidentes-texto {
+  color: #c5ced8 !important;
+}
+
+html.dk-dark .alerta-incidentes-btn.secundario {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f4f6f8 !important;
+}
+
+/* Formulários densos (folha, pátio, liberação) */
+html.dk-dark .filter-group label,
+html.dk-dark .launch-group label,
+html.dk-dark .gab-ordem-item,
+html.dk-dark .gab-legenda-titulo,
+html.dk-dark .sheet-grid span {
+  color: #e8edf2 !important;
+}
+
+/* Toggle de tema: nunca no header das páginas internas — só na barra lateral da home */
+body:has(.body-bg-wall) .dk-theme-toggle:not(.side-link) {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .ciop-command-row {
+    padding: 0;
+  }
+
+  .ciop-command-inner {
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    min-height: 42px;
+    gap: 4px;
+  }
+
+  .ciop-zone-contexto,
+  .ciop-zone-status {
+    flex: 1 1 auto;
+  }
+
+  .ciop-zone-status {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .ciop-search {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    margin: 3px 0 0;
+    height: 34px;
+    min-height: 34px;
+  }
+
+  body:has(.bg-wall) .toolbar-inner {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 12px !important;
+  }
+
+  body:has(.bg-wall) .toolbar-inner > .menu-toggle,
+  body:has(.bg-wall) .toolbar-inner > .toolbar-whatsapp {
+    position: static;
+    left: auto;
+    right: auto;
+  }
+
+  body:has(.bg-wall) .toolbar-main {
+    flex: 1 1 100%;
+    order: 3;
+    width: calc(100% - 1.2cm);
+    max-width: calc(100% - 1.2cm);
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .header-actions .live-pill,
+  .ciop-live-pill {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  body:has(.bg-wall) .toolbar-inner {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px !important;
+  }
+
+  body:has(.bg-wall) .toolbar-inner > .menu-toggle,
+  body:has(.bg-wall) .toolbar-inner > .toolbar-whatsapp {
+    position: static;
+  }
+
+  body:has(.bg-wall) .toolbar-main {
+    order: 3;
+    flex: 1 1 100%;
+    width: calc(100% - 1.2cm);
+    max-width: calc(100% - 1.2cm);
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  body:has(.bg-wall) .toolbar-inner > .notice-board {
+    order: unset;
+    flex: none;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .ciop-command-row {
+    padding: 0;
+  }
+
+  .ciop-command-inner {
+    flex-wrap: wrap;
+  }
+
+  .ciop-zone-contexto,
+  .ciop-zone-status {
+    flex: 1 1 100%;
+  }
+
+  .ciop-zone-status {
+    justify-content: flex-start;
+  }
+
+  .ciop-search {
+    flex: 1 1 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .ciop-command-row {
+    padding: 0 16px;
+  }
+
+  .ciop-command-inner {
+    gap: 2px;
+    padding: 8px;
+  }
+
+  .portal-hud-scan {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-hud-scan,
+  .ciop-live-dot,
+  .ciop-online-dot,
+  .ciop-online-dot::after,
+  .card::after,
+  .card.ciop-card-enter {
+    animation: none !important;
+  }
+
+  .card.ciop-card-enter {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* —— Header / rodapé / títulos: contraste uniforme no escuro —— */
+html.dk-dark .header,
+html.dk-dark .header.header-v2 {
+  background: var(--lg-fill, rgba(32, 36, 42, 0.72)) !important;
+  border-bottom-color: var(--lg-border, rgba(168, 178, 188, 0.34)) !important;
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark footer.portal-site-footer,
+html.dk-dark .page-footer,
+html.dk-dark footer:not([class]),
+html.dk-dark body > footer {
+  background: var(--lg-fill, rgba(32, 36, 42, 0.72)) !important;
+  border-top-color: var(--lg-border, rgba(168, 178, 188, 0.34)) !important;
+  color: #c5ced8 !important;
+}
+
+html.dk-dark footer.portal-site-footer .footer-text,
+html.dk-dark footer .footer-text,
+html.dk-dark .page-footer,
+html.dk-dark .page-footer .footer-text {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html.dk-dark .header .page-title,
+html.dk-dark .header h1,
+html.dk-dark .title-wrap,
+html.dk-dark .title-wrap .subtitle,
+html.dk-dark .title-wrap .title-sub,
+html.dk-dark .pontualidade-title-wrap .subtitle,
+html.dk-dark .telemetria-title-wrap .subtitle,
+html.dk-dark .fleetbus-title-wrap .subtitle,
+html.dk-dark .icv-title-wrap .subtitle,
+html.dk-dark .autuacoes-title-wrap .subtitle {
+  color: #f4f6f8 !important;
+}
+
+html.dk-dark .portal-brand-art,
+html.dk-dark [class$="-title-art"] img,
+html.dk-dark .header-title img,
+html.dk-dark .title-wrap > img,
+html.dk-dark h1[class*="-title-art"] img {
+  filter: brightness(0) invert(1);
+  opacity: 0.96;
+}
+
+html.dk-dark img.logo-tcgl,
+html.dk-dark img.logo-right,
+html.dk-dark img.logo-tcgl-dark-mode,
+html.dk-dark img[src*="LOGO_TCGL"] {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html.dk-dark .page-title-art span,
+html.dk-dark [class$="-title-art"] span {
+  color: #f4f6f8 !important;
+}

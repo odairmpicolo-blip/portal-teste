@@ -10,6 +10,7 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { LegacyPage } from './pages/LegacyPage'
 import { MobileModulesPage } from './pages/MobileModulesPage'
+import { CiopModulesPage } from './pages/CiopModulesPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { isNativeApp } from './lib/portal-origin'
 
@@ -21,8 +22,8 @@ export default function App() {
   return (
     <AuthProvider>
       <AppPreferencesProvider>
-        <BrowserRouter basename="/app">
         <BiometricProvider>
+        <BrowserRouter basename="/app">
           <SpaRedirect />
           <Routes>
             <Route element={<PublicOnlyRoute />}>
@@ -41,13 +42,14 @@ export default function App() {
                 <Route path="/modulos" element={<Navigate to="/" replace />} />
                 <Route path="/ajustes" element={<SettingsPage />} />
                 <Route path="/legado/*" element={<LegacyPage />} />
+                <Route path="/ciop" element={<CiopModulesPage />} />
               </Route>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BiometricProvider>
         </BrowserRouter>
+        </BiometricProvider>
       </AppPreferencesProvider>
     </AuthProvider>
   )

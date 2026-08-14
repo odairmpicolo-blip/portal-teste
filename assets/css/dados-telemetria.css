@@ -479,6 +479,150 @@ body.telemetria-page {
 }
 .btn-export-pdf:hover { background: #bf360c; }
 
+/* ===== Km percorrido — painel em destaque ===== */
+.telemetria-km-panel {
+  background: linear-gradient(155deg, rgba(11, 58, 138, 0.06), rgba(8, 145, 178, 0.04) 55%, rgba(255, 107, 0, 0.05));
+  border: 1px solid var(--tel-panel-border);
+  border-radius: var(--tel-radius);
+  padding: 14px 16px 16px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.07);
+  position: relative;
+  overflow: hidden;
+}
+
+.telemetria-km-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--tel-cyan), #ff6b00 55%, var(--tel-navy));
+}
+
+.km-panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.km-panel-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--tel-navy);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.km-panel-sub {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tel-muted);
+}
+
+.km-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.km-stat-card .val {
+  font-size: 24px;
+  color: var(--tel-navy);
+}
+
+.km-unidade {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tel-muted);
+  margin-left: 3px;
+}
+
+.km-stat-meta {
+  margin-top: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--tel-muted);
+}
+
+.km-chart-wrap {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--tel-panel-border);
+  border-radius: var(--tel-radius-sm);
+  padding: 10px 12px 6px;
+}
+
+.km-chart-svg {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+/* Eixos do gráfico usam variáveis de tema (em vez de fill/stroke fixos no SVG)
+   para não sumirem por baixo contraste quando o tema escuro está ativo. */
+.km-chart-svg .km-grid-line {
+  stroke: var(--tel-panel-border);
+}
+
+.km-chart-svg .km-axis-label {
+  fill: var(--tel-muted);
+}
+
+.km-chart-vazio {
+  margin: 0;
+  padding: 20px 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tel-muted);
+}
+
+.km-legenda {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.km-legenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--tel-navy);
+}
+
+.km-legenda-item i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+table.telemetria tbody td.cell-km-max {
+  color: #166534;
+  font-weight: 900;
+  background: rgba(22, 163, 74, 0.14);
+  border-radius: 6px;
+}
+
+table.telemetria tbody td.cell-km-min {
+  color: #0e7490;
+  font-weight: 800;
+  background: rgba(8, 145, 178, 0.1);
+  border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+  .km-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .km-chart-svg { height: 170px; }
+}
+
 /* Tabela */
 .telemetria-table-panel {
   background: var(--tel-panel);
@@ -706,3 +850,58 @@ table.telemetria tr.row-incoerente .veiculo {
   }
 }
 
+
+@media (max-width: 900px) {
+  body.telemetria-page .header {
+    position: sticky; top: 0; z-index: 20;
+    padding-top: calc(8px + env(safe-area-inset-top)) !important;
+    background: rgba(255,255,255,.92) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+  body.telemetria-page .telemetria-main { padding: 12px 12px 20px !important; gap: 10px !important; }
+  body.telemetria-page .toolbar,
+  body.telemetria-page .stat-card,
+  body.telemetria-page .telemetria-filters,
+  body.telemetria-page .telemetria-table-panel { border-radius: 14px !important; }
+  body.telemetria-page .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 8px !important; }
+  body.telemetria-page .table-wrap { max-height: 60vh !important; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 480px) {
+  body.telemetria-page .filter-inline input[type="date"] { width: 108px !important; }
+}@media (max-width:720px){body.telemetria-page{background:var(--dk-bg) !important;color:var(--dk-text) !important;}body.telemetria-page .header{background:var(--dk-glass-bg) !important;backdrop-filter:blur(var(--dk-glass-blur)) !important;border-bottom:1px solid var(--dk-glass-border) !important;}.dk-theme-toggle{display:flex !important;}body.telemetria-page .stat-card{background:var(--dk-glass-bg) !important;border:1px solid var(--dk-glass-border) !important;box-shadow:var(--dk-glass-shadow) !important;}body.telemetria-page .stat-card .lbl{color:var(--dk-muted) !important;}body.telemetria-page .stat-card .val{color:var(--dk-text) !important;}body.telemetria-page .telemetria-filters,body.telemetria-page .telemetria-table-panel{background:var(--dk-glass-bg) !important;border:1px solid var(--dk-glass-border) !important;}}
+/* Fim modernizacao iPhone */
+
+/* Dark mode contraste telemetria */
+html.dk-dark {
+  --tel-text: #f4f6f8;
+  --tel-muted: #c5ced8;
+  --tel-panel: rgba(34, 38, 44, 0.88);
+  --tel-panel-border: rgba(168, 178, 188, 0.34);
+}
+html.dk-dark body.telemetria-page .panel-title,
+html.dk-dark body.telemetria-page h2,
+html.dk-dark body.telemetria-page .stat-card .lbl,
+html.dk-dark body.telemetria-page .stat-card .val {
+  color: #e8edf2 !important;
+}
+html.dk-dark body.telemetria-page .stat-card .lbl {
+  color: #c5ced8 !important;
+}
+html.dk-dark body.telemetria-page .telemetria-km-panel,
+html.dk-dark body.telemetria-page .km-chart-wrap {
+  background: var(--dk-glass-bg, rgba(34,38,44,.88)) !important;
+  border-color: var(--dk-glass-border, rgba(168,178,188,.34)) !important;
+}
+html.dk-dark body.telemetria-page .km-panel-head h2,
+html.dk-dark body.telemetria-page .km-legenda-item {
+  color: #e8edf2 !important;
+}
+html.dk-dark body.telemetria-page table.telemetria tbody td.cell-km-max {
+  color: #86efac !important;
+  background: rgba(74, 222, 128, 0.18) !important;
+}
+html.dk-dark body.telemetria-page table.telemetria tbody td.cell-km-min {
+  color: #67e8f9 !important;
+  background: rgba(34, 211, 238, 0.16) !important;
+}

@@ -13,6 +13,12 @@ import {
 import { app, buscarUsuarioFirestore, normalizarCadastro } from "./portal-firestore.js";
 import { usuarios } from "./usuarios.js";
 import { aplicarSaudacaoHero } from "./portal-saudacao.js?v=20260704a";
+import { carregarAcessosPerfis, usuarioTemModulo } from "./portal-perfis-acesso.js?v=20260718bb";
+import {
+  iniciarHeartbeatPresenca,
+  pararHeartbeatPresenca,
+  marcarPresencaOffline
+} from "./portal-chat.js?v=20260720b";
 
 const auth = getAuth(app);
 
@@ -46,7 +52,7 @@ function bloquearHtmlAteValidar() {
   style.id = "portalAuthPendingStyle";
   style.textContent = `
     .${AUTH_PENDING_CLASS} body > :not(#portalLoadingOverlay) {
-      visibility: hidden !important;
+      pointer-events: none !important;
     }
   `;
   document.head.appendChild(style);
@@ -82,24 +88,35 @@ function mostrarCarregando(texto = "Carregando portal") {
     return;
   }
 
-  const style = document.createElement("style");
-  style.id = "portalLoadingStyle";
+  let style = document.getElementById("portalLoadingStyle");
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "portalLoadingStyle";
+    document.head.appendChild(style);
+  }
   style.textContent = `
-    .portal-loading-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(245,247,251,.96),rgba(232,237,246,.96));backdrop-filter:blur(8px);transition:opacity .25s ease,visibility .25s ease}
-    .portal-loading-overlay.hide{opacity:0;visibility:hidden}
-    .portal-loading-box{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 28px;border:1px solid rgba(6,36,92,.12);border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 18px 50px rgba(16,24,40,.16);color:#06245c;font-family:Arial,Helvetica,sans-serif;min-width:220px}
-    .portal-loading-mark{position:relative;width:54px;height:54px}
-    .portal-loading-mark::before,.portal-loading-mark::after{content:"";position:absolute;inset:0;border-radius:50%;border:4px solid transparent}
-    .portal-loading-mark::before{border-top-color:#06245c;border-right-color:#0b3a8a;animation:portalSpin .85s linear infinite}
-    .portal-loading-mark::after{inset:9px;border-bottom-color:#ff6b00;border-left-color:#ff6b00;animation:portalSpin 1.15s linear infinite reverse}
-    .portal-loading-title{font-size:15px;font-weight:800;letter-spacing:.2px}
-    .portal-loading-dots{display:flex;gap:5px}
-    .portal-loading-dots span{width:6px;height:6px;border-radius:50%;background:#ff6b00;animation:portalPulse 1s ease-in-out infinite}
-    .portal-loading-dots span:nth-child(2){animation-delay:.15s}.portal-loading-dots span:nth-child(3){animation-delay:.3s}
+    .portal-loading-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(6,20,50,.32);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);transition:opacity .28s ease,visibility .28s ease;overflow:hidden}
+    .portal-loading-overlay::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 45% at 50% 40%,rgba(11,58,138,.18),transparent 70%)}
+    .portal-loading-overlay::after{content:"";position:absolute;left:0;right:0;height:22%;top:-22%;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(255,107,0,.08),transparent);animation:portalScan 3.4s ease-in-out infinite}
+    .portal-loading-overlay.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .portal-loading-box{position:relative;z-index:1;width:min(520px,94vw);min-height:340px;padding:44px 40px 36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;border-radius:28px;border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.28);backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);box-shadow:0 28px 70px -22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 0 rgba(255,255,255,.1);color:#f5f7fb;font-family:"SF Pro Display","Segoe UI",system-ui,-apple-system,sans-serif;overflow:hidden}
+    .portal-loading-box::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.35) 0%,transparent 42%,transparent 58%,rgba(255,107,0,.1) 100%)}
+    .portal-loading-brand{position:relative;z-index:1;font-size:13px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+    .portal-loading-brand span{color:#ff8a3d}
+    .portal-loading-mark{position:relative;z-index:1;width:124px;height:124px;display:grid;place-items:center;margin:4px 0}
+    .portal-loading-ring,.portal-loading-ring-2{position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+    .portal-loading-ring{border-top-color:rgba(255,255,255,.9);border-right-color:rgba(10,132,255,.75);animation:portalSpin 1.1s linear infinite;filter:drop-shadow(0 0 10px rgba(10,132,255,.5))}
+    .portal-loading-ring-2{inset:14px;border-bottom-color:#ff6b00;border-left-color:rgba(255,107,0,.55);animation:portalSpin 1.7s linear infinite reverse;filter:drop-shadow(0 0 8px rgba(255,107,0,.45))}
+    .portal-loading-core{width:72px;height:72px;border-radius:20px;display:grid;place-items:center;background:rgba(6,36,92,.5);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 24px rgba(0,0,0,.28)}
+    .portal-loading-core svg{width:40px;height:40px;fill:none;stroke:#fff;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+    .portal-loading-title{position:relative;z-index:1;margin:0;font-size:20px;font-weight:700;letter-spacing:.01em;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.3);max-width:100%;line-height:1.3}
+    .portal-loading-sub{position:relative;z-index:1;margin:-2px 0 0;font-size:13px;font-weight:500;letter-spacing:.05em;color:rgba(255,255,255,.75)}
+    .portal-loading-bar{position:relative;z-index:1;width:78%;height:4px;margin-top:8px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.18)}
+    .portal-loading-bar>i{display:block;width:42%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0a84ff,#ff6b00);animation:portalBar 1.35s ease-in-out infinite;box-shadow:0 0 14px rgba(255,107,0,.55)}
     @keyframes portalSpin{to{transform:rotate(360deg)}}
-    @keyframes portalPulse{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+    @keyframes portalBar{0%{transform:translateX(-120%)}100%{transform:translateX(280%)}}
+    @keyframes portalScan{0%{transform:translateY(0);opacity:0}15%{opacity:.8}85%{opacity:.45}100%{transform:translateY(480%);opacity:0}}
   `;
-  document.head.appendChild(style);
 
   const overlay = document.createElement("div");
   overlay.id = LOADING_ID;
@@ -108,9 +125,23 @@ function mostrarCarregando(texto = "Carregando portal") {
   overlay.setAttribute("aria-live", "polite");
   overlay.innerHTML = `
     <div class="portal-loading-box">
-      <div class="portal-loading-mark" aria-hidden="true"></div>
-      <div class="portal-loading-title">${texto}</div>
-      <div class="portal-loading-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="portal-loading-brand">Portal <span>CIOP</span></div>
+      <div class="portal-loading-mark" aria-hidden="true">
+        <span class="portal-loading-ring"></span>
+        <span class="portal-loading-ring-2"></span>
+        <div class="portal-loading-core">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 15V8.5A3.5 3.5 0 0 1 7.5 5h9A3.5 3.5 0 0 1 20 8.5V15"/>
+            <path d="M3 15h18v2.5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 17.5V15z"/>
+            <circle cx="7.5" cy="18.5" r="1.4"/>
+            <circle cx="16.5" cy="18.5" r="1.4"/>
+            <path d="M7 9h10M7 12h4"/>
+          </svg>
+        </div>
+      </div>
+      <p class="portal-loading-title">${texto}</p>
+      <p class="portal-loading-sub">Monitoramento em tempo real</p>
+      <div class="portal-loading-bar" aria-hidden="true"><i></i></div>
     </div>`;
   document.body.appendChild(overlay);
 }
@@ -210,11 +241,21 @@ function atualizarSaudacaoHero(cadastroOuNome) {
   aplicarSaudacaoHero(nome, { genero });
 }
 
+const PORTAL_SESSION_CSS_V = "20260718h";
+
 function garantirCssSessao() {
-  if (document.querySelector("link[data-portal-session]")) return;
+  const href = portalPath(`assets/css/portal-session.css?v=${PORTAL_SESSION_CSS_V}`);
+  const existing = document.querySelector('link[href*="portal-session.css"]');
+  if (existing) {
+    existing.dataset.portalSession = "1";
+    if (!String(existing.getAttribute("href") || "").includes(`v=${PORTAL_SESSION_CSS_V}`)) {
+      existing.href = href;
+    }
+    return;
+  }
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = portalPath("assets/css/portal-session.css");
+  link.href = href;
   link.dataset.portalSession = "1";
   document.head.appendChild(link);
 }
@@ -242,6 +283,18 @@ function notificarPortalPronto() {
   if (typeof window.iniciarAvisosPortal === "function") {
     window.iniciarAvisosPortal();
   }
+  garantirChatWidget();
+}
+
+function garantirChatWidget() {
+  if (document.querySelector("script[data-portal-chat-widget]")) return;
+  const path = String(window.location.pathname || "");
+  if (/\/login\.html$/i.test(path)) return;
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = portalPath("assets/js/portal-chat-widget.js?v=20260720b");
+  script.dataset.portalChatWidget = "1";
+  document.head.appendChild(script);
 }
 
 function garantirMarcaPortal() {
@@ -372,8 +425,12 @@ async function atualizarCadastroCache(email, user) {
 
 window.logout = function () {
   try { sessionStorage.removeItem(CADASTRO_CACHE_KEY); } catch (_) {}
-  signOut(auth).finally(() => {
-    window.location.href = portalPath("login.html");
+  const email = window.portalUsuario?.email;
+  pararHeartbeatPresenca();
+  Promise.resolve(marcarPresencaOffline(email)).finally(() => {
+    signOut(auth).finally(() => {
+      window.location.href = portalPath("login.html");
+    });
   });
 };
 
@@ -445,6 +502,12 @@ function usuarioPodeVer(el, cadastro) {
     return usuariosPermitidos.includes(email);
   }
 
+  const moduloId = String(el.dataset.modulo || "").trim();
+  if (moduloId) {
+    const decisaoModulo = usuarioTemModulo(email, perfil, moduloId);
+    if (decisaoModulo !== null) return decisaoModulo;
+  }
+
   if (isAdministrador(cadastro)) return true;
 
   const perfisPermitidos = listaAtributo(el.dataset.perfis);
@@ -486,7 +549,7 @@ function aplicarPermissoes(cadastro) {
     el.style.display = admin ? "flex" : "none";
   });
 
-  document.querySelectorAll("[data-perfis], [data-usuarios]").forEach((el) => {
+  document.querySelectorAll("[data-perfis], [data-usuarios], [data-modulo]").forEach((el) => {
     const pode = usuarioPodeVer(el, cadastro);
     el.classList.toggle("portal-card-visivel", pode);
     el.hidden = !pode;
@@ -567,11 +630,13 @@ authReady.finally(() => onAuthStateChanged(auth, async (user) => {
     }
     atualizarSaudacaoHero(cadastro);
     modernizarSessaoUsuario();
+    await carregarAcessosPerfis().catch(() => null);
     if (aplicarPermissoes(cadastro) !== false) {
       window.portalUsuarioValidado = true;
       liberarHtmlValidado();
       ocultarCarregando();
       notificarPortalPronto();
+      try { iniciarHeartbeatPresenca(window.portalUsuario); } catch (_) {}
     } else {
       liberarHtmlValidado();
       ocultarCarregando();

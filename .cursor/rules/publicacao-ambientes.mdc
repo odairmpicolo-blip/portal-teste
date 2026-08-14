@@ -6,13 +6,18 @@ alwaysApply: true
 # Publicação — teste primeiro, produção sob confirmação
 
 Repositórios:
-- **portal-teste** (`~/portal-teste`) — ambiente de teste
-- **portalCIOP** (`~/portalCIOP`) — ambiente de produção
+- **portal-teste** (`~/portal-teste`) — desenvolvimento / validação
+- **portalCIOP** (`~/portalCIOP`) — código de produção (GitHub)
 
 ## Hospedagem do portal
 
 - O portal estático é publicado **somente no GitHub Pages** (workflow `deploy-github-pages.yml`).
+- Produção: **www.portalciop.com.br** (via `hosting/CNAME`).
 - **Firebase** é usado apenas para **Auth** e **Firestore** — não há Firebase Hosting.
+
+Ordem recomendada:
+1. Desenvolver e validar em **portal-teste**
+2. Publicar no GitHub (**portalCIOP**) — o workflow de Pages faz o deploy automático no push em `main`
 
 Quando o usuário pedir commit, push, publicar ou implantar:
 
@@ -21,3 +26,8 @@ Quando o usuário pedir commit, push, publicar ou implantar:
 3. Não publicar em produção sem confirmação do usuário, mesmo que as alterações já estejam no teste.
 
 Apps Script (`.gs`): lembrar que reimplantar o Web App no Google é manual, independente do git.
+
+Regras Firestore (se alteradas):
+```bash
+cd ~/portalCIOP && npx firebase deploy --only firestore:rules --project portal-ciop
+```

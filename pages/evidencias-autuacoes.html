@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<title>Evidências de Autuações | Portal CIOP</title>
+<style>
+:root{
+  --blue:#06245c;--blue2:#0b3a8a;--orange:#ff6b00;
+  --jewel-1:#7a5cff;--jewel-2:#c04fd6;
+  --jewel-shadow:0 10px 26px -8px rgba(122,92,255,.65);
+  --glass-bg:rgba(255,255,255,.62);
+  --glass-bg-strong:rgba(255,255,255,.82);
+  --glass-border:rgba(30,20,70,.10);
+  --glass-blur:blur(22px) saturate(190%);
+  --glass-shadow:0 16px 34px -16px rgba(40,25,90,.22), inset 0 1px 0 rgba(255,255,255,.75);
+  --ink:#18182a;--ink-faint:rgba(24,24,42,.52);
+  --field-bg:#fff;--muted:#3f4757;--red:#dc2626;--green:#15803d;
+  --sheet-line:#1a1a1a;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;min-height:100vh;display:flex;flex-direction:column;
+  font-family:Arial,Helvetica,sans-serif;color:var(--ink);
+  background:#f2effa;
+}
+.body-bg-wall,.body-bg-stain{pointer-events:none}
+.header{
+  display:grid;grid-template-columns:minmax(140px,1fr) auto minmax(220px,1fr);
+  gap:10px;align-items:center;padding:8px 16px;flex:0 0 auto;
+  background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  border-bottom:1px solid var(--glass-border);z-index:30;box-shadow:var(--glass-shadow);
+}
+.logo-tcgl{height:42px;object-fit:contain}
+.title-wrap{justify-self:center;text-align:center}
+.page-kicker{margin:0;color:var(--orange);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.page-title{margin:0;font-size:20px;font-weight:900;color:var(--blue)}
+.header-actions{justify-self:end;display:flex;align-items:center;gap:8px}
+.ciop-session{
+  /* glass: portal-session.css */
+}
+/* session user styles: portal-session.css?v=20260720y */
+/* session profile styles: portal-session.css?v=20260720y */
+.btn-logout{border:0;border-radius:999px;background:var(--red);color:#fff;padding:4px 9px;font-weight:700;cursor:pointer;font-size:11px}
+
+.workspace{
+  flex:1;min-height:0;display:grid;grid-template-columns:280px minmax(0,1fr);
+  gap:12px;padding:10px 12px;width:100%;
+}
+.panel{
+  background:var(--glass-bg);backdrop-filter:blur(18px) saturate(190%);
+  -webkit-backdrop-filter:blur(18px) saturate(190%);
+  border:1px solid rgba(255,255,255,.55);border-radius:16px;box-shadow:var(--glass-shadow);
+  min-height:0;display:flex;flex-direction:column;overflow:hidden;
+}
+[hidden]{display:none!important}
+.side{min-width:0}
+.side-head,.editor-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.35);flex:0 0 auto;
+}
+.side-head h2,.editor-toolbar h2{margin:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue)}
+.btn,.btn-portal{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:10px;
+  padding:8px 12px;font-weight:800;cursor:pointer;font-size:12px;text-decoration:none;font-family:inherit;
+}
+.btn-portal,.btn-primary{background:linear-gradient(135deg,var(--jewel-1),var(--jewel-2));color:#fff;box-shadow:var(--jewel-shadow)}
+.btn-secondary{background:var(--glass-bg-strong);color:var(--ink);border:1px solid var(--glass-border)}
+.btn-accent{background:linear-gradient(135deg,#ff6b00,#ff8a33);color:#fff}
+.btn-danger{background:rgba(254,226,226,.95);color:#991b1b}
+.btn-ghost{background:transparent;border:1px solid var(--glass-border);color:var(--ink)}
+.btn-sm{padding:6px 10px;font-size:11px}
+.status-line{font-size:11px;font-weight:700;color:var(--ink-faint)}
+.status-line.is-error{color:var(--red)}
+.drop{
+  margin:10px;border:1.5px dashed rgba(122,92,255,.35);border-radius:12px;padding:12px;text-align:center;
+  background:rgba(255,255,255,.35);cursor:pointer;flex:0 0 auto;
+}
+.drop:hover,.drop.is-drag{border-color:var(--jewel-1);background:rgba(122,92,255,.1)}
+.drop strong{display:block;color:var(--blue);font-size:12px}
+.drop span{display:block;margin-top:4px;color:var(--ink-faint);font-size:10px;font-weight:600;line-height:1.35}
+.list-tools{padding:0 10px 8px;flex:0 0 auto}
+.list-tools input{
+  width:100%;border:1px solid var(--glass-border);border-radius:10px;padding:8px 10px;font:inherit;font-size:12px;background:#fff;
+}
+.lista{padding:0 8px 10px;overflow:auto;flex:1;min-height:0}
+.list-empty{padding:16px 8px;text-align:center;color:var(--ink-faint);font-size:12px;font-weight:700}
+.auto-item{
+  width:100%;text-align:left;border:1px solid transparent;background:rgba(255,255,255,.5);border-radius:10px;
+  padding:8px 10px;margin-bottom:6px;cursor:pointer;font:inherit;
+}
+.auto-item.is-active{border-color:rgba(122,92,255,.45);background:rgba(255,255,255,.85)}
+.auto-item-top{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.auto-item-top strong{font-size:14px;color:var(--blue)}
+.pill{font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;background:rgba(122,92,255,.12);color:var(--jewel-1)}
+.status-pronto .pill,.status-finalizado .pill{background:rgba(21,128,61,.15);color:var(--green)}
+.status-evidenciado .pill{background:rgba(255,107,0,.15);color:#9a3412}
+.auto-item-meta,.auto-item-sub{font-size:10px;color:var(--ink-faint);margin-top:2px;font-weight:600}
+
+.editor{min-width:0}
+.editor-scroll{
+  flex:1;min-height:0;overflow:auto;padding:10px 12px 14px;
+  display:flex;flex-direction:column;align-items:stretch;
+}
+.editor-empty{
+  flex:1;display:grid;place-items:center;
+  color:var(--ink-faint);font-weight:700;text-align:center;padding:24px;
+  line-height:1.5;
+}
+#editorPanel{
+  flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;
+}
+.actions-bar{
+  display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.45);
+  background:rgba(255,255,255,.35);flex:0 0 auto;justify-content:flex-start;align-items:center;
+}
+
+/* ===== Ficha A4 estilo Excel ===== */
+.sheet-a4{
+  width:min(920px,100%);
+  margin:0 auto;
+  background:#fff;
+  border:1px solid #c9d0dc;
+  box-shadow:0 12px 28px rgba(20,20,40,.14);
+  color:#111;
+  flex:0 0 auto;
+}
+.sheet-brand{
+  display:grid;grid-template-columns:72px 1fr 72px;gap:10px;align-items:center;
+  padding:10px 14px;border-bottom:1px solid #ddd;
+}
+.sheet-brand img{height:42px;width:100%;object-fit:contain;justify-self:center}
+.sheet-org{
+  text-align:center;font-weight:800;color:var(--blue);font-size:12px;letter-spacing:.02em;
+  text-transform:uppercase;line-height:1.25;
+}
+
+/* CAPA DO AUTO — igual Excel: título | número (sempre lado a lado) */
+.sheet-capa{
+  display:grid;
+  grid-template-columns:minmax(160px,26%) minmax(0,1fr);
+  border-bottom:2px solid var(--sheet-line);
+  min-height:52px;
+}
+.sheet-capa-title{
+  display:flex;align-items:center;justify-content:center;
+  border-right:2px solid var(--sheet-line);
+  background:#f7f8fa;
+  padding:8px 10px;
+  font-size:clamp(13px,1.6vw,18px);font-weight:900;letter-spacing:.04em;color:#0b1b3f;
+  text-transform:uppercase;
+}
+.sheet-capa-numero{
+  display:flex;align-items:center;padding:8px 12px;background:#fff;min-width:0;
+}
+.sheet-capa-numero input{
+  width:100%;border:0;outline:0;background:transparent;
+  font-size:clamp(12px,1.5vw,17px);font-weight:800;color:#06245c;
+  letter-spacing:.01em;font-family:Arial,Helvetica,sans-serif;
+}
+.sheet-capa-numero input::placeholder{color:#94a3b8;font-weight:700}
+
+/* Notificação (capa) + Auto lado a lado — como no Excel */
+.sheet-docs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0;
+  border-bottom:1px solid #ddd;
+  background:#f3f5f8;
+  align-items:stretch;
+}
+.sheet-docs-pane{
+  min-width:0;padding:8px;display:flex;flex-direction:column;gap:6px;
+  border-right:1px solid #d5deee;
+}
+.sheet-docs-pane:last-child{border-right:0}
+.sheet-docs-pane label{
+  font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.04em;
+}
+.sheet-docs-pane img{
+  width:100%;height:auto;max-height:360px;object-fit:contain;
+  background:#fff;border:1px solid #c9d0dc;
+}
+.sheet-docs-empty{
+  flex:1;min-height:200px;display:grid;place-items:center;
+  border:1.5px dashed #c9d4e5;background:#fff;color:#94a3b8;
+  font-size:12px;font-weight:700;text-align:center;padding:12px;
+}
+
+.sheet-gallery-wrap{padding:10px 12px;border-bottom:1px solid #ddd}
+.drop-images{
+  border:1.5px dashed rgba(6,36,92,.28);border-radius:4px;padding:12px;text-align:center;cursor:pointer;
+  background:#fafbfe;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.drop-images strong{color:var(--blue);font-size:13px}
+.drop-images span{margin-top:4px;font-size:11px;color:var(--muted);font-weight:600}
+.image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px}
+.img-card{position:relative;border:1px solid #d5deee;overflow:hidden;background:#f8fafc}
+.img-card img{display:block;width:100%;height:150px;object-fit:contain;background:#fff}
+.img-remove{
+  position:absolute;top:4px;right:4px;border:0;width:24px;height:24px;border-radius:50%;
+  background:rgba(220,38,38,.92);color:#fff;font-weight:900;cursor:pointer;
+}
+.img-label{display:block;padding:4px 6px;font-size:10px;font-weight:700;color:var(--muted);border-top:1px solid #eee}
+
+.sheet-body{padding:12px 14px 14px}
+.texts{display:grid;gap:6px;margin-bottom:10px}
+.texts textarea{
+  width:100%;border:1px solid #d5deee;border-radius:2px;padding:8px 10px;font:inherit;font-size:13px;
+  min-height:48px;resize:vertical;background:#fff;
+}
+.fields-excel{display:grid;gap:8px}
+.row-excel{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;align-items:end}
+.field{min-width:0}
+.field label{display:block;font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:3px}
+.field input{
+  width:100%;border:1px solid #d5deee;border-radius:2px;padding:8px 9px;font:inherit;font-size:13px;background:#fff;
+}
+.field.span-2{grid-column:span 2}
+.field.span-3{grid-column:span 3}
+.field.span-4{grid-column:span 4}
+.obs-row{margin-top:10px}
+
+.modal{position:fixed;inset:0;background:rgba(24,24,42,.5);display:grid;place-items:center;padding:16px;z-index:50;backdrop-filter:blur(6px)}
+.modal[hidden]{display:none!important}
+.modal-card{
+  width:min(980px,100%);max-height:94vh;overflow:auto;background:rgba(255,255,255,.92);
+  border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.65);box-shadow:var(--glass-shadow);
+}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
+
+/* Preview / print sheet structure */
+.preview-sheet .sheet-a4{width:100%;box-shadow:none}
+.preview-sheet .sheet-capa{min-height:52px}
+.preview-sheet .sheet-capa-title{font-size:16px}
+.preview-sheet .sheet-capa-numero-text{
+  font-size:16px;font-weight:800;color:#06245c;width:100%;
+}
+.preview-sheet .sheet-gallery{
+  min-height:200px;border:1px dashed #c9d4e5;padding:8px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:10px 12px;
+}
+.preview-sheet .sheet-gallery img{width:100%;border:1px solid #dfe5ef}
+.preview-sheet .sheet-text{padding:0 14px}
+.preview-sheet .sheet-text p{margin:0 0 8px;font-size:13px;line-height:1.45}
+.preview-sheet .sheet-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 14px 14px;
+}
+.preview-sheet .sheet-grid div{border:1px solid #dfe5ef;padding:6px 8px}
+.preview-sheet .sheet-grid .span-2{grid-column:span 2}
+.preview-sheet .sheet-grid span{display:block;font-size:10px;color:#667085;font-weight:700;text-transform:uppercase}
+.preview-sheet .sheet-obs{padding:0 14px 16px;font-size:12px;font-weight:700}
+.preview-sheet .sheet-docs{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #ddd;background:#f3f5f8}
+.preview-sheet .sheet-docs-pane{padding:8px;border-right:1px solid #d5deee}
+.preview-sheet .sheet-docs-pane:last-child{border-right:0}
+.preview-sheet .sheet-docs-pane label{display:block;font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:4px}
+.preview-sheet .sheet-docs-pane img{width:100%;border:1px solid #c9d0dc;background:#fff}
+
+footer.portal-site-footer{
+  flex:0 0 auto;background:var(--glass-bg);backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.5);padding:10px 18px;
+}
+footer.portal-site-footer .footer-inner{text-align:center}
+footer.portal-site-footer .footer-text{color:#3f4757;font-size:11px}
+
+@media (min-width:721px){
+  body{background:transparent !important}
+  .body-bg-wall{
+    display:block;position:fixed;inset:0;z-index:-3;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;background-position:center;
+  }
+  .body-bg-stain{
+    display:block;position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+}
+@media (max-width:1100px){
+  .workspace{grid-template-columns:1fr}
+  .side{max-height:40vh}
+  .row-excel{grid-template-columns:1fr 1fr}
+  .field.span-2,.field.span-3,.field.span-4{grid-column:span 1}
+  .header{grid-template-columns:1fr;text-align:center}
+  .header-actions{justify-self:center}
+  .sheet-docs-pane img{max-height:240px}
+  .sheet-docs-empty{min-height:160px}
+}
+</style>
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-footer.css?v=20260720y">
+
+
+<script src="../assets/js/loading.js?v=20260718d"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
+</head>
+<body data-require-usuarios="odair.marin@icloud.com" data-require-somente-usuarios="true">
+<style>
+/* Evidências: sem painel/botão de alterar senha nesta página */
+#senhaPanel,
+.password-panel,
+.btn-senha-portal,
+[data-portal-senha-btn]{display:none!important}
+</style>
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
+
+<header class="header">
+  <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações">
+    <img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP">
+    <span class="portal-brand-meta">TCGL · Operações</span>
+  </a>
+  <div class="title-wrap">
+    <p class="page-kicker">CMTU · CIOP</p>
+    <h1 class="page-title">Evidências de Autuações</h1>
+  </div>
+  <div class="header-actions">
+    <div class="ciop-session" aria-label="Sessão do usuário">
+    <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+    <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+</div>
+    <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener">
+      <img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL">
+    </a>
+  </div>
+</header>
+
+<div class="workspace">
+  <aside class="panel side">
+    <div class="side-head">
+      <h2>Lote / Autos</h2>
+      <div style="display:flex;gap:6px;align-items:center">
+        <a class="btn btn-secondary btn-sm" href="../index.html">Portal</a>
+        <button class="btn btn-secondary btn-sm" type="button" id="btnNovo">+ Novo</button>
+      </div>
+    </div>
+    <div class="drop" id="dropImport" role="button" tabindex="0">
+      <strong>PDF notificação CMTU</strong>
+      <span>Replicação automática dos autos<br>ou PDF: Data - Motivo - Carro - Linha - Mot</span>
+      <input id="fileImport" type="file" accept=".pdf,image/*" multiple hidden>
+    </div>
+    <div class="list-tools">
+      <input id="buscaLista" type="search" placeholder="Buscar carro, auto, motivo...">
+    </div>
+    <div class="lista" id="listaAutos"></div>
+    <div style="padding:8px 12px;border-top:1px solid rgba(255,255,255,.4)">
+      <div class="status-line" id="statusLine">Carregando...</div>
+      <div style="display:flex;gap:10px;margin-top:6px;font-size:11px;font-weight:800;color:var(--blue)">
+        <span>Total <b id="kpiTotal">0</b></span>
+        <span>Prontos <b id="kpiProntos">0</b></span>
+        <span>Rasc. <b id="kpiRascunhos">0</b></span>
+      </div>
+    </div>
+  </aside>
+
+  <section class="panel editor">
+    <div class="editor-toolbar">
+      <h2 id="sheetTitle">Ficha de evidência</h2>
+      <span class="status-line">Layout Excel · capa + auto lado a lado</span>
+    </div>
+
+    <div class="editor-scroll">
+      <div id="editorEmpty" class="editor-empty">
+        Importe a notificação CMTU para montar as fichas.<br>
+        Cada ficha terá a capa com o número do auto (ex.: 31841/2026-M0000056 - 1666-24- ART.089.01/10).
+      </div>
+
+      <div id="editorPanel" hidden>
+        <article class="sheet-a4">
+          <!-- Cabeçalho institucional -->
+          <div class="sheet-brand">
+            <img src="../assets/img/CIOP Sem Fundo.png" alt="CIOP">
+            <div class="sheet-org">Centro de Inteligência Operacional de Londrina - PR</div>
+            <img src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL">
+          </div>
+
+          <!-- CAPA: título | número (sempre lado a lado, como Excel A32|E32) -->
+          <div class="sheet-capa" aria-label="Capa do auto">
+            <div class="sheet-capa-title">Auto de Infração</div>
+            <div class="sheet-capa-numero">
+              <input
+                id="fAutoNumero"
+                placeholder="31841/2026-M0000056 - 1666-24- ART.089.01/10"
+                autocomplete="off"
+              >
+            </div>
+          </div>
+
+          <!-- Notificação (capa) + Auto CMTU lado a lado -->
+          <div class="sheet-docs" id="sheetDocs" aria-label="Capa e auto lado a lado">
+            <div class="sheet-docs-pane">
+              <label>Capa / Notificação</label>
+              <div id="paneNotif" class="sheet-docs-empty">Importe o PDF da CMTU para ver a capa</div>
+            </div>
+            <div class="sheet-docs-pane">
+              <label>Auto</label>
+              <div id="paneAuto" class="sheet-docs-empty">Página do auto</div>
+            </div>
+          </div>
+
+          <!-- Área de evidências (imagens) -->
+          <div class="sheet-gallery-wrap">
+            <div class="drop-images" id="dropImages">
+              <strong>Área de evidências (imagens)</strong>
+              <span>Solte aqui prints do CAD / GPS / tabelas deste auto</span>
+              <input id="fileImages" type="file" accept="image/*" multiple hidden>
+            </div>
+            <div class="image-grid" id="imageGrid"></div>
+          </div>
+
+          <div class="sheet-body">
+            <div class="texts">
+              <textarea id="fTexto1" placeholder="Texto 1 — narrativa operacional (CAD / partida / atraso...)"></textarea>
+              <textarea id="fTexto2" placeholder="Texto 2 — horário de tabela CMTU / contexto"></textarea>
+              <textarea id="fTexto3" placeholder="Texto 3 — complemento / baldeação / justificativa"></textarea>
+            </div>
+
+            <div class="fields-excel">
+              <div class="row-excel">
+                <div class="field"><label>Carro</label><input id="fCarro" list="listaCarros" placeholder="3109" autocomplete="off"></div>
+                <div class="field span-2"><label>Placa</label><input id="fPlaca" placeholder="TAX 2F56"></div>
+                <div class="field"><label>Data</label><input id="fData" placeholder="05/05/2026"></div>
+                <div class="field span-2"><label>Horário</label><input id="fHorario" placeholder="13:49"></div>
+                <div class="field span-2"><label>Motivo</label><input id="fMotivo" placeholder="Atraso / Supressão..."></div>
+              </div>
+              <div class="row-excel">
+                <div class="field"><label>Linha</label><input id="fLinha" placeholder="112"></div>
+                <div class="field span-3"><label>Local</label><input id="fLocal" placeholder="Terminal / ponto"></div>
+                <div class="field"><label>Matrícula</label><input id="fMatricula" list="listaFuncionarios" placeholder="10701" autocomplete="off"></div>
+                <div class="field span-3"><label>Motorista</label><input id="fMotorista" placeholder="Nome completo"></div>
+              </div>
+            </div>
+            <datalist id="listaCarros"></datalist>
+            <datalist id="listaFuncionarios"></datalist>
+
+            <div class="obs-row field">
+              <label>Observação</label>
+              <input id="fObs">
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="actions-bar" id="actionsBar" hidden>
+      <button class="btn btn-primary" type="button" id="btnSalvar">Salvar</button>
+      <button class="btn btn-accent" type="button" id="btnPreview">Ver ficha</button>
+      <button class="btn btn-secondary" type="button" id="btnPrint">Imprimir / PDF</button>
+      <button class="btn btn-ghost" type="button" id="btnFinalizar">Finalizar</button>
+      <button class="btn btn-danger" type="button" id="btnExcluir">Excluir</button>
+    </div>
+  </section>
+</div>
+
+<footer class="portal-site-footer">
+  <div class="footer-inner"><div class="footer-text">Portal CIOP · Evidências de Autuações · acesso exclusivo</div></div>
+</footer>
+
+<div class="modal" id="previewModal" hidden>
+  <div class="modal-card">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" type="button" id="btnPrintPreview">Imprimir / PDF</button>
+      <button class="btn btn-primary" type="button" id="btnClosePreview">Fechar</button>
+    </div>
+    <div class="preview-sheet" id="previewBody"></div>
+  </div>
+</div>
+
+<script src="../assets/js/veiculos-placa-data.js?v=20260717e"></script>
+<script type="module" src="../assets/js/evidencias-autuacoes.js?v=20260717e"></script>
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
+<script src="../assets/js/portal-futuristic.js?v=20260718am" defer></script>
+</body>
+</html>

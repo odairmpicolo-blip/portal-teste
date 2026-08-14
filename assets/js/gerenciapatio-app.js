@@ -282,7 +282,11 @@
   }
 
   function classeBadgeOrdemSaida(ordemSaida) {
-    return ordemSaida === "1º" || ordemSaida === "LIVRE" ? "livre" : "seq";
+    if (ordemSaida === "1º" || ordemSaida === "LIVRE") return "livre";
+    if (ordemSaida === "2º") return "ordem-2";
+    if (ordemSaida === "3º") return "ordem-3";
+    if (ordemSaida === "4º") return "ordem-4";
+    return "seq";
   }
 
   function rotuloOrdemSaidaFila(filaKey, filaCfg) {
@@ -1017,6 +1021,24 @@
       });
     });
 
+    tabela.querySelectorAll(".gab-lista-input").forEach((input) => {
+      input.addEventListener("input", () => {
+        normalizarPrefixoInput(input);
+        limparFeedbackLancamento();
+      });
+      input.addEventListener("focus", () => {
+        definirFilaSelecionada(input.dataset.fila);
+        input.select();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const prefixo = normalizarPrefixoInput(input);
+        definirFilaSelecionada(input.dataset.fila);
+        lancarPrefixoEmFila(prefixo, input.dataset.fila, input);
+      });
+    });
+
     function tdClassAdd(inp) {
       inp.closest(".gab-td--vaga")?.classList.add("gab-td--ativa");
     }
@@ -1408,6 +1430,22 @@
     titulo.textContent = cel.text || FILA_MAP[filaKey]?.label || filaKey;
     wrap.appendChild(titulo);
 
+    const lancamento = document.createElement("div");
+    lancamento.className = "gab-td-lista-lancamento";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "gab-lista-input";
+    input.inputMode = "numeric";
+    input.pattern = "[0-9]*";
+    input.maxLength = 6;
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input.placeholder = "Prefixo";
+    input.dataset.fila = filaKey;
+    input.setAttribute("aria-label", `Lançar veículo em ${obterNomeFila(filaKey)}`);
+    lancamento.appendChild(input);
+    wrap.appendChild(lancamento);
+
     const lista = document.createElement("div");
     lista.className = "gab-td-lista-carros";
     const carros = (patio.filas[filaKey] || []).filter((p) => p != null && String(p).trim());
@@ -1418,6 +1456,15 @@
     }
     wrap.appendChild(lista);
     return wrap;
+  }
+
+  function ehLinhaLegendaInternaGabarito(linha) {
+    const textos = (linha.celulas || [])
+      .map((cel) => String(cel.text || "").trim().toUpperCase())
+      .filter(Boolean);
+    if (!textos.length) return false;
+    const legendas = new Set(["LIVRE", "1º", "2º", "3º", "4º"]);
+    return textos.every((txt) => legendas.has(txt));
   }
 
   function renderizarGabaritoCompleto() {
@@ -1444,21 +1491,29 @@
     tabela.setAttribute("role", "grid");
     tabela.setAttribute("aria-label", "Gabarito da garagem TCGL");
 
+    const linhasVisiveis = grade.linhas.filter((linha) => !ehLinhaLegendaInternaGabarito(linha));
+    const totalRowH = linhasVisiveis.reduce((s, l) => s + (l.h || 30), 0) || 1;
     const colgroup = document.createElement("colgroup");
     const colWidths = grade.colWidths || [];
     const totalColW = colWidths.reduce((s, w) => s + w, 0) || 1;
+    const layoutRetrato = (grade.cols || colWidths.length) <= 20 && linhasVisiveis.length >= 40;
+    const larguraTabela = layoutRetrato
+      ? Math.max(totalColW, 840)
+      : Math.max(totalColW, 1480);
+    tabela.classList.toggle("gab-tabela-excel--retrato", layoutRetrato);
+    tabela.style.width = `${larguraTabela}px`;
+    tabela.style.minWidth = `${larguraTabela}px`;
+    tabela.style.height = `${totalRowH}px`;
     colWidths.forEach((w) => {
       const col = document.createElement("col");
-      col.style.width = `${((w / totalColW) * 100).toFixed(4)}%`;
+      col.style.width = `${w}px`;
       colgroup.appendChild(col);
     });
     tabela.appendChild(colgroup);
 
-    const totalRowH = grade.linhas.reduce((s, l) => s + (l.h || 30), 0) || 1;
-
-    grade.linhas.forEach((linha) => {
+    linhasVisiveis.forEach((linha) => {
       const tr = document.createElement("tr");
-      tr.style.height = `${((linha.h / totalRowH) * 100).toFixed(4)}%`;
+      tr.style.height = `${linha.h || 30}px`;
       tr.dataset.gabRow = String(linha.r);
 
       linha.celulas.forEach((cel) => {
@@ -1728,6 +1783,11 @@
     const prefixo = normalizarPrefixoInput(input);
     const filaKey = select?.value;
 
+    lancarPrefixoEmFila(prefixo, filaKey, input);
+  }
+
+  function lancarPrefixoEmFila(prefixo, filaKey, input) {
+    if (lancamentoEmAndamento) return false;
     limparFeedbackLancamento();
 
     if (!prefixo) {
@@ -1767,6 +1827,7 @@
     }
 
     aplicarAlocacao(prefixo, filaKey, input);
+    return true;
   }
 
   function togglePedido(prefixo) {

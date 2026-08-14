@@ -27,6 +27,8 @@ const LIBERACAO_URL = process.env.LIBERACAO_API_URL
   || process.env.FOLHA_SERVICO_API_URL
   || "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
 const DIAS_JANELA = Number(process.env.LIBERACAO_DIAS_JANELA || 7);
+/** Sync frequente liberacao-hoje: 2 dias antes + hoje. */
+const DIAS_LIBERACAO_HOJE = Number(process.env.LIBERACAO_DIAS_HOJE || 3);
 const TIMEOUT_MS = Number(process.env.PORTAL_JSON_TIMEOUT_MS || 180000);
 
 const JOBS = [
@@ -187,26 +189,44 @@ async function importLiberacaoApi(pool) {
   const entradas = [];
   for (const dataIso of dias) {
     console.log(`  API liberação ${dataIso}...`);
-    const linhas = await buscarLiberacaoDiaApi(dataIso);
-    for (const row of linhas) entradas.push({ dataIso, row });
+    try {
+      const linhas = await buscarLiberacaoDiaApi(dataIso);
+      for (const row of linhas) entradas.push({ dataIso, row });
+    } catch (err) {
+      console.warn(`  [liberacao-api] Falha ao buscar ${dataIso} na API (${err.message}). Pulando dia.`);
+    }
   }
   const n = await gravarLiberacaoLinhas(pool, entradas);
   console.log(`[liberacao-api] ${n} linhas (API planilha → DSQL)`);
 }
 
 async function importLiberacaoHoje(pool) {
-  const hoje = isoDataLocal(0);
-  const dir = path.join(portalRoot, "assets", "data", "liberacao");
-  const file = path.join(dir, `acompanhamento-dia-${hoje}.json`);
-  let pack = readJson(file);
-  if (!pack?.dados?.length) {
-    console.log(`  Buscando API liberação hoje (${hoje})...`);
-    const linhas = await buscarLiberacaoDiaApi(hoje);
-    pack = { dados: linhas };
+  const dias = [];
+  for (let i = DIAS_LIBERACAO_HOJE; i >= 0; i--) {
+    dias.push(isoDataLocal(-i));
   }
-  const entradas = (pack.dados || []).map((row) => ({ dataIso: hoje, row }));
+  dias.push(isoDataLocal(1)); // amanhã
+  const dir = path.join(portalRoot, "assets", "data", "liberacao");
+  const entradas = [];
+  for (const dataIso of dias) {
+    const file = path.join(dir, `acompanhamento-dia-${dataIso}.json`);
+    let pack = readJson(file);
+    if (!pack?.dados?.length) {
+      console.log(`  Buscando API liberação ${dataIso}...`);
+      try {
+        const linhas = await buscarLiberacaoDiaApi(dataIso);
+        pack = { dados: linhas };
+      } catch (err) {
+        console.warn(`  [liberacao-hoje] Falha ao buscar ${dataIso} na API (${err.message}). Pulando dia.`);
+        pack = { dados: [] };
+      }
+    }
+    for (const row of pack.dados || []) {
+      entradas.push({ dataIso, row });
+    }
+  }
   const n = await gravarLiberacaoLinhas(pool, entradas);
-  console.log(`[liberacao-hoje] ${n} linhas (${hoje})`);
+  console.log(`[liberacao-hoje] ${n} linhas (${dias[0]} a ${dias[dias.length - 1]})`);
 }
 
 async function main() {

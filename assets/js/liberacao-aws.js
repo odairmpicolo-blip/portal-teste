@@ -1,5 +1,5 @@
 /**
- * Liberação via Aurora DSQL (API AWS) — leitura e salvamento na planilha pelo servidor.
+ * Liberação via Aurora DSQL (API AWS) — leitura rápida e sync planilha no servidor.
  */
 import {
   awsFetch,
@@ -43,6 +43,25 @@ export async function salvarLinhaPlanilhaAws(payload) {
   return awsFetch("/liberacao/planilha-linha", {
     method: "POST",
     body: payload,
+    ...headers
+  });
+}
+
+export async function importarPlanilhaLiberacaoAws(dataIso) {
+  const headers = await authHeaders();
+  const qs = new URLSearchParams({ data: dataIso });
+  return awsFetch(`/liberacao/import-planilha?${qs}`, {
+    method: "POST",
+    body: {},
+    ...headers
+  });
+}
+
+export async function syncDiaLiberacaoAws(dataIso) {
+  const headers = await authHeaders();
+  return awsFetch(`/liberacao/sync-dia/${encodeURIComponent(dataIso)}`, {
+    method: "POST",
+    body: {},
     ...headers
   });
 }

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Portal CIOP — sync incidentes TCGL desativado no portal-teste
+Description: Portal CIOP - sync incidentes TCGL -> S3 cache -> Aurora DSQL (sa-east-1). De hora em hora, 05h-01h (Brasilia).
 
 Parameters:
   DsqlClusterId:
@@ -8,10 +8,6 @@ Parameters:
   IncidentesSecretName:
     Type: String
     Default: portal-ciop/incidentes-sync
-  ScheduleExpression:
-    Type: String
-    Default: cron(0 9 * * ? *)
-    Description: "Desativado no portal-teste. Use o portalCIOP."
 
 Resources:
   IncidentesStateBucket:
@@ -63,7 +59,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: portal-ciop-incidentes-sync
-      Description: Desativado no portal-teste. Use o portalCIOP
+      Description: Busca incidentes TCGL e importa no Aurora DSQL
       Runtime: nodejs20.x
       Handler: index.handler
       Role: !GetAtt IncidentesSyncRole.Arn
@@ -85,25 +81,26 @@ Resources:
           CIOP_INCIDENTES_DATA_MIN: "2026-01-01"
       Code:
         ZipFile: |
-          export const handler = async () => ({ ok: false, disabled: true, repository: "portal-teste", message: "Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP." });
+          export const handler = async () => ({ ok: false, error: "Deploy o pacote com scripts/build-incidentes-lambda.sh" });
 
-  IncidentesSchedule:
+  # EventBridge cron em UTC (Brasilia = UTC-3): de hora em hora, 05h-01h Brasilia -> 08h-23h e 00h-04h UTC
+  IncidentesScheduleHoraria:
     Type: AWS::Events::Rule
     Properties:
-      Description: Desativado no portal-teste. Use o portalCIOP
-      ScheduleExpression: !Ref ScheduleExpression
-      State: DISABLED
+      Description: Sync incidentes TCGL -> DSQL - de hora em hora, 05:00-01:00 Brasilia
+      ScheduleExpression: cron(0 0-4,8-23 * * ? *)
+      State: ENABLED
       Targets:
         - Arn: !GetAtt IncidentesSyncFunction.Arn
-          Id: IncidentesSyncTarget
+          Id: IncidentesScheduleHoraria
 
-  IncidentesSchedulePermission:
+  IncidentesScheduleHorariaPermission:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !Ref IncidentesSyncFunction
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
-      SourceArn: !GetAtt IncidentesSchedule.Arn
+      SourceArn: !GetAtt IncidentesScheduleHoraria.Arn
 
 Outputs:
   FunctionName:
@@ -112,3 +109,5 @@ Outputs:
     Value: !Ref IncidentesStateBucket
   StateBucketArn:
     Value: !GetAtt IncidentesStateBucket.Arn
+  ScheduleBrasilia:
+    Value: "05:00-01:00, de hora em hora (21x/dia)"

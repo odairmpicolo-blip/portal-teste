@@ -5,9 +5,9 @@
 document.documentElement.classList.add("portal-auth-pending");
 </script>
 <style id="portalAuthBootStyle">
-.portal-auth-pending body > :not(#portalLoadingOverlay){
-    visibility:hidden!important;
+.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;
 }
+
 </style>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -23,7 +23,7 @@ document.documentElement.classList.add("portal-auth-pending");
     --bg: #f5f7fb;
     --border: #dfe5ef;
     --text: #101828;
-    --muted: #667085;
+    --muted:#3f4757;
     --green: #2e9b45;
     --yellow: #f6bf26;
     --red: #de1b1b;
@@ -160,13 +160,24 @@ h1 { margin: 0; text-align: center; color: #071f57; font-size: 22px; font-weight
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 12px;
+    width: 100%;
+    align-items: stretch;
 }
 .kpi-card {
     background: white;
     border-radius: 6px;
-    padding: 10px 14px;
+    padding: 12px 14px;
     border: 1px solid var(--border);
     box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    min-height: 86px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
 }
 .kpi-card.highlight {
     border-left: 4px solid var(--green);
@@ -176,13 +187,16 @@ h1 { margin: 0; text-align: center; color: #071f57; font-size: 22px; font-weight
     font-size: 11px;
     color: var(--muted);
     font-weight: 600;
-    margin-bottom: 2px;
+    margin-bottom: 0;
     text-transform: uppercase;
+    line-height: 1.25;
 }
 .kpi-value {
     font-size: 18px;
     font-weight: bold;
     color: var(--text);
+    line-height: 1.15;
+    word-break: break-word;
 }
 .kpi-card.highlight .kpi-value {
     color: var(--green);
@@ -201,11 +215,11 @@ h1 { margin: 0; text-align: center; color: #071f57; font-size: 22px; font-weight
 
 .chart-card {
     background: white;
-    border-radius: 6px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 16px;
     border: 1px solid var(--border);
-    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-    height: 320px;
+    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.08);
+    height: 380px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -335,42 +349,10 @@ tr:hover {
 .btn-logout{background:#dc2626;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:bold;}
 
 
-.ciop-session{
-    position:static;
-    display:flex;
-    align-items:center;
-    gap:6px;
-    max-width:260px;
-    padding:4px 6px;
-    border:1px solid rgba(6,36,92,.12);
-    border-radius:6px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 2px 8px rgba(16,24,40,.08);
-    color:#06245c;
-    font-size:11px;
-    line-height:1;
-}
-.ciop-session-user{
-    max-width:170px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    font-weight:700;
-}
-.ciop-session-profile{
-    color:#667085;
-    font-weight:600;
-}
-.ciop-session .btn-logout{
-    background:#dc2626;
-    color:#fff;
-    border:none;
-    border-radius:5px;
-    padding:4px 7px;
-    font-size:11px;
-    font-weight:700;
-    cursor:pointer;
-}
+/* session container: portal-session.css?v=20260720y */
+/* session user styles: portal-session.css?v=20260720y */
+/* session profile styles: portal-session.css?v=20260720y */
+/* session logout: portal-session.css?v=20260720y */
 .ciop-session .btn-logout:hover{
     background:#b91c1c;
 }
@@ -383,9 +365,7 @@ tr:hover {
     gap:10px;
     min-width:0;
 }
-.header-actions .ciop-session{
-    flex:0 1 auto;
-}
+.header-actions .ciop-session{flex:0 1 auto;}
 @media(max-width:900px){
     .header-actions{
         justify-self:center;
@@ -557,9 +537,7 @@ h1.pontualidade-title-art {
         justify-content: center;
         width: 100%;
     }
-    .ciop-session {
-        max-width: 220px;
-    }
+    /* session container: portal-session.css?v=20260720y */
     .kpi-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -578,8 +556,12 @@ h1.pontualidade-title-art {
 }
 @media(max-width:430px){
     .kpi-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px;
     }
+    .kpi-card { padding: 12px 10px; }
+    .kpi-title { font-size: 10px; }
+    .kpi-value { font-size: 16px; }
 }
 
 
@@ -920,24 +902,585 @@ h1 {
 }
 /* Fim ajuste Codex */
 
+
+@media (max-width: 768px) {
+  .header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,.92) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 6px 18px rgba(6,36,92,.08) !important;
+  }
+  .header, .content-body { padding-left: calc(14px + env(safe-area-inset-left)) !important; padding-right: calc(14px + env(safe-area-inset-right)) !important; }
+  .header { padding-top: calc(10px + env(safe-area-inset-top)) !important; }
+  body { background: linear-gradient(180deg, #f5f7fb 0%, #eef2f9 100%) !important; }
+  .kpi-card, .chart-card, .table-card {
+    border-radius: 16px !important;
+    box-shadow: 0 10px 26px rgba(6,36,92,.08) !important;
+  }
+  .kpi-card { position: relative; overflow: hidden; }
+  .kpi-card::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--blue2));
+    opacity: .9;
+  }
+  .chart-card { height: 260px !important; }
+  .btn-portal, .btn-pdf-pontualidade, .btn-modulo-link, .scenario-button { min-height: 44px !important; border-radius: 12px !important; }
+  .table-wrapper { -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 430px) {
+  .chart-card { height: 220px !important; }
+}
+@media (max-width: 700px) {
+  .sidebar.portal-filters-bar {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 10px 12px !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 26px rgba(6,36,92,.08) !important;
+    position: relative;
+    overflow: hidden;
+  }
+  .sidebar.portal-filters-bar::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--blue2));
+    opacity: .9;
+  }
+  .filter-group label { font-size: 11px !important; }
+  .filter-select { font-size: 14px !important; }
+  .table-wrapper table { font-size: 11px !important; }
+  .table-wrapper th, .table-wrapper td { padding: 8px 6px !important; }
+  body { -webkit-overflow-scrolling: touch; }
+}
+/* Fim modernizacao iPhone */
+/* ===== Redesign iOS26 Liquid Glass (mobile/app nativo) =====
+   Obs.: o cabeçalho (.header) e a tab bar são do shell React e ficam
+   escondidos/sobrepostos aqui — este bloco cuida só do conteúdo.
+   Suporta escuro (padrão) e claro (html.native-light), sincronizado
+   pelo próprio shell nativo. */
+@media (max-width:720px){
+  .body-bg-wall,
+  .body-bg-stain{
+    display:none !important;
+  }
+  :root{
+    --jewel-1:#7a5cff;
+    --jewel-2:#c04fd6;
+    --jewel-shadow:0 10px 26px -8px rgba(122,92,255,.65);
+
+    --glass-bg:rgba(255,255,255,.08);
+    --glass-bg-strong:rgba(255,255,255,.13);
+    --glass-border:rgba(255,255,255,.16);
+    --glass-blur:blur(30px) saturate(180%);
+    --glass-shadow:0 20px 40px -18px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.18);
+
+    --ink:#fff;
+    --ink-soft:rgba(255,255,255,.6);
+    --ink-faint:rgba(255,255,255,.48);
+    --field-bg:rgba(255,255,255,.07);
+    --row-div:rgba(255,255,255,.08);
+    --th-bg:rgba(255,255,255,.05);
+    --toggle-bg:rgba(255,255,255,.06);
+
+    --g-green:#4ade80;
+    --g-amber:#fbbf24;
+    --g-red:#f87171;
+    --g-blue:#60a5fa;
+  }
+
+  html.native-light{
+    --glass-bg:rgba(255,255,255,.6);
+    --glass-bg-strong:rgba(255,255,255,.8);
+    --glass-border:rgba(30,20,70,.10);
+    --glass-shadow:0 16px 34px -16px rgba(40,25,90,.22), inset 0 1px 0 rgba(255,255,255,.75);
+
+    --ink:#18182a;
+    --ink-soft:rgba(24,24,42,.62);
+    --ink-faint:rgba(24,24,42,.5);
+    --field-bg:rgba(255,255,255,.8);
+    --row-div:rgba(30,20,70,.08);
+    --th-bg:rgba(30,20,70,.045);
+    --toggle-bg:rgba(30,20,70,.05);
+
+    --g-green:#15803d;
+    --g-amber:#b45309;
+    --g-red:#dc2626;
+    --g-blue:#2563eb;
+  }
+
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.4) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.3) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.26) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #0d0e14 !important;
+    color:var(--ink) !important;
+  }
+  html.native-light body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.3) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.24) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.2) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.18) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #f2effa !important;
+  }
+
+  .header{display:none !important;}
+
+  .main-content,.content-body{background:transparent !important;}
+  .content-body{
+    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-left)) 24px calc(14px + env(safe-area-inset-right)) !important;
+    gap:16px !important;
+  }
+  /* Dentro do app nativo o cabeçalho fixo já reserva a área segura;
+     evita somar o safe-area-inset-top duas vezes (topo com vão enorme). */
+  html.native-embedded .content-body{
+    padding-top:14px !important;
+  }
+
+  /* ---- Barra de ações / seletor de cenário ---- */
+  .scenario-switch{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:14px !important;
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-left:1px solid var(--glass-border) !important;
+    border-radius:24px !important;
+    box-shadow:var(--glass-shadow) !important;
+    padding:18px !important;
+  }
+  .scenario-actions{
+    display:flex !important;
+    gap:10px !important;
+    justify-self:auto !important;
+  }
+  .scenario-actions .btn-portal{flex:1 !important;}
+  .btn-portal{
+    background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;
+    border:1px solid color-mix(in srgb, var(--jewel-1) 40%, transparent) !important;
+    color:#fff !important;
+    box-shadow:var(--jewel-shadow) !important;
+    border-radius:16px !important;
+    min-height:46px !important;
+  }
+  .btn-pdf-pontualidade,
+  .btn-modulo-link{
+    flex:1 !important;
+    background:var(--glass-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    color:var(--ink) !important;
+    box-shadow:none !important;
+    border-radius:16px !important;
+    min-height:46px !important;
+  }
+  .btn-pdf-pontualidade:hover:not(:disabled),
+  .btn-modulo-link:hover{
+    background:var(--glass-bg-strong) !important;
+  }
+  .pdf-status{color:var(--ink-soft) !important;font-size:14px !important;}
+  .btn-portal,.btn-pdf-pontualidade,.btn-modulo-link{font-size:16px !important;font-weight:800 !important;}
+
+  .scenario-label{
+    justify-self:auto !important;
+    color:var(--ink-soft) !important;
+    font-size:13.5px !important;
+    font-weight:800 !important;
+    text-transform:uppercase !important;
+    letter-spacing:.06em !important;
+  }
+  .scenario-toggle{
+    justify-self:auto !important;
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    background:var(--toggle-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:18px !important;
+    grid-template-columns:1fr 1fr !important;
+  }
+  .scenario-button{
+    background:transparent !important;
+    color:var(--ink-soft) !important;
+    border:1px solid transparent !important;
+    border-radius:14px !important;
+    min-height:52px !important;
+  }
+  .scenario-title{font-size:17px !important;}
+  .scenario-desc{font-size:13.5px !important;}
+  .scenario-button:hover{
+    color:var(--ink) !important;
+    border-color:color-mix(in srgb, var(--jewel-1) 40%, transparent) !important;
+  }
+  .scenario-button.active,
+  .scenario-button.active:hover{
+    background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;
+    border:1px solid color-mix(in srgb, var(--jewel-1) 40%, transparent) !important;
+    color:#fff !important;
+    box-shadow:var(--jewel-shadow) !important;
+  }
+  .scenario-button.active .scenario-title,
+  .scenario-button.active .scenario-desc{color:#fff !important;}
+
+  /* ---- KPIs ---- */
+  .kpi-container{
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    gap:14px !important;
+  }
+  .kpi-card{
+    position:relative;
+    overflow:hidden;
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-left:0 !important;
+    border-top:3px solid color-mix(in srgb, var(--jewel-1) 70%, transparent) !important;
+    border-radius:22px !important;
+    box-shadow:var(--glass-shadow) !important;
+    padding:20px 14px !important;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:8px;
+    min-height:108px;
+  }
+  .kpi-title{
+    color:var(--ink-soft) !important;
+    font-size:14px !important;
+    font-weight:700 !important;
+    letter-spacing:.02em;
+  }
+  .kpi-value{color:var(--ink) !important;font-size:28px !important;font-weight:800 !important;}
+  .melhor-indice-data{order:2;font-size:14.5px !important;}
+  #melhorHorario{order:1;}
+
+  .kpi-card.highlight{
+    grid-column:1 / -1;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--jewel-1) 30%, transparent), color-mix(in srgb, var(--jewel-2) 14%, transparent) 60%, transparent),
+      var(--glass-bg) !important;
+    border-top:3px solid var(--jewel-1) !important;
+    padding:22px 18px !important;
+  }
+  .kpi-card.highlight .kpi-value{color:var(--ink) !important;font-size:46px !important;}
+  .kpi-card.highlight #melhorHorario{font-size:46px !important;}
+  #melhorData{color:var(--g-green) !important;font-weight:800;font-size:15.5px !important;}
+
+  .kpi-card.kpi-no-horario{border-top-color:var(--g-blue) !important;}
+  .kpi-card.kpi-no-horario .kpi-value{color:var(--g-blue) !important;}
+  .kpi-card[style*="--red"]{border-top-color:var(--g-red) !important;}
+  .kpi-card[style*="--yellow"]{border-top-color:var(--g-amber) !important;}
+  #kpiAdiantado{color:var(--g-red) !important;}
+  #kpiAtrasado{color:var(--g-amber) !important;}
+
+  /* ---- Filtros ---- */
+  .sidebar.portal-filters-bar{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:22px !important;
+    box-shadow:var(--glass-shadow) !important;
+    padding:16px !important;
+  }
+  .sidebar.portal-filters-bar::before{display:none !important;}
+  .filter-group label{
+    color:var(--ink-faint) !important;
+    font-size:13px !important;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-weight:700;
+  }
+  .filter-select{
+    background:var(--field-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:14px !important;
+    color:var(--ink) !important;
+    padding:12px 12px !important;
+    font-size:16px !important;
+    min-height:46px !important;
+  }
+
+  /* ---- Gráfico ---- */
+  .chart-card{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:26px !important;
+    box-shadow:var(--glass-shadow) !important;
+    padding:18px !important;
+    height:300px !important;
+  }
+  .chart-title{color:var(--ink) !important;font-size:16.5px !important;font-weight:800 !important;text-transform:uppercase;letter-spacing:.02em;}
+  .meta-badge{
+    background:color-mix(in srgb, var(--g-green) 20%, transparent) !important;
+    border:1px solid color-mix(in srgb, var(--g-green) 45%, transparent) !important;
+    color:var(--g-green) !important;
+    font-size:13.5px !important;
+  }
+
+  /* ---- Tabela ---- */
+  .table-card{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:26px !important;
+    box-shadow:var(--glass-shadow) !important;
+    overflow:hidden;
+  }
+  .table-wrapper{background:transparent !important;border:0 !important;}
+  .table-card-header{
+    color:var(--ink) !important;
+    background:transparent !important;
+    border-bottom:1px solid var(--glass-border) !important;
+    padding:16px 18px !important;
+    font-size:16.5px !important;
+    font-weight:800 !important;
+  }
+  th{
+    background:var(--th-bg) !important;
+    color:var(--ink-soft) !important;
+    border-bottom:1px solid var(--glass-border) !important;
+    padding:12px !important;
+    font-size:13.5px !important;
+    font-weight:700 !important;
+  }
+  td{
+    color:var(--ink) !important;
+    border-bottom:1px solid var(--row-div) !important;
+    padding:13px 12px !important;
+    font-size:15.5px !important;
+  }
+  tr:hover td{background:color-mix(in srgb, var(--jewel-1) 10%, transparent) !important;}
+  .highlight-cell{
+    background-color:color-mix(in srgb, var(--g-green) 18%, transparent) !important;
+    color:var(--g-green) !important;
+    font-weight:700;
+  }
+  .no-data{color:var(--ink-faint) !important;font-size:15px !important;}
+}
+
+/* ===== Fundo padrao-parede + mancha do laco do mes (desktop/portal web) ===== */
+@media (min-width:721px){
+  body{
+    background: transparent !important;
+  }
+  .body-bg-wall{
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+  .header{
+    background: rgba(255,255,255,.7) !important;
+    backdrop-filter: blur(18px) saturate(200%);
+    -webkit-backdrop-filter: blur(18px) saturate(200%);
+    border-bottom: none !important;
+    box-shadow: 0 8px 24px -18px rgba(20,20,40,.35) !important;
+  }
+  footer.portal-site-footer{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(16px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(190%) !important;
+    border-top: 1px solid rgba(255,255,255,.5) !important;
+    box-shadow: 0 -10px 28px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+  footer.portal-site-footer .footer-text{
+    color: #3f4757 !important;
+  }
+  .content-body > *{
+    position: relative;
+    z-index: 0;
+  }
+
+  /* ===== iOS 26 Liquid Glass em todos os elementos (desktop/portal web) ===== */
+  .scenario-switch{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(22px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-left: 4px solid var(--orange) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 38px -22px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.55) !important;
+  }
+  .scenario-toggle{
+    background: rgba(255,255,255,.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,.5) !important;
+  }
+  .scenario-button:not(.active){
+    background: transparent !important;
+  }
+  .scenario-button.active{
+    box-shadow: 0 12px 26px -12px rgba(6,36,92,.4), inset 0 1px 0 rgba(255,255,255,.3) !important;
+  }
+
+  .kpi-card{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 14px 32px -20px rgba(20,20,40,.28), inset 0 1px 0 rgba(255,255,255,.5) !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 92px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  .kpi-container{
+    width: 100% !important;
+    align-items: stretch !important;
+  }
+  .kpi-card.highlight{
+    border-left: 4px solid var(--green) !important;
+    background: rgba(240,255,244,.55) !important;
+  }
+
+  .chart-card{
+    background:rgba(255,255,255,.72) !important;
+    backdrop-filter: blur(22px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 18px 44px -24px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .meta-badge{
+    background: rgba(46,155,69,.16) !important;
+    backdrop-filter: blur(6px) !important;
+    border: 1px solid rgba(46,155,69,.32) !important;
+  }
+
+  .table-card{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(22px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 38px -22px rgba(20,20,40,.28), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .table-card-header{
+    background: rgba(255,255,255,.35) !important;
+    border-bottom: 1px solid rgba(30,30,46,.08) !important;
+  }
+  th{
+    background: rgba(255,255,255,.3) !important;
+  }
+  tr:hover{
+    background: rgba(255,255,255,.35) !important;
+  }
+  /* Tabela com fundo solido branco (vidro fica ilegivel com muitas linhas) */
+  .table-card{
+    background: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .table-card-header{
+    background: #f8fafc !important;
+  }
+  th{
+    background: #f1f5f9 !important;
+  }
+  tr:hover{
+    background: #fff7ed !important;
+  }
+  .highlight-cell{
+    background-color: rgba(46,155,69,.14) !important;
+  }
+
+  .sidebar.portal-filters-bar{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(22px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 16px 38px -22px rgba(20,20,40,.28), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .filter-select{
+    background: rgba(255,255,255,.6) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(30,30,46,.12) !important;
+    border-radius: 10px !important;
+  }
+
+  .btn-portal,
+  .btn-pdf-pontualidade,
+  .btn-modulo-link{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.6) !important;
+    box-shadow: 0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .btn-portal{
+    min-height:44px !important;padding:8px 14px !important;border-radius:10px !important;font-size:14px !important;
+    background: linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85)) !important;
+    color: #fff !important;
+  }
+
+  /* session container: portal-session.css?v=20260720y */
+
+  .dk-theme-toggle{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,.6) !important;
+    border-radius: 999px !important;
+  }
+}
 </style>
-<script src="../assets/js/loading.js"></script>
+<script src="../assets/js/loading.js?v=20260718d"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
 
-<link rel="stylesheet" href="../assets/css/portal-senha.css">
-<link rel="stylesheet" href="../assets/css/portal-titulos.css">
-<link rel="stylesheet" href="../assets/css/portal-brand.css">
-<link rel="stylesheet" href="../assets/css/portal-header.css">
-<link rel="stylesheet" href="../assets/css/portal-session.css">
+<link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
-<script type="module" src="../assets/js/auth.js"></script>
+<link rel="stylesheet" href="../assets/css/dashboard-kit.css?v=20260720p">
+    
+
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
 </head>
 <body>
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
 <div class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
     <div class="pontualidade-title-wrap">
@@ -947,9 +1490,10 @@ h1 {
         <div class="subtitle" id="dashboardSubtitle">CIOP / TCGL</div>
     </div>
     <div class="header-actions">
-        <div class="ciop-session" aria-label="Sessão do usuário">
+<div class="ciop-session" aria-label="Sessão do usuário">
     <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
     <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
     <button onclick="logout()" class="btn-logout" type="button">Sair</button>
 </div>
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank" style="display: flex;">
@@ -1235,17 +1779,70 @@ async function carregarManifestPontualidade() {
 }
 
 async function carregarSnapshotPontualidade(cenario) {
-    try {
-        const res = await fetch(PONTUALIDADE_DATA_BASE + '/' + encodeURIComponent(cenario) + '.json', { cache: 'no-store' });
-        if (!res.ok) return null;
-        const payload = await res.json();
+    /* Mesmo desenho da leitura de incidentes (incidentes-dados-leitura.js): consulta
+       o BANCO e o JSON publicado EM PARALELO e funde por data, em vez de escolher um
+       dos dois. Assim um dia que ja entrou no banco mas ainda nao foi commitado no
+       JSON aparece, e um dia que so existe no arquivo nao some. Em empate a data do
+       banco prevalece, porque entra por ultimo no mesclarPontualidade. */
+    const linhas = (payload) => {
+        if (!payload) return [];
         const bruto = payload.dados != null ? payload.dados : payload;
-        const rows = normalizeApiData(bruto);
-        if (!rows.length) return null;
-        return { rows, meta: payload };
-    } catch (_) {
-        return null;
+        return normalizeApiData(bruto) || [];
+    };
+
+    const doArquivo = (async () => {
+        const res = await fetch(PONTUALIDADE_DATA_BASE + '/' + encodeURIComponent(cenario) + '.json', { cache: 'no-store' });
+        if (!res.ok) return { payload: null, rows: [] };
+        const payload = await res.json();
+        return { payload, rows: linhas(payload) };
+    })();
+
+    const doBanco = (async () => {
+        const mod = await import('../assets/js/portal-aws-config.js');
+        const snap = await mod.carregarSnapshotAws('/snapshots/pontualidade/' + encodeURIComponent(cenario), { timeoutMs: 12000 });
+        if (!snap || !snap.payload) return { payload: null, rows: [] };
+        return { payload: snap.payload, rows: linhas(snap.payload) };
+    })();
+
+    const vazio = { payload: null, rows: [] };
+    const [resArquivo, resBanco] = await Promise.allSettled([doArquivo, doBanco]);
+    const arq = resArquivo.status === 'fulfilled' ? resArquivo.value : vazio;
+    const bd = resBanco.status === 'fulfilled' ? resBanco.value : vazio;
+    if (resBanco.status === 'rejected') {
+        console.info('Pontualidade: banco indisponivel.', resBanco.reason && resBanco.reason.message);
     }
+
+    const rows = mesclarPontualidade(arq.rows, bd.rows);
+    if (!rows.length) return null;
+
+    const origens = [];
+    if (bd.rows.length) origens.push('banco');
+    if (arq.rows.length) origens.push('arquivo');
+    console.info('Pontualidade (' + cenario + '): banco ' + bd.rows.length + ' dias, arquivo ' + arq.rows.length + ' dias, total ' + rows.length + '.');
+
+    return { rows, meta: Object.assign({}, arq.payload, bd.payload), origem: origens.join(' \u00b7 ') };
+}
+
+/* IPV direto do banco. Os dois cenarios da tela sao duas medicoes distintas, cada
+   uma na sua tabela, e a rota escolhe pela fonte:
+     padrao      Realidade 2/6  -> cr_custom_ontime
+     alternativo Realidade 1/3  -> cr_0258
+   Ambas com 213 dias conferidos (01/01 a 01/08) e pontos processados identicos dia a
+   dia. Os valores chegam como "92.72": parsePercentValue divide por 100 quando passa
+   de 1 - conferido. Falhando o banco, a planilha continua sendo o caminho. */
+const FONTE_IPV = { padrao: '2-6', alternativo: '1-3' };
+
+async function buscarBancoIpv(cenario) {
+    const fonte = FONTE_IPV[cenario];
+    if (!fonte) return [];
+    const mod = await import('../assets/js/portal-aws-config.js');
+    if (typeof mod.initPortalAwsRuntime === 'function') await mod.initPortalAwsRuntime();
+    if (!mod.awsApiEnabled()) return [];
+    const token = await mod.firebaseIdToken();
+    const r = await mod.awsFetch('/cr0108/ipv?fonte=' + encodeURIComponent(fonte), { token });
+    return normalizeApiData((r && r.itens ? r.itens : []).map(x => ({
+        date: x.data, no_horario: x.ipv, adiantado: x.adiantado, atrasado: x.atrasado
+    })));
 }
 
 async function buscarPontualidadeApi(cenario) {
@@ -1285,7 +1882,14 @@ async function loadDashboardData() {
     }
 
     try {
-        const novos = await buscarPontualidadeApi(cenarioAtual);
+        /* Banco primeiro; a planilha vira reserva. */
+        let novos = [];
+        try {
+            novos = await buscarBancoIpv(cenarioAtual);
+        } catch (bancoErro) {
+            console.info('Pontualidade: banco indisponivel, usando a planilha.', bancoErro && bancoErro.message);
+        }
+        if (!novos.length) novos = await buscarPontualidadeApi(cenarioAtual);
         if (novos.length) {
             rawData = mostrouSnapshot ? mesclarPontualidade(rawData, novos) : novos;
             initFilters();
@@ -1333,6 +1937,14 @@ function formatDateBR(dateValue) {
 }
 
 let chartInstance = null;
+
+function isDarkTheme() {
+    return document.documentElement.classList.contains("dk-dark")
+        || (window.innerWidth <= 720 && !document.documentElement.classList.contains("native-light"));
+}
+function chartInk() { return isDarkTheme() ? "#ffffff" : "#344054"; }
+function chartMutedInk() { return isDarkTheme() ? "#ffffff" : "#667085"; }
+function chartGridInk() { return isDarkTheme() ? "rgba(255,255,255,.14)" : "rgba(102, 112, 133, 0.16)"; }
 let pontualidadeExportState = { linhas: [] };
 
 Chart.register(ChartDataLabels);
@@ -1744,42 +2356,94 @@ const ctx = document.getElementById('lineChartCanvas').getContext('2d');
                     label: 'No Horário',
                     data: chartNoHorario,
                     borderColor: '#2563eb',
-                    backgroundColor: 'rgba(46, 155, 69, 0.05)',
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const { ctx: c, chartArea } = chart;
+                        if (!chartArea) return 'rgba(37, 99, 235, 0.12)';
+                        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, 'rgba(37, 99, 235, 0.32)');
+                        g.addColorStop(1, 'rgba(37, 99, 235, 0.02)');
+                        return g;
+                    },
                     borderWidth: 2.5,
-                    tension: 0.15,
-                    pointRadius: 4,
-                    fill: false
+                    tension: 0.38,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#2563eb',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1.5,
+                    fill: true,
+                    order: 1
                 },
                 {
                     label: 'Adiantado',
                     data: chartAdiantado,
                     borderColor: '#de1b1b',
-                    backgroundColor: 'rgba(222, 27, 27, 0.05)',
-                    borderWidth: 2.5,
-                    tension: 0.15,
-                    pointRadius: 4,
-                    fill: false
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const { ctx: c, chartArea } = chart;
+                        if (!chartArea) return 'rgba(222, 27, 27, 0.1)';
+                        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, 'rgba(222, 27, 27, 0.26)');
+                        g.addColorStop(1, 'rgba(222, 27, 27, 0.02)');
+                        return g;
+                    },
+                    borderWidth: 2,
+                    tension: 0.38,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#de1b1b',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1.5,
+                    fill: true,
+                    order: 3,
+                    datalabels: {
+                        align: 'bottom',
+                        anchor: 'end',
+                        offset: 6,
+                        display: function(context) {
+                            return showLabelsOnPoints ? 'auto' : false;
+                        },
+                        color: chartInk(),
+                        font: { size: 9, weight: '700' },
+                        formatter: function(value) { return value.toFixed(1) + '%'; }
+                    }
                 },
                 {
                     label: 'Atrasado',
                     data: chartAtrasado,
                     borderColor: '#f6bf26',
-                    backgroundColor: 'rgba(246, 191, 38, 0.05)',
-                    borderWidth: 2.5,
-                    tension: 0.15,
-                    pointRadius: 4,
-                    fill: false
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const { ctx: c, chartArea } = chart;
+                        if (!chartArea) return 'rgba(246, 191, 38, 0.1)';
+                        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                        g.addColorStop(0, 'rgba(246, 191, 38, 0.26)');
+                        g.addColorStop(1, 'rgba(246, 191, 38, 0.02)');
+                        return g;
+                    },
+                    borderWidth: 2,
+                    tension: 0.38,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#f6bf26',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1.5,
+                    fill: true,
+                    order: 2
                 },
                 {
                     label: 'Meta 93%',
                     data: chartLabels.map(() => 93),
                     borderColor: '#0f7a2d',
                     backgroundColor: '#0f7a2d',
-                    borderWidth: 4,
-                    borderDash: [10, 5],
+                    borderWidth: 2.5,
+                    borderDash: [8, 5],
                     pointRadius: 0,
                     pointHoverRadius: 0,
+                    tension: 0,
                     fill: false,
+                    order: 0,
                     datalabels: {
                         display: function(context) {
                             return context.dataIndex === context.dataset.data.length - 1;
@@ -1800,24 +2464,29 @@ const ctx = document.getElementById('lineChartCanvas').getContext('2d');
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            layout: {
+                padding: { top: 28, right: 64, left: 4, bottom: 4 }
+            },
             scales: {
                 y: {
                     beginAtZero: false,
                     suggestedMin: 80,
                     suggestedMax: 100,
                     border: { display: false },
-                    grid: { color: 'rgba(102, 112, 133, 0.16)', drawTicks: false },
+                    grid: { color: chartGridInk(), drawTicks: false },
                     ticks: {
                         padding: 8,
-                        color: '#667085',
+                        color: chartMutedInk(),
                         font: { size: 10, weight: '600' },
                         callback: function(value) { return value.toFixed(0) + '%'; }
                     }
                 },
                 x: {
+                    offset: true,
                     border: { display: false },
                     grid: { display: false },
-                    ticks: { color: '#667085', font: { size: 10, weight: '600' }, maxRotation: 0 }
+                    ticks: { color: chartMutedInk(), font: { size: 10, weight: '600' }, maxRotation: 0, autoSkipPadding: 12 }
                 }
             },
             plugins: {
@@ -1829,16 +2498,16 @@ const ctx = document.getElementById('lineChartCanvas').getContext('2d');
                         boxWidth: 8,
                         boxHeight: 8,
                         padding: 14,
-                        color: '#344054',
+                        color: chartInk(),
                         font: { size: 11, weight: '600' }
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#101828',
+                    backgroundColor: isDarkTheme() ? 'rgba(20,20,24,.94)' : '#101828',
                     titleFont: { size: 12, weight: '700' },
                     bodyFont: { size: 12 },
                     padding: 10,
-                    cornerRadius: 6,
+                    cornerRadius: 8,
                     displayColors: true,
                     callbacks: {
                         label: function(context) {
@@ -1853,7 +2522,7 @@ const ctx = document.getElementById('lineChartCanvas').getContext('2d');
                     display: function(context) {
                         return context.dataset.label !== 'Meta 93%' && showLabelsOnPoints ? 'auto' : false;
                     },
-                    color: '#344054',
+                    color: chartInk(),
                     font: { size: 9, weight: '700' },
                     formatter: function(value) {
                         return value.toFixed(1) + '%';
@@ -1863,6 +2532,10 @@ const ctx = document.getElementById('lineChartCanvas').getContext('2d');
         }
     });
 }
+
+window.addEventListener("dk-theme-change", function () {
+    try { renderDashboard(); } catch (e) {}
+});
 
 window.trocarCenario = trocarCenario;
 
@@ -1986,8 +2659,7 @@ function atualizarIndicadoresExecutivos(dados){
  }catch(e){}
 }
 </script>
-
-
+<script src="../assets/js/portal-futuristic.js?v=20260718am" defer></script>
 </body>
 
 </html>

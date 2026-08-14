@@ -7,25 +7,35 @@ const RETRY_DELAY_MS = Number(process.env.PORTAL_JSON_RETRY_DELAY_MS || 6000);
 const portalRoot = process.env.PORTAL_ROOT || process.cwd();
 
 const PONTUALIDADE = {
-  padrao: process.env.PONTUALIDADE_PADRAO_URL
-    || "https://script.google.com/macros/s/AKfycbwp-s3tzcxQl0gsm20zSfBb7Rw0bQwKnIX0hB9j_nLDIALZKvu3xeGL9G1jo-SSsXhQ9A/exec",
-  alternativo: process.env.PONTUALIDADE_ALT_URL
-    || "https://script.google.com/macros/s/AKfycbypfszDiFW2RTgoIvnzSYNSHALfCePOINDaFfcViFIcYqXEj3-O9NXsbs-mdRJ2I2jF/exec"
+  padrao: process.env.PONTUALIDADE_PADRAO_URL || "",
+  alternativo: process.env.PONTUALIDADE_ALT_URL || ""
 };
 
-const AUTUACOES_URL = process.env.AUTUACOES_API_URL
-  || "https://script.google.com/macros/s/AKfycbylz8scwboPQLeOKWUpw9YqKxomjts1aa8KUwodAuq5IE3T9s7RXd6GJcfMnS9qu6DI/exec";
+const AUTUACOES_URL = process.env.AUTUACOES_API_URL || "";
 const AUTUACOES_DATA_DE = process.env.AUTUACOES_DATA_DE || "2015-01-01";
 
-const LIBERACAO_URL = process.env.LIBERACAO_API_URL
-  || process.env.FOLHA_SERVICO_API_URL
-  || "https://script.google.com/macros/s/AKfycby9hpIGulGYxlm_Oseasi_D2GIaLSvusFNqcgrSj7l7HwxcUXLTPqd8kX1JxwkCx9lqOA/exec";
+const LIBERACAO_URL = process.env.LIBERACAO_API_URL || process.env.FOLHA_SERVICO_API_URL || "";
 
-const ESCALA_SAIDA_URL = process.env.ESCALA_SAIDA_API_URL
-  || "https://script.google.com/macros/s/AKfycbzhuM5h2MzGXnfHb4WmLZb3ZOrmXpGKOdtT0fiCazRV0yPJ5dlcchtlLThiagLcg8P4/exec";
+const ESCALA_SAIDA_URL = process.env.ESCALA_SAIDA_API_URL || "";
 
 const DIAS_JANELA_LANCAMENTO = Number(process.env.LIBERACAO_DIAS_JANELA || 7);
+/** Janela do sync frequente (--liberacao-hoje): 2 dias antes + hoje. */
+const DIAS_LIBERACAO_HOJE = Number(process.env.LIBERACAO_DIAS_HOJE || 3);
 const PORTAL_TZ = process.env.PORTAL_TZ || "America/Sao_Paulo";
+
+// Timeout mínimo para TODAS as chamadas de liberação (dia, gráficos, semana/lançamento):
+// o backend (Apps Script, scripts/liberacao-acompanhamento.gs) pode varrer a aba por até ~4
+// minutos (trava LIBERACAO_MAX_MS_VARREDURA) antes de desistir da varredura. Se o timeout aqui
+// do lado do Node for menor que isso, o Node desiste e tenta de novo ANTES do Apps Script
+// terminar — o dado real nunca chega a ser salvo, mesmo quando a varredura no backend teria
+// funcionado. Usamos um piso próprio (independente de PORTAL_JSON_TIMEOUT_MS, que alguns
+// workflows configuram mais curto) maior que os 4 minutos do backend, com folga para latência.
+const LIBERACAO_TIMEOUT_MS = Number(process.env.LIBERACAO_TIMEOUT_MS || 0) || 270000; // 4,5 minutos
+// As chamadas de liberação usam só 1 tentativa (sem retry): o timeout acima já é maior que o
+// teto do backend, então se mesmo assim estourar, tentar de novo custaria outros ~4,5 minutos
+// para o mesmo resultado — e o workflow "D-2 + hoje" roda a cada 5 minutos com limite de 10
+// minutos de job, então múltiplas tentativas longas poderiam estourar esse limite à toa.
+const LIBERACAO_RETRIES = 1;
 
 function partesDataPortal(data = new Date()) {
   const partes = new Intl.DateTimeFormat("en-US", {
@@ -63,9 +73,9 @@ function isoDiasAtras(dias) {
   return isoDataLocal(-dias);
 }
 
-async function fetchJson(url, timeoutMs = TIMEOUT_MS) {
+async function fetchJson(url, timeoutMs = TIMEOUT_MS, retries = FETCH_RETRIES) {
   let lastError;
-  for (let tentativa = 1; tentativa <= FETCH_RETRIES; tentativa++) {
+  for (let tentativa = 1; tentativa <= retries; tentativa++) {
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
       if (!response.ok) {
@@ -78,8 +88,8 @@ async function fetchJson(url, timeoutMs = TIMEOUT_MS) {
       return JSON.parse(text);
     } catch (error) {
       lastError = error;
-      if (tentativa < FETCH_RETRIES) {
-        console.warn(`  tentativa ${tentativa}/${FETCH_RETRIES} falhou: ${error.message || error}`);
+      if (tentativa < retries) {
+        console.warn(`  tentativa ${tentativa}/${retries} falhou: ${error.message || error}`);
         await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
       }
     }
@@ -96,11 +106,16 @@ function escreverJson(arquivo, payload) {
 }
 
 async function atualizarPontualidade() {
+  if (!PONTUALIDADE.padrao && !PONTUALIDADE.alternativo) {
+    console.warn("PONTUALIDADE_PADRAO_URL e PONTUALIDADE_ALT_URL nao configuradas — pulando pontualidade.");
+    return;
+  }
   const dir = path.join(portalRoot, "assets", "data", "pontualidade");
   const totais = {};
   const atualizadoEm = new Date().toISOString();
 
   for (const [cenario, url] of Object.entries(PONTUALIDADE)) {
+    if (!url) continue;
     console.log(`Baixando pontualidade (${cenario})...`);
     const raw = await fetchJson(url);
     const dados = Array.isArray(raw) ? raw : (raw.data || raw.dados || raw.rows || raw.valores || raw);
@@ -122,6 +137,10 @@ async function atualizarPontualidade() {
 }
 
 async function atualizarAutuacoes() {
+  if (!AUTUACOES_URL) {
+    console.warn("AUTUACOES_API_URL nao configurada — pulando autuacoes.");
+    return;
+  }
   const dir = path.join(portalRoot, "assets", "data", "autuacoes");
   const dataAte = isoHoje();
   const url = `${AUTUACOES_URL}?${new URLSearchParams({ data_de: AUTUACOES_DATA_DE, data_ate: dataAte, completo: "1" })}`;
@@ -148,14 +167,14 @@ async function atualizarAutuacoes() {
   });
 }
 
-async function buscarLiberacaoGraficos(dataDe, dataAte, timeoutMs = TIMEOUT_MS) {
+async function buscarLiberacaoGraficos(dataDe, dataAte, timeoutMs = LIBERACAO_TIMEOUT_MS) {
   const url = `${LIBERACAO_URL}?${new URLSearchParams({
     liberacao: "1",
     recurso: "graficos",
     data_de: dataDe,
     data_ate: dataAte
   })}`;
-  const res = await fetchJson(url, timeoutMs);
+  const res = await fetchJson(url, timeoutMs, LIBERACAO_RETRIES);
   if (!res.ok) throw new Error(res.erro || "Falha nos gráficos de liberação");
   return {
     ok: true,
@@ -167,7 +186,7 @@ async function buscarLiberacaoGraficos(dataDe, dataAte, timeoutMs = TIMEOUT_MS) 
   };
 }
 
-async function buscarLiberacaoAcompanhamento(dataDe, dataAte) {
+async function buscarLiberacaoAcompanhamento(dataDe, dataAte, timeoutMs = LIBERACAO_TIMEOUT_MS) {
   const url = `${LIBERACAO_URL}?${new URLSearchParams({
     liberacao: "1",
     recurso: "acompanhamento",
@@ -175,7 +194,7 @@ async function buscarLiberacaoAcompanhamento(dataDe, dataAte) {
     data_ate: dataAte,
     ultima_semana: "0"
   })}`;
-  const res = await fetchJson(url);
+  const res = await fetchJson(url, timeoutMs, LIBERACAO_RETRIES);
   if (!res.ok) throw new Error(res.erro || "Falha no acompanhamento de liberação");
   return {
     ok: true,
@@ -186,7 +205,7 @@ async function buscarLiberacaoAcompanhamento(dataDe, dataAte) {
   };
 }
 
-async function buscarLiberacaoDia(data, timeoutMs = TIMEOUT_MS) {
+async function buscarLiberacaoDia(data, timeoutMs = LIBERACAO_TIMEOUT_MS) {
   const url = `${LIBERACAO_URL}?${new URLSearchParams({
     liberacao: "1",
     recurso: "acompanhamento",
@@ -195,7 +214,7 @@ async function buscarLiberacaoDia(data, timeoutMs = TIMEOUT_MS) {
     vivo: "1",
     _: String(Date.now())
   })}`;
-  const res = await fetchJson(url, timeoutMs);
+  const res = await fetchJson(url, timeoutMs, LIBERACAO_RETRIES);
   if (!res.ok) throw new Error(res.erro || "Falha no acompanhamento do dia");
   return {
     ok: true,
@@ -214,18 +233,15 @@ async function buscarEscalaSaidaDia(data, timeoutMs = TIMEOUT_MS) {
     { url: LIBERACAO_URL, params: { liberacao: "1", recurso: "saida_carros", data } },
     { url: LIBERACAO_URL, params: { liberacao: "1", recurso: "saida_carros", data, ignorar_data: "1" } }
   ];
+  const resultados = await Promise.allSettled(
+    bases.map(({ url, params }) => fetchJson(`${url}?${new URLSearchParams(params)}`, timeoutMs))
+  );
   let melhor = null;
-  for (const { url, params } of bases) {
-    try {
-      const res = await fetchJson(`${url}?${new URLSearchParams(params)}`, timeoutMs);
-      if (!res.ok) continue;
-      const total = (res.dados || []).length;
-      if (!melhor || total > (melhor.dados || []).length) {
-        melhor = res;
-      }
-      if (total > 0) break;
-    } catch (_) {
-      /* tenta próxima fonte */
+  for (const r of resultados) {
+    if (r.status !== "fulfilled" || !r.value.ok) continue;
+    const total = (r.value.dados || []).length;
+    if (!melhor || total > (melhor.dados || []).length) {
+      melhor = r.value;
     }
   }
   if (!melhor) throw new Error(`Falha ao baixar escala de saída (${data})`);
@@ -240,6 +256,10 @@ async function buscarEscalaSaidaDia(data, timeoutMs = TIMEOUT_MS) {
 }
 
 async function atualizarEscalaSaida() {
+  if (!ESCALA_SAIDA_URL && !LIBERACAO_URL) {
+    console.warn("ESCALA_SAIDA_API_URL e LIBERACAO_API_URL nao configuradas — pulando escala de saida.");
+    return;
+  }
   const dir = path.join(portalRoot, "assets", "data", "escala-saida");
   const hoje = isoHoje();
   const amanha = isoAmanha();
@@ -260,18 +280,21 @@ async function atualizarEscalaSaida() {
 }
 
 async function atualizarLiberacaoSomenteHoje() {
+  if (!LIBERACAO_URL) {
+    console.warn("LIBERACAO_API_URL nao configurada — pulando liberacao (hoje).");
+    return;
+  }
   const dir = path.join(portalRoot, "assets", "data", "liberacao");
   const hoje = isoHoje();
+  const amanha = isoAmanha();
   const atualizadoEm = new Date().toISOString();
-  const arquivo = `acompanhamento-dia-${hoje}.json`;
+  const dias = [];
+  for (let i = DIAS_LIBERACAO_HOJE; i >= 0; i--) {
+    dias.push(isoDiasAtras(i));
+  }
+  dias.push(amanha);
 
-  console.log(`Baixando liberação hoje (${hoje})...`);
-  const payload = await buscarLiberacaoDia(hoje);
-  escreverJson(path.join(dir, arquivo), {
-    ...payload,
-    total: payload.dados.length,
-    atualizadoEm
-  });
+  console.log(`Baixando liberação (${dias[0]} a ${amanha}: ${DIAS_LIBERACAO_HOJE} dias antes + hoje + amanhã, em paralelo)...`);
 
   const manifestPath = path.join(dir, "manifest.json");
   let manifest = {};
@@ -282,11 +305,38 @@ async function atualizarLiberacaoSomenteHoje() {
   }
   manifest.atualizadoEm = atualizadoEm;
   manifest.dias = manifest.dias || {};
-  manifest.dias[hoje] = arquivo;
+
+  // Busca os dias EM PARALELO (não sequencialmente): cada chamada pode levar até
+  // LIBERACAO_TIMEOUT_MS (~4,5 min) por causa da trava de tempo do backend. Em série, N dias
+  // custariam até N × 4,5 min — o que não cabe no limite de 10 minutos deste job, que roda a
+  // cada 5 minutos. Em paralelo, o tempo total fica limitado ao pior caso de UM dia só, e o dia
+  // de hoje (o mais importante) não fica refém de esperar os dias anteriores terminarem.
+  const resultados = await Promise.allSettled(dias.map((dia) => buscarLiberacaoDia(dia)));
+
+  resultados.forEach((resultado, idx) => {
+    const dia = dias[idx];
+    if (resultado.status !== "fulfilled") {
+      console.warn(`  aviso: falha ao baixar liberação do dia ${dia}: ${resultado.reason?.message || resultado.reason}`);
+      return;
+    }
+    const payload = resultado.value;
+    const arquivo = `acompanhamento-dia-${dia}.json`;
+    escreverJson(path.join(dir, arquivo), {
+      ...payload,
+      total: payload.dados.length,
+      atualizadoEm
+    });
+    manifest.dias[dia] = arquivo;
+  });
+
   escreverJson(manifestPath, manifest);
 }
 
 async function atualizarLiberacao() {
+  if (!LIBERACAO_URL) {
+    console.warn("LIBERACAO_API_URL nao configurada — pulando liberacao.");
+    return;
+  }
   const dir = path.join(portalRoot, "assets", "data", "liberacao");
   const hoje = isoHoje();
   const atualizadoEm = new Date().toISOString();
@@ -297,11 +347,11 @@ async function atualizarLiberacao() {
   ];
 
   const graficosManifest = {};
-  const timeoutGraficos = Number(process.env.LIBERACAO_GRAFICOS_TIMEOUT_MS || 0) || Math.max(TIMEOUT_MS, 300000);
+  const timeoutGraficos = Number(process.env.LIBERACAO_GRAFICOS_TIMEOUT_MS || 0) || Math.max(LIBERACAO_TIMEOUT_MS, 300000);
 
   for (const preset of presetsGraficos) {
     console.log(`Baixando liberação gráficos (${preset.id}: ${preset.data_de} a ${preset.data_ate})...`);
-    const timeout = preset.id === "30d" ? timeoutGraficos : TIMEOUT_MS;
+    const timeout = preset.id === "30d" ? timeoutGraficos : LIBERACAO_TIMEOUT_MS;
     const payload = await buscarLiberacaoGraficos(preset.data_de, preset.data_ate, timeout);
     escreverJson(path.join(dir, preset.arquivo), {
       ...payload,
@@ -318,7 +368,7 @@ async function atualizarLiberacao() {
   const dataDeSemana = isoDiasAtras(DIAS_JANELA_LANCAMENTO);
   const amanha = isoAmanha();
   console.log(`Baixando liberação lançamento (${dataDeSemana} a ${amanha})...`);
-  const acompanhamento = await buscarLiberacaoAcompanhamento(dataDeSemana, amanha);
+  const acompanhamento = await buscarLiberacaoAcompanhamento(dataDeSemana, amanha, timeoutGraficos);
   escreverJson(path.join(dir, "acompanhamento-semana.json"), {
     ...acompanhamento,
     data_ate: amanha,
@@ -374,7 +424,7 @@ async function main() {
     return;
   }
   if (modo === "--liberacao-hoje") {
-    console.log("Atualizando JSON de liberação (hoje)...");
+    console.log(`Atualizando JSON de liberação (${DIAS_LIBERACAO_HOJE} dias antes + hoje)...`);
     await atualizarLiberacaoSomenteHoje();
     console.log("Concluído.");
     return;

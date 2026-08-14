@@ -1,6 +1,6 @@
 /**
  * Sincroniza incidentes TCGL → JSON local → Aurora DSQL.
- * Usado pelo Mac (launchd / botão na Mesa) via repositório portalCIOP.
+ * Usado pelo Mac (launchd / botão na Mesa) e scripts locais opcionais (EC2/Lambda).
  *
  * Variáveis:
  *   SYNC_INCIDENTES_PUBLISH_GIT=1  — commit/push do JSON (opcional, backup)
@@ -12,8 +12,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { baixarEstadoIncidentesS3, enviarEstadoIncidentesS3 } from "./lib/incidentes-state-s3.mjs";
-
-throw new Error("Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP.");
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const portalRoot = process.env.PORTAL_ROOT || path.resolve(scriptDir, "..");

@@ -11,8 +11,53 @@ if (/[?&](app|novo)=1(?:&|$)/.test(location.search)) {
 document.documentElement.classList.add("portal-auth-pending");
 </script>
 <style id="portalAuthBootStyle">
-.portal-auth-pending body > :not(#portalLoadingOverlay){
-    visibility:hidden!important;
+.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;
+}
+
+/* PROTOTIPO — abas para Operacao / Dashboards / Relatorios.
+   Reaproveita a linguagem visual dos botoes de cenario da pagina de pontualidade,
+   para nao introduzir um componente novo no portal. */
+.portal-abas{
+    display:flex;
+    gap:6px;
+    margin:0 auto 14px;
+    padding:6px;
+    max-width:min(720px,92vw);
+    border-radius:999px;
+    background:rgba(255,255,255,.55);
+    border:1px solid rgba(6,36,92,.10);
+    box-shadow:0 6px 22px rgba(6,36,92,.10);
+    backdrop-filter:blur(10px);
+}
+.portal-aba{
+    flex:1;
+    border:0;
+    cursor:pointer;
+    padding:10px 14px;
+    border-radius:999px;
+    background:transparent;
+    color:#0b2f6b;
+    font:600 15.5px/1.2 inherit;
+    letter-spacing:.02em;
+    transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+}
+/* Laranja no hover: mesma cor de destaque que o portal ja usa nos avisos.
+   So vale para a aba nao selecionada — sobre a ativa (azul escuro) o laranja
+   brigaria com o texto branco. */
+.portal-aba:not([aria-selected="true"]):hover{
+    background:rgba(243,146,55,.18);
+    color:#a24a00;
+}
+.portal-aba[aria-selected="true"]{
+    background:linear-gradient(180deg,#12336f,#0b2350);
+    color:#fff;
+    box-shadow:0 4px 14px rgba(6,36,92,.28);
+}
+/* Com a aba nomeando a secao, o titulo interno vira repeticao. */
+.portal-abas-ativo .card-section-head{ display:none; }
+@media (max-width:640px){
+    .portal-abas{ flex-direction:column; border-radius:18px; }
+    .portal-aba{ border-radius:12px; }
 }
 </style>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
@@ -101,11 +146,20 @@ h1{
 .toolbar-inner{
     width:100%;
     margin:0;
-    padding:0 25px;
+    padding:0 10px;
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:clamp(10px, 2vw, 14px);
+    align-items:flex-start;
+    justify-content:flex-start;
+    gap:8px;
+    box-sizing:border-box;
+}
+
+.toolbar-main{
+    flex:1 1 auto;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
 }
 
 .menu-toggle{
@@ -272,23 +326,16 @@ h1{
 }
 
 .password-panel{
-    display:none;
-    max-width:520px;
-    margin:0 auto 24px;
-    background:#fff;
-    border:1px solid var(--borda);
-    border-radius:6px;
-    padding:16px;
-    box-shadow:0 8px 20px rgba(6,36,92,.08);
+    /* glass: portal-senha.css?v=20260718e */
 }
 .password-panel.active{display:block}
-.password-panel h2{margin:0 0 12px;color:var(--azul);font-size:16px}
-.password-panel label{display:block;margin:8px 0 4px;color:var(--cinza);font-size:12px;font-weight:700}
-.password-panel input{width:100%;box-sizing:border-box;border:1px solid var(--borda);border-radius:6px;padding:9px 10px;font-size:14px}
+.password-panel h2{/* portal-senha.css?v=20260718e */}
+.password-panel label{/* portal-senha.css?v=20260718e */}
+.password-panel input{/* portal-senha.css?v=20260718e */}
 .password-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.btn-small{border:none;border-radius:5px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;background:#06245c;color:#fff}
-.btn-small.secondary{background:#e8edf6;color:#06245c}
-.password-status{font-size:12px;font-weight:700;margin-top:10px}
+.btn-small{/* portal-senha.css?v=20260718e */}
+.btn-small.secondary{/* portal-senha.css?v=20260718e */}
+.password-status{/* portal-senha.css?v=20260718e */}
 .password-status.ok{color:#2e9b45}
 .password-status.erro{color:#dc2626}
 
@@ -304,11 +351,14 @@ h1{
 }
 
 .card-section-title{
-    color:var(--azul);
-    font-size:22px;
+    color:#fff;
+    font-size:25px;
     font-weight:900;
     margin:0;
     text-align:left;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    text-shadow:0 1px 4px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
 }
 
 .card-section-head{
@@ -317,8 +367,8 @@ h1{
     justify-content:flex-start;
     gap:10px;
     margin:0 0 16px;
-    padding-bottom:8px;
-    border-bottom:2px solid rgba(6,36,92,.12);
+    padding-bottom:0;
+    border-bottom:none;
 }
 
 .card-section-toggle{
@@ -554,43 +604,50 @@ footer{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    gap:9px;
-    color:#075e54;
+    width:80px;
+    height:56px;
+    min-width:80px;
+    min-height:56px;
+    padding:0;
+    color:#25d366;
     text-decoration:none;
-    border:1px solid rgba(37,211,102,.28);
-    background:#ecfdf3;
-    border-radius:999px;
-    padding:7px 12px 7px 8px;
-    font-size:12px;
-    font-weight:800;
-    box-shadow:0 2px 8px rgba(16,24,40,.05);
-    transition:.2s;
-    white-space:nowrap;
+    border:1px solid rgba(255,255,255,.55);
+    background:rgba(255,255,255,.72);
+    border-radius:16px;
+    box-shadow:0 12px 28px -16px rgba(20,20,40,.22), inset 0 1px 0 rgba(255,255,255,.6);
+    backdrop-filter:blur(24px) saturate(200%);
+    -webkit-backdrop-filter:blur(24px) saturate(200%);
+    transition:transform .2s, background .2s, box-shadow .2s;
     flex:0 0 auto;
+    box-sizing:border-box;
 }
 
-.toolbar-whatsapp:hover{
+.toolbar-whatsapp:hover,
+.toolbar-whatsapp:focus-visible{
     transform:translateY(-1px);
-    border-color:#25d366;
-    box-shadow:0 6px 14px rgba(37,211,102,.16);
+    background:rgba(255,255,255,.84);
+    box-shadow:0 14px 30px -14px rgba(37,211,102,.28), inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 .toolbar-whatsapp-icon{
-    width:26px;
-    height:26px;
+    width:36px;
+    height:36px;
     border-radius:50%;
-    background:#25d366;
-    color:#fff;
+    background:transparent;
     display:grid;
     place-items:center;
     flex:0 0 auto;
+    overflow:visible;
 }
 
 .toolbar-whatsapp-icon svg{
-    width:17px;
-    height:17px;
+    width:36px;
+    height:36px;
     display:block;
-    fill:currentColor;
+}
+
+.toolbar-whatsapp-label{
+    display:none !important;
 }
 
 .toolbar-portal-novo{
@@ -619,13 +676,18 @@ footer{
 }
 /* Inicio Codex quadro de avisos */
 .toolbar-inner{
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
+}
+.toolbar-inner > .menu-toggle,
+.toolbar-inner > .toolbar-whatsapp{
+    flex:0 0 auto;
+    align-self:center;
 }
 
 .notice-board{
-    flex:1 1 480px;
+    flex:1 1 640px;
     min-width:300px;
-    max-width:820px;
+    max-width:1320px;
     justify-self:center;
     display:flex;
     align-items:stretch;
@@ -730,14 +792,16 @@ footer{
     min-width:0;
     display:flex;
     flex-direction:column;
-    gap:8px;
-    padding:2px 0;
+    /* Era gap:8px e padding:2px 0 — somados, sobravam ~14px mortos abaixo do aviso.
+       A barra em si já tem 2px; o vazio vinha daqui e da altura minima dos pontinhos. */
+    gap:4px;
+    padding:2px 0 0;
     --notice-rotacao:6000ms;
 }
 
 .notice-carousel-track{
     position:relative;
-    min-height:64px;
+    min-height:72px;
     transition:min-height .35s cubic-bezier(.4,0,.2,1);
 }
 
@@ -822,8 +886,8 @@ footer{
     align-items:center;
     justify-content:center;
     gap:6px;
-    min-height:16px;
-    padding:2px 4px 0;
+    min-height:10px;
+    padding:0 4px;
 }
 
 .notice-carousel-dots[hidden]{
@@ -889,28 +953,29 @@ footer{
 .notice-item-title{
     font-size:14px;
     line-height:1.35;
-    font-weight:700;
+    font-weight:800;
     color:var(--azul);
     white-space:normal;
-    overflow:hidden;
-    display:-webkit-box;
-    -webkit-line-clamp:1;
-    -webkit-box-orient:vertical;
+    overflow:visible;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+    display:block;
 }
 
 .notice-item-text{
     font-family:Arial,Helvetica,"Segoe UI","Segoe UI Emoji","Noto Color Emoji",sans-serif;
-    font-weight:400;
+    font-weight:800;
     color:#475467;
     letter-spacing:0;
     word-spacing:normal;
     margin-top:4px;
     font-size:13px;
     line-height:1.5;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+    display:block;
+    overflow:visible;
 }
 
 #avisoTitulo,
@@ -1269,11 +1334,15 @@ footer{
 
 @media(max-width:980px){
     .toolbar-inner{
-        justify-content:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
     }
-    .notice-board{
+    .toolbar-main{
         order:3;
         flex-basis:100%;
+        width:100%;
+    }
+    .notice-board{
         max-width:none;
     }
 }
@@ -1330,17 +1399,9 @@ footer{
 .btn-logout{background:#dc2626;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:bold;}
 
 
-.ciop-session{
-    position:static;
-    color:#06245c;
-}
-.ciop-session-user{
-    font-weight:700;
-}
-.ciop-session-profile{
-    color:#667085;
-    font-weight:600;
-}
+/* session container: portal-session.css?v=20260720y */
+/* session user styles: portal-session.css?v=20260720y */
+/* session profile styles: portal-session.css?v=20260720y */
 
 .header-actions{
     justify-self:end;
@@ -1350,9 +1411,7 @@ footer{
     gap:10px;
     min-width:0;
 }
-.header-actions .ciop-session{
-    flex:0 1 auto;
-}
+.header-actions .ciop-session{flex:0 1 auto;}
 @media(max-width:900px){
     .header-actions{
         justify-self:center;
@@ -1376,32 +1435,32 @@ footer{
     .toolbar{
         padding:10px 0;
     }
-    .menu-toggle{
-        padding:8px 6px;
-    }
+    .menu-toggle,
     .toolbar-whatsapp{
-        padding:6px 9px 6px 7px;
-        gap:7px;
-        font-size:11px;
+        width:80px;
+        height:56px;
+        padding:0;
+        border-radius:16px;
     }
 }
 
 @media(max-width:390px){
-    .toolbar-whatsapp-label{
-        display:none;
-    }
-    .toolbar-whatsapp{
-        width:38px;
-        height:38px;
+    .toolbar-whatsapp,
+    .menu-toggle{
+        width:72px;
+        height:52px;
         padding:0;
+        border-radius:14px;
     }
 }
 
 [data-admin-only]{display:none;}
 .card[data-perfis],
 .card[data-usuarios],
+.card[data-modulo],
 a[data-perfis],
-a[data-usuarios]{
+a[data-usuarios],
+a[data-modulo]{
   display:none!important;
 }
 .card.portal-card-visivel,
@@ -1420,7 +1479,7 @@ a.portal-card-visivel{
 /* Ajuste Codex: titulos do cabecalho menores e centralizados */
 @media (min-width: 1101px) {
     .header {
-        grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr) !important;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto) !important;
     }
     .header > a:first-child,
     .header > .header-brand {
@@ -1540,23 +1599,744 @@ h1 {
 }
 /* Fim ajuste Codex */
 
+/* ===== Novo fundo (padrao parede CIOP) + barra de avisos/whatsapp em vidro ===== */
+.bg-wall{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background:#f2f1ed;
+    background-image:url('assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+body{
+    background:#f2f1ed !important;
+}
+.toolbar{
+    background:transparent !important;
+    border-bottom:none !important;
+}
+.notice-board{
+    background:rgba(255,255,255,.72) !important;
+    backdrop-filter:blur(18px) saturate(180%);
+    -webkit-backdrop-filter:blur(18px) saturate(180%);
+    border:1px solid rgba(30,30,46,.10) !important;
+    box-shadow:0 16px 34px -18px rgba(20,20,40,.22) !important;
+}
+.notice-item{
+    background:rgba(255,255,255,.82) !important;
+    border-color:rgba(30,30,46,.08) !important;
+}
+.toolbar-whatsapp{
+    background:rgba(255,255,255,.78) !important;
+    backdrop-filter:blur(14px) saturate(180%);
+    -webkit-backdrop-filter:blur(14px) saturate(180%);
+    box-shadow:0 10px 22px -12px rgba(20,20,40,.2) !important;
+}
+.toolbar{
+    padding:6px 0 10px !important;
+    border-bottom:1px solid rgba(30,30,46,.08) !important;
+}
+.toolbar-inner{
+    align-items:flex-start !important;
+}
+.toolbar-inner > .menu-toggle,
+.toolbar-inner > .toolbar-whatsapp{
+    align-self:center !important;
+}
+.menu-toggle{
+    width:80px !important;
+    height:56px !important;
+    min-width:80px !important;
+    min-height:56px !important;
+    padding:0 !important;
+    border-radius:16px !important;
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+    backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    -webkit-backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    border:var(--ciop-glass-border, 1px solid rgba(255,255,255,.55)) !important;
+    box-shadow:var(--ciop-glass-shadow, 0 12px 28px -16px rgba(20,20,40,.22), inset 0 1px 0 rgba(255,255,255,.6)) !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    box-sizing:border-box !important;
+}
+.menu-bars{
+    width:34px !important;
+    gap:7px !important;
+    transform:none !important;
+}
+.menu-bars span{
+    height:4.5px !important;
+    border-radius:3px !important;
+}
+.toolbar-whatsapp{
+    width:80px !important;
+    height:56px !important;
+    min-width:80px !important;
+    min-height:56px !important;
+    padding:0 !important;
+    gap:0 !important;
+    border-radius:16px !important;
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+    backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    -webkit-backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    border:var(--ciop-glass-border, 1px solid rgba(255,255,255,.55)) !important;
+    box-shadow:var(--ciop-glass-shadow, 0 12px 28px -16px rgba(20,20,40,.22), inset 0 1px 0 rgba(255,255,255,.6)) !important;
+    color:#25d366 !important;
+    box-sizing:border-box !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+}
+.toolbar-whatsapp:hover,
+.toolbar-whatsapp:focus-visible{
+    background:var(--ciop-glass-bg-hover, rgba(255,255,255,.84)) !important;
+}
+.toolbar-whatsapp-icon{
+    width:36px !important;
+    height:36px !important;
+    background:transparent !important;
+    border-radius:50% !important;
+    display:grid !important;
+    place-items:center !important;
+}
+.toolbar-whatsapp-icon svg{
+    width:36px !important;
+    height:36px !important;
+    fill:none !important;
+}
+.toolbar-whatsapp-label{
+    display:none !important;
+}
+.toolbar{
+    position:relative;
+}
+
+/* ===== Round 2: cards/saudacao/sidebar em vidro iOS 26 + cards mais proximos dos avisos ===== */
+.container{
+    margin-top:14px !important;
+}
+
+/* --- Cards de Operacao/Dashboards em vidro --- */
+.card{
+    background:rgba(255,255,255,.60) !important;
+    backdrop-filter:blur(16px) saturate(180%);
+    -webkit-backdrop-filter:blur(16px) saturate(180%);
+    border:1px solid rgba(30,30,46,.10) !important;
+    box-shadow:0 12px 26px -16px rgba(20,20,40,.18) !important;
+    border-radius:16px !important;
+}
+.card:hover,
+.card:focus-visible{
+    background:rgba(255,255,255,.80) !important;
+    box-shadow:0 18px 34px -16px rgba(6,36,92,.22) !important;
+}
+.card-figure{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(8px) saturate(160%);
+    -webkit-backdrop-filter:blur(8px) saturate(160%);
+    border:1px solid rgba(30,30,46,.06);
+}
+.card-section-toggle{
+    background:rgba(255,255,255,.6) !important;
+    backdrop-filter:blur(10px) saturate(160%);
+    -webkit-backdrop-filter:blur(10px) saturate(160%);
+    border:1px solid rgba(30,30,46,.10) !important;
+}
+.card-section-head{
+    border-bottom:none !important;
+}
+
+/* --- Saudacao (hero) mais retangular, cabe todo o texto, em vidro --- */
+.header-hero.header-hero-pro{
+    width:auto !important;
+    max-width:min(94%, 720px) !important;
+}
+.hero-pro-panel{
+    overflow:visible !important;
+    border-radius:18px !important;
+    background:rgba(255,255,255,.65) !important;
+    backdrop-filter:blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter:blur(20px) saturate(180%) !important;
+    border:1px solid rgba(30,30,46,.12) !important;
+    box-shadow:0 14px 30px -16px rgba(20,20,40,.22) !important;
+}
+.hero-pro-copy{
+    padding:14px 20px !important;
+}
+.hero-pro-welcome{
+    white-space:normal !important;
+}
+.hero-pro-nome{
+    white-space:normal !important;
+    word-break:break-word;
+}
+
+/* --- Menu lateral em vidro (dark glass) --- */
+.sidebar{
+    background:linear-gradient(165deg, rgba(6,36,92,.82) 0%, rgba(7,29,73,.88) 100%) !important;
+    backdrop-filter:blur(24px) saturate(180%);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    border-right:1px solid rgba(255,255,255,.14);
+}
+.sidebar-header{
+    background:rgba(255,255,255,.04);
+}
+.side-link{
+    background:rgba(255,255,255,.06) !important;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.10) !important;
+    border-radius:12px !important;
+}
+.side-link:hover,
+.side-link:focus-visible{
+    background:linear-gradient(135deg, var(--laranja), #ff8f3d) !important;
+    border-color:rgba(255,255,255,.22) !important;
+}
+.side-icon{
+    background:rgba(255,255,255,.14) !important;
+    backdrop-filter:blur(4px);
+}
+
+/* ===== Round 3: saudacao mais larga, operacao mais acima, vidro iOS 26 mais futurista, sidebar mais translucida ===== */
+
+/* Operacao mais acima (menos vao apos os avisos) */
+.container{
+    margin-top:2px !important;
+}
+.card-section-head{
+    margin:0 0 12px !important;
+    padding-bottom:0 !important;
+    border-bottom:none !important;
+}
+
+/* Saudacao mais larga */
+.header-hero.header-hero-pro{
+    max-width:min(96%, 900px) !important;
+}
+.hero-pro-copy{
+    padding:16px 30px !important;
+}
+.hero-pro-panel{
+    justify-content:center;
+}
+
+/* Vidro iOS 26 -- realce especular no topo dos paineis, mais premium */
+.hero-pro-panel,
+.notice-board,
+.toolbar-whatsapp,
+.menu-toggle,
+.card,
+.card-section-toggle{
+    position:relative;
+    isolation:isolate;
+}
+.hero-pro-panel::after,
+.notice-board::after,
+.card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    background:linear-gradient(180deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 34%);
+    opacity:.6;
+    pointer-events:none;
+    z-index:-1;
+}
+.notice-board,
+.toolbar-whatsapp{
+    border-radius:16px !important;
+}
+.card{
+    border-radius:18px !important;
+}
+.card-figure{
+    border-radius:12px !important;
+}
+
+/* Sombra/brilho ambiente sutil (mais futurista) */
+.hero-pro-panel{
+    box-shadow:
+        0 16px 34px -18px rgba(20,20,40,.24),
+        0 0 0 1px rgba(255,255,255,.35) inset,
+        0 0 28px rgba(37,99,235,.10) !important;
+}
+.notice-board{
+    box-shadow:
+        0 16px 34px -18px rgba(20,20,40,.22),
+        0 0 0 1px rgba(255,255,255,.30) inset !important;
+}
+.card:hover,
+.card:focus-visible{
+    box-shadow:
+        0 18px 34px -16px rgba(6,36,92,.22),
+        0 0 22px rgba(255,111,0,.14) !important;
+}
+
+/* Sidebar ainda mais translucida (vidro real) */
+.sidebar{
+    background:linear-gradient(165deg, rgba(6,36,92,.52) 0%, rgba(7,29,73,.60) 100%) !important;
+    backdrop-filter:blur(30px) saturate(200%);
+    -webkit-backdrop-filter:blur(30px) saturate(200%);
+}
+.side-link{
+    background:rgba(255,255,255,.05) !important;
+    backdrop-filter:blur(10px) saturate(160%);
+    -webkit-backdrop-filter:blur(10px) saturate(160%);
+}
 </style>
 
-<script type="module" src="assets/js/auth.js?v=20260704a"></script>
-<link rel="stylesheet" href="assets/css/portal-senha.css">
-<link rel="stylesheet" href="assets/css/portal-titulos.css">
+<script src="assets/js/loading.js?v=20260718d"></script>
+<script type="module" src="assets/js/auth.js?v=20260720b"></script>
+  <script type="module" src="assets/js/incidentes-alerta.js?v=20260708a"></script>
+<link rel="stylesheet" href="assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="assets/css/portal-titulos.css?v=20260720y">
 <link rel="stylesheet" href="assets/css/portal-home-v2.css?v=20260702b">
 <link rel="stylesheet" href="assets/css/portal-saudacao-pro.css?v=20260704a">
-<link rel="stylesheet" href="assets/css/portal-brand.css">
-<link rel="stylesheet" href="assets/css/portal-header.css">
-<link rel="stylesheet" href="assets/css/portal-session.css">
-<link rel="stylesheet" href="assets/css/portal-footer.css">
+<link rel="stylesheet" href="assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="assets/css/portal-session.css?v=20260720y">
+<link rel="stylesheet" href="assets/css/portal-footer.css?v=20260720y">
+<style>
+/* ===== Round 4: overrides finais (depois de todos os CSS externos) — avisos/saudacao mais largos, vidro visivel, texto sem corte ===== */
+
+/* Quadro de avisos e command center — centralizados, 4cm de cada lado */
+.toolbar-main{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    width:calc(100% - 8cm) !important;
+    max-width:calc(100% - 8cm) !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+    min-width:0 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+}
+.notice-board,
+.ciop-command-row,
+.ciop-command,
+.ciop-command-inner{
+    max-width:none !important;
+    width:100% !important;
+    box-sizing:border-box !important;
+}
+.notice-board{
+    flex:0 0 auto !important;
+    align-self:stretch !important;
+}
+.notice-item-title,
+.notice-item-text,
+.notice-item-title-inner,
+.notice-item-text-inner{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    display:block !important;
+    -webkit-line-clamp:unset !important;
+    line-clamp:unset !important;
+    -webkit-box-orient:unset !important;
+    overflow-wrap:anywhere !important;
+    word-break:break-word !important;
+}
+
+.ciop-command-row{
+    margin:0 !important;
+    padding:0 !important;
+}
+.ciop-command-inner{
+    background:linear-gradient(135deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.14) 100%) !important;
+    border:1px solid rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(32px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(32px) saturate(190%) !important;
+    box-shadow:0 8px 22px -16px rgba(6,36,92,.2), inset 0 1px 0 rgba(255,255,255,.45) !important;
+}
+html.dk-dark .ciop-command-inner{
+    background:linear-gradient(135deg, rgba(40,44,50,.55) 0%, rgba(28,32,38,.4) 100%) !important;
+}
+.ciop-kpi-value-data{
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+.toolbar-whatsapp{
+    width:80px !important;
+    height:56px !important;
+    min-width:80px !important;
+    min-height:56px !important;
+    padding:0 !important;
+    border-radius:16px !important;
+    color:#25d366 !important;
+}
+.toolbar-whatsapp-icon,
+.toolbar-whatsapp-icon svg{
+    width:36px !important;
+    height:36px !important;
+}
+
+@media (max-width:980px){
+    .toolbar-main{
+        width:calc(100% - 1.2cm) !important;
+        max-width:calc(100% - 1.2cm) !important;
+    }
+}
+
+/* Saudacao mais larga e sem cortar texto */
+.header.header-v2{
+    grid-template-columns:minmax(140px,auto) minmax(0,1fr) minmax(140px,auto) !important;
+    align-items:center !important;
+    gap:12px !important;
+}
+.header-hero.header-hero-pro{
+    width:100% !important;
+    max-width:min(98%, 1300px) !important;
+}
+.hero-pro-panel{
+    overflow:visible !important;
+    width:100%;
+}
+.hero-pro-copy{
+    flex:1 1 auto;
+}
+.hero-pro-welcome,
+.hero-pro-nome,
+.hero-pro-saudacao-label{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    -webkit-line-clamp:unset !important;
+    display:block !important;
+    max-width:none !important;
+}
+
+/* Fundo mantido monocromatico (sem manchas de cor), fiel a imagem de referencia */
+.bg-blobs{
+    display:none;
+}
+.bg-blob-mid{
+    display:none;
+}
+
+/* Cards visivelmente em vidro (padrão compartilhado — ver Round 13) */
+.card{
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+    backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    -webkit-backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    border:var(--ciop-glass-border, 1px solid rgba(255,255,255,.55)) !important;
+    box-shadow:var(--ciop-glass-shadow, 0 12px 28px -16px rgba(20,20,40,.22), inset 0 1px 0 rgba(255,255,255,.6)) !important;
+}
+.card:hover,
+.card:focus-visible{
+    background:var(--ciop-glass-bg-hover, rgba(255,255,255,.84)) !important;
+}
+.card-figure{
+    background:rgba(255,255,255,.55) !important;
+    border:1px solid rgba(255,255,255,.55) !important;
+}
+
+/* Avisos e whatsapp no mesmo vidro */
+.notice-board{
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+    backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    -webkit-backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    border:var(--ciop-glass-border, 1px solid rgba(255,255,255,.55)) !important;
+}
+.notice-item{
+    background:rgba(255,255,255,.55) !important;
+}
+.toolbar-whatsapp{
+    width:40px !important;
+    height:40px !important;
+    min-width:40px !important;
+    min-height:40px !important;
+    padding:0 !important;
+    border-radius:12px !important;
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+    backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    -webkit-backdrop-filter:var(--ciop-glass-blur, blur(24px) saturate(200%)) !important;
+    border:var(--ciop-glass-border, 1px solid rgba(255,255,255,.55)) !important;
+    color:#25d366 !important;
+}
+
+/* Sidebar reafirmada translucida por cima de qualquer CSS externo */
+.sidebar{
+    background:linear-gradient(165deg, rgba(6,36,92,.50) 0%, rgba(7,29,73,.58) 100%) !important;
+    backdrop-filter:blur(30px) saturate(200%) !important;
+    -webkit-backdrop-filter:blur(30px) saturate(200%) !important;
+}
+.side-link{
+    background:rgba(255,255,255,.05) !important;
+}
+
+/* ===== Round 6: saudacao ainda mais larga + "Bem-vindo" em cima, nome maior embaixo ===== */
+.header-hero.header-hero-pro{
+    width:100% !important;
+    max-width:none !important;
+}
+.hero-pro-panel{
+    width:100% !important;
+}
+.hero-pro-copy{
+    flex:1 1 auto !important;
+    padding:18px 32px !important;
+}
+.hero-pro-welcome{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:4px !important;
+}
+.hero-pro-saudacao-label{
+    font-size:clamp(0.8rem, 1.4vw, 0.95rem) !important;
+    font-weight:700 !important;
+    letter-spacing:.08em !important;
+}
+.hero-pro-nome{
+    font-size:clamp(1.25rem, 2.5vw, 1.75rem) !important;
+    font-weight:900 !important;
+    line-height:1.1 !important;
+}
+
+/* ===== Round 7: cabecalho tambem em vidro iOS 26, conectado ao fundo ===== */
+.header,
+.header.header-v2{
+    background:rgba(255,255,255,.62) !important;
+    backdrop-filter:blur(22px) saturate(200%) !important;
+    -webkit-backdrop-filter:blur(22px) saturate(200%) !important;
+    border-bottom:1px solid rgba(30,30,46,.10) !important;
+    box-shadow:
+        0 10px 26px -16px rgba(20,20,40,.20),
+        inset 0 1px 0 rgba(255,255,255,.5) !important;
+    position:relative;
+    isolation:isolate;
+}
+.header::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,0) 60%);
+    opacity:.6;
+    pointer-events:none;
+    z-index:-1;
+}
+
+/* ===== Round 8: remover divisorias (toolbar/avisos e cabecalho), so o fundo aparece ===== */
+.toolbar{
+    border-bottom:none !important;
+}
+.header,
+.header.header-v2{
+    border-bottom:none !important;
+    box-shadow:none !important;
+}
+.header::after{
+    display:none !important;
+}
+
+/* ===== Round 9: sem mancha azul — foto limpa atrás do vidro ===== */
+.bg-blobs{
+    display:none !important;
+}
+.bg-blob-mid{
+    display:none !important;
+}
+
+/* Sidebar/notice/cards — valores finais no Round 13 */
+.notice-board{
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+}
+.card{
+    background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
+}
+
+/* Round 10: textos dos cards em branco */
+.card-title{
+    color:#fff !important;
+    text-shadow:0 1px 3px rgba(0,0,0,.45);
+}
+.card-desc{
+    color:rgba(255,255,255,.92) !important;
+    text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+
+/* Ícones dos cards — duotone CIOP (preenchimento suave + traço degradê) */
+.card-figure{
+    position:relative !important;
+    border-radius:16px !important;
+    background:
+      linear-gradient(145deg, rgba(255,107,0,.26) 0%, rgba(11,58,138,.34) 52%, rgba(6,36,92,.40) 100%) !important;
+    border:1px solid rgba(255,255,255,.5) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.5),
+      inset 0 -1px 0 rgba(6,36,92,.1),
+      0 6px 14px -6px rgba(6,36,92,.32) !important;
+    overflow:hidden;
+}
+.card-figure::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 28% 22%, rgba(255,255,255,.55), transparent 58%);
+    pointer-events:none;
+    z-index:0;
+}
+.card-figure svg{
+    position:relative;
+    z-index:1;
+    stroke-width:2.2 !important;
+}
+.card-figure .ciop-duo-soft{
+    fill-opacity:.18 !important;
+    stroke:none !important;
+}
+.card-figure circle:not(.ciop-duo-soft),
+.card-figure rect{
+    fill:#ff6b00 !important;
+    fill-opacity:.2 !important;
+    stroke:#0b3a8a !important;
+}
+.card-figure path,
+.card-figure line,
+.card-figure polyline,
+.card-figure polygon{
+    color:#0b3a8a !important;
+    stroke:#0b3a8a !important;
+    fill:none !important;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+
+/* ---- Quadro de avisos mais enxuto -------------------------------------------
+   O que deixava o bloco alto era o min-height de 72px da pista e o empilhamento
+   texto -> pontinhos -> barra. Aqui a pista encolhe e os pontinhos vao para o lado,
+   numa grade de duas colunas, com a barra de progresso ocupando a linha de baixo
+   inteira. O resultado fica na mesma altura da barra de comando acima. */
+.notice-board{
+    padding:8px 12px !important;
+    gap:10px !important;
+}
+.notice-carousel-track{
+    /* SEM !important de proposito: o JS mede o aviso e escreve style.minHeight na pista
+       (avisosLista.style.minHeight). Um !important aqui vence ate o estilo inline e
+       travava a altura em 46px — era o que cortava a terceira linha dos avisos longos.
+       Este valor e so o piso, para os avisos curtos nao ficarem espremidos. */
+    min-height:46px;
+}
+.notice-item{
+    padding:7px 10px !important;
+}
+.notice-item-title{ font-size:13px; line-height:1.3; }
+.notice-item-text{ font-size:12.5px; line-height:1.4; margin-top:2px; }
+
+.notice-carousel-wrap{
+    display:grid !important;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:2px 10px !important;
+    padding:0 !important;
+}
+.notice-carousel-wrap > .notice-carousel-track{ grid-column:1; grid-row:1; }
+.notice-carousel-dots{
+    grid-column:2;
+    grid-row:1;
+    flex-direction:column;
+    gap:5px;
+    min-height:0;
+    padding:0;
+}
+.notice-carousel-progress{ grid-column:1 / -1; grid-row:2; }
+
+@media (max-width:640px){
+    /* Em tela estreita a coluna dos pontinhos rouba largura do texto: voltam para baixo. */
+    .notice-carousel-wrap{ grid-template-columns:1fr; }
+    .notice-carousel-dots{ grid-column:1; grid-row:2; flex-direction:row; }
+    .notice-carousel-progress{ grid-row:3; }
+}
+
+/* ---- Abas: laranja do portal, letra maior e movimento ----------------------
+   O destaque agora e um indicador unico que desliza entre as abas, em vez de
+   cada botao acender o proprio fundo. Alem de mais moderno, deixa claro de onde
+   para onde a selecao foi — util quando as tres areas tem nomes parecidos. */
+.portal-abas{ position:relative; }
+.portal-aba{
+    position:relative;
+    z-index:1;
+    font:700 19px/1.2 inherit !important;
+    color:var(--azul);
+}
+.portal-aba-indicador{
+    position:absolute;
+    top:6px;
+    bottom:6px;
+    left:0;
+    width:0;
+    border-radius:999px;
+    /* Azul no selecionado; o laranja fica reservado para o hover, que e um estado
+       passageiro e por isso pede a cor mais chamativa. */
+    background:linear-gradient(135deg,#12336f 0%,var(--azul) 100%);
+    box-shadow:0 8px 20px rgba(6,36,92,.32);
+    opacity:0;
+    z-index:0;
+    transition:transform .34s cubic-bezier(.22,.61,.36,1),
+               width .34s cubic-bezier(.22,.61,.36,1),
+               opacity .2s ease;
+    pointer-events:none;
+}
+.portal-aba[aria-selected="true"]{
+    background:transparent !important;
+    box-shadow:none !important;
+    color:#fff !important;
+}
+.portal-aba:not([aria-selected="true"]):hover{
+    background:transparent !important;
+    color:var(--laranja) !important;
+}
+
+/* Entrada dos cards ao trocar de area: sobem e aparecem em cascata curta. */
+@keyframes portalCardEntra{
+    from{ opacity:0; transform:translateY(12px) scale(.985); }
+    to{ opacity:1; transform:none; }
+}
+.portal-secao-entra a.card{
+    animation:portalCardEntra .36s cubic-bezier(.22,.61,.36,1) both;
+}
+@media (prefers-reduced-motion:reduce){
+    .portal-secao-entra a.card{ animation:none !important; }
+    .portal-aba-indicador{ transition:none; }
+}
+</style>
+<link rel="stylesheet" href="assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="assets/css/portal-futuristic.css?v=20260720y">
+<script src="assets/js/theme-toggle.js?v=20260720w"></script>
+<script src="assets/js/portal-futuristic.js?v=20260720m" defer></script>
 <script src="assets/js/portal-senha.js" defer></script>
 <script src="assets/js/portal-footer.js" defer></script>
 
 </head>
 
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <linearGradient id="ciopCardIconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06245c"/>
+      <stop offset="45%" stop-color="#0b3a8a"/>
+      <stop offset="100%" stop-color="#ff6b00"/>
+    </linearGradient>
+    <linearGradient id="ciopCardIconGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#0b3a8a"/>
+      <stop offset="100%" stop-color="#ff6b00"/>
+    </linearGradient>
+  </defs>
+</svg>
+<div class="bg-wall" aria-hidden="true"></div>
+<div class="bg-blobs" aria-hidden="true"></div>
+<div class="bg-blob-mid" aria-hidden="true"></div>
 <!-- MENU LATERAL -->
 
 <div class="sidebar" id="sidebar">
@@ -1568,7 +2348,7 @@ h1 {
     <button id="sidebarAdicionarAviso"
             class="side-link side-link-button"
             type="button"
-            data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria">
+            data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria" data-modulo="adicionar-aviso">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h10"/><path d="M4 19h16"/><path d="M17 10h4"/><path d="M19 8v4"/></svg></span>
         <span class="side-text">Adicionar Aviso</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1576,7 +2356,7 @@ h1 {
     
    <a class="side-link"
        href="http://intranet.grandelondrina.com.br:8080/escala/"
-       target="_blank">
+       target="_blank" data-modulo="side-escala">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span>
         <span class="side-text">Escala</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1584,24 +2364,16 @@ h1 {
 
     <a class="side-link"
        href="https://docs.google.com/forms/d/e/1FAIpQLScgGUDPuZdyN2KHVQfVWG0dORMmfOx06XEFYCEqwedqrPKwug/viewform"
-       target="_blank">
+       target="_blank" data-modulo="side-pedido-imagem">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h3l2-2h4l2 2h3v12H5V7Z"/><circle cx="12" cy="13" r="3"/></svg></span>
         <span class="side-text">Pedido de Imagem</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
     
     <a class="side-link"
-       href="https://monitoramentotcgl.github.io/tajetos/index.html"
-       target="_blank">
-        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="14" rx="2"/><path d="M8 18v2"/><path d="M16 18v2"/><path d="M5 10h14"/><path d="M8 7h8"/></svg></span>
-        <span class="side-text">Itinerários</span>
-        <span class="side-arrow" aria-hidden="true">›</span>
-    </a>
-
-    <a class="side-link"
        href="https://cioplondrina.com.br/CADIncidentManagement/?ReturnUrl=%2fCADIncidentManagement%2fg%2f6ac2842af62b497aa5b0e515ef4b2ce9"
        target="_blank"
-       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista">
+       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="side-gerenciamento-incidentes">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
         <span class="side-text">Gerenciamento de Incidentes</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1610,23 +2382,15 @@ h1 {
     <a class="side-link"
        href="http://10.235.142.105:8888/Timeout.i4"
        target="_blank"
-       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista">
+       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="side-clever">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1 2h3v15H5V6h3l1-2Z"/><path d="M9 10h6"/><path d="M9 14h6"/><path d="M9 18h4"/></svg></span>
         <span class="side-text">Clever Reports</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
 
-    <a class="side-link"
-       href="pages/dados-telemetria.html"
-       data-perfis="Administrador">
-        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8"/><path d="M8 14h5"/><circle cx="17" cy="17" r="3"/></svg></span>
-        <span class="side-text">Dados de telemetria</span>
-        <span class="side-arrow" aria-hidden="true">›</span>
-    </a>
-
      <a class="side-link"
        href="https://fleetbus.app/"
-       target="_blank">
+       target="_blank" data-modulo="side-fleetbus">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h.01"/><path d="M8 18a4 4 0 0 1 8 0"/><path d="M5 11a10 10 0 0 1 14 0"/><path d="M2 6a15 15 0 0 1 20 0"/></svg></span>
         <span class="side-text">FleetBus</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1634,7 +2398,7 @@ h1 {
 
     <a class="side-link"
    href="https://www.gsgsistem.com/tcgl/index.php"
-   target="_blank">
+   target="_blank" data-modulo="side-gsg">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
         <span class="side-text">GSG Sistem</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1642,7 +2406,7 @@ h1 {
     
     <a class="side-link"
    href="https://cmp.passaromarron.com.br"
-   target="_blank">
+   target="_blank" data-modulo="side-globus">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg></span>
         <span class="side-text">Globus</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1651,23 +2415,45 @@ h1 {
     <a class="side-link"
    href="https://editor.mobilibus.com/web/home"
    target="_blank"
-   data-perfis="Administrador,Supervisor,Analista">
+   data-perfis="Administrador,Supervisor,Analista" data-modulo="side-mobilibus">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h5a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h7"/></svg></span>
         <span class="side-text">Mobilibus</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
     <a class="side-link"
        href="pages/admin-usuarios.html"
-       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria">
+       data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria"
+       data-modulo="gerenciar-usuarios">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
         <span class="side-text">Gerenciar Usuários</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
 
     <a class="side-link"
+       href="pages/chat.html"
+       data-modulo="side-chat">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></span>
+        <span class="side-text">Chat</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <a class="side-link"
+       href="pages/chat-historico.html"
+       data-usuarios="odair.marin@icloud.com"
+       data-somente-usuarios="true"
+       data-modulo="chat-historico"
+       hidden>
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15V9"/><path d="M12 15V7"/><path d="M16 15v-3"/></svg></span>
+        <span class="side-text">Histórico Chat</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+
+    <!-- Página Perfis desativada: módulos agora em Gerenciar Usuários -->
+
+    <a class="side-link"
        href="http://192.168.0.243"
        target="_blank"
-       data-perfis="Administrador,Secretária,Secretaria">
+       data-perfis="Administrador,Secretária,Secretaria" data-modulo="side-ponto">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></span>
         <span class="side-text">Ponto Eletrônico CIOP</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1676,7 +2462,7 @@ h1 {
     <a class="side-link"
        href="https://localhost:4445/#/home/monitoramento"
        target="_blank"
-       data-perfis="Administrador,Secretária,Secretaria">
+       data-perfis="Administrador,Secretária,Secretaria" data-modulo="side-reconhecimento">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/><path d="M8 15c1.1 1 2.4 1.5 4 1.5s2.9-.5 4-1.5"/></svg></span>
         <span class="side-text">Reconhecimento Facial</span>
         <span class="side-arrow" aria-hidden="true">›</span>
@@ -1685,13 +2471,21 @@ h1 {
     <a class="side-link"
        href="https://dss.lineamidia.com.br/login?returnUrl=%2F"
        target="_blank"
-       data-perfis="Administrador,Secretária,Secretaria">
+       data-perfis="Administrador,Secretária,Secretaria" data-modulo="side-linea">
         <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="11" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
         <span class="side-text">Linea</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
 
-    
+    <div class="dk-theme-picker" role="group" aria-label="Tema do portal">
+        <span class="dk-theme-picker-label">Tema</span>
+        <div class="dk-theme-picker-options">
+            <button type="button" class="dk-theme-opt" data-dk-pref="light" aria-label="Tema claro" title="Tema claro">☀</button>
+            <button type="button" class="dk-theme-opt" data-dk-pref="dark" aria-label="Tema escuro" title="Tema escuro">☾</button>
+            <button type="button" class="dk-theme-opt" data-dk-pref="auto" aria-label="Tema automático" title="Automático (18h–6h)">◐</button>
+        </div>
+    </div>
+
 </div>
 
 <div id="overlay" onclick="toggleMenu()"></div>
@@ -1760,28 +2554,81 @@ h1 {
         <button class="menu-toggle" onclick="toggleMenu()" type="button" aria-label="Abrir links operacionais">
             <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
         </button>
-        <section class="notice-board" aria-label="Quadro de avisos">
-            <div class="notice-board-head">
-                <span class="notice-board-title">Avisos</span>
-                <span id="avisosContador" class="notice-count" hidden>0</span>
-            </div>
-            <div class="notice-carousel-wrap">
-                <div id="avisosLista" class="notice-list notice-carousel-track">
-                    <div class="notice-empty">Carregando avisos...</div>
+        <div class="toolbar-main">
+            <section class="ciop-command-row" aria-label="Central de comando e busca">
+                <div class="ciop-command">
+                    <div class="ciop-command-inner">
+                        <div class="ciop-zone ciop-zone-contexto">
+                            <div class="ciop-kpi ciop-kpi-hora">
+                                <span class="ciop-kpi-label">Hora</span>
+                                <span class="ciop-kpi-value ciop-kpi-value-hora" id="ciopKpiHora">—</span>
+                            </div>
+                            <div class="ciop-kpi ciop-kpi-data">
+                                <span class="ciop-kpi-label">Data</span>
+                                <span class="ciop-kpi-value ciop-kpi-value-data" id="ciopKpiData" title="">—</span>
+                            </div>
+                            <a class="ciop-kpi ciop-kpi-clima" id="ciopKpiClima" href="https://www.climatempo.com.br/previsao-do-tempo/cidade/277/londrina-pr" target="_blank" rel="noopener noreferrer" aria-label="Abrir previsão do tempo de Londrina" title="Abrir previsão do tempo · Climatempo">
+                                <span class="ciop-kpi-label">Londrina</span>
+                                <span class="ciop-kpi-value ciop-kpi-value-clima">
+                                    <span class="ciop-clima-icon" id="ciopClimaIcon" aria-hidden="true"></span>
+                                    <span id="ciopClimaTemp">—°</span>
+                                    <span class="ciop-clima-range" id="ciopClimaRange">—°/—°</span>
+                                </span>
+                            </a>
+                        </div>
+                        <div class="ciop-zone ciop-zone-status">
+                            <div class="ciop-kpi ciop-kpi-online">
+                                <span class="ciop-online-chip" id="ciopOnlineChip" title="Portal online">
+                                    <span class="ciop-online-dot" aria-hidden="true"></span>
+                                    <span class="ciop-online-text">Online</span>
+                                </span>
+                            </div>
+                            <div class="ciop-kpi">
+                                <span class="ciop-kpi-label">Módulos</span>
+                                <span class="ciop-kpi-value" id="ciopKpiModulos">—</span>
+                            </div>
+                            <div class="ciop-kpi">
+                                <span class="ciop-kpi-label">Usuários</span>
+                                <span class="ciop-kpi-value" id="ciopKpiUsuarios">—</span>
+                            </div>
+                            <div class="ciop-kpi">
+                                <span class="ciop-kpi-label">Avisos</span>
+                                <span class="ciop-kpi-value" id="ciopKpiAvisos">—</span>
+                            </div>
+                        </div>
+                        <label class="ciop-search" for="ciopBuscaModulos">
+                            <span class="ciop-search-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                            </span>
+                            <input id="ciopBuscaModulos" class="ciop-search-input" type="text" name="ciop-filtro-modulos" placeholder="Buscar módulos..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" enterkeyhint="search" inputmode="search" role="searchbox">
+                            <button class="ciop-search-clear" type="button" id="ciopBuscaLimpar" aria-label="Limpar busca" hidden>×</button>
+                        </label>
+                    </div>
                 </div>
-                <div id="avisosDots" class="notice-carousel-dots" hidden aria-label="Navegação de avisos"></div>
-                <div id="avisosProgress" class="notice-carousel-progress" hidden aria-hidden="true">
-                    <span class="notice-carousel-progress-bar"></span>
+            </section>
+            <section class="notice-board" aria-label="Quadro de avisos">
+                <div class="notice-board-head">
+                    <span class="notice-board-title">Avisos</span>
+                    <span id="avisosContador" class="notice-count" hidden>0</span>
                 </div>
-            </div>
-        </section>
-        <a class="toolbar-whatsapp" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="Conectar ao WhatsApp">
+                <div class="notice-carousel-wrap">
+                    <div id="avisosLista" class="notice-list notice-carousel-track">
+                        <div class="notice-empty">Carregando avisos...</div>
+                    </div>
+                    <div id="avisosDots" class="notice-carousel-dots" hidden aria-label="Navegação de avisos"></div>
+                    <div id="avisosProgress" class="notice-carousel-progress" hidden aria-hidden="true">
+                        <span class="notice-carousel-progress-bar"></span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <a class="toolbar-whatsapp" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="Conectar ao WhatsApp" title="Conectar ao WhatsApp">
             <span class="toolbar-whatsapp-icon" aria-hidden="true">
                 <svg viewBox="0 0 32 32" role="img" focusable="false">
-                    <path d="M16.01 3.2c-7.02 0-12.73 5.64-12.73 12.58 0 2.24.6 4.42 1.74 6.34L3.2 28.8l6.89-1.77a12.84 12.84 0 0 0 5.92 1.45c7.02 0 12.73-5.64 12.73-12.58S23.03 3.2 16.01 3.2Zm0 22.98c-1.92 0-3.79-.52-5.42-1.51l-.39-.23-4.08 1.05 1.09-3.86-.26-.4a10.15 10.15 0 0 1-1.58-5.45c0-5.68 4.77-10.3 10.64-10.3s10.64 4.62 10.64 10.3-4.77 10.4-10.64 10.4Zm5.83-7.72c-.32-.16-1.9-.93-2.2-1.03-.29-.11-.5-.16-.72.16-.21.32-.82 1.03-1.01 1.24-.19.21-.37.24-.69.08-.32-.16-1.36-.49-2.59-1.55-.96-.84-1.61-1.88-1.8-2.2-.19-.32-.02-.49.14-.65.14-.14.32-.37.48-.55.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.55-.08-.16-.72-1.71-.98-2.34-.26-.62-.52-.53-.72-.54h-.61c-.21 0-.55.08-.84.4-.29.32-1.11 1.07-1.11 2.61s1.14 3.03 1.3 3.24c.16.21 2.25 3.39 5.45 4.75.76.32 1.35.51 1.82.65.76.24 1.45.2 2 .12.61-.09 1.9-.77 2.17-1.51.27-.75.27-1.39.19-1.52-.08-.13-.29-.21-.61-.37Z"/>
+                    <circle cx="16" cy="16" r="15" fill="#25D366" stroke="#fff" stroke-width="2"/>
+                    <path fill="#fff" d="M16.01 7.2c-4.95 0-8.98 3.97-8.98 8.86 0 1.58.42 3.11 1.23 4.47L7.2 24.8l4.86-1.25a9.05 9.05 0 0 0 3.95.97c4.95 0 8.98-3.97 8.98-8.86S20.96 7.2 16.01 7.2Zm0 16.2c-1.35 0-2.67-.36-3.82-1.06l-.27-.16-2.88.74.77-2.72-.18-.28a7.16 7.16 0 0 1-1.11-3.84c0-4 3.36-7.26 7.49-7.26s7.49 3.26 7.49 7.26-3.36 7.32-7.49 7.32Zm4.11-5.44c-.23-.11-1.34-.66-1.55-.73-.21-.08-.35-.11-.51.11-.15.23-.58.73-.71.88-.13.15-.26.17-.49.06-.23-.11-.96-.35-1.83-1.09-.68-.59-1.13-1.33-1.27-1.55-.13-.23-.01-.35.1-.46.1-.1.23-.26.34-.39.11-.13.15-.23.23-.38.08-.15.04-.28-.02-.39-.06-.11-.51-1.21-.69-1.65-.18-.44-.37-.37-.51-.38h-.43c-.15 0-.39.06-.59.28-.2.23-.78.76-.78 1.84s.8 2.14.91 2.28c.11.15 1.59 2.39 3.84 3.35.54.23.95.36 1.28.46.54.17 1.02.14 1.41.09.43-.06 1.34-.54 1.53-1.07.19-.53.19-.98.13-1.07-.06-.09-.2-.15-.43-.26Z"/>
                 </svg>
             </span>
-            <span class="toolbar-whatsapp-label">Conectar ao WhatsApp</span>
         </a>
     </div>
 </div>
@@ -1885,6 +2732,15 @@ h1 {
         <div id="senhaStatus" class="password-status"></div>
     </section>
 
+
+    <!-- PROTOTIPO: barra de abas. Fica fora das secoes para nao interferir na grade. -->
+    <div class="portal-abas" id="portalAbas" role="tablist" aria-label="Areas do portal">
+        <span class="portal-aba-indicador" id="portalAbaIndicador" aria-hidden="true"></span>
+        <button type="button" class="portal-aba" role="tab" data-alvo="secaoOperacao"  aria-selected="true">Operação</button>
+        <button type="button" class="portal-aba" role="tab" data-alvo="secaoDashboards" aria-selected="false">Dashboards</button>
+        <button type="button" class="portal-aba" role="tab" data-alvo="secaoRelatorios" aria-selected="false">Relatórios</button>
+    </div>
+
     <section id="secaoOperacao" class="card-section" aria-label="Operação">
         <div class="card-section-head">
             <button type="button" class="card-section-toggle" id="toggleSecaoOperacao" aria-expanded="true" aria-controls="conteudoSecaoOperacao" aria-label="Abrir ou fechar Operação">
@@ -1894,7 +2750,7 @@ h1 {
         </div>
         <div class="grid card-section-corpo" id="conteudoSecaoOperacao">
 
-        <a href="pages/Folhadeservico1.html" class="card theme-blue" data-perfis="Administrador,Supervisor,Analista">
+        <a href="pages/Folhadeservico1.html" class="card theme-blue" data-perfis="Administrador,Supervisor,Analista" data-modulo="lancar-servico">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
                 <div class="card-title">Lançar Serviço</div>
@@ -1905,7 +2761,7 @@ h1 {
             <div class="card-btn">Lançar</div>
         </a>
 
-        <a href="pages/liberacao-lancamento.html" class="card theme-orange" data-perfis="Administrador,Supervisor,Analista">
+        <a href="pages/liberacao-lancamento.html" class="card theme-orange" data-perfis="Administrador,Supervisor,Analista" data-modulo="liberacao-lancamento">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/><circle cx="12" cy="12" r="9"/></svg></div>
                 <div class="card-title">Liberação</div>
@@ -1916,7 +2772,7 @@ h1 {
             <div class="card-btn">Lançar</div>
         </a>
 
-        <a href="pages/terminais-agora.html" class="card theme-violet">
+        <a href="pages/terminais-agora.html" class="card theme-violet" data-modulo="terminais-agora">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="12" rx="2"/><path d="M8 20h8"/><path d="M10 17v3"/><path d="M14 17v3"/></svg></div>
                 <div class="card-title">Terminais Agora</div>
@@ -1927,18 +2783,51 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/onibus-agora.html" class="card theme-cyan" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true">
+        <a href="https://monitoramentotcgl.github.io/tajetos/index.html" class="card theme-sky" target="_blank" data-modulo="itinerarios">
             <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v8H4z"/><path d="M6 18h2"/><path d="M16 18h2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M4 10h16"/></svg></div>
-                <div class="card-title">Ônibus Agora</div>
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 20l-5-2V4l5 2 6-2 5 2v14l-5-2-6 2Z"/><path d="M9 6v14"/><path d="M15 4v14"/></svg></div>
+                <div class="card-title">Itinerários</div>
             </div>
             <div class="card-desc">
-                Mapa ao vivo, busca por linha e veículo, horários Bus2.
+                Consulta de itinerários e trajetos das linhas.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="pages/onibus-horarios.html" class="card theme-cyan" data-somente-usuarios="true" data-modulo="onibus-agora">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+                <div class="card-title">Horários</div>
+            </div>
+            <div class="card-desc">
+                Consulta de horários por linha e local · dados Bus2.
             </div>
             <div class="card-btn">Abrir</div>
         </a>
 
-        <a href="pages/criar-relatorio.html" class="card theme-blue">
+        <a href="pages/onibus-agora-clever.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="onibus-agora-clever">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v8H4z"/><path d="M6 18h2"/><path d="M16 18h2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M4 10h16"/></svg></div>
+                <div class="card-title">Monitoramento Ao Vivo</div>
+            </div>
+            <div class="card-desc">
+                Mapa ao vivo, busca por linha e veículo — dados da API Clever.
+            </div>
+            <div class="card-btn">Abrir</div>
+        </a>
+
+        <a href="pages/fleetbus-agora.html" class="card theme-teal" data-modulo="fleetbus-agora">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M5 16h14"/></svg></div>
+                <div class="card-title">FleetBus Agora</div>
+            </div>
+            <div class="card-desc">
+                Cluster On-Demand: mapa, velocidade, RPM, odômetro, combustível e temperatura.
+            </div>
+            <div class="card-btn">Abrir</div>
+        </a>
+        
+        <a href="pages/criar-relatorio.html" class="card theme-blue" data-modulo="criar-relatorio">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3Z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h3"/></svg></div>
                 <div class="card-title">Criar Relatório</div>
@@ -1949,7 +2838,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://drive.google.com/drive/folders/140AXmLicGVvTm2Z5ALESVEmv0-K_mhYW" class="card theme-cyan" target="_blank" data-saida-carros-cot="true">
+        <a href="https://drive.google.com/drive/folders/140AXmLicGVvTm2Z5ALESVEmv0-K_mhYW" class="card theme-cyan" target="_blank" data-saida-carros-cot="true" data-modulo="saida-carros-drive">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="14" rx="2"/><path d="M8 18v2"/><path d="M16 18v2"/><path d="M5 10h14"/><path d="M8 7h8"/></svg></div>
                 <div class="card-title">Saída de carros</div>
@@ -1960,7 +2849,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://drive.google.com/drive/folders/1-jBeEFxHtTgvXbjkJbhonY-ijKg16UcF" class="card theme-slate" target="_blank" data-diarios-bordo="true">
+        <a href="https://drive.google.com/drive/folders/1-jBeEFxHtTgvXbjkJbhonY-ijKg16UcF" class="card theme-slate" target="_blank" data-diarios-bordo="true" data-modulo="diarios-bordo">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5a3 3 0 0 1 3-3h11v18H8a3 3 0 0 0-3 3V5Z"/><path d="M5 5v16"/><path d="M9 6h6"/></svg></div>
                 <div class="card-title">Diários de bordo</div>
@@ -1971,7 +2860,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://www.canva.com/design/DAGmHCnCGlc/hBDsSXTyhOo_FJjbAsIRMQ/edit" class="card theme-rose" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+        <a href="https://www.canva.com/design/DAGmHCnCGlc/hBDsSXTyhOo_FJjbAsIRMQ/edit" class="card theme-rose" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="desvios">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 21h20L12 3Z"/><path d="M12 9v5"/><path d="M12 18h.01"/></svg></div>
                 <div class="card-title">Desvios</div>
@@ -1982,18 +2871,18 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/tabelas-horarias.html" class="card theme-teal">
+        <a href="https://drive.google.com/drive/folders/1oq_QLjcIpZGqWD6zRcLtK4PIj5my6TtE?usp=sharing" class="card theme-teal" data-modulo="tabelas-horarias">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/><path d="M10 5v14"/><path d="M15 5v14"/></svg></div>
                 <div class="card-title">Tabelas Horárias</div>
             </div>
             <div class="card-desc">
-                Consulta web das tabelas por linha (úteis, sábado e domingo).
+                Consulta das tabelas por linha (úteis, sábado e domingo).
             </div>
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://drive.google.com/drive/folders/1m9ODnZuVVtFVUP1p_FUECy9E1xVBN1yd" class="card theme-green" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+        <a href="https://drive.google.com/drive/folders/1m9ODnZuVVtFVUP1p_FUECy9E1xVBN1yd" class="card theme-green" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="drive-monitoramento">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h7l2 2h7v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z"/><path d="M4 8V6a2 2 0 0 1 2-2h4l2 4"/></svg></div>
                 <div class="card-title">Drive Monitoramento</div>
@@ -2004,7 +2893,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
             
-        <a href="https://drive.google.com/drive/folders/111RpLw8iQI3Pypwi_sYdJ3NO1iG_Ow5K" class="card theme-indigo" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+        <a href="https://drive.google.com/drive/folders/111RpLw8iQI3Pypwi_sYdJ3NO1iG_Ow5K" class="card theme-indigo" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="horarios-fiscais">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></div>
                 <div class="card-title">Horários para fiscais</div>
@@ -2015,7 +2904,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://www.canva.com/" class="card theme-violet" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+        <a href="https://www.canva.com/" class="card theme-violet" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="canva">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4-1 11-11-3-3L5 16l-1 4Z"/><path d="m14 7 3 3"/></svg></div>
                 <div class="card-title">Canva</div>
@@ -2026,7 +2915,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://canva.link/nsecrfpmgcjqlwr" class="card theme-amber" target="_blank" data-perfis="Administrador,Supervisor,Analista">
+        <a href="https://canva.link/nsecrfpmgcjqlwr" class="card theme-amber" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="cenario-atual">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 12 8 4 8-4"/><path d="m4 17 8 4 8-4"/></svg></div>
                 <div class="card-title">Cenário Atual</div>
@@ -2037,7 +2926,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQcoPBPbjoZKmWb6KlDMMpwm0-AbzPA4PRziV6zS8U-VzXRKMtKEp_sbVf4cgHNEg/pubhtml#" class="card theme-red" target="_blank">
+        <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQcoPBPbjoZKmWb6KlDMMpwm0-AbzPA4PRziV6zS8U-VzXRKMtKEp_sbVf4cgHNEg/pubhtml#" class="card theme-red" target="_blank" data-modulo="pontos-controle">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.4 6-11a6 6 0 0 0-12 0c0 5.6 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg></div>
                 <div class="card-title">Pontos de controle</div>
@@ -2048,18 +2937,8 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA/edit?gid=1013912232#gid=1013912232" class="card theme-blue" target="_blank" data-perfis="Administrador,Supervisor">
-            <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div>
-                <div class="card-title">Planilha</div>
-            </div>
-            <div class="card-desc">
-                Acesso à planilha CIOP.
-            </div>
-            <div class="card-btn">Acessar</div>
-        </a>
 
-        <a href="pages/gerenciapatio.html" class="card theme-sky" data-perfis="Administrador,Supervisor" data-usuarios="pedroisrael2009@gmail.com">
+        <a href="pages/gerenciapatio.html" class="card theme-sky" data-perfis="Administrador,Supervisor" data-usuarios="pedroisrael2009@gmail.com" data-modulo="gerenciar-patio">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16h12l-1-5H7l-1 5Z"/><path d="M7 11l2-4h6l2 4"/><circle cx="8" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg></div>
                 <div class="card-title">Gerenciar Pátio</div>
@@ -2070,7 +2949,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/escala-saida-carros.html" class="card theme-indigo" data-perfis="Administrador,Supervisor" data-usuarios="pedroisrael2009@gmail.com">
+        <a href="pages/escala-saida-carros.html" class="card theme-indigo" data-perfis="Administrador,Supervisor" data-usuarios="pedroisrael2009@gmail.com" data-modulo="escala-saida-carros">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8"/><path d="M8 14h5"/><path d="M16 3v3"/><path d="M8 3v3"/></svg></div>
                 <div class="card-title">Saída de carros</div>
@@ -2081,17 +2960,28 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/relatorios.html" class="card theme-slate" data-perfis="Administrador,Supervisor,Analista">
+
+        <a href="pages/consulta-decreto.html" class="card theme-indigo" data-perfis="Administrador,Supervisor,Analista" data-modulo="consulta-decreto">
             <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3Z"/><path d="M15 3v4h4"/><path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h3"/></svg></div>
-                <div class="card-title">Relatórios</div>
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M5 8l3-3 3 3"/><path d="M2 8h6"/><path d="M2 8a3 4 0 0 0 6 0"/><path d="M16 8l3-3 3 3"/><path d="M13 8h6"/><path d="M13 8a3 4 0 0 0 6 0"/><path d="M7 21h10"/></svg></div>
+                <div class="card-title">Consulta do Decreto</div>
             </div>
             <div class="card-desc">
-                Relatórios operacionais com exportação CSV, Excel e PDF.
+                Assistente de IA (NotebookLM) para consultar o decreto oficial.
             </div>
             <div class="card-btn">Acessar</div>
         </a>
 
+        <a href="https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA/edit?gid=1013912232#gid=1013912232" class="card theme-blue" target="_blank" data-perfis="Administrador,Supervisor" data-modulo="planilha">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div>
+                <div class="card-title">Planilha</div>
+            </div>
+            <div class="card-desc">
+                Acesso à planilha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
         </div>
     </section>
 
@@ -2104,18 +2994,7 @@ h1 {
         </div>
         <div class="grid card-section-corpo" id="conteudoSecaoDashboards">
 
-        <a href="pages/Folhadeservico.html" class="card theme-blue">
-            <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-4"/></svg></div>
-                <div class="card-title">Dashboard de Serviço</div>
-            </div>
-            <div class="card-desc">
-                Indicadores da planilha CIOP.
-            </div>
-            <div class="card-btn">Acessar</div>
-        </a>
-
-        <a href="pages/pontualidade.html?v=20260712" class="card theme-teal">
+        <a href="pages/pontualidade.html?v=20260712" class="card theme-teal" data-modulo="ipv">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg></div>
                 <div class="card-title">IPV</div>
@@ -2126,7 +3005,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/icv.html?v=20260702g" class="card theme-sky">
+        <a href="pages/icv.html?v=20260702g" class="card theme-sky" data-modulo="icv">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/></svg></div>
                 <div class="card-title">ICV</div>
@@ -2137,7 +3016,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/autuacoes.html" class="card theme-amber" data-perfis="Administrador,Supervisor,Gerência,Gerencia">
+        <a href="pages/autuacoes.html" class="card theme-amber" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="autuacoes">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 20h18L12 4Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div>
                 <div class="card-title">Autuações</div>
@@ -2148,18 +3027,30 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/incidentes-dashboard.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista">
+
+        <a href="pages/incidentes-analise.html" class="card theme-indigo" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes-analise">
             <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></div>
-                <div class="card-title">Incidentes</div>
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 5-8"/></svg></div>
+                <div class="card-title">Dashboard de Incidentes</div>
             </div>
             <div class="card-desc">
-                Dashboard dos incidentes TCGL.
+                Painel visual com gráficos e KPIs dos incidentes TCGL.
             </div>
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/liberacao-dashboard.html" class="card theme-orange">
+        <a href="pages/Folhadeservico.html" class="card theme-blue" data-modulo="dashboard-servico">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-4"/></svg></div>
+                <div class="card-title">Dashboard de Serviço</div>
+            </div>
+            <div class="card-desc">
+                Indicadores da planilha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="pages/liberacao-dashboard.html" class="card theme-orange" data-modulo="liberacao-dashboard">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></div>
                 <div class="card-title">Liberação</div>
@@ -2170,7 +3061,7 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/comparacao-km.html" class="card theme-sky" data-perfis="Administrador,Supervisor,Gerência,Gerencia">
+        <a href="pages/comparacao-km.html" class="card theme-sky" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="comparacao-km">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></div>
                 <div class="card-title">Comparação de KM</div>
@@ -2181,7 +3072,114 @@ h1 {
             <div class="card-btn">Acessar</div>
         </a>
 
-        <a href="pages/dados-telemetria.html" class="card theme-teal" data-perfis="Administrador">
+
+        <a href="pages/evidencias-autuacoes.html" class="card theme-rose" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="autuacoes">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"/><path d="M14 10 21 3"/><path d="M10 14H3V3h7"/><path d="M3 21h7v-7"/><path d="M14 14h7v7"/></svg></div>
+                <div class="card-title">Evidências</div>
+            </div>
+            <div class="card-desc">
+                Evidenciar autos CMTU com imagens e ficha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="pages/painel-tv.html" class="card theme-violet" target="_blank" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="painel-tv-indicadores">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg></div>
+                <div class="card-title">Painel TV · Apresentação</div>
+            </div>
+            <div class="card-desc">
+                IPV, ICV, KM e pontualidade ao vivo em uma única tela, sem recarregar.
+            </div>
+            <div class="card-btn">Abrir</div>
+        </a>
+
+
+
+        </div>
+    </section>
+
+    <section id="secaoRelatorios" class="card-section" aria-label="Relatórios">
+        <div class="card-section-head">
+            <button type="button" class="card-section-toggle" id="toggleSecaoRelatorios" aria-expanded="true" aria-controls="conteudoSecaoRelatorios" aria-label="Abrir ou fechar Relatórios">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <h2 class="card-section-title">Relatórios</h2>
+        </div>
+        <div class="grid card-section-corpo" id="conteudoSecaoRelatorios">
+
+        <a href="pages/liberacao-relatorio.html" class="card theme-orange">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8"/><path d="M8 14h5"/><path d="M8 6V4h8v2"/></svg>
+                </div>
+                <div class="card-title">Acompanhamento da Liberação</div>
+            </div>
+            <div class="card-desc">Relatório tabular com saídas, inícios, trajeto ocioso e observações por data. Exportação CSV, Excel e PDF.</div>
+            <span class="card-btn">Abrir relatório</span>
+        </a>
+        <a href="pages/folha-servico-relatorio.html" class="card theme-blue">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6V3Z"/><path d="M15 3v4h4"/></svg>
+                </div>
+                <div class="card-title">Folha de Serviço</div>
+            </div>
+            <div class="card-desc">Relatório tabular por período com ocorrências, linhas e situação. Exportação CSV, Excel e PDF.</div>
+            <span class="card-btn">Abrir relatório</span>
+        </a>
+        <a href="pages/relatorio-ocorrencia.html" class="card theme-teal">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h6"/></svg>
+                </div>
+                <div class="card-title">Relatório de Ocorrência</div>
+            </div>
+            <div class="card-desc">Acesse os PDFs já gerados e enviados, salvos na AWS por usuário e data.</div>
+            <span class="card-btn">Abrir relatório</span>
+        </a>
+        <a href="pages/cr0108.html" class="card theme-indigo" data-perfis="Administrador">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                </div>
+                <div class="card-title">CR-0108 — Pontualidade por Ponto de Controle</div>
+            </div>
+            <div class="card-desc">Histórico do ano com filtros por período, linha e sentido: no horário, adiantado, atrasado e divergente, com ranking de linhas, pontos, operadores e veículos.</div>
+            <span class="card-btn">Abrir relatório</span>
+        </a>
+        <a href="pages/cr0108-ajustes.html" class="card theme-indigo" data-perfis="Administrador">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-11"/><path d="M12 6V3"/><path d="M20 21v-3"/><path d="M20 14V3"/><path d="M1 14h6"/><path d="M9 6h6"/><path d="M17 18h6"/></svg>
+                </div>
+                <div class="card-title">CR-0108 — Onde ajustar a tabela horária</div>
+            </div>
+            <div class="card-desc">Diagnóstico por ponto de controle: quanto antecipar ou atrasar cada horário programado, quanto isso melhora a pontualidade e quais casos não se resolvem com tabela.</div>
+            <span class="card-btn">Abrir diagnóstico</span>
+        </a>
+        <a href="pages/consumo-diario-2026-05-12.html" class="card theme-indigo" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="telemetria-fleetbus">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/><path d="M8 10h8"/><path d="M8 14h5"/></svg></div>
+                <div class="card-title">Telemetria FleetBus</div>
+            </div>
+            <div class="card-desc">
+                Consumo diário por veículo: distância, combustível e eventos de segurança.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        <a href="pages/incidentes-dashboard.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg></div>
+                <div class="card-title">Incidentes</div>
+            </div>
+            <div class="card-desc">
+                Dashboard dos incidentes TCGL.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+        <a href="pages/dados-telemetria.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="dados-telemetria">
             <div class="card-top">
                 <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8"/><path d="M8 14h5"/><circle cx="17" cy="17" r="3"/></svg></div>
                 <div class="card-title">Dados de telemetria</div>
@@ -2191,9 +3189,29 @@ h1 {
             </div>
             <div class="card-btn">Acessar</div>
         </a>
-
+        <a href="pages/desempenho-motoristas.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="desempenho-motoristas">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21v-6"/><path d="M12 21V9"/><path d="M18 21v-9"/><path d="M3 21h18"/><circle cx="12" cy="5" r="2"/></svg></div>
+                <div class="card-title">Desempenho dos Motoristas</div>
+            </div>
+            <div class="card-desc">
+                Ranking de pontualidade por motorista, do melhor ao pior, com evolução mês a mês.
+            </div>
+            <div class="card-btn">Acessar</div>
+           </a>
+        <a href="pages/pontualidade-incidentes.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="pontualidadeincidentes">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21v-6"/><path d="M12 21V9"/><path d="M18 21v-9"/><path d="M3 21h18"/><circle cx="12" cy="5" r="2"/></svg></div>
+                <div class="card-title">Pontualidade Incidentes</div>
+            </div>
+            <div class="card-desc">
+                Ranking de pontualidade com incidentes 2/6 e 1/3.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
         </div>
     </section>
+
 
 </div>
 
@@ -2223,10 +3241,11 @@ function lerPreferenciasSecoesPortal() {
         const salvo = JSON.parse(localStorage.getItem(chaveSecoesPortal()) || "{}");
         return {
             operacao: salvo.operacao !== false,
-            dashboards: salvo.dashboards !== false
+            dashboards: salvo.dashboards !== false,
+            relatorios: salvo.relatorios !== false
         };
     } catch (_) {
-        return { operacao: true, dashboards: true };
+        return { operacao: true, dashboards: true, relatorios: true };
     }
 }
 
@@ -2253,6 +3272,11 @@ function aplicarPreferenciasSecoesPortal(preferencias = lerPreferenciasSecoesPor
         document.getElementById("conteudoSecaoDashboards"),
         preferencias.dashboards
     );
+    aplicarEstadoSecaoPortal(
+        document.getElementById("toggleSecaoRelatorios"),
+        document.getElementById("conteudoSecaoRelatorios"),
+        preferencias.relatorios
+    );
 }
 
 function inicializarVisibilidadeSecoesPortal() {
@@ -2276,6 +3300,12 @@ function inicializarVisibilidadeSecoesPortal() {
 
     alternar("operacao", toggleOperacao, corpoOperacao);
     alternar("dashboards", toggleDashboards, corpoDashboards);
+
+    /* A seção Relatórios entrou depois; se por algum motivo não estiver na página,
+       os toggles anteriores continuam funcionando. */
+    const toggleRelatorios = document.getElementById("toggleSecaoRelatorios");
+    const corpoRelatorios = document.getElementById("conteudoSecaoRelatorios");
+    if (toggleRelatorios && corpoRelatorios) alternar("relatorios", toggleRelatorios, corpoRelatorios);
 }
 
 document.addEventListener("DOMContentLoaded", inicializarVisibilidadeSecoesPortal);
@@ -2331,8 +3361,17 @@ function ajustarAlturaCarouselAvisos() {
         avisosLista.style.minHeight = "";
         return;
     }
-    avisosLista.style.minHeight = ativo.scrollHeight + "px";
+    const altura = Math.max(ativo.scrollHeight, ativo.offsetHeight, 56);
+    avisosLista.style.minHeight = Math.ceil(altura) + "px";
 }
+
+let avisosAlturaResizeTimer = null;
+window.addEventListener("resize", () => {
+    if (avisosAlturaResizeTimer) clearTimeout(avisosAlturaResizeTimer);
+    avisosAlturaResizeTimer = setTimeout(() => {
+        requestAnimationFrame(ajustarAlturaCarouselAvisos);
+    }, 120);
+});
 
 function reiniciarProgressoAvisos() {
     if (!avisosProgress || !avisoProgressBar) return;
@@ -3075,6 +4114,108 @@ if (window.portalUsuarioValidado) {
 })();
 </script>
 
+
+<script>
+/* PROTOTIPO — abas. Mostra uma secao por vez, lembrando a escolha no navegador.
+   Nao altera nenhum card: so controla qual das tres areas esta visivel. */
+(function () {
+    "use strict";
+    const CHAVE = "portalCiopAbaAtiva";
+    const abas = Array.prototype.slice.call(document.querySelectorAll(".portal-aba"));
+    if (!abas.length) return;
+    const secoes = abas.map((b) => document.getElementById(b.dataset.alvo)).filter(Boolean);
+    if (secoes.length !== abas.length) return;
+
+    document.body.classList.add("portal-abas-ativo");
+
+    function mostrar(id, guardar) {
+        abas.forEach((b) => {
+            const ativa = b.dataset.alvo === id;
+            b.setAttribute("aria-selected", ativa ? "true" : "false");
+            const sec = document.getElementById(b.dataset.alvo);
+            if (!sec) return;
+            sec.hidden = !ativa;
+            /* O portal guardava secoes recolhidas em localStorage. Com abas isso deixa
+               de fazer sentido e a classe so atrapalharia: a secao ficaria em branco. */
+            const corpo = sec.querySelector(".card-section-corpo");
+            if (corpo) corpo.classList.remove("portal-secao-fechada");
+        });
+        if (guardar) { try { localStorage.setItem(CHAVE, id); } catch (_) {} }
+        moverIndicador();
+        const sec = document.getElementById(id);
+        if (sec && !sec.hidden) animarEntrada(sec);
+    }
+
+    const indicador = document.getElementById("portalAbaIndicador");
+
+    /* O indicador acompanha a aba ativa em posicao e largura. Durante a busca nenhuma
+       aba fica ativa (as areas aparecem todas), entao ele desaparece. */
+    function moverIndicador() {
+        if (!indicador) return;
+        const ativa = abas.find((b) => b.getAttribute("aria-selected") === "true");
+        if (!ativa) { indicador.style.opacity = "0"; return; }
+        indicador.style.width = ativa.offsetWidth + "px";
+        indicador.style.transform = "translateX(" + ativa.offsetLeft + "px)";
+        indicador.style.opacity = "1";
+    }
+
+    /* Reinicia a animacao a cada troca: sem o reflow o navegador reaproveita a anterior
+       e os cards entrariam sem movimento na segunda vez. */
+    function animarEntrada(sec) {
+        sec.classList.remove("portal-secao-entra");
+        void sec.offsetWidth;
+        Array.prototype.forEach.call(sec.querySelectorAll("a.card:not([hidden])"), (c, i) => {
+            c.style.animationDelay = Math.min(i * 26, 320) + "ms";
+        });
+        sec.classList.add("portal-secao-entra");
+    }
+
+    window.addEventListener("resize", moverIndicador);
+
+
+    abas.forEach((b) => b.addEventListener("click", () => mostrar(b.dataset.alvo, true)));
+
+    /* Busca x abas: o campo do topo procura em todos os modulos, mas o resultado podia
+       cair numa aba fechada — o usuario digitava e nao via nada. Enquanto ha texto na
+       busca, as abas saem do caminho e toda area COM resultado aparece; ao limpar, volta
+       a aba escolhida. A contagem tambem passa a refletir os achados. */
+    const busca = document.getElementById("ciopBuscaModulos");
+
+    const achados = (sec) => sec.querySelectorAll("a.card:not([hidden]):not(.ciop-search-hidden)").length;
+
+    function sincronizar() {
+        const procurando = !!(busca && busca.value.trim());
+        if (!procurando) { mostrar(abaAtiva(), false); return; }
+        abas.forEach((b) => {
+            const sec = document.getElementById(b.dataset.alvo);
+            if (!sec) return;
+            const n = achados(sec);
+            sec.hidden = n === 0;
+            const corpo = sec.querySelector(".card-section-corpo");
+            if (corpo) corpo.classList.remove("portal-secao-fechada");
+            b.setAttribute("aria-selected", "false");
+        });
+        /* Nenhuma aba ativa durante a busca: o indicador some em vez de ficar parado
+           sobre uma aba que nao representa mais o que esta na tela. */
+        moverIndicador();
+    }
+
+    function abaAtiva() {
+        try { const g = localStorage.getItem(CHAVE); if (g && document.getElementById(g)) return g; } catch (_) {}
+        return "secaoOperacao";
+    }
+
+    if (busca) {
+        /* setTimeout para rodar DEPOIS do filtro do portal-futuristic.js, que e quem
+           marca os cards com ciop-search-hidden. Sem isso eu leria o estado anterior. */
+        ["input", "change", "search"].forEach((ev) =>
+            busca.addEventListener(ev, () => setTimeout(sincronizar, 0)));
+    }
+
+    mostrar(abaAtiva(), false);
+})();
+</script>
 </body>
 
 </html>
+

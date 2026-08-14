@@ -1,18 +1,10 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<script>
-(function(){
-  var embed = new URLSearchParams(location.search).get("embed") === "native-app";
-  try {
-    if (!embed && window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) embed = true;
-  } catch (e) {}
-  if (!embed) document.documentElement.classList.add("portal-auth-pending");
-})();
-</script>
-<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){visibility:hidden!important}</style>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;}</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <title>Ônibus Agora | Portal CIOP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +15,7 @@
 :root{
   --blue:#06245c;--blue-soft:#0b3a8a;--teal:#2db4bf;--orange:#ff6b00;
   --bg:#f5f7fb;--surface:#fff;--surface-2:#f8fafc;--border:#dfe5ef;
-  --text:#101828;--muted:#667085;--ok:#059669;--warn:#d97706;
+  --text:#101828;--muted:#3f4757;--ok:#059669;--warn:#d97706;
   --shadow:0 1px 2px rgba(15,23,42,.06),0 16px 40px rgba(6,36,92,.10);
   --radius:18px;
 }
@@ -40,16 +32,14 @@ body.oa-page{
 }
 .logo-tcgl{height:46px;object-fit:contain}
 .title-wrap{justify-self:center;text-align:center}
-.page-kicker{margin:0 0 4px;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.page-title{margin:0;color:var(--blue);font-size:24px;font-weight:800;letter-spacing:-.02em}
-.page-desc{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:500}
+.page-title{margin:0;color:var(--blue);font-size:clamp(18px,2.2vw,26px);font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 .header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
 .ciop-session{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--blue);background:#fff}
 .ciop-session-user{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
 .btn-logout{background:#ef4444;color:#fff;border:0;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer}
 
 .shell{max-width:1560px;margin:0 auto;padding:18px 18px 36px;width:100%;flex:1}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
 .topbar-left,.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border-radius:999px;border:1px solid transparent;font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:.18s ease}
 .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -58,6 +48,7 @@ body.oa-page{
 .btn-ghost{background:#fff;color:var(--blue);border-color:var(--border)}
 .btn-ghost:hover{background:var(--surface-2)}
 .btn-ghost.active{background:#effcfb;border-color:rgba(45,180,191,.45);color:var(--blue)}
+.topbar-left .btn-primary,.topbar-actions .btn-ghost{border-radius:10px;}
 
 .live-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--muted)}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(5,150,105,.15)}
@@ -106,6 +97,12 @@ body.oa-page{
 .panel[hidden]{display:none!important}
 
 #mapa,#mapaViagem{width:100%;height:100%;min-height:520px;background:#dbeafe}
+.oa-map-shell{position:absolute;inset:0;}
+#mapa.leaflet-container,#mapaViagem.leaflet-container,
+#mapa .leaflet-map-pane,#mapa .leaflet-pane,#mapa .leaflet-tile-pane,#mapa .leaflet-marker-pane,
+#mapaViagem .leaflet-map-pane,#mapaViagem .leaflet-pane,#mapaViagem .leaflet-tile-pane,#mapaViagem .leaflet-marker-pane{
+  touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none
+}
 .map-tools{position:absolute;top:12px;right:12px;z-index:500;display:flex;flex-direction:column;gap:8px}
 .shape-picker{
   position:absolute;left:12px;bottom:12px;z-index:500;width:min(320px,calc(100% - 24px));
@@ -151,6 +148,7 @@ body.oa-native-mode .map-filtro-pont.oa-pont-dock .pont-chip{
 }
 body.oa-native-mode .map-filtro-pont.oa-pont-dock .pont-chip[data-pont="atrasado"]{color:#fef08a}
 body.oa-native-mode #mapa{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;flex:none!important}
+body.oa-native-mode #mapa,body.oa-native-mode .oa-map-shell{touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
 body.oa-native-mode .oa-map-shell{flex:1 1 0;min-height:0;position:relative;order:1;width:100%;overflow:hidden}
 body.oa-native-mode .oa-native-bottom{position:relative!important;flex:0 0 auto;order:2;width:100%;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;transform:none!important}
 body.oa-native-mode .oa-map-dock{
@@ -404,18 +402,169 @@ body.oa-native-mode .oa-bottom-pont{
 
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty h3{margin:0 0 8px;color:var(--blue);font-size:18px;font-weight:800}
+@media (max-width:720px){
+  .body-bg-wall,
+  .body-bg-stain{
+    display:none !important;
+  }
+  body.oa-page{background:var(--dk-bg) !important;color:var(--dk-text) !important;}.header{background:var(--dk-glass-bg) !important;backdrop-filter:blur(var(--dk-glass-blur)) !important;border-bottom:1px solid var(--dk-glass-border) !important;}.dk-theme-toggle{display:flex !important;}.card{background:var(--dk-glass-bg) !important;border:1px solid var(--dk-glass-border) !important;box-shadow:var(--dk-glass-shadow) !important;}.card-title{color:var(--dk-text) !important;}.card-sub{color:var(--dk-muted) !important;}.input,.select{background:rgba(255,255,255,.06) !important;border:1px solid var(--dk-glass-border) !important;color:var(--dk-text) !important;}}
+
+/* ===== Redesign iOS26 Liquid Glass (desktop) =====
+   Fundo com parede de traços + mancha do laço do mês, vidro no
+   header/cards/pílula ao vivo, hover no botão Portal. O mapa
+   fica intocado (tem fundo próprio, cobre a parede). */
+@media (min-width:721px){
+  body.oa-page{
+    position:relative;
+    background:var(--bg);
+  }
+  .shell{
+    max-width:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+  }
+  .layout{
+    flex:1 !important;
+    min-height:0 !important;
+  }
+  .main{
+    min-height:0 !important;
+  }
+  .panel{
+    min-height:0 !important;
+  }
+  .body-bg-wall{
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    pointer-events:none;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+
+  .header{
+    background:rgba(255,255,255,.6) !important;
+    backdrop-filter:blur(18px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(18px) saturate(190%) !important;
+    border-bottom:1px solid rgba(255,255,255,.5) !important;
+    box-shadow:0 10px 28px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+
+  footer.portal-site-footer{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(16px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(16px) saturate(190%) !important;
+    border-top:1px solid rgba(255,255,255,.5) !important;
+    box-shadow:0 -10px 28px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+  footer.portal-site-footer .footer-text{
+    color:#3f4757 !important;
+  }
+
+  .card{
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(16px) saturate(190%);
+    -webkit-backdrop-filter:blur(16px) saturate(190%);
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:0 12px 30px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+
+  .live-pill{
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(14px) saturate(190%);
+    -webkit-backdrop-filter:blur(14px) saturate(190%);
+  }
+.topbar{
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(18px) saturate(190%);
+    -webkit-backdrop-filter:blur(18px) saturate(190%);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:18px;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .topbar .live-pill{
+    background:transparent;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    border:none;
+    box-shadow:none;
+    padding:0;
+  }
+
+  .btn-primary{
+    min-height:44px !important;font-size:14px !important;
+    background:linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85));
+  }
+  .btn-primary:hover{
+    background:linear-gradient(135deg, var(--orange), #ff8f3d);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -12px rgba(255,107,0,.5), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-ghost{
+    border-left:3px solid var(--orange) !important;
+  }
+  .btn-ghost:hover{
+    background:rgba(224,235,255,.85);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .btn-primary,.btn-ghost{
+    transition:transform .2s ease, background .25s ease, box-shadow .25s ease, color .25s ease !important;
+  }
+
+  .topbar-left .btn-primary{
+    min-height:44px !important;padding:8px 14px !important;border-radius:10px !important;font-size:14px !important;
+    background:linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85)) !important;
+    backdrop-filter:blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(14px) saturate(190%) !important;
+    border:1px solid rgba(255,255,255,.4) !important;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.25) !important;
+    color:#fff !important;
+  }
+  .topbar-left .btn-primary:hover{
+    background:linear-gradient(135deg, var(--orange), #ff8f3d) !important;
+    transform:translateY(-2px) !important;
+    box-shadow:0 14px 28px -12px rgba(255,107,0,.5), inset 0 1px 0 rgba(255,255,255,.35) !important;
+  }
+  .topbar-actions .btn-ghost{
+    min-height:44px !important;padding:8px 14px !important;border-radius:10px !important;font-size:14px !important;
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(14px) saturate(190%) !important;
+    border:1px solid rgba(255,255,255,.6) !important;
+    border-left:3px solid var(--orange) !important;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+    color:var(--blue) !important;
+  }
+  .topbar-actions .btn-ghost:hover{
+    background:rgba(224,235,255,.85) !important;
+    transform:translateY(-2px) !important;
+    box-shadow:0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6) !important;
+    color:var(--blue) !important;
+  }
+}
 </style>
-<link rel="stylesheet" href="../assets/css/portal-senha.css">
-<link rel="stylesheet" href="../assets/css/portal-brand.css">
-<link rel="stylesheet" href="../assets/css/portal-header.css">
-<link rel="stylesheet" href="../assets/css/portal-session.css">
+<link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/dashboard-kit.css">
+  
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
 <script>
 (function () {
   try {
     if (new URLSearchParams(location.search).get("embed") === "native-app") {
       document.documentElement.classList.add("native-app", "native-embedded");
-      document.documentElement.classList.remove("portal-auth-pending");
-      document.getElementById("portalAuthBootStyle")?.remove();
     }
     if (window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) {
       document.documentElement.classList.add("native-app", "native-embedded");
@@ -435,26 +584,31 @@ body.oa-native-mode .oa-bottom-pont{
   }, { once: true });
 })();
 </script>
-<script src="../assets/js/loading.js"></script>
-<script type="module" src="../assets/js/auth.js"></script>
+<script src="../assets/js/loading.js?v=20260718d"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
+
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
 </head>
 <body class="oa-page" data-require-usuarios="odair.marin@icloud.com" data-require-somente-usuarios="true">
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
 <header class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações">
         <img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP">
         <span class="portal-brand-meta">TCGL · Operações</span>
     </a>
     <div class="title-wrap">
-        <p class="page-kicker">Monitoramento ao vivo</p>
-        <h1 class="page-title">Ônibus Agora</h1>
-        <p class="page-desc">Mapa em tempo real · Londrina · dados Bus2</p>
+        <h1 class="page-title">Monitoramento ao vivo</h1>
     </div>
     <div class="header-actions">
-        <div class="ciop-session">
-            <span class="ciop-session-user" id="usuarioLogado">Usuário</span>
-            <button class="btn-logout" type="button" onclick="logout()">Sair</button>
-        </div>
+<div class="ciop-session" aria-label="Sessão do usuário">
+    <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+    <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
+    <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+</div>
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
     </div>
 </header>
@@ -603,10 +757,44 @@ body.oa-native-mode .oa-bottom-pont{
     <button type="button" class="oa-fab oa-fab--linhas" id="oaFabLinhas" aria-label="Linhas">
         <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
     </button>
+    <button type="button" class="oa-fab oa-fab--mapa" id="oaFabMapa" aria-label="Controles do mapa">
+        <svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+    </button>
     <button type="button" class="oa-fab oa-fab--horarios" id="oaFabHorarios" aria-label="Horários">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
     </button>
     <div class="oa-backdrop" id="oaBackdrop"></div>
+    <aside class="oa-sheet oa-sheet--mapa" id="oaSheetMapa" aria-label="Controles do mapa">
+        <div class="oa-sheet-handle"></div>
+        <div class="oa-sheet-head">
+            <h2>Mapa</h2>
+            <p>Estilo, foco e atualização</p>
+        </div>
+        <div class="oa-sheet-body">
+            <div class="oa-map-actions-mobile">
+                <button type="button" class="oa-map-action" id="oaMapaClaro">
+                    <span>Mapa claro</span>
+                    <small>Ruas e bairros</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaBus2">
+                    <span>Estilo Bus2</span>
+                    <small>Visual do rastreador</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaSat">
+                    <span>Satélite</span>
+                    <small>Imagem aérea</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaCentralizar">
+                    <span>Centralizar</span>
+                    <small>Londrina</small>
+                </button>
+                <button type="button" class="oa-map-action oa-map-action--wide" id="oaMapaAtualizar">
+                    <span>Atualizar agora</span>
+                    <small>Recarrega os ônibus no mapa</small>
+                </button>
+            </div>
+        </div>
+    </aside>
     <aside class="oa-sheet oa-sheet--linhas" id="oaSheetLinhas">
         <div class="oa-sheet-handle"></div>
         <div class="oa-sheet-head">
@@ -838,12 +1026,39 @@ function syncNativeHud(){
     if ($("oaStatVisiveis")) $("oaStatVisiveis").textContent = $("statVisiveis")?.textContent || "0";
 }
 
+function setSheetAberta(id, aberta){
+    const sheet = $(id);
+    if (!sheet) return;
+    if (aberta) sheet.style.transform = "translateY(0)";
+    else sheet.style.removeProperty("transform");
+}
+
 function fecharSheetLinhas(){
     document.body.classList.remove("oa-linhas-open");
+    setSheetAberta("oaSheetLinhas", false);
 }
 
 function abrirSheetLinhas(){
+    fecharSheetMapa();
     document.body.classList.add("oa-linhas-open");
+    setSheetAberta("oaSheetLinhas", true);
+}
+
+function fecharSheetMapa(){
+    document.body.classList.remove("oa-mapa-open");
+    setSheetAberta("oaSheetMapa", false);
+}
+
+function abrirSheetMapa(){
+    fecharSheetLinhas();
+    document.body.classList.add("oa-mapa-open");
+    setSheetAberta("oaSheetMapa", true);
+}
+
+function acaoMapaMobile(fn){
+    if (typeof fn === "function") fn();
+    fecharSheetMapa();
+    scheduleMapResize();
 }
 
 function fecharHorariosNative(){
@@ -989,8 +1204,10 @@ function initNativeAppMode(){
 
     $("oaFabHorarios")?.setAttribute("hidden", "");
     $("oaFabLinhas")?.addEventListener("click", abrirSheetLinhas);
+    $("oaFabMapa")?.addEventListener("click", abrirSheetMapa);
     $("oaBackdrop")?.addEventListener("click", () => {
         fecharSheetLinhas();
+        fecharSheetMapa();
         fecharHorariosNative();
     });
 
@@ -1042,9 +1259,10 @@ function initPontToggle(){
 }
 
 function scheduleMapResize(){
-    if (!state.mapa) return;
+    if (!state.mapa && !state.mapaViagem) return;
     const fix = () => {
-        try { state.mapa.invalidateSize(); } catch (_) {}
+        try { state.mapa?.invalidateSize({ pan: false }); } catch (_) {}
+        try { state.mapaViagem?.invalidateSize({ pan: false }); } catch (_) {}
     };
     requestAnimationFrame(fix);
     [120, 350, 700, 1400, 2500].forEach(ms => setTimeout(fix, ms));
@@ -1071,6 +1289,48 @@ function applyOaAppMode(mode){
     scheduleMapResize();
 }
 
+function ativarGestosMapa(mapa){
+    if (!mapa) return;
+    const container = mapa.getContainer?.();
+    if (container){
+        container.style.touchAction = "none";
+        container.style.webkitUserSelect = "none";
+        container.style.userSelect = "none";
+        container.style.pointerEvents = "auto";
+        container.classList.add("oa-touch-map");
+        if (!container.dataset.oaTouchBound){
+            // Evita zoom da página no Safari; o zoom do mapa fica no Leaflet (wheel/touch).
+            const keepNativeZoomOut = (ev) => ev.preventDefault();
+            container.addEventListener("gesturestart", keepNativeZoomOut, { passive: false });
+            container.addEventListener("gesturechange", keepNativeZoomOut, { passive: false });
+            // Touchpad Mac: pinch chega como wheel+ctrl; reforça captura sem scroll da página.
+            container.addEventListener("wheel", (ev) => {
+                if (ev.ctrlKey || ev.metaKey) ev.preventDefault();
+            }, { passive: false });
+            container.dataset.oaTouchBound = "1";
+        }
+    }
+    mapa.dragging?.enable?.();
+    mapa.touchZoom?.enable?.();
+    mapa.doubleClickZoom?.enable?.();
+    // Touchpad usa scrollWheelZoom (dois dedos / pinch). Não desabilitar.
+    mapa.scrollWheelZoom?.enable?.();
+    if (mapa.options) {
+        mapa.options.wheelPxPerZoomLevel = 36;
+        mapa.options.wheelDebounceTime = 16;
+        mapa.options.inertiaDeceleration = 2500;
+        mapa.options.inertiaMaxSpeed = 2200;
+    }
+    mapa.boxZoom?.disable?.();
+    mapa.keyboard?.enable?.();
+    setTimeout(() => {
+        mapa.dragging?.enable?.();
+        mapa.touchZoom?.enable?.();
+        mapa.scrollWheelZoom?.enable?.();
+        mapa.invalidateSize?.();
+    }, 120);
+}
+
 window.addEventListener("message", (event) => {
     if (event.data?.type !== "oa-set-mode") return;
     applyOaAppMode(event.data.mode === "horarios" ? "horarios" : "mapa");
@@ -1079,20 +1339,30 @@ window.addEventListener("message", (event) => {
 function initMapa(){
     if (state.mapa) return;
     if (typeof L === "undefined") throw new Error("Mapa indisponível: biblioteca Leaflet não carregou.");
-    const nativeMap = isNativeEmbedded() && !OA_HORARIOS;
     state.mapa = L.map("mapa", {
         zoomControl: true,
+        dragging: true,
         touchZoom: true,
-        pinchZoom: true,
-        scrollWheelZoom: !nativeMap,
+        bounceAtZoomLimits: true,
+        inertia: true,
+        inertiaDeceleration: 2500,
+        inertiaMaxSpeed: 2200,
+        // Touchpad: dois dedos / pinch → wheel events do Leaflet
+        scrollWheelZoom: true,
+        wheelPxPerZoomLevel: 36,
+        wheelDebounceTime: 16,
         doubleClickZoom: true,
-        boxZoom: false
+        tap: true,
+        tapTolerance: 22,
+        boxZoom: false,
+        preferCanvas: false
     }).setView(BUS2.centro, BUS2.zoom);
     state.tileLayer = L.tileLayer(BUS2.tiles.light, {
         maxZoom: 18,
         attribution: "© OpenStreetMap",
         subdomains: "abc"
     }).addTo(state.mapa);
+    ativarGestosMapa(state.mapa);
     setTimeout(() => state.mapa.invalidateSize(), 200);
     scheduleMapResize();
 }
@@ -1389,12 +1659,28 @@ function destacarViaViagem(tripId){
 function initMapaViagem(){
     if (state.mapaViagem) return;
     if (typeof L === "undefined") return;
-    state.mapaViagem = L.map("mapaViagem", { zoomControl: true }).setView(BUS2.centro, BUS2.zoom);
+    state.mapaViagem = L.map("mapaViagem", {
+        zoomControl: true,
+        dragging: true,
+        touchZoom: true,
+        bounceAtZoomLimits: true,
+        inertia: true,
+        inertiaDeceleration: 2500,
+        inertiaMaxSpeed: 2200,
+        scrollWheelZoom: true,
+        wheelPxPerZoomLevel: 36,
+        wheelDebounceTime: 16,
+        doubleClickZoom: true,
+        tap: true,
+        tapTolerance: 22,
+        boxZoom: false
+    }).setView(BUS2.centro, BUS2.zoom);
     state.tileLayerViagem = L.tileLayer(BUS2.tiles.light, {
         maxZoom: 18,
         attribution: "© OpenStreetMap",
         subdomains: "abc"
     }).addTo(state.mapaViagem);
+    ativarGestosMapa(state.mapaViagem);
 }
 
 function renderViagem(){
@@ -1491,8 +1777,13 @@ async function buscarVeiculosRota(route){
             const list = await fetchBus2Live("vehicles?origin=web&trip_id=" + trip.tripId + "&route_id=" + route.routeId);
             if (!Array.isArray(list)) continue;
             list.forEach(v => {
+                const lat = Number(v.lat);
+                const lng = Number(v.lng);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
                 found.push({
                     ...v,
+                    lat,
+                    lng,
                     routeId: route.routeId,
                     route,
                     tripId: trip.tripId,
@@ -2049,6 +2340,14 @@ function bind(){
     $("btnMapaBus2").addEventListener("click", () => trocarTile("bus2"));
     $("btnMapaSat").addEventListener("click", () => trocarTile("sat"));
     $("btnCentralizar").addEventListener("click", () => state.mapa?.setView(BUS2.centro, BUS2.zoom));
+    $("oaMapaClaro")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("light")));
+    $("oaMapaBus2")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("bus2")));
+    $("oaMapaSat")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("sat")));
+    $("oaMapaCentralizar")?.addEventListener("click", () => acaoMapaMobile(() => state.mapa?.setView(BUS2.centro, BUS2.zoom)));
+    $("oaMapaAtualizar")?.addEventListener("click", () => acaoMapaMobile(() => {
+        state.vehicles.clear();
+        pollLote();
+    }));
     $("shapePickerClose")?.addEventListener("click", ocultarShapePicker);
     $("btnViagemTodas")?.addEventListener("click", async () => {
         if (!state.routeFiltro || !state.viagemOpcoes.length) return;
@@ -2063,6 +2362,9 @@ function bind(){
         }
     });
     document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => trocarTab(btn.dataset.tab)));
+    window.addEventListener("resize", scheduleMapResize);
+    window.addEventListener("orientationchange", () => setTimeout(scheduleMapResize, 250));
+    window.visualViewport?.addEventListener("resize", scheduleMapResize);
 }
 
 function iniciar(){

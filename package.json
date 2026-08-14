@@ -1,28 +1,13 @@
 {
-  "name": "portal-teste",
+  "name": "portal-ciop",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "atualizar-terminais-planilha": "node scripts/atualizar-terminais-planilha.mjs",
-    "import-telemetria-planilha": "node scripts/importar-telemetria-planilha-google.mjs",
-    "import-planilha-dsql": "cd backend && npm run import:planilha-dsql --"
+    "import-planilha-dsql": "cd backend && npm run import:planilha-dsql --",
+    "import-telemetria-planilha": "node scripts/importar-telemetria-planilha-google.mjs"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/odairmpicolo-blip/portal-teste.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/odairmpicolo-blip/portal-teste/issues"
-  },
-  "homepage": "https://github.com/odairmpicolo-blip/portal-teste#readme",
   "dependencies": {
-    "exceljs": "^4.4.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

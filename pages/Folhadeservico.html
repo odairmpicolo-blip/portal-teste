@@ -5,8 +5,7 @@
 document.documentElement.classList.add("portal-auth-pending");
 </script>
 <style id="portalAuthBootStyle">
-.portal-auth-pending body > :not(#portalLoadingOverlay){
-    visibility:hidden!important;
+.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;
 }
 </style>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
@@ -15,18 +14,20 @@ document.documentElement.classList.add("portal-auth-pending");
 <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard Folha de Serviços - CIOP / TCGL</title>
-    <script src="../assets/js/loading.js"></script>
+    <script src="../assets/js/loading.js?v=20260718d"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="../assets/css/portal-senha.css">
-<link rel="stylesheet" href="../assets/css/portal-titulos.css">
-<link rel="stylesheet" href="../assets/css/portal-brand.css">
-<link rel="stylesheet" href="../assets/css/portal-header.css">
-<link rel="stylesheet" href="../assets/css/portal-session.css">
+    <link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
-<script type="module" src="../assets/js/auth.js"></script>
+
+
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
     <style>
         :root {
@@ -36,7 +37,7 @@ document.documentElement.classList.add("portal-auth-pending");
             --bg: #f5f7fb;
             --border: #dfe5ef;
             --text: #101828;
-            --muted: #667085;
+            --muted:#3f4757;
             --white: #ffffff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -358,42 +359,10 @@ document.documentElement.classList.add("portal-auth-pending");
    font-size:12px;
 }
 
-        .ciop-session{
-    position:static;
-            display:flex;
-            align-items:center;
-            gap:6px;
-            max-width:260px;
-            padding:4px 6px;
-            border:1px solid rgba(6,36,92,.12);
-            border-radius:6px;
-            background:rgba(255,255,255,.96);
-            box-shadow:0 2px 8px rgba(16,24,40,.08);
-            color:#06245c;
-            font-size:11px;
-            line-height:1;
-        }
-        .ciop-session-user{
-            max-width:170px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-            font-weight:700;
-        }
-        .ciop-session-profile{
-            color:#667085;
-            font-weight:600;
-        }
-        .ciop-session .btn-logout{
-            background:#dc2626;
-            color:#fff;
-            border:none;
-            border-radius:5px;
-            padding:4px 7px;
-            font-size:11px;
-            font-weight:700;
-            cursor:pointer;
-        }
+        /* session container: portal-session.css?v=20260720y */
+        /* session user styles: portal-session.css?v=20260720y */
+        /* session profile styles: portal-session.css?v=20260720y */
+        /* session logout: portal-session.css?v=20260720y */
         .ciop-session .btn-logout:hover{
             background:#b91c1c;
         }
@@ -405,9 +374,7 @@ document.documentElement.classList.add("portal-auth-pending");
     gap:10px;
     min-width:0;
 }
-.header-actions .ciop-session{
-    flex:0 1 auto;
-}
+.header-actions .ciop-session{flex:0 1 auto;}
 @media(max-width:900px){
     .header-actions{
         justify-self:center;
@@ -823,7 +790,7 @@ document.documentElement.classList.add("portal-auth-pending");
         }
         .pdf-oficina-charts {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 14px;
         }
         .pdf-doc {
@@ -1322,9 +1289,413 @@ h1 {
 }
 /* Fim ajuste Codex */
 
+
+@media (max-width: 768px) {
+  .header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,.92) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: 0 6px 18px rgba(6,36,92,.08) !important;
+  }
+  body { background: linear-gradient(180deg, #f5f7fb 0%, #eef2f9 100%) !important; }
+  .kpi-card, .chart-card, .table-card, .analytics-grid .chart-card, .analytics-grid-5 .chart-card {
+    border-radius: 16px !important;
+    box-shadow: 0 10px 26px rgba(6,36,92,.08) !important;
+  }
+  .btn-portal { min-height: 44px !important; border-radius: 12px !important; }
+  .table-wrap, .table-wrapper { -webkit-overflow-scrolling: touch; }
+}
+/* Fim modernizacao iPhone */
+
+/* ===== Redesign iOS26 Liquid Glass (mobile/app nativo) =====
+   Mesmo padrão de pontualidade.html/icv.html: tema escuro (padrão)
+   e claro (html.native-light), sincronizado pelo shell nativo.
+   Fontes ampliadas para melhor legibilidade (idosos). */
+@media (max-width:720px){
+  .body-bg-wall,
+  .body-bg-stain{
+    display:none !important;
+  }
+  :root{
+    --jewel-1:#7a5cff;
+    --jewel-2:#c04fd6;
+    --jewel-shadow:0 10px 26px -8px rgba(122,92,255,.65);
+
+    --glass-bg:rgba(255,255,255,.08);
+    --glass-bg-strong:rgba(255,255,255,.13);
+    --glass-border:rgba(255,255,255,.16);
+    --glass-blur:blur(30px) saturate(180%);
+    --glass-shadow:0 20px 40px -18px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.18);
+
+    --ink:#fff;
+    --ink-soft:rgba(255,255,255,.6);
+    --ink-faint:rgba(255,255,255,.48);
+    --field-bg:rgba(255,255,255,.07);
+
+    --g-green:#4ade80;
+    --g-amber:#fbbf24;
+    --g-red:#f87171;
+    --g-blue:#60a5fa;
+    --jewel-1-a40:rgba(122,92,255,.4);
+    --g-green-a45:rgba(74,222,128,.45);
+    --g-amber-a45:rgba(251,191,36,.45);
+    --g-red-a45:rgba(248,113,113,.45);
+  }
+
+  html.native-light{
+    --glass-bg:rgba(255,255,255,.6);
+    --glass-bg-strong:rgba(255,255,255,.8);
+    --glass-border:rgba(30,20,70,.10);
+    --glass-shadow:0 16px 34px -16px rgba(40,25,90,.22), inset 0 1px 0 rgba(255,255,255,.75);
+
+    --ink:#18182a;
+    --ink-soft:rgba(24,24,42,.62);
+    --ink-faint:rgba(24,24,42,.5);
+    --field-bg:rgba(255,255,255,.8);
+
+    --g-green:#15803d;
+    --g-amber:#b45309;
+    --g-red:#dc2626;
+    --g-blue:#2563eb;
+    --g-green-a45:rgba(21,128,61,.45);
+    --g-amber-a45:rgba(180,83,9,.45);
+    --g-red-a45:rgba(220,38,38,.45);
+  }
+
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.4) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.3) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.26) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #0d0e14 !important;
+    color:var(--ink) !important;
+  }
+  html.native-light body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.3) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.24) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.2) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.18) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #f2effa !important;
+  }
+
+  .header{display:none !important;}
+  .container{padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-left)) 24px calc(14px + env(safe-area-inset-right)) !important; margin-top:0 !important;}
+  /* Dentro do app nativo o cabeçalho fixo já reserva a área segura;
+     evita somar o safe-area-inset-top duas vezes (topo com vão enorme). */
+  html.native-embedded .container{
+    padding-top:14px !important;
+  }
+
+  /* ---- Filtros ---- */
+  .filter-wrapper{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:24px !important;
+    box-shadow:var(--glass-shadow) !important;
+    padding:18px !important;
+  }
+  .filter-head{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    border-bottom:1px solid var(--glass-border) !important;
+    padding-bottom:14px !important;
+  }
+  .filter-head .btn-portal,
+  .filter-head .filter-title,
+  .filter-head .load-banner{
+    grid-column:auto !important;
+    justify-self:stretch !important;
+    max-width:none !important;
+  }
+  .filter-title{
+    color:var(--ink) !important;
+    font-size:17px !important;
+    font-weight:800 !important;
+    justify-content:center !important;
+  }
+  .btn-portal{
+    background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;
+    border:1px solid var(--jewel-1-a40) !important;
+    color:#fff !important;
+    box-shadow:var(--jewel-shadow) !important;
+    border-radius:16px !important;
+    min-height:46px !important;
+    font-size:16px !important;
+    font-weight:800 !important;
+  }
+  .load-banner{
+    background:var(--field-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:14px !important;
+    color:var(--ink-soft) !important;
+    max-width:none !important;
+    font-size:14px !important;
+  }
+  .load-banner #load-message{color:var(--ink) !important;font-weight:700;}
+  .load-banner.ok{border-color:var(--g-green-a45) !important;color:var(--g-green) !important;}
+  .load-banner.erro{border-color:var(--g-red-a45) !important;color:var(--g-red) !important;}
+  .load-banner.load{border-color:var(--g-amber-a45) !important;color:var(--g-amber) !important;}
+  .btn-atualizar-servicos,
+  .btn-pdf-oficina{
+    background:var(--glass-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    color:var(--ink) !important;
+    border-radius:14px !important;
+    min-height:42px !important;
+    font-size:14px !important;
+    font-weight:800 !important;
+  }
+  .btn-atualizar-servicos:hover:not(:disabled),
+  .btn-pdf-oficina:hover:not(:disabled){background:var(--glass-bg-strong) !important;}
+
+  .filter-grid{gap:12px !important;}
+  .filter-group label{
+    color:var(--ink-faint) !important;
+    font-size:13px !important;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-weight:700;
+  }
+  .filter-group input,
+  .filter-group select{
+    background:var(--field-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:14px !important;
+    color:var(--ink) !important;
+    padding:12px !important;
+    font-size:16px !important;
+    min-height:46px !important;
+  }
+  .filter-group--data,
+  .filter-group--select{max-width:none !important;width:100% !important;flex:1 1 100% !important;}
+
+  /* ---- KPIs ---- */
+  .kpi-grid{grid-template-columns:repeat(2, minmax(0,1fr)) !important;gap:14px !important;}
+  .kpi-card{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-top:3px solid var(--jewel-1) !important;
+    border-radius:22px !important;
+    box-shadow:var(--glass-shadow) !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    text-align:center !important;
+    justify-content:center !important;
+    gap:8px !important;
+    padding:20px 14px !important;
+    min-height:120px !important;
+  }
+  .kpi-card:nth-child(2){border-top-color:var(--g-amber) !important;}
+  .kpi-card:nth-child(3){grid-column:1 / -1;border-top-color:var(--g-blue) !important;}
+  .kpi-icon{
+    width:40px !important;height:40px !important;
+    background:color-mix(in srgb, currentColor 16%, transparent) !important;
+    border-color:color-mix(in srgb, currentColor 38%, transparent) !important;
+    color:var(--jewel-1) !important;
+  }
+  .kpi-card:nth-child(2) .kpi-icon{color:var(--g-amber) !important;}
+  .kpi-card:nth-child(3) .kpi-icon{color:var(--g-blue) !important;}
+  .kpi-title{color:var(--ink-soft) !important;font-size:14px !important;font-weight:700 !important;letter-spacing:.02em;}
+  .kpi-value{color:var(--ink) !important;font-size:28px !important;font-weight:800 !important;}
+  #kpi-frequente{font-size:20px !important;}
+
+  /* ---- Gráficos ---- */
+  .chart-card,.table-card{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:24px !important;
+    box-shadow:var(--glass-shadow) !important;
+  }
+  .chart-header{
+    color:var(--ink) !important;
+    border-bottom:1px solid var(--glass-border) !important;
+    font-size:15px !important;
+    font-weight:800 !important;
+  }
+  .chart-icon{
+    background:color-mix(in srgb, currentColor 16%, transparent) !important;
+    border-color:color-mix(in srgb, currentColor 38%, transparent) !important;
+  }
+  .analytics-section-head h2{color:var(--ink) !important;font-size:19px !important;font-weight:900 !important;}
+  .analytics-section-head p{color:var(--ink-soft) !important;font-size:13.5px !important;font-weight:700 !important;}
+
+  footer{background:transparent !important;border-top:1px solid var(--glass-border) !important;}
+  .footer-text{color:var(--ink-faint) !important;font-size:13px !important;}
+}
+
+/* ===== Modernizacao visual (desktop): modo claro jewel/glass =====
+   Reaproveita as variaveis --blue/--blue2/--white/--border/--bg ja
+   usadas no arquivo inteiro para nao duplicar seletores: so troca
+   os valores e acrescenta vidro fosco (blur) onde faz sentido.
+   Cabecalho mantem exatamente a mesma disposicao (logo esquerda,
+   titulo centro, sessao/acoes direita) — so muda o acabamento.
+   Envolvido em @media(min-width:721px): antes vazava sem guarda de
+   largura e sobrescrevia (com !important, por ordem de origem) o
+   tema jewel escuro do bloco mobile — corrigido aqui. */
+@media (min-width:721px){
+:root{
+  --blue:#1c2340;
+  --blue2:#2c3868;
+  --bg:#f2effa;
+  --border:rgba(30,20,70,.12);
+  --white:rgba(255,255,255,.8);
+  --text:#18182a;
+  --jewel-1:#7a5cff;
+  --jewel-2:#c04fd6;
+  --ciop-blue-1:#06245c;
+  --ciop-blue-2:#0b3a8a;
+  --ciop-orange-1:#ff6b00;
+  --ciop-orange-2:#ff8f3d;
+}
+.header{
+  background:rgba(255,255,255,.7) !important;
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  border-bottom-color:var(--border) !important;
+}
+footer{
+  background:rgba(255,255,255,.7) !important;
+  backdrop-filter:blur(18px) saturate(180%);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  border-top-color:var(--border) !important;
+}
+footer .footer-text{
+  color:#3f4757 !important;
+}
+.kpi-card,.chart-card,.table-card{
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  border-color:var(--border) !important;
+  box-shadow:0 16px 34px -18px rgba(40,25,90,.20) !important;
+  border-radius:16px !important;
+}
+.filter-wrapper{
+  background:var(--white);
+  backdrop-filter:blur(22px) saturate(180%);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 16px 34px -18px rgba(40,25,90,.18);
+  position:relative;
+  overflow:hidden;
+}
+.filter-wrapper::before{
+  content:"";
+  position:absolute;
+  inset:0 auto auto 0;
+  width:100%;
+  height:3px;
+  background:linear-gradient(90deg, var(--jewel-1), var(--jewel-2), var(--ciop-orange-1));
+  opacity:.9;
+}
+.kpi-card{
+  overflow:hidden;
+  border-top:none !important;
+}
+.kpi-card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:4px;
+  background:linear-gradient(90deg, var(--jewel-1), #14b8a6);
+}
+.kpi-card:nth-child(2)::before{background:linear-gradient(90deg, var(--ciop-orange-1), var(--jewel-2));}
+.kpi-card:nth-child(3)::before{background:linear-gradient(90deg, #0f766e, var(--jewel-1));}
+.analytics-grid .chart-card,.analytics-grid-5 .chart-card{
+  background:var(--white) !important;
+  border-color:var(--border) !important;
+}
+table.planilha-detalhe th{background:rgba(255,255,255,.72) !important;}
+th{background-color:rgba(255,255,255,.85) !important;}
+.table-wrap{background:transparent !important;border-color:var(--border) !important;}
+.btn-portal{
+  min-height:44px !important;padding:8px 14px !important;border-radius:10px !important;font-size:14px !important;
+  background:linear-gradient(135deg, var(--ciop-blue-1), var(--ciop-blue-2)) !important;
+  box-shadow:0 8px 18px rgba(6,36,92,.28) !important;
+  transition:background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.btn-portal:hover{
+  background:linear-gradient(135deg, var(--ciop-orange-1), var(--ciop-orange-2)) !important;
+  box-shadow:0 8px 18px rgba(255,107,0,.32) !important;
+}
+.btn-atualizar-servicos,.btn-pdf-oficina{
+  background:linear-gradient(135deg, var(--ciop-blue-1), var(--ciop-blue-2)) !important;
+  border-color:var(--ciop-blue-2) !important;
+  color:#fff !important;
+}
+.btn-atualizar-servicos:hover:not(:disabled),.btn-pdf-oficina:hover:not(:disabled){
+  background:linear-gradient(135deg, var(--ciop-orange-1), var(--ciop-orange-2)) !important;
+  border-color:var(--ciop-orange-2) !important;
+  color:#fff !important;
+}
+.btn-atualizar-servicos,.btn-pdf-oficina{
+  background:rgba(255,255,255,.42) !important;
+  border:1px solid rgba(255,255,255,.6) !important;
+  border-left:3px solid var(--orange) !important;
+  color:var(--blue) !important;
+  box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+}
+.btn-atualizar-servicos:hover:not(:disabled),.btn-pdf-oficina:hover:not(:disabled){
+  background:rgba(224,235,255,.85) !important;
+  transform:translateY(-2px) !important;
+  box-shadow:0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6) !important;
+  border-color:rgba(255,255,255,.6) !important;
+  border-left-color:var(--orange) !important;
+  color:var(--blue) !important;
+}
+}
+
+/* ===== Redesign iOS26 Liquid Glass (desktop) =====
+   Fundo com parede de traços + mancha do laço do mês, no lugar do
+   gradiente violeta antigo; botões azul/laranja no hover. O restante
+   do vidro (cards/painel/sessão) já está consistente e fica intocado. */
+@media (min-width:721px){
+  body{
+    background:transparent !important;
+  }
+  .container{
+    max-width:100% !important;
+  }
+  .portal-return{
+    max-width:100% !important;
+  }
+  .body-bg-wall{
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    pointer-events:none;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+}
 </style>
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
 </head>
 <body>
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
 <div class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
 
@@ -1336,6 +1707,7 @@ h1 {
         <div class="ciop-session" aria-label="Sessão do usuário">
     <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
     <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
     <button onclick="logout()" class="btn-logout" type="button">Sair</button>
 </div>
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank" style="display: flex;">
@@ -1483,9 +1855,9 @@ h1 {
                 <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span>Maiores Problemas de Oficina</span></div>
                 <div class="chart-container"><canvas id="chartProblemasOficina"></canvas></div>
             </div>
-            <div class="chart-card accent-teal">
-                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>Carros com Mais Borracharia</span></div>
-                <div class="chart-container"><canvas id="chartCarrosBorracharia"></canvas></div>
+            <div class="chart-card accent-coral">
+                <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg></span><span>Maiores Reincidências de Oficina no Ano</span></div>
+                <div class="chart-container"><canvas id="chartReincidenciasOficina"></canvas></div>
             </div>
             <div class="chart-card accent-blue">
                 <div class="chart-header"><span class="chart-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 15h16"/><path d="m10 11 4 4 4-4"/><path d="M12 3v12"/></svg></span><span>Linhas com Mais Atrasos</span></div>
@@ -1644,7 +2016,7 @@ h1 {
             const fontSize = Math.max(8, Math.min(11, Math.floor(chart.width / 72)));
             ctx.save();
             ctx.font = "700 " + fontSize + "px Arial, Helvetica, sans-serif";
-            ctx.fillStyle = "#475467";
+            ctx.fillStyle = chartMutedInk();
             meta.data.forEach((bar, i) => {
                 const val = data.datasets[0].data[i];
                 if (val == null) return;
@@ -1893,7 +2265,7 @@ h1 {
         return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     }
 
-    const ANALISTAS_CHART_THEME = {
+    const ANALISTAS_CHART_THEME_LIGHT = {
         navy: "#071f57",
         muted: "#667085",
         cyan: "#00d4ff",
@@ -1902,6 +2274,26 @@ h1 {
         tooltipBg: "rgba(7,31,87,.94)",
         tooltipBorder: "rgba(0,212,255,.35)"
     };
+    const ANALISTAS_CHART_THEME_DARK = {
+        navy: "#e8edf2",
+        muted: "#ffffff",
+        cyan: "#00d4ff",
+        blue: "#38bdf8",
+        grid: "rgba(255,255,255,.12)",
+        tooltipBg: "rgba(20,20,24,.94)",
+        tooltipBorder: "rgba(0,212,255,.35)"
+    };
+    function isDarkTheme() {
+        return document.documentElement.classList.contains("dk-dark")
+            || (window.innerWidth <= 720 && !document.documentElement.classList.contains("native-light"));
+    }
+    function chartInk() { return isDarkTheme() ? "#ffffff" : "#344054"; }
+    function chartMutedInk() { return isDarkTheme() ? "#ffffff" : "#667085"; }
+    const ANALISTAS_CHART_THEME = Object.assign({}, ANALISTAS_CHART_THEME_LIGHT);
+    function refreshAnalistasChartTheme() {
+        Object.assign(ANALISTAS_CHART_THEME, isDarkTheme() ? ANALISTAS_CHART_THEME_DARK : ANALISTAS_CHART_THEME_LIGHT);
+    }
+    refreshAnalistasChartTheme();
 
     function rgbaHexAnalistas(hex, alpha) {
         const h = String(hex || "").replace("#", "");
@@ -2081,6 +2473,7 @@ h1 {
     function criarGraficoAnalytics(id, config) {
         const canvas = document.getElementById(id);
         if (!canvas) return;
+        refreshAnalistasChartTheme();
         destruirGrafico(id);
         const horizontal = config.horizontal !== false;
         const labelsCompletos = (config.labels || []).slice();
@@ -2156,9 +2549,9 @@ h1 {
                 scales: horizontal ? {
                     x: {
                         beginAtZero: true,
-                        grid: { color: "#eef2f7", drawBorder: false },
+                        grid: { color: isDarkTheme() ? "rgba(255,255,255,.12)" : "#eef2f7", drawBorder: false },
                         border: { display: false },
-                        ticks: { stepSize: 1, font: { size: 9, weight: "600" }, color: "#667085" }
+                        ticks: { stepSize: 1, font: { size: 9, weight: "600" }, color: chartMutedInk() }
                     },
                     y: {
                         grid: { display: false },
@@ -2166,7 +2559,7 @@ h1 {
                         ticks: {
                             font: { size: eixoY.fontSize, weight: "700" },
                             autoSkip: false,
-                            color: "#344054"
+                            color: chartInk()
                         }
                     }
                 } : {
@@ -2178,14 +2571,14 @@ h1 {
                             autoSkip: false,
                             maxRotation: eixoX.maxRotation,
                             minRotation: eixoX.maxRotation,
-                            color: "#344054"
+                            color: chartInk()
                         }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: "#eef2f7", drawBorder: false },
+                        grid: { color: isDarkTheme() ? "rgba(255,255,255,.12)" : "#eef2f7", drawBorder: false },
                         border: { display: false },
-                        ticks: { stepSize: 1, font: { size: 9, weight: "600" }, color: "#667085" }
+                        ticks: { stepSize: 1, font: { size: 9, weight: "600" }, color: chartMutedInk() }
                     }
                 }
             }
@@ -3583,6 +3976,7 @@ h1 {
     function criarGraficoAnalistasClassico(labels, values) {
         const canvas = document.getElementById("chartAnalistas");
         if (!canvas) return;
+        refreshAnalistasChartTheme();
         if (chartAnalistasInstance) chartAnalistasInstance.destroy();
 
         const total = labels.length;
@@ -3697,6 +4091,7 @@ h1 {
         const corAdiantado = corAssunto("ADIANTADO");
         const corAtrasado = corAssunto("ATRASADO");
         const corLogin = corAssunto("NAO REALIZOU LOGIN", "NÃO REALIZOU LOGIN");
+        const corReincidenciaOficina = "#dc2626";
 
         criarGraficoAnalytics("chartOcorrencias", {
             labels: labelsOcorrencias,
@@ -3801,13 +4196,14 @@ h1 {
             corTema: corOficina
         });
 
-        const carrosBorracharia = topContagem(contarPor(dados, d => d.carro, item =>
-            ocorrenciaEh(item.ocorrencia, "BORRACHARIA")), 8);
-        criarGraficoAnalytics("chartCarrosBorracharia", {
-            labels: carrosBorracharia.length ? carrosBorracharia.map(i => i.label) : ["Sem dados"],
-            values: carrosBorracharia.length ? carrosBorracharia.map(i => i.qtd) : [0],
+        const contagemCarroOficinaAno = contarPor(dadosReincidenciasOficinaAno(), d => d.carro, item =>
+            ocorrenciaEh(item.ocorrencia, "OFICINA"));
+        const reincidenciasOficina = topContagem(contagemCarroOficinaAno, 8).filter(i => i.qtd > 1);
+        criarGraficoAnalytics("chartReincidenciasOficina", {
+            labels: reincidenciasOficina.length ? reincidenciasOficina.map(i => i.label) : ["Sem reincidência"],
+            values: reincidenciasOficina.length ? reincidenciasOficina.map(i => i.qtd) : [0],
             horizontal: true,
-            corTema: corBorracharia
+            corTema: corReincidenciaOficina
         });
 
         const linhasColisao = topContagem(contarPor(dados, d => d.linha, item =>
@@ -3874,6 +4270,47 @@ h1 {
         });
     }
 
+    function anoIsoFiltro(valor) {
+        const m = String(valor || "").match(/^(\d{4})-\d{2}-\d{2}$/);
+        return m ? parseInt(m[1], 10) : null;
+    }
+
+    function anosReincidenciaOficina() {
+        const de = anoIsoFiltro(document.getElementById("filtro-data-de")?.value || "");
+        const ate = anoIsoFiltro(document.getElementById("filtro-data-ate")?.value || "");
+        const anos = new Set();
+        if (de && ate) {
+            const inicio = Math.min(de, ate);
+            const fim = Math.max(de, ate);
+            for (let ano = inicio; ano <= fim; ano++) anos.add(ano);
+        } else if (de || ate) {
+            anos.add(de || ate);
+        } else {
+            anos.add(ANO_ATUAL);
+        }
+        return anos;
+    }
+
+    function dadosReincidenciasOficinaAno() {
+        const anos = anosReincidenciaOficina();
+        const analista = document.getElementById("filtro-analista").value;
+        const motSai = document.getElementById("filtro-mot-sai").value;
+        const ocorrencia = document.getElementById("filtro-ocorrencia").value;
+        const linha = document.getElementById("filtro-linha").value;
+        const situacao = document.getElementById("filtro-situacao").value;
+
+        return dadosMestres.filter(item => {
+            const anoItem = anoIsoFiltro(isoDataRegistro(item));
+            if (!anos.has(anoItem)) return false;
+            if (analista && item.analista !== analista) return false;
+            if (motSai && normTexto(motoristaQueSai(item)) !== normTexto(motSai)) return false;
+            if (ocorrencia && item.ocorrencia !== ocorrencia) return false;
+            if (linha && item.linha !== linha) return false;
+            if (situacao && item.situacao !== situacao) return false;
+            return true;
+        });
+    }
+
     function filtrarDadosAtuais() {
         const dDe = document.getElementById("filtro-data-de")?.value || "";
         const dAte = document.getElementById("filtro-data-ate")?.value || "";
@@ -3907,7 +4344,7 @@ h1 {
     const PDF_OFICINA_CHART_IDS = [
         "chartCarrosProblemas",
         "chartProblemasOficina",
-        "chartCarrosBorracharia"
+        "chartReincidenciasOficina"
     ];
     const PDF_TITULO_ARTE_SRC = "../assets/img/folha-servico-titulo-servicos-ciop.png";
 
@@ -4072,6 +4509,16 @@ h1 {
             inicializarGraficos(dadosGraficosCache);
         }, 250);
     });
+    window.addEventListener("dk-theme-change", () => {
+        clearTimeout(graficosResizeTimer);
+        graficosResizeTimer = setTimeout(() => {
+            if (!dadosGraficosCache) return;
+            refreshAnalistasChartTheme();
+            inicializarGraficos(dadosGraficosCache);
+        }, 80);
+    });
 </script>
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
+<script src="../assets/js/portal-futuristic.js?v=20260718am" defer></script>
 </body>
 </html>

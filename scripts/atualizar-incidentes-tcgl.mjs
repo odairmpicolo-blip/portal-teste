@@ -5,8 +5,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-throw new Error('Atualizacao de incidentes desativada no portal-teste. Use o repositorio portalCIOP.');
-
 const portalRoot = process.env.PORTAL_ROOT || process.cwd();
 const outputDir = process.env.PORTAL_DATA_DIR || path.join(portalRoot, 'assets', 'data');
 const outputFile = path.join(outputDir, 'incidentes-tcgl.json');
@@ -25,7 +23,7 @@ const detailLimit = Number(process.env.CIOP_INCIDENTES_DETALHES_LIMITE || 0);
 const loadDetails = process.env.CIOP_INCIDENTES_DETALHES !== '0';
 const pageLength = Number(process.env.CIOP_INCIDENTES_LOTE || 2000);
 const DATA_MINIMA_ISO = String(process.env.CIOP_INCIDENTES_DATA_MIN || "2026-01-01").trim();
-
+const JANELA_ATUALIZACAO_DIAS = Number(process.env.CIOP_INCIDENTES_JANELA_ATUALIZACAO_DIAS || 10);
 if (!usuario || !senha) {
   throw new Error('Configure CIOP_INCIDENTES_USUARIO e CIOP_INCIDENTES_SENHA antes de atualizar os incidentes.');
 }
@@ -40,6 +38,10 @@ function parseIsoDate(iso) {
 
 const minDateCutoff = parseIsoDate(DATA_MINIMA_ISO);
 
+const janelaAtualizacaoCutoff = new Date();
+janelaAtualizacaoCutoff.setHours(0, 0, 0, 0);
+janelaAtualizacaoCutoff.setDate(janelaAtualizacaoCutoff.getDate() - JANELA_ATUALIZACAO_DIAS);
+
 const columns = [
   'IncidentID',
   'IncidentNr',
@@ -51,6 +53,9 @@ const columns = [
   'routename',
   'VehicleDescription',
   'DivisionShortName',
+  'DepartmentName',
+  'DriverNr',
+  'DriverName',
 ];
 
 function cookieHeader(jar) {
@@ -288,6 +293,12 @@ function isOnOrAfterMinDate(row) {
   return date >= minDateCutoff;
 }
 
+function isDentroJanelaAtualizacao(row) {
+  const date = parseBrazilianDate(row.data);
+  if (!date) return true;
+  return date >= janelaAtualizacaoCutoff;
+}
+
 function applyTipoVazio(row) {
   const semNatureza = !String(row.natureOfProblem || "").trim();
   const semInstrucoes = !String(row.instructions || "").trim();
@@ -307,32 +318,6 @@ function ensureTipoOriginal(row) {
     row.tipoOriginal = original || tipo;
   }
   return row;
-}
-
-function syncTipoFromTcgl(target, fresh) {
-  const freshTipo = String(fresh?.tipoOriginal || fresh?.tipo || "").trim();
-  if (!freshTipo || freshTipo.toUpperCase() === "VAZIO") return false;
-  const current = String(target?.tipoOriginal || target?.tipo || "").trim();
-  if (current === freshTipo) return false;
-  target.tipo = freshTipo;
-  target.tipoOriginal = freshTipo;
-  return true;
-}
-
-function precisaCorrigirTipo(stored, fresh) {
-  if (!stored || !fresh) return false;
-  const storedTipo = String(stored.tipoOriginal || stored.tipo || "").trim().toUpperCase();
-  const freshTipo = String(fresh.tipoOriginal || fresh.tipo || "").trim();
-  if (!freshTipo || freshTipo.toUpperCase() === "VAZIO") return false;
-  return storedTipo === "VAZIO" || storedTipo !== freshTipo.toUpperCase();
-}
-
-function precisaScanCompletoTipos(existing) {
-  return existing.rows.some((row) => {
-    if (!row.registroVazio) return false;
-    const tipo = String(row.tipoOriginal || row.tipo || "").trim().toUpperCase();
-    return tipo === "VAZIO";
-  });
 }
 
 function vehicleNumber(value) {
@@ -376,9 +361,12 @@ function normalize(row) {
     id: String(row.IncidentNr || ''),
     data: dateTime.data,
     hora: dateTime.hora,
+    departamento: String(row.DepartmentName || ''),
     veiculo: vehicleNumber(row.VehicleDescription),
     linha: String(row.routename || ''),
     criadoPor: String(row.CreatedBy || ''),
+    motoristaNr: String(row.DriverNr || ''),
+    motorista: String(row.DriverName || ''),
     tipo: tipoOriginal,
     tipoOriginal,
     proprietario: String(row.OwnedBy || ''),
@@ -392,6 +380,45 @@ function normalize(row) {
 
 function rowKey(row) {
   return String(row?.incidentId || row?.id || '').trim();
+}
+
+const summaryFields = [
+  'id',
+  'data',
+  'hora',
+  'departamento',
+  'veiculo',
+  'linha',
+  'criadoPor',
+  'motoristaNr',
+  'motorista',
+  'tipo',
+  'tipoOriginal',
+  'proprietario',
+  'estado',
+  'empresa',
+  'veiculoDescricao',
+];
+
+function applySummaryUpdates(oldRow, newRow) {
+  let estadoAtualizado = false;
+  let dadosAtualizados = false;
+  for (const field of summaryFields) {
+    const before = String(oldRow[field] ?? '');
+    const after = String(newRow[field] ?? '');
+    if (before === after) continue;
+    oldRow[field] = newRow[field] ?? '';
+    if (field === 'estado') estadoAtualizado = true;
+    else dadosAtualizados = true;
+  }
+  return { estadoAtualizado, dadosAtualizados };
+}
+
+function hasSummaryUpdate(row, existing) {
+  const key = rowKey(row);
+  const old = key ? existing.rowMap.get(key) : null;
+  if (!old) return true;
+  return summaryFields.some((field) => String(old[field] ?? '') !== String(row[field] ?? ''));
 }
 
 function readExistingPayload() {
@@ -438,7 +465,7 @@ function readExistingPayload() {
 async function loadIncidentDetail(jar, incidentId) {
   const body = new URLSearchParams();
   body.set('DataSourceKey', 'CADIncidentManagement.Sql.Unified');
-  ['IncidentID', 'IncidentTypeName', 'NatureOfProblem', 'Instructions'].forEach((column) => body.append('Columns[]', column));
+  ['IncidentID', 'NatureOfProblem', 'Instructions'].forEach((column) => body.append('Columns[]', column));
   body.set('SortColumn', 'IncidentID');
   body.set('ResultType', '1');
   body.set('SortDirection', '1');
@@ -456,7 +483,6 @@ async function loadIncidentDetail(jar, incidentId) {
   const json = JSON.parse(await response.text());
   const row = Array.isArray(json) ? json[0] : null;
   return {
-    incidentTypeName: String(row?.IncidentTypeName || '').trim(),
     natureOfProblem: String(row?.NatureOfProblem || ''),
     instructions: String(row?.Instructions || ''),
   };
@@ -473,9 +499,11 @@ async function enrichDetails(jar, rows, candidateRows = rows) {
     }
   });
 
-  let pending = candidateRows.filter((row) => {
+let pending = candidateRows.filter((row) => {
     const key = rowKey(row);
-    return !row.natureOfProblem && !row.instructions && key && !existingPayload.checkedDetailIds.has(key);
+    if (!key) return false;
+    if (isDentroJanelaAtualizacao(row)) return true;
+    return !row.natureOfProblem && !row.instructions && !existingPayload.checkedDetailIds.has(key);
   });
   if (detailLimit > 0) pending = pending.slice(0, detailLimit);
   if (!pending.length) {
@@ -493,7 +521,6 @@ async function enrichDetails(jar, rows, candidateRows = rows) {
         const detail = await loadIncidentDetail(jar, row.incidentId);
         row.natureOfProblem = detail.natureOfProblem;
         row.instructions = detail.instructions;
-        syncTipoFromTcgl(row, { tipo: detail.incidentTypeName, tipoOriginal: detail.incidentTypeName });
         existingPayload.checkedDetailIds.add(rowKey(row));
       } catch (error) {
         console.log(`Detalhes: falha no incidente ${row.incidentId}: ${error.message}`);
@@ -511,35 +538,28 @@ async function enrichDetails(jar, rows, candidateRows = rows) {
 
 function chunkSemNovidade(chunkRows, existing) {
   if (!chunkRows.length) return false;
-  return chunkRows.every((row) => {
-    const key = rowKey(row);
-    if (!key) return true;
-    const old = existing.rowMap.get(key);
-    if (!old) return false;
-    if (String(old.estado || "") !== String(row.estado || "")) return false;
-    if (precisaCorrigirTipo(old, row)) return false;
-    return true;
-  });
+  return chunkRows.every((row) => !hasSummaryUpdate(row, existing));
 }
 
 function mergeRows(newRows, existing) {
   const merged = [];
   const used = new Set();
   const novosIds = new Set();
+  const atualizadosIds = new Set();
   let countNovos = 0;
   let countEstado = 0;
-  let countTipo = 0;
+  let countDados = 0;
 
   for (const row of newRows) {
     const key = rowKey(row);
     const old = key ? existing.rowMap.get(key) : null;
     if (old) {
-      const nextEstado = String(row.estado || "");
-      if (nextEstado && nextEstado !== String(old.estado || "")) {
-        old.estado = nextEstado;
+      const updates = applySummaryUpdates(old, row);
+      if (updates.estadoAtualizado) {
         countEstado += 1;
       }
-      if (syncTipoFromTcgl(old, row)) countTipo += 1;
+      if (updates.dadosAtualizados) countDados += 1;
+      if (key && (updates.estadoAtualizado || updates.dadosAtualizados)) atualizadosIds.add(key);
       ensureTipoOriginal(old);
       merged.push(old);
     } else {
@@ -559,15 +579,11 @@ function mergeRows(newRows, existing) {
     if (key) used.add(key);
   }
 
-  console.log(`Merge: ${countNovos} novos, ${countEstado} estados atualizados, ${countTipo} tipos corrigidos, ${merged.length} total.`);
-  return { merged, countNovos, novosIds };
+  console.log(`Merge incremental: ${countNovos} novos, ${countEstado} estados atualizados, ${countDados} dados atualizados, ${merged.length} total.`);
+  return { merged, countNovos, countEstado, countDados, novosIds, atualizadosIds };
 }
 
 const existingPayload = readExistingPayload();
-const scanCompletoTipos = precisaScanCompletoTipos(existingPayload);
-if (scanCompletoTipos) {
-  console.log('Atualização: varredura completa para corrigir tipos de registros vazios com tipo VAZIO.');
-}
 const jar = await login();
 fs.mkdirSync(outputDir, { recursive: true });
 
@@ -599,24 +615,33 @@ while (total === null || start < total) {
     console.log(`Atualização: lote anterior a ${DATA_MINIMA_ISO}. Encerrando paginação.`);
     break;
   }
-  if (!scanCompletoTipos && chunkNormalizedAll.length > 0 && chunkSemNovidade(chunkNormalizedAll, existingPayload)) {
-    console.log("Atualização: lote sem incidentes novos nem mudança de estado/tipo. Encerrando paginação.");
-    break;
+if (chunkNormalizedAll.length > 0 && chunkSemNovidade(chunkNormalizedAll, existingPayload)) {
+    const chunkDentroJanela = chunkNormalizedAll.some(isDentroJanelaAtualizacao);
+    if (!chunkDentroJanela) {
+      console.log(`Atualização: lote sem novidades e fora da janela de ${JANELA_ATUALIZACAO_DIAS} dias - continuando mesmo assim para manter incidentes antigos atualizados (ex: mudança de proprietário).`);
+    } else {
+      console.log(`Atualização: lote sem novidades, mas dentro da janela de ${JANELA_ATUALIZACAO_DIAS} dias - continuando para garantir cobertura completa.`);
+    }
   }
   start += pageLength;
 }
 
-const { merged: mergedRows, novosIds } = mergeRows(rows, existingPayload);
+const { merged: mergedRows, countNovos, countEstado, countDados, novosIds, atualizadosIds } = mergeRows(rows, existingPayload);
+if (fs.existsSync(outputFile) && countNovos === 0 && countEstado === 0 && countDados === 0) {
+  fs.rmSync(partialFile, { force: true });
+  console.log('Atualização incremental: nenhum incidente novo ou atualizado. JSON mantido sem alterações.');
+  process.exit(0);
+}
 const novosParaDetalhe = mergedRows.filter((row) => {
-  const key = rowKey(row);
-  const semDetalhe = !String(row.natureOfProblem || "").trim() && !String(row.instructions || "").trim();
-  if (!key || !semDetalhe || existingPayload.checkedDetailIds.has(key)) return false;
-  if (novosIds.has(key)) return true;
-  const tipo = String(row.tipoOriginal || row.tipo || "").trim().toUpperCase();
-  return tipo === "VAZIO";
-});
-await enrichDetails(jar, mergedRows, novosParaDetalhe);
-mergedRows.forEach((row) => {
+    const key = rowKey(row);
+    if (!key) return false;
+    const semDetalhe = !String(row.natureOfProblem || "").trim() && !String(row.instructions || "").trim();
+    if (novosIds.has(key) && semDetalhe) return true;
+    if (isDentroJanelaAtualizacao(row)) return true;
+    return false;
+  });
+  await enrichDetails(jar, mergedRows, novosParaDetalhe);
+  mergedRows.forEach((row) => {
   ensureTipoOriginal(row);
   applyTipoVazio(row);
 });
@@ -633,6 +658,13 @@ const payload = {
   totalServidor: total ?? rows.length,
   totalExtraido: finalRows.length,
   totalComEmpresa: mergedRows.length,
+  ultimaMudanca: {
+    novos: countNovos,
+    estadosAtualizados: countEstado,
+    dadosAtualizados: countDados,
+    idsNovos: Array.from(novosIds),
+    idsAtualizados: Array.from(atualizadosIds),
+  },
   idsProcessados: processedIds,
   idsDetalhesConsultados: checkedDetailIds,
   incidentes: finalRows,

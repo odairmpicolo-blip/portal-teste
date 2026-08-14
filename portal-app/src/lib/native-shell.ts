@@ -7,7 +7,7 @@ import { portalAsset } from './portal-origin'
 import { watchNativeTheme } from './native-theme'
 
 const NATIVE_CSS_ID = 'portal-app-native-css'
-const NATIVE_CSS_VERSION = '20260628q'
+const NATIVE_CSS_VERSION = '20260714f'
 
 export function isNativePlatform(): boolean {
   try {
@@ -36,7 +36,7 @@ export async function initNativeShell(): Promise<void> {
 }
 
 /** Aplica tema app dentro de iframes legados (mesma origem). */
-export function injectLegacyNativeFrame(doc: Document): void {
+export function injectLegacyNativeFrame(doc: Document, opts?: { tracking?: boolean }): void {
   if (!isNativePlatform()) return
 
   doc.documentElement.classList.add('native-app', 'native-embedded')
@@ -66,12 +66,15 @@ export function injectLegacyNativeFrame(doc: Document): void {
     'width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1',
   )
 
-  if (!doc.getElementById(NATIVE_CSS_ID)) {
+  const existingLink = doc.getElementById(NATIVE_CSS_ID) as HTMLLinkElement | null
+  if (!existingLink) {
     const link = doc.createElement('link')
     link.id = NATIVE_CSS_ID
     link.rel = 'stylesheet'
     link.href = `${portalAsset('/assets/css/app-native.css')}?v=${NATIVE_CSS_VERSION}`
     doc.head.appendChild(link)
+  } else if (!existingLink.href.includes(`v=${NATIVE_CSS_VERSION}`)) {
+    existingLink.href = `${portalAsset('/assets/css/app-native.css')}?v=${NATIVE_CSS_VERSION}`
   }
 
   if (!doc.getElementById('oa-safe-area-bridge')) {
@@ -85,6 +88,24 @@ export function injectLegacyNativeFrame(doc: Document): void {
       }
     `
     doc.head.appendChild(style)
+  }
+
+  /* Corrige bug clássico do WKWebView: iframe same-origin com scroll de
+     documento (html/body) não responde a gestos de toque. Força o body a
+     virar a própria caixa de rolagem (altura fixa + overflow + momentum). */
+  if (!opts?.tracking && !doc.getElementById('oa-scroll-fix-bridge')) {
+    const scrollStyle = doc.createElement('style')
+    scrollStyle.id = 'oa-scroll-fix-bridge'
+    scrollStyle.textContent = `
+      html.native-embedded { height: 100%; }
+      html.native-embedded body {
+        height: 100% !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain;
+      }
+    `
+    doc.head.appendChild(scrollStyle)
   }
 
   const frameWin = doc.defaultView as (Window & { portalReinitNativeMode?: () => void }) | null

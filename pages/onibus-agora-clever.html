@@ -1,0 +1,3415 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<title>Monitoramento ao vivo | Portal CIOP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root{
+  --blue:#06245c;--blue-soft:#0b3a8a;--teal:#2db4bf;--orange:#ff6b00;
+  --bg:#f5f7fb;--surface:#fff;--surface-2:#f8fafc;--border:#dfe5ef;
+  --text:#101828;--muted:#3f4757;--ok:#059669;--warn:#d97706;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 16px 40px rgba(6,36,92,.10);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{height:100%}
+body.oa-page{
+  margin:0;min-height:100vh;height:100vh;display:flex;flex-direction:column;
+  font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+.header{
+  background:rgba(255,255,255,.97);backdrop-filter:blur(12px);
+  display:grid;grid-template-columns:minmax(160px,1fr) auto minmax(240px,1fr);gap:14px;align-items:center;
+  padding:6px 20px;border-bottom:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+.logo-tcgl{height:32px;object-fit:contain}
+.title-wrap{justify-self:center;text-align:center}
+.page-title{margin:0;color:var(--blue);font-size:clamp(15px,1.8vw,20px);font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+/* Título em arte (mesmo padrão das páginas mais novas do portal, ex.: Pontualidade, ICV, FleetBus Agora) */
+.clever-title-wrap{justify-self:center;text-align:center;margin:0;line-height:0}
+.clever-title-art{margin:0;line-height:0}
+.clever-title-art img{display:block;width:min(300px,30vw);height:34px;max-height:34px;max-width:100%;object-fit:contain;margin:0 auto}
+@media (max-width:1100px){.clever-title-art img{width:min(300px,80vw);height:32px;max-height:32px}}
+@media (max-width:560px){.clever-title-art img{width:min(240px,84vw);height:28px;max-height:28px}}
+.header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
+.ciop-session{display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--blue);background:#fff}
+.ciop-session-user{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.btn-logout{background:#ef4444;color:#fff;border:0;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer}
+
+.shell{max-width:none;margin:0;padding:8px;width:100%;flex:1;display:flex;flex-direction:column;min-height:0}
+body.oa-page footer.portal-site-footer{display:none!important}
+/* A barra inteira (Portal + KPIs) flutua DENTRO do mapa, em vidro. O mapa fica atrás dela. */
+.topbar{position:absolute;top:8px;left:8px;right:8px;z-index:610;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:5px 10px;border-radius:16px;
+  background:linear-gradient(160deg, rgba(255,255,255,.62), rgba(240,246,255,.5));
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 18px 40px -22px rgba(15,23,42,.55), inset 0 1px 0 rgba(255,255,255,.85);
+  backdrop-filter:blur(24px) saturate(200%);-webkit-backdrop-filter:blur(24px) saturate(200%)}
+.topbar-left,.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* Com 8 KPIs de largura fixa a régua não cabe mais numa faixa absoluta centralizada — ela
+   passava por cima do botão Portal e do "Atualizar agora". Agora ocupa o espaço que sobra
+   entre os dois lados e quebra linha quando a janela é estreita, em vez de sobrepor. */
+/* KPIs de pontualidade/estado: botões soltos empilhados na lateral direita, sem barra. */
+.kpi-lateral{
+  position:absolute;top:62px;right:10px;z-index:605;
+  display:flex;flex-direction:column;align-items:flex-end;gap:5px;
+}
+.topbar-mid{display:flex;align-items:center;justify-content:center;flex:1 1 auto;min-width:0}
+.topbar-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+/* Todos os KPIs com a MESMA caixa: mesma largura e mesma altura, independente do tamanho
+   do rótulo ("Ocioso" x "Fora de serviço") ou do valor ("7" x "79,91%"). O conteúdo é
+   centralizado dentro da caixa fixa, então a régua da barra fica alinhada. */
+.kpi-chip{
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  width:128px;height:30px;box-sizing:border-box;padding:0 8px;border-radius:10px;
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;letter-spacing:-.1px;
+}
+.kpi-chip b{font-size:13px;font-weight:800;color:var(--blue);letter-spacing:-.2px}
+@media (max-width:1400px){
+  .kpi-chip{width:110px;font-size:9.5px}
+  .kpi-chip b{font-size:12px}
+}
+/* Código de cor por status, igual ao da legenda do mapa. O ponto colorido carrega a cor
+   "pura" do status; o número usa um tom mais escuro da mesma cor só pra ficar legível
+   sobre fundo claro (amarelo puro em texto some). */
+.kpi-chip.kpi-status b{color:var(--kpi-cor-texto,var(--blue))}
+/* Linha lateral na cor do status, no mesmo padrão dos botões (.btn-ghost). Cantos passam
+   a 10px para a faixa ficar reta — em pílula ela vira um risco curvo e some. */
+.kpi-chip.kpi-status{
+  background:var(--kpi-cor-fundo,var(--surface-2));
+  border-color:var(--kpi-cor-borda,var(--border));
+  border-radius:10px;
+  border-left:3px solid var(--kpi-cor,#94a3b8);
+}
+.kpi-nohorario{--kpi-cor:#22c55e;--kpi-cor-texto:#15803d;--kpi-cor-fundo:#f0fdf4;--kpi-cor-borda:#bbf7d0}
+.kpi-atrasado{--kpi-cor:#facc15;--kpi-cor-texto:#a16207;--kpi-cor-fundo:#fefce8;--kpi-cor-borda:#fde68a}
+.kpi-adiantado{--kpi-cor:#dc2626;--kpi-cor-texto:#b91c1c;--kpi-cor-fundo:#fef2f2;--kpi-cor-borda:#fecaca}
+.kpi-ocioso{--kpi-cor:#cbd5e1;--kpi-cor-texto:#64748b;--kpi-cor-fundo:#f8fafc;--kpi-cor-borda:#e2e8f0}
+.kpi-foraservico{--kpi-cor:#64748b;--kpi-cor-texto:#475569;--kpi-cor-fundo:#f1f5f9;--kpi-cor-borda:#cbd5e1}
+/* KPIs de operadora (topo esquerdo): mesmo formato dos demais, mas com o rótulo antes do
+   número ("TCGL 214"), e servem de filtro do mapa igual aos KPIs de status. */
+.kpi-op{width:auto;min-width:86px;gap:6px}
+.kpi-op span{font-size:11px;font-weight:800;letter-spacing:.2px}
+.kpi-op-todos{--kpi-cor:#2db4bf;--kpi-cor-texto:#0f766e;--kpi-cor-fundo:#effcfb;--kpi-cor-borda:#a5e8ec;
+  border-left:3px solid #2db4bf;background:#effcfb;border-color:#a5e8ec}
+.kpi-chip.kpi-op-todos b,.kpi-chip.kpi-op-todos span{color:#0f766e}
+.kpi-op-tcgl{--kpi-cor:#06245c;--kpi-cor-texto:#06245c;--kpi-cor-fundo:#eef3fb;--kpi-cor-borda:#c3d3ec;
+  border-left:3px solid #06245c;background:#eef3fb;border-color:#c3d3ec}
+.kpi-chip.kpi-op-tcgl b,.kpi-chip.kpi-op-tcgl span{color:#06245c}
+.kpi-op-lsul{--kpi-cor:#111827;--kpi-cor-texto:#111827;--kpi-cor-fundo:#f1f3f6;--kpi-cor-borda:#cbd2dd;
+  border-left:3px solid #111827;background:#f1f3f6;border-color:#cbd2dd}
+.kpi-chip.kpi-op-lsul b,.kpi-chip.kpi-op-lsul span{color:#111827}
+/* Chip que está aplicando filtro no mapa: anel na própria cor + leve elevação. */
+.kpi-chip.filtro-ativo{
+  box-shadow:0 0 0 2px var(--kpi-cor,#94a3b8) inset, 0 2px 6px -2px rgba(6,36,92,.35);
+  transform:translateY(-1px);
+}
+.kpi-chip-btn.kpi-status{cursor:pointer}
+.card-head-live{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.card-head-live .card-title{margin-bottom:0}
+.card-head-live .live-pill{padding:3px 9px;font-size:10.5px;gap:6px}
+.line-count{
+  min-width:22px;height:20px;padding:0 5px;border-radius:6px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:10.5px;font-weight:800;color:var(--blue);
+}
+.line-count.zero{opacity:.45;font-weight:700}
+.kpi-garagem{--kpi-cor:#0f766e;--kpi-cor-texto:#0f766e;--kpi-cor-fundo:#f0fdfa;--kpi-cor-borda:#99f6e4}
+.kpi-reserva{--kpi-cor:#7c3aed;--kpi-cor-texto:#6d28d9;--kpi-cor-fundo:#f5f3ff;--kpi-cor-borda:#ddd6fe}
+.kpi-gpsinvalido{--kpi-cor:#0b1f4d;--kpi-cor-texto:#0b1f4d;--kpi-cor-fundo:#eef2fa;--kpi-cor-borda:#c2cde6}
+.kpi-semcomunicacao{--kpi-cor:#0f172a;--kpi-cor-texto:#0f172a;--kpi-cor-fundo:#f1f5f9;--kpi-cor-borda:#cbd5e1}
+.kpi-chip-btn{
+  /* font-family (não o shorthand "font"), senão o tamanho definido em .kpi-chip é
+     sobrescrito pelo herdado e os chips-botão saem maiores que os chips-div. */
+  font-family:inherit;font-weight:600;cursor:pointer;transition:.15s ease;margin:0;
+  appearance:none;-webkit-appearance:none;
+}
+.kpi-chip-btn b{color:#b91c1c}
+.kpi-chip-btn:hover{background:#fee2e2;border-color:#fecaca}
+.kpi-chip-btn.kpi-status:hover{filter:brightness(.97)}
+/* KPI de Performance em relevo (3D): gradiente + brilho interno no topo + sombra
+   projetada, e ao clicar ele "afunda". É o número mais olhado da tela, então ganha
+   destaque físico em relação aos demais chips, que são planos. */
+.kpi-chip-performance{
+  background:linear-gradient(180deg,#ffffff 0%,#e7fbef 45%,#c7f2da 100%);
+  border-color:#8fe0b4;
+  border-left:3px solid #059669;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -2px 4px rgba(5,150,105,.18),
+    0 2px 3px rgba(6,36,92,.16),
+    0 5px 10px -3px rgba(5,150,105,.35);
+  transform:translateY(-1px);
+}
+.kpi-chip-performance b{
+  color:#046c4e;text-shadow:0 1px 0 rgba(255,255,255,.9);
+}
+.kpi-chip-performance span{color:#0b7a55}
+.kpi-chip-performance:hover{
+  background:linear-gradient(180deg,#ffffff 0%,#dcfce7 45%,#b3ecca 100%);
+  border-color:#6dd6a0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -2px 4px rgba(5,150,105,.22),
+    0 3px 5px rgba(6,36,92,.18),
+    0 8px 14px -4px rgba(5,150,105,.42);
+  transform:translateY(-2px);
+}
+.kpi-chip-performance:active{
+  transform:translateY(0);
+  box-shadow:
+    inset 0 2px 5px rgba(5,150,105,.35),
+    0 1px 1px rgba(6,36,92,.12);
+}
+.oa-modal-performance{max-width:620px}
+.oa-perf-legenda{margin:0;font-size:11px;color:var(--muted);text-align:center}
+.veiculo-panel-aviso{margin:6px 0 0;padding:6px 8px;border-radius:8px;border-left:3px solid #0b1f4d;background:rgba(11,31,77,.08);color:#0b1f4d;font-size:11px;font-weight:600;line-height:1.35}
+.oa-perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.oa-perf-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:12px 10px;text-align:center}
+.oa-perf-card h4{margin:0 0 2px;font-size:13px;color:var(--blue);font-weight:700}
+.oa-perf-card-sub{margin:0 0 8px;font-size:10px;color:var(--muted);line-height:1.3}
+.oa-perf-bars{display:flex;align-items:flex-end;justify-content:center;gap:14px;height:118px;border-bottom:1px solid var(--border);padding-bottom:2px}
+.oa-perf-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;width:42px}
+.oa-perf-bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;position:relative}
+.oa-perf-bar-val{font-size:9.5px;font-weight:800;padding:1px 3px;border-radius:4px;margin-bottom:2px;color:#101828;white-space:nowrap;letter-spacing:-.2px}
+.oa-perf-bar-lab{font-size:10px;color:var(--muted);margin-top:5px;text-align:center;line-height:1.15}
+.oa-perf-donut{width:104px;height:104px;display:block;margin:0 auto}
+.oa-perf-donut-num{font-size:15px;font-weight:800;fill:var(--teal);letter-spacing:-.3px}
+.oa-perf-frac{margin:4px 0 0;font-size:12px;color:var(--blue);font-weight:700}
+.oa-perf-sub{margin:2px 0 0;font-size:11px;color:var(--muted)}
+.oa-perf-sub b{color:var(--text)}
+.oa-perf-gar{margin-top:14px}
+.oa-perf-gar h4{margin:0 0 8px;font-size:13px;color:var(--blue)}
+.oa-perf-gar-row{display:grid;grid-template-columns:132px 1fr 42px;align-items:center;gap:8px;padding:4px 0}
+.oa-perf-gar-nome{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oa-perf-gar-nome span{color:var(--muted)}
+.oa-perf-gar-trilho{background:var(--surface-2);border:1px solid var(--border);border-radius:99px;height:9px;overflow:hidden}
+.oa-perf-gar-fill{height:100%;border-radius:99px}
+.oa-perf-gar-pct{font-size:11px;font-weight:800;text-align:right;min-width:54px;white-space:nowrap}
+.oa-perf-op{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;background:var(--surface-2)}
+.oa-perf-op-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px}
+.oa-perf-op-head b{font-size:13px;color:var(--blue)}
+.oa-perf-op-head span{font-size:10px;color:var(--muted)}
+.oa-perf-op-kpis{display:flex;gap:8px}
+.oa-perf-mini{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center}
+.oa-perf-mini b{display:block;font-size:13px;font-weight:800;white-space:nowrap;letter-spacing:-.2px}
+.oa-perf-mini span{font-size:10px;color:var(--muted)}
+.oa-perf-gar-op{margin:10px 0 3px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+@media (max-width:560px){.oa-perf-grid{grid-template-columns:1fr}.oa-perf-gar-row{grid-template-columns:104px 1fr 40px}}
+@media(max-width:980px){.kpi-lateral{display:none}}
+
+/* Modal: veículos sem comunicação */
+.oa-modal-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:2000;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .15s ease;
+}
+.oa-modal-overlay.open{opacity:1;pointer-events:auto}
+.oa-modal{
+  background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);
+  width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(8px);transition:transform .15s ease;
+}
+.oa-modal-overlay.open .oa-modal{transform:translateY(0)}
+.oa-modal-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.oa-modal-head h3{margin:0;font-size:15px;color:var(--blue)}
+.oa-modal-head p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.oa-modal-close{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:999px;
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);font-size:16px;line-height:1;flex:0 0 auto;
+}
+.oa-modal-close:hover{background:var(--border)}
+.oa-modal-body{overflow:auto;padding:8px 18px 16px}
+.oa-semcom-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.oa-semcom-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:8px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);
+}
+.oa-semcom-main{display:flex;align-items:baseline;gap:8px}
+.oa-semcom-vid{font-family:"JetBrains Mono",monospace;font-weight:800;color:var(--text);font-size:13px}
+.oa-semcom-tag{font-size:11px;color:var(--muted)}
+.oa-semcom-contato{font-size:11px;color:#b91c1c;font-weight:700;white-space:nowrap}
+.oa-semcom-empty{padding:24px 8px;text-align:center;color:var(--muted);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:32px;padding:0 14px;border-radius:999px;border:1px solid transparent;font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:.18s ease}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 8px 20px rgba(6,36,92,.18)}
+.btn-primary:hover{background:var(--blue-soft);transform:translateY(-1px)}
+.btn-ghost{background:#fff;color:var(--blue);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface-2)}
+.btn-ghost.active{background:#effcfb;border-color:rgba(45,180,191,.45);color:var(--blue)}
+.topbar-left .btn-primary,.topbar-actions .btn-ghost{border-radius:10px;}
+
+.live-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--muted)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(5,150,105,.15)}
+.live-dot.busy{background:var(--orange);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Uma coluna só: o mapa ocupa a largura inteira e o painel de busca flutua sobre ele. */
+.layout{display:flex;flex-direction:column;flex:1;min-height:0}
+@media(max-width:1080px){.layout{flex-direction:column}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.card-pad{padding:16px 18px}
+.card-pad-compact{padding:10px 12px}
+.card-pad-compact .card-title{margin-bottom:8px}
+.card-pad-compact .field{margin-bottom:8px}
+.card-pad-compact .field-row:last-child .field{margin-bottom:0}
+.card-pad-compact .input,.card-pad-compact .select{height:34px;font-size:12.5px}
+.card-title{margin:0 0 4px;font-size:15px;font-weight:800;color:var(--blue)}
+.card-sub{margin:0 0 12px;font-size:12px;color:var(--muted);line-height:1.45;font-weight:500}
+
+.field{display:grid;gap:6px;margin-bottom:10px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row .field{margin-bottom:10px}
+.field label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.input,.select{
+  width:100%;height:44px;border:1px solid var(--border);border-radius:12px;padding:0 12px;
+  font:inherit;font-size:14px;font-weight:500;background:var(--surface-2);color:var(--text)
+}
+.input:focus,.select:focus{outline:none;border-color:#7dd3dc;box-shadow:0 0 0 4px rgba(45,180,191,.15);background:#fff}
+
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:4px}
+.stat{padding:6px 3px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);text-align:center}
+.stat b{display:block;font-size:14px;font-weight:800;color:var(--blue);letter-spacing:-.02em}
+.stat span{font-size:8.5px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+.lines{flex:1;min-height:0;overflow:auto;display:grid;gap:2px;align-content:start}
+.line-btn{width:100%;display:flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;border-radius:10px;padding:5px 8px;cursor:pointer;font:inherit;text-align:left;transition:.15s ease;color:var(--text)}
+.line-btn:hover{background:var(--surface-2)}
+.line-btn.active{background:#effcfb;border-color:rgba(45,180,191,.35)}
+.line-chip{width:36px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex:0 0 auto}
+.line-meta{min-width:0;flex:1;line-height:1.2}
+.line-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.line-route{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;margin-top:1px}
+
+.main{display:flex;flex-direction:column;flex:1;min-height:0;border-radius:16px}
+.panel-wrap{flex:1;padding:0;display:flex;flex-direction:column;min-height:0}
+.panel{flex:1;width:100%;border:0;border-radius:16px;overflow:hidden;background:#fff;position:relative;min-height:640px}
+.panel[hidden]{display:none!important}
+.panel.oa-fullscreen{
+  position:fixed;inset:0;z-index:1500;border-radius:0;border:0;min-height:100vh;
+  width:100vw;height:100vh;
+}
+body.oa-mapa-fullscreen-ativo{overflow:hidden}
+.btn-tela-cheia svg{transition:transform .15s ease}
+
+#mapa{width:100%;height:100%;min-height:520px;background:#dbeafe}
+.oa-map-shell{position:absolute;inset:0;}
+.oa-map-shell .leaflet-top.leaflet-left{margin-top:104px}
+#mapa.leaflet-container,
+#mapa .leaflet-map-pane,#mapa .leaflet-pane,#mapa .leaflet-tile-pane,#mapa .leaflet-marker-pane{
+  touch-action:none;pointer-events:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none
+}
+/* ===== Lupa + painel de busca sobreposto ao mapa (vidro, estilo iOS) =====================
+   O mapa passou a ocupar a largura toda da tela; Buscar e Linhas viraram um painel flutuante
+   que abre pela lupa logo abaixo do controle de zoom do Leaflet (que fica em top:10px e tem
+   ~64px de altura, daí o top:84px aqui). */
+.oa-lupa{
+  position:absolute;top:188px;left:10px;z-index:620;
+  width:34px;height:34px;padding:0;margin:0;border-radius:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(255,255,255,.75);
+  box-shadow:0 1px 2px rgba(0,0,0,.22), 0 8px 20px -10px rgba(15,23,42,.45), inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter:blur(18px) saturate(190%);
+  -webkit-backdrop-filter:blur(18px) saturate(190%);
+  transition:.18s ease;
+}
+.oa-lupa svg{width:19px;height:19px;fill:none;stroke:#1f2937;stroke-width:2.2;stroke-linecap:round}
+.oa-lupa:hover{background:rgba(255,255,255,.92);transform:translateY(-1px)}
+.oa-lupa.aberto{background:rgba(6,36,92,.92);border-color:rgba(255,255,255,.5)}
+.oa-lupa.aberto svg{stroke:#fff}
+/* Botão de 3 riscos (lista de linhas), logo abaixo da lupa. */
+.oa-lupa--linhas{top:230px}
+
+/* Painel de vidro: fica preso à lateral esquerda do mapa e desliza para fora quando fechado. */
+.sidebar{
+  position:absolute;top:110px;left:52px;width:258px;z-index:600;
+  display:flex;flex-direction:column;gap:8px;min-height:0;
+  padding:10px;border-radius:20px;
+  background:linear-gradient(160deg, rgba(255,255,255,.62), rgba(240,246,255,.5));
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 24px 60px -24px rgba(15,23,42,.55), inset 0 1px 0 rgba(255,255,255,.85);
+  backdrop-filter:blur(26px) saturate(200%);
+  -webkit-backdrop-filter:blur(26px) saturate(200%);
+  overflow:hidden;
+  transform:translateX(calc(-100% - 60px));
+  opacity:0;visibility:hidden;pointer-events:none;
+  transition:transform .32s cubic-bezier(.22,1,.36,1), opacity .22s ease, visibility .32s;
+}
+.sidebar.aberto{transform:translateX(0);opacity:1;visibility:visible;pointer-events:auto}
+/* Buscar: altura só do conteúdo. Linhas: ocupa até o rodapé do mapa, com a lista rolando. */
+.sidebar--linhas{top:110px;bottom:10px}
+/* Os cards internos perdem o fundo sólido para o vidro do painel aparecer atrás. */
+.sidebar .card{
+  background:rgba(255,255,255,.5);
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow:none;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.sidebar .input{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.8)}
+.sidebar .line-btn:hover{background:rgba(255,255,255,.6)}
+.sidebar .line-btn.active{background:rgba(45,180,191,.18);border-color:rgba(45,180,191,.5)}
+.sidebar .line-count{background:rgba(255,255,255,.65);border-color:rgba(255,255,255,.8)}
+@media (max-width:640px){
+  .sidebar{left:10px;right:10px;width:auto}
+}
+
+/* Lista de carros por local (garagem / reserva de terminal). */
+.oa-lista-grupo{margin:0 0 12px}
+.oa-lista-grupo:last-child{margin-bottom:0}
+.oa-lista-grupo h4{
+  margin:0 0 6px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;
+}
+.oa-lista-grupo h4 em{font-style:normal;font-weight:800;color:var(--blue)}
+.oa-lista-carros{display:flex;flex-wrap:wrap;gap:5px}
+.oa-lista-carro{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:9px;cursor:pointer;
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:12px;font-weight:800;color:var(--blue);transition:.15s ease;
+}
+.oa-lista-carro:hover{background:#effcfb;border-color:rgba(45,180,191,.45);transform:translateY(-1px)}
+.oa-lista-carro small{font-size:9.5px;font-weight:700;color:var(--muted)}
+
+/* ===== Paleta de busca no centro da tela (Ctrl/Cmd+T) ================================== */
+.oa-paleta-overlay{
+  position:fixed;inset:0;z-index:2000;display:none;
+  align-items:flex-start;justify-content:center;padding-top:14vh;
+  background:rgba(9,16,32,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+.oa-paleta-overlay.open{display:flex}
+.oa-paleta{
+  width:min(92vw,560px);border-radius:20px;overflow:hidden;
+  background:linear-gradient(160deg, rgba(255,255,255,.9), rgba(240,246,255,.86));
+  border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 40px 90px -30px rgba(9,16,32,.7), inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter:blur(28px) saturate(200%);-webkit-backdrop-filter:blur(28px) saturate(200%);
+  animation:oaPaletaEntra .18s ease-out;
+}
+@keyframes oaPaletaEntra{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
+.oa-paleta-campo{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid rgba(15,23,42,.1)}
+.oa-paleta-campo svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2.2;stroke-linecap:round;flex:0 0 auto}
+.oa-paleta-campo input{
+  flex:1;border:0;background:transparent;outline:none;font:inherit;font-size:17px;font-weight:600;color:var(--text);
+}
+.oa-paleta-campo input::placeholder{color:var(--muted);font-weight:500}
+.oa-paleta-lista{list-style:none;margin:0;padding:6px;max-height:46vh;overflow:auto}
+.oa-paleta-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;cursor:pointer;
+}
+.oa-paleta-item:hover,.oa-paleta-item.ativo{background:rgba(45,180,191,.16)}
+.oa-paleta-vid{
+  min-width:52px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;flex:0 0 auto;background:var(--blue);color:#fff
+}
+.oa-paleta-txt{min-width:0;flex:1;line-height:1.25}
+.oa-paleta-txt b{display:block;font-size:13px;font-weight:800;color:var(--text)}
+.oa-paleta-txt span{display:block;font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oa-paleta-vazio{padding:18px 16px;text-align:center;font-size:12.5px;color:var(--muted);font-weight:600}
+
+/* ===== Janela do veículo: metade mapa, metade ficha ==================================== */
+.oa-modal-veiculo{max-width:960px;width:min(96vw,960px)}
+.oa-veiculo-split{display:grid;grid-template-columns:1.05fr .95fr;gap:0;min-height:0}
+.oa-veiculo-mapa{min-height:380px;background:#dbeafe;border-right:1px solid var(--border)}
+.oa-veiculo-info{padding:14px 16px;overflow:auto;max-height:70vh;display:flex;flex-direction:column;gap:10px}
+.oa-vinfo-head{display:flex;align-items:center;gap:10px}
+.oa-vinfo-chip{width:46px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:0 0 auto}
+.oa-vinfo-status{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800}
+.oa-vinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.oa-vinfo-item{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:7px 9px;min-width:0}
+.oa-vinfo-item span{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.oa-vinfo-item strong{display:block;font-size:13px;font-weight:800;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oa-vinfo-sec{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:2px 0 -2px}
+@media (max-width:820px){
+  .oa-veiculo-split{grid-template-columns:1fr}
+  .oa-veiculo-mapa{min-height:240px;border-right:0;border-bottom:1px solid var(--border)}
+  .oa-veiculo-info{max-height:46vh}
+}
+
+/* Menus do mapa em pé, na parte de baixo, do mesmo lado da lupa (esquerda). */
+/* Rótulo do terminal no centro do círculo de abrangência. */
+.terminal-rotulo-wrap{pointer-events:none}
+.terminal-rotulo{
+  display:inline-block;transform:translate(-50%,-50%);white-space:nowrap;
+  padding:2px 7px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.2px;
+  background:rgba(124,58,237,.92);color:#fff;
+  box-shadow:0 2px 6px -2px rgba(15,23,42,.5);
+}
+
+.map-tools{position:absolute;left:10px;bottom:14px;right:auto;top:auto;z-index:500;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.map-tools .btn{min-height:26px;padding:0 10px;font-size:10.5px;font-weight:700;background:rgba(255,255,255,.95);backdrop-filter:blur(8px)}
+.map-tools .btn svg{width:12px;height:12px}
+body.oa-native-mode #mapa{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;flex:none!important}
+body.oa-native-mode #mapa,body.oa-native-mode .oa-map-shell{touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+body.oa-native-mode .oa-map-shell{flex:1 1 0;min-height:0;position:relative;order:1;width:100%;overflow:hidden}
+
+.leaflet-popup-content-wrapper{border-radius:14px;box-shadow:var(--shadow);padding:0;overflow:hidden;background:#fff}
+.leaflet-popup-content{margin:0;min-width:210px;color:var(--text)}
+.leaflet-popup-tip{background:#fff}
+.popup{padding:14px 16px}
+.popup-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.popup-chip{width:42px;height:36px;border-radius:10px;display:grid;place-items:center;font-weight:800;color:#fff;font-size:13px}
+.popup-title{font-size:15px;font-weight:800;color:var(--blue);line-height:1.2}
+.popup-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.popup-item{padding:8px 10px;border-radius:10px;background:var(--surface-2);font-size:11px;color:var(--muted)}
+.popup-item strong{display:block;font-size:13px;color:var(--text);margin-top:2px}
+
+.bus-marker-wrap{background:transparent!important;border:0!important;overflow:visible!important}
+
+/* Ícone de ônibus em pino quadrado (squircle, igual à imagem de referência): fundo pintado
+   pela cor de status, silhueta do ônibus em branco e o bico do pino rotacionado (bússola,
+   0°=N/cima) para apontar a direção real de deslocamento do veículo. */
+.veh-pin{
+  position:relative;width:96px;cursor:pointer;
+  filter:drop-shadow(0 6px 10px rgba(15,23,42,.5)) drop-shadow(0 2px 3px rgba(15,23,42,.35));
+  transition:transform .2s ease;
+}
+.veh-pin.highlight{ transform:scale(1.15); z-index:900!important; }
+.veh-pin svg{display:block;width:96px;height:96px}
+
+/* Posição estimada ("fantasminha"): onde o veículo deveria estar agora, segundo o horário
+   programado — calculada a partir da distância já percorrida no trajeto, do atraso atual
+   e da velocidade recente. É uma estimativa, não um dado oficial da API. Usa o MESMO ícone
+   do ônibus real (iconeOnibusHtml, mesmas cores/bisel/brilho conforme o status), só que
+   translúcido — a transparência via CSS é o que dá o efeito "fantasma", sem outro desenho. */
+.veh-pin.ghost-pin-veh{
+  cursor:default;
+  opacity:.55;
+  filter:drop-shadow(0 5px 10px rgba(15,23,42,.4));
+  animation:ghostPulse 1.8s ease-in-out infinite;
+}
+@keyframes ghostPulse{
+  0%,100%{ opacity:.4; }
+  50%{ opacity:.75; }
+}
+.leaflet-tooltip.ghost-tooltip{
+  background:var(--blue);color:#fff;border:0;font-weight:800;font-size:11px;
+  padding:4px 8px;border-radius:8px;box-shadow:var(--shadow);
+}
+.leaflet-tooltip.ghost-tooltip::before{ border-top-color:var(--blue); }
+
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty h3{margin:0 0 8px;color:var(--blue);font-size:18px;font-weight:800}
+
+.oper-toggle{display:flex;flex-wrap:wrap;gap:6px}
+.oper-btn{flex:1;min-width:64px;height:34px;padding:0 6px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--muted);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;transition:.15s ease}
+.oper-btn:hover{background:var(--surface-2)}
+.oper-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Caixa de informações do veículo: popup Leaflet ancorado no ícone (abre "saindo" dele), em vidro. */
+.veiculo-popup .leaflet-popup-content-wrapper{
+  background:transparent;box-shadow:none;padding:0;border-radius:16px;
+}
+.veiculo-popup .leaflet-popup-content{margin:0;width:auto!important}
+.veiculo-popup .leaflet-popup-tip-container{display:none}
+.veiculo-popup .leaflet-popup-close-button{
+  color:var(--muted)!important;font-size:18px!important;top:6px!important;right:8px!important;
+}
+.veiculo-panel-inner{
+  position:relative;width:min(268px,80vw);border-radius:14px;padding:10px 11px;
+  background:rgba(255,255,255,.68);
+  backdrop-filter:blur(20px) saturate(190%);
+  -webkit-backdrop-filter:blur(20px) saturate(190%);
+  border:2px solid var(--cor);
+  box-shadow:0 14px 34px -16px rgba(20,20,40,.4), inset 0 1px 0 rgba(255,255,255,.5);
+}
+.veiculo-panel-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:12px}
+.veiculo-panel-chip{width:34px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:11px;flex:0 0 auto}
+.veiculo-panel-title{font-size:13px;font-weight:800;color:var(--blue);line-height:1.2}
+.veiculo-panel-status{
+  display:inline-block;margin-top:3px;padding:1.5px 8px;border-radius:999px;font-size:9.5px;font-weight:800;
+}
+.veiculo-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.veiculo-panel-grid .popup-item{padding:5px 7px;font-size:9.5px}
+.veiculo-panel-grid .popup-item strong{font-size:11px;margin-top:1px}
+.veiculo-panel-grid-3{grid-template-columns:1fr 1fr 1fr;margin-bottom:5px}
+.veiculo-panel-grid-3 .popup-item{padding:5px 6px}
+/* Linha/Via na mesma linha, mas Via com o dobro do espaço de Linha (texto costuma ser mais longo). */
+.veiculo-panel-grid-via{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.veiculo-panel-telemetria-titulo{
+  margin:8px 0 5px;padding-top:7px;border-top:1px solid rgba(15,23,42,.12);
+  font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+}
+.veiculo-panel-telemetria-msg{font-size:10px;color:var(--muted);padding:2px 0 2px}
+.veiculo-panel-falhas{margin-top:5px;display:grid;gap:4px}
+.veiculo-panel-falhas-titulo{font-size:9.5px;font-weight:800;color:#b91c1c}
+.veiculo-panel-falha{
+  font-size:10px;color:var(--text);background:#fef2f2;border:1px solid #fecaca;
+  border-radius:7px;padding:4px 7px;
+}
+.veiculo-panel-falhas.ok{
+  font-size:10px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;
+  border-radius:7px;padding:4px 7px;
+}
+@media (max-width:720px){
+  .body-bg-wall,
+  .body-bg-stain{
+    display:none !important;
+  }
+  body.oa-page{background:var(--dk-bg) !important;color:var(--dk-text) !important;}.header{background:var(--dk-glass-bg) !important;backdrop-filter:blur(var(--dk-glass-blur)) !important;border-bottom:1px solid var(--dk-glass-border) !important;}.dk-theme-toggle{display:flex !important;}.card{background:var(--dk-glass-bg) !important;border:1px solid var(--dk-glass-border) !important;box-shadow:var(--dk-glass-shadow) !important;}.card-title{color:var(--dk-text) !important;}.card-sub{color:var(--dk-muted) !important;}.input,.select{background:rgba(255,255,255,.06) !important;border:1px solid var(--dk-glass-border) !important;color:var(--dk-text) !important;}}
+
+/* ===== Redesign iOS26 Liquid Glass (desktop) ===== */
+@media (min-width:721px){
+  body.oa-page{
+    position:relative;
+    background:var(--bg);
+    height:100vh !important;
+    overflow:hidden !important;
+  }
+  .shell{
+    max-width:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    min-height:0 !important;
+  }
+  .layout{
+    flex:1 !important;
+    min-height:0 !important;
+  }
+  .main{
+    min-height:0 !important;
+  }
+  .panel{
+    min-height:0 !important;
+  }
+  .body-bg-wall{
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    pointer-events:none;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+
+  .header{
+    background:rgba(255,255,255,.6) !important;
+    backdrop-filter:blur(18px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(18px) saturate(190%) !important;
+    border-bottom:1px solid rgba(255,255,255,.5) !important;
+    box-shadow:0 10px 28px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+
+  footer.portal-site-footer{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(16px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(16px) saturate(190%) !important;
+    border-top:1px solid rgba(255,255,255,.5) !important;
+    box-shadow:0 -10px 28px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4) !important;
+  }
+  footer.portal-site-footer .footer-text{
+    color:#3f4757 !important;
+  }
+
+  .card{
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(16px) saturate(190%);
+    -webkit-backdrop-filter:blur(16px) saturate(190%);
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:0 12px 30px -16px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+
+  .live-pill{
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(14px) saturate(190%);
+    -webkit-backdrop-filter:blur(14px) saturate(190%);
+  }
+.topbar{
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(18px) saturate(190%);
+    -webkit-backdrop-filter:blur(18px) saturate(190%);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:18px;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .topbar .live-pill{
+    background:transparent;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+    border:none;
+    box-shadow:none;
+    padding:0;
+  }
+
+  .btn-primary{
+    min-height:32px !important;font-size:13px !important;
+    background:linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85));
+  }
+  .btn-primary:hover{
+    background:linear-gradient(135deg, var(--orange), #ff8f3d);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -12px rgba(255,107,0,.5), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .btn-ghost{
+    border-left:3px solid var(--orange) !important;
+  }
+  .btn-ghost:hover{
+    background:rgba(224,235,255,.85);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .btn-primary,.btn-ghost{
+    transition:transform .2s ease, background .25s ease, box-shadow .25s ease, color .25s ease !important;
+  }
+
+  .topbar-left .btn-primary{
+    min-height:30px !important;padding:4px 12px !important;border-radius:10px !important;font-size:12.5px !important;
+    background:linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85)) !important;
+    backdrop-filter:blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(14px) saturate(190%) !important;
+    border:1px solid rgba(255,255,255,.4) !important;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.25) !important;
+    color:#fff !important;
+  }
+  .topbar-left .btn-primary:hover{
+    background:linear-gradient(135deg, var(--orange), #ff8f3d) !important;
+    transform:translateY(-2px) !important;
+    box-shadow:0 14px 28px -12px rgba(255,107,0,.5), inset 0 1px 0 rgba(255,255,255,.35) !important;
+  }
+  .topbar-actions .btn-ghost{
+    min-height:30px !important;padding:4px 12px !important;border-radius:10px !important;font-size:12.5px !important;
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter:blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter:blur(14px) saturate(190%) !important;
+    border:1px solid rgba(255,255,255,.6) !important;
+    border-left:3px solid var(--orange) !important;
+    box-shadow:0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+    color:var(--blue) !important;
+  }
+  .topbar-actions .btn-ghost:hover{
+    background:rgba(224,235,255,.85) !important;
+    transform:translateY(-2px) !important;
+    box-shadow:0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6) !important;
+    color:var(--blue) !important;
+  }
+}
+
+/* Percentual no horario ao lado da contagem de cada operadora. Menor e mais claro que
+   o numero de veiculos: e informacao de apoio, nao o dado principal do chip. */
+.kpi-op-perf{
+    font-style:normal;
+    font-size:.78em;
+    opacity:.72;
+    margin-left:5px;
+    letter-spacing:.01em;
+}
+.kpi-op-perf:empty{ display:none; }
+</style>
+<link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/dashboard-kit.css">
+
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
+<script>
+(function () {
+  try {
+    if (new URLSearchParams(location.search).get("embed") === "native-app") {
+      document.documentElement.classList.add("native-app", "native-embedded");
+    }
+    if (window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) {
+      document.documentElement.classList.add("native-app", "native-embedded");
+    }
+  } catch (e) {}
+})();
+</script>
+<script src="../assets/js/loading.js?v=20260718d"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
+<script src="../assets/js/portal-senha.js" defer></script>
+
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
+</head>
+<body class="oa-page" data-require-usuarios="odair.marin@icloud.com" data-require-somente-usuarios="true">
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
+<header class="header">
+    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações">
+        <img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP">
+        <span class="portal-brand-meta">TCGL · Operações</span>
+    </a>
+    <div class="clever-title-wrap">
+        <h1 class="clever-title-art" aria-label="Monitoramento ao vivo">
+            <img src="../assets/img/titulo-onibus-clever.png" alt="Monitoramento ao vivo">
+        </h1>
+    </div>
+    <div class="header-actions">
+<div class="ciop-session" aria-label="Sessão do usuário">
+    <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+    <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
+    <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+</div>
+        <a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener"><img class="logo-tcgl" src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></a>
+    </div>
+</header>
+
+<div class="oa-native-top" id="oaNativeTop" hidden aria-hidden="true">
+    <header class="oa-hud">
+        <div class="oa-hud-brand">
+            <span class="oa-hud-kicker">Rastreamento · Clever</span>
+            <strong>Ônibus Agora</strong>
+        </div>
+        <div class="oa-hud-live">
+            <span class="oa-hud-dot" id="oaHudDot"></span>
+            <span id="oaHudLiveText">Conectando...</span>
+        </div>
+    </header>
+    <div class="oa-hud-stats">
+        <div class="oa-hud-stat"><b id="oaStatOnline">0</b><span>Online</span></div>
+        <div class="oa-hud-stat"><b id="oaStatLinhas">0</b><span>Linhas</span></div>
+        <div class="oa-hud-stat"><b id="oaStatVisiveis">0</b><span>Visíveis</span></div>
+    </div>
+</div>
+
+<main class="shell">
+    <div class="layout">
+        <section class="card main">
+            <div class="panel-wrap">
+                <div class="panel" id="panelMapa">
+                    <div class="oa-map-shell" id="oaMapShell">
+                        <div id="mapa"></div>
+
+        <div class="topbar">
+            <div class="topbar-left">
+                <a class="btn btn-primary" href="../index.html">
+                    <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+                    Portal
+                </a>
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-op kpi-op-todos" id="kpiOpTodos" title="Ver as duas operadoras">
+                    <span>TODOS</span><b id="statOpTodos">0</b>
+                </button>
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-op kpi-op-tcgl" id="kpiOpTCGL" title="Filtrar somente TCGL">
+                    <span>TCGL</span><b id="statOpTCGL">0</b><i class="kpi-op-perf" id="perfOpTCGL"></i>
+                </button>
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-op kpi-op-lsul" id="kpiOpLondriSul" title="Filtrar somente LondriSul">
+                    <span>LSUL</span><b id="statOpLondriSul">0</b><i class="kpi-op-perf" id="perfOpLondriSul"></i>
+                </button>
+            </div>
+            <div class="topbar-mid">
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-chip-performance" id="kpiIndicePerformance" title="Ver índice de performance em tempo real">
+                    <b id="statIndicePerformance">—</b><span>Performance</span>
+                </button>
+            </div>
+            <div class="topbar-right">
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-gpsinvalido" id="kpiGpsInvalido" data-filtro-status="gpsInvalido" title="Somente TCGL · filtra o mapa e abre a lista">
+                    <b id="statGpsInvalido">0</b><span>GPS inválido</span>
+                </button>
+                <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-semcomunicacao" id="kpiSemComunicacao">
+                    <b id="statSemComunicacao">0</b><span>Sem comunicação</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="kpi-lateral" id="kpiLateral">
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-adiantado" data-filtro-status="adiantado"><b id="statAdiantados">0</b><span>Adiantado</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-atrasado" data-filtro-status="atrasado"><b id="statAtrasados">0</b><span>Atrasado</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-nohorario" data-filtro-status="noHorario"><b id="statNoHorario">0</b><span>No horário</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-ocioso" data-filtro-status="ocioso"><b id="statOcioso">0</b><span>Ocioso</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-foraservico" data-filtro-status="foraServico"><b id="statForaServico">0</b><span>Fora de serviço</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-reserva" id="kpiReserva" data-filtro-status="reserva" title="Fora de serviço na área de um terminal · filtra e abre a lista"><b id="statReserva">0</b><span>Reserva</span></button>
+            <button type="button" class="kpi-chip kpi-chip-btn kpi-status kpi-garagem" id="kpiGaragem" data-filtro-status="garagem" title="Fora de serviço na garagem da TCGL · filtra e abre a lista"><b id="statGaragem">0</b><span>GA · TCGL</span></button>
+        </div>
+
+        <aside class="sidebar" id="oaBuscaPainel" aria-hidden="true">
+            <div class="card card-pad card-pad-compact">
+                <div class="card-head-live">
+                    <h2 class="card-title">Buscar</h2>
+                    <span class="live-pill" id="livePill">
+                        <span class="live-dot" id="liveDot"></span>
+                        <span id="liveText">Conectando...</span>
+                    </span>
+                </div>
+                <div class="field">
+                    <label for="buscaVeiculo">Veículo</label>
+                    <input class="input" id="buscaVeiculo" type="search" placeholder="Ex.: 1150" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="buscaMotorista">Motorista</label>
+                    <input class="input" id="buscaMotorista" type="search" placeholder="Matrícula do motorista" autocomplete="off">
+                </div>
+            </div>
+        </aside>
+
+        <aside class="sidebar sidebar--linhas" id="oaLinhasPainel" aria-hidden="true">
+            <div class="card card-pad" style="flex:1;display:flex;flex-direction:column;min-height:0">
+                <h2 class="card-title">Linhas</h2>
+                <div class="field" style="margin-bottom:8px">
+                    <input class="input" id="buscaLinha" type="search" placeholder="Filtrar linha: 301, Alemanha..." autocomplete="off">
+                </div>
+                <p class="card-sub">Clique para focar no mapa. Vazio = ver todas.</p>
+                <div class="lines" id="listaLinhas"></div>
+                <button type="button" class="btn btn-ghost" id="btnLimparFiltro" style="margin-top:10px;width:100%">Ver todas as linhas</button>
+            </div>
+        </aside>
+
+                        <button type="button" class="oa-lupa" id="oaBtnLupa" aria-label="Buscar" aria-expanded="false" title="Buscar linha ou veículo">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+                        </button>
+                        <button type="button" class="oa-lupa oa-lupa--linhas" id="oaBtnLinhas" aria-label="Linhas" aria-expanded="false" title="Lista de linhas">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h11"/></svg>
+                        </button>
+
+                        <div class="map-tools">
+                            <button type="button" class="btn btn-ghost" id="btnMapaClaro">Mapa claro</button>
+                            <button type="button" class="btn btn-ghost" id="btnMapaBus2">Estilo Bus2</button>
+                            <button type="button" class="btn btn-ghost" id="btnMapaSat">Satélite</button>
+                            <button type="button" class="btn btn-ghost" id="btnCentralizar">Centralizar</button>
+                            <button type="button" class="btn btn-ghost btn-tela-cheia" id="btnTelaCheia">
+                                <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                                <span id="btnTelaCheiaTexto">Tela cheia</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div class="oa-native-floats" id="oaNativeFloats" hidden aria-hidden="true">
+    <button type="button" class="oa-fab oa-fab--linhas" id="oaFabLinhas" aria-label="Linhas">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    </button>
+    <button type="button" class="oa-fab oa-fab--mapa" id="oaFabMapa" aria-label="Controles do mapa">
+        <svg viewBox="0 0 24 24"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+    </button>
+    <div class="oa-backdrop" id="oaBackdrop"></div>
+    <aside class="oa-sheet oa-sheet--mapa" id="oaSheetMapa" aria-label="Controles do mapa">
+        <div class="oa-sheet-handle"></div>
+        <div class="oa-sheet-head">
+            <h2>Mapa</h2>
+            <p>Estilo, foco e atualização</p>
+        </div>
+        <div class="oa-sheet-body">
+            <div class="oa-map-actions-mobile">
+                <button type="button" class="oa-map-action" id="oaMapaClaro">
+                    <span>Mapa claro</span>
+                    <small>Ruas e bairros</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaBus2">
+                    <span>Estilo Bus2</span>
+                    <small>Visual Bus2.info</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaSat">
+                    <span>Satélite</span>
+                    <small>Imagem aérea</small>
+                </button>
+                <button type="button" class="oa-map-action" id="oaMapaCentralizar">
+                    <span>Centralizar</span>
+                    <small>Londrina</small>
+                </button>
+                <button type="button" class="oa-map-action oa-map-action--wide" id="oaMapaAtualizar">
+                    <span>Atualizar agora</span>
+                    <small>Recarrega os ônibus no mapa</small>
+                </button>
+            </div>
+        </div>
+    </aside>
+    <aside class="oa-sheet oa-sheet--linhas" id="oaSheetLinhas">
+        <div class="oa-sheet-handle"></div>
+        <div class="oa-sheet-head">
+            <h2>Linhas</h2>
+            <p>Toque para rastrear no mapa</p>
+        </div>
+        <div class="oa-sheet-body" id="oaSheetLinhasBody"></div>
+    </aside>
+</div>
+
+<div class="oa-modal-overlay" id="oaListaOverlay">
+    <div class="oa-modal" role="dialog" aria-modal="true" aria-labelledby="oaListaTitulo">
+        <div class="oa-modal-head">
+            <div>
+                <h3 id="oaListaTitulo">Lista</h3>
+                <p id="oaListaSubtitulo">—</p>
+            </div>
+            <button type="button" class="oa-modal-close" id="oaListaFechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="oa-modal-body">
+            <div id="oaListaConteudo"></div>
+        </div>
+    </div>
+</div>
+
+<div class="oa-paleta-overlay" id="oaPaletaOverlay">
+    <div class="oa-paleta" role="dialog" aria-modal="true" aria-label="Buscar veículo ou motorista">
+        <div class="oa-paleta-campo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+            <input id="oaPaletaInput" type="search" autocomplete="off" placeholder="Buscar veículo ou motorista…">
+        </div>
+        <ul class="oa-paleta-lista" id="oaPaletaLista"></ul>
+    </div>
+</div>
+
+<div class="oa-modal-overlay" id="oaVeiculoOverlay">
+    <div class="oa-modal oa-modal-veiculo" role="dialog" aria-modal="true" aria-labelledby="oaVeiculoTitulo">
+        <div class="oa-modal-head">
+            <div>
+                <h3 id="oaVeiculoTitulo">Veículo</h3>
+                <p id="oaVeiculoSubtitulo">—</p>
+            </div>
+            <button type="button" class="oa-modal-close" id="oaVeiculoFechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="oa-veiculo-split">
+            <div class="oa-veiculo-mapa" id="oaVeiculoMapa"></div>
+            <div class="oa-veiculo-info" id="oaVeiculoInfo"></div>
+        </div>
+    </div>
+</div>
+
+<div class="oa-modal-overlay" id="oaGpsInvOverlay">
+    <div class="oa-modal" role="dialog" aria-modal="true" aria-labelledby="oaGpsInvTitulo">
+        <div class="oa-modal-head">
+            <div>
+                <h3 id="oaGpsInvTitulo">Veículos com GPS inválido</h3>
+                <p id="oaGpsInvSubtitulo">0 veículos sem posição confiável</p>
+            </div>
+            <button type="button" class="oa-modal-close" id="oaGpsInvFechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="oa-modal-body">
+            <ul class="oa-semcom-list" id="oaGpsInvLista"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="oa-modal-overlay" id="oaSemComOverlay">
+    <div class="oa-modal" role="dialog" aria-modal="true" aria-labelledby="oaSemComTitulo">
+        <div class="oa-modal-head">
+            <div>
+                <h3 id="oaSemComTitulo">Veículos sem comunicação</h3>
+                <p id="oaSemComSubtitulo">0 de 0 veículos da frota</p>
+            </div>
+            <button type="button" class="oa-modal-close" id="oaSemComFechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="oa-modal-body">
+            <ul class="oa-semcom-list" id="oaSemComLista"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="oa-modal-overlay" id="oaIndicePerfOverlay">
+    <div class="oa-modal oa-modal-performance" role="dialog" aria-modal="true" aria-labelledby="oaIndicePerfTitulo">
+        <div class="oa-modal-head">
+            <div>
+                <h3 id="oaIndicePerfTitulo">Índice de performance</h3>
+                <p id="oaIndicePerfSubtitulo">Calculando…</p>
+            </div>
+            <button type="button" class="oa-modal-close" id="oaIndicePerfFechar" aria-label="Fechar">×</button>
+        </div>
+        <div class="oa-modal-body">
+            <div id="oaIndicePerfNumero" hidden></div>
+            <div id="oaIndicePerfBreakdown"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../assets/js/frota-patio-data.js"></script>
+<script>
+const CLEVER = {
+    proxyFallback: "https://62wvo4yk9b.execute-api.sa-east-1.amazonaws.com",
+    proxyBase: null,
+    tiles: {
+        light: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        lightBus2: "https://bus2.info/api/public/tiles/light/{z}/{x}/{y}",
+        satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    },
+    centro: [-23.303, -51.166],
+    zoom: 13,
+    // 30s (era 20s): reduz ~33% das chamadas à API Clever por sessão aberta, mantendo
+    // a posição/atraso atualizados com frequência suficiente para monitoramento ao vivo.
+    intervaloMs: 30000,
+    viaCores: ["#2db4bf","#06245c","#ff6b00","#0b3a8a","#059669","#8b5cf6","#eab308","#ec4899","#38bdf8","#64748b"]
+};
+
+/** Cores/limites de pontualidade — mesmo padrão já usado na página Ônibus Agora (TCGL). */
+const PONTUALIDADE = {
+    cores: {
+        adiantado: "#D30000", atrasado: "#FFFF00", noHorario: "#8FD400",
+        semPrevisao: "#374151",
+        gpsInvalido: "#0b1f4d",
+        reserva: "#7c3aed",
+        garagem: "#0f766e",
+        ocioso: "#7DD3FC",
+        foraServico: "#3f4757"
+    },
+    adiantadoSeg: 120,
+    atrasadoSeg: 360
+};
+
+/** Garagem da TCGL (R. Messias Wilmar de Souza, 756 — Vila Recreio, Londrina/PR).
+ *  É onde os veículos com GPS inválido são ancorados no mapa, para não sumirem da tela
+ *  nem irem parar no meio do oceano quando o rastreador manda coordenada zerada/errada. */
+const GARAGEM_TCGL = { lat: -23.29298, lng: -51.16151 };
+
+/** Carro usado como âncora dos veículos sem posição confiável: ele fica na garagem, então
+ *  serve de referência viva. Só cai na coordenada fixa acima se ele também estiver sem GPS. */
+const ANCORA_GPS_INVALIDO_VID = "411";
+
+/** Caixa envolvente do Brasil. Qualquer coordenada fora daqui é rastreador com defeito —
+ *  os casos clássicos são (0,0) no golfo da Guiné e latitude/longitude trocadas. */
+const LIMITES_BRASIL = { latMin: -33.8, latMax: 5.3, lngMin: -74.1, lngMax: -34.7 };
+
+function coordenadaNoBrasil(lat, lng){
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+    if (lat === 0 && lng === 0) return false;
+    return lat >= LIMITES_BRASIL.latMin && lat <= LIMITES_BRASIL.latMax
+        && lng >= LIMITES_BRASIL.lngMin && lng <= LIMITES_BRASIL.lngMax;
+}
+
+/** Terminais de Londrina com a área de abrangência usada para a "linha reserva": todo veículo
+ *  FORA DE SERVIÇO (código U) parado dentro do raio de um terminal é considerado reserva
+ *  daquele terminal. Coordenadas conferidas no OpenStreetMap e validadas contra a posição real
+ *  da frota; o raio de 250 m cobre a plataforma e o pátio sem invadir a via.
+ *  Irerê não existe como terminal no OSM — a coordenada veio do aglomerado real de veículos
+ *  da LondriSul no distrito. */
+const TERMINAIS = [
+    { nome: "Central",         lat: -23.3082945, lng: -51.1608587, raio: 300 },
+    { nome: "Vivi Xavier",     lat: -23.2607767, lng: -51.1729136, raio: 250 },
+    { nome: "Shopping Catuaí", lat: -23.3437533, lng: -51.1860741, raio: 250 },
+    { nome: "Ouro Verde",      lat: -23.2816540, lng: -51.1710105, raio: 250 },
+    { nome: "Milton Gavetti",  lat: -23.2815404, lng: -51.1525856, raio: 250 },
+    { nome: "Acapulco",        lat: -23.3603910, lng: -51.1552581, raio: 250 },
+    { nome: "Oeste",           lat: -23.2971857, lng: -51.1871866, raio: 250 },
+    { nome: "Irerê",           lat: -23.5051000, lng: -51.1256000, raio: 250 }
+];
+
+/** Área da garagem da TCGL. Diferente dos terminais: aqui o veículo continua FORA DE SERVIÇO,
+ *  só que o status deixa explícito que ele está recolhido na garagem — não é reserva de linha.
+ *  Centro apurado pelo aglomerado real da frota (70 veículos fora de serviço num raio de 193 m),
+ *  bem mais preciso que geocodificar o endereço. */
+const GARAGEM_AREA = { nome: "Garagem TCGL", lat: -23.293796, lng: -51.155893, raio: 250 };
+
+/** Distância em metros entre duas coordenadas (aproximação plana — a alguns km de distância
+ *  o erro é centimétrico e o custo é bem menor que Haversine rodando pra frota inteira). */
+function distanciaMetros(lat1, lng1, lat2, lng2){
+    const dLat = (lat1 - lat2) * 111320;
+    const dLng = (lng1 - lng2) * 111320 * Math.cos(lat1 * Math.PI / 180);
+    return Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
+function dentroDaGaragem(lat, lng){
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+    return distanciaMetros(lat, lng, GARAGEM_AREA.lat, GARAGEM_AREA.lng) <= GARAGEM_AREA.raio;
+}
+
+/** Retorna o terminal cuja área contém o ponto (o mais próximo, se houver sobreposição). */
+function terminalDoPonto(lat, lng){
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    let achado = null, menor = Infinity;
+    for (const t of TERMINAIS){
+        const d = distanciaMetros(lat, lng, t.lat, t.lng);
+        if (d <= t.raio && d < menor){ menor = d; achado = t; }
+    }
+    return achado;
+}
+
+/** Ocioso (PI/DH/PO) = azul claro. Fora de serviço (U) = cinza chumbo. Produtivo = linha numerada 080–999. */
+const CODIGOS_OCIOSO = new Set(["PI", "DH", "PO"]);
+const CODIGOS_FORA_SERVICO = new Set(["U"]);
+
+function categoriaOperacional(rt){
+    const n = parseInt(String(rt || ""), 10);
+    if (Number.isFinite(n) && n >= 80 && n <= 999) return "produtivo";
+    if (CODIGOS_OCIOSO.has(rt)) return "ocioso";
+    if (CODIGOS_FORA_SERVICO.has(rt)) return "foraServico";
+    return "foraServico"; // fallback conservador p/ código desconhecido
+}
+
+const CATEGORIA_LABEL = { produtivo: "Produtivo", ocioso: "Ocioso", foraServico: "Fora de serviço" };
+
+/** Guarda em localStorage o horário da última vez que cada veículo (número) se comunicou
+ *  com o Clever, para exibir no KPI "Sem comunicação" mesmo após recarregar a página. */
+const ULTIMO_CONTATO_KEY = "oaCleverUltimoContato";
+
+function carregarUltimoContato(){
+    try {
+        const raw = localStorage.getItem(ULTIMO_CONTATO_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+}
+
+function salvarUltimoContato(){
+    try { localStorage.setItem(ULTIMO_CONTATO_KEY, JSON.stringify(state.ultimoContato)); } catch { /* ignore */ }
+}
+
+function registrarContato(lista){
+    const agora = new Date().toISOString();
+    lista.forEach(v => {
+        const vid = String(v.vehicleId || "").trim();
+        if (vid) state.ultimoContato[vid] = agora;
+    });
+    salvarUltimoContato();
+}
+
+function formatarUltimoContato(iso){
+    if (!iso) return "Sem registro";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "Sem registro";
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " +
+        d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+const state = {
+    routes: [],
+    routeFiltro: null,
+    veiculoFiltro: "",
+    motoristaFiltro: "",
+    operadorFiltro: null,
+    statusFiltro: null,
+    buscaLinha: "",
+    vehicles: new Map(),
+    markers: new Map(),
+    veiculoSelecionado: null,
+    tracoLayer: null,
+    paradasLayer: null,
+    ghostLayer: null,
+    ghostMarkers: new Map(),
+    patternsCache: new Map(),
+    pollTimer: null,
+    lastUpdate: null,
+    liveOk: false,
+    mapa: null,
+    tileLayer: null,
+    ultimoContato: carregarUltimoContato()
+};
+
+function $(id){ return document.getElementById(id); }
+
+function esc(v){
+    return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function corCss(hex){
+    const h = String(hex || "").trim();
+    if (!h) return "#2db4bf";
+    return h.startsWith("#") ? h : ("#" + h);
+}
+
+function contraste(hex){
+    const c = corCss(hex).replace("#", "");
+    if (c.length !== 6) return "#fff";
+    const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#06245c" : "#fff";
+}
+
+function corPorIndice(i){
+    return CLEVER.viaCores[i % CLEVER.viaCores.length];
+}
+
+/** TCGL: vid 0–5000 (crachá branco/texto preto). LondriSul: vid 5001–9999 (crachá preto/texto branco). */
+function operadoraDoVeiculo(vid){
+    const n = parseInt(vid, 10);
+    if (!Number.isFinite(n)) return null;
+    if (n >= 0 && n <= 5000) return "TCGL";
+    if (n >= 5001 && n <= 9999) return "LondriSul";
+    return null;
+}
+
+function corBadgeOperadora(operadora){
+    return operadora === "LondriSul" ? { bg: "#000", fg: "#fff" } : { bg: "#fff", fg: "#000" };
+}
+
+/** Deriva o status a partir da categoria operacional (produtivo/ocioso/fora de serviço) e do delaySec calculado no proxy. */
+function statusPontualidade(v){
+    // GPS inválido vem antes de tudo: sem posição confiável, nenhum outro status é confiável.
+    if (v.gpsInvalido) return { chave: "gpsInvalido", label: "GPS inválido", cor: PONTUALIDADE.cores.gpsInvalido };
+    if (v.categoria === "ocioso") return { chave: "ocioso", label: "Ocioso", cor: PONTUALIDADE.cores.ocioso };
+    // Fora de serviço dentro da área de um terminal = reserva daquele terminal.
+    if (v.categoria === "foraServico" && v.terminalReserva){
+        return { chave: "reserva", label: "Reserva · " + v.terminalReserva, cor: PONTUALIDADE.cores.reserva };
+    }
+    // Na garagem continua fora de serviço — o rótulo só deixa claro que está recolhido.
+    if (v.categoria === "foraServico" && v.naGaragem){
+        return { chave: "garagem", label: "Fora de serviço · Garagem", cor: PONTUALIDADE.cores.garagem };
+    }
+    if (v.categoria === "foraServico") return { chave: "foraServico", label: "Fora de serviço", cor: PONTUALIDADE.cores.foraServico };
+    if (v.delaySec == null){
+        return { chave: "semPrevisao", label: "Sem previsão", cor: PONTUALIDADE.cores.semPrevisao };
+    }
+    // Limites INCLUSIVOS: exatamente 2 min adiantado e exatamente 6 min atrasado ainda
+    // contam como "No horário"; só sai da faixa quem ultrapassa a marca.
+    if (v.delaySec < -PONTUALIDADE.adiantadoSeg) return { chave: "adiantado", label: "Adiantado", cor: PONTUALIDADE.cores.adiantado };
+    if (v.delaySec > PONTUALIDADE.atrasadoSeg) return { chave: "atrasado", label: "Atrasado", cor: PONTUALIDADE.cores.atrasado };
+    return { chave: "noHorario", label: "No horário", cor: PONTUALIDADE.cores.noHorario };
+}
+
+function resolverBasePortal(){
+    const path = String(window.location.pathname || "").replace(/\\/g, "/");
+    const pagesIdx = path.indexOf("/pages/");
+    if (pagesIdx >= 0) return path.slice(0, pagesIdx);
+    const last = path.lastIndexOf("/");
+    return last > 0 ? path.slice(0, last) : "";
+}
+
+function normalizarProxyBase(apiUrl){
+    let url = String(apiUrl || "").trim().replace(/\/+$/, "");
+    if (!url) return "";
+    if (url.endsWith("/clever")) return url;
+    return url + "/clever";
+}
+
+async function fetchJson(url){
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok){
+        const body = await res.text().catch(() => "");
+        let msg = "Erro " + res.status + " em " + url;
+        try {
+            const j = JSON.parse(body);
+            if (j.message) msg += ": " + j.message;
+            else if (j.erro) msg += ": " + j.erro;
+        } catch { /* ignore */ }
+        throw new Error(msg);
+    }
+    return res.json();
+}
+
+async function initCleverProxy(){
+    if (CLEVER.proxyBase) return;
+    const candidatos = [
+        resolverBasePortal() + "/assets/data/portal-runtime.json",
+        new URL("../assets/data/portal-runtime.json", window.location.href).href
+    ];
+    for (const cfgUrl of candidatos){
+        try {
+            const cfg = await fetchJson(cfgUrl);
+            const base = normalizarProxyBase(cfg?.awsApiUrl);
+            const local = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(base);
+            const onLocal = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+            if (base && (!local || onLocal)){
+                CLEVER.proxyBase = base;
+                return;
+            }
+        } catch { /* tenta próximo */ }
+    }
+    if (CLEVER.proxyFallback) CLEVER.proxyBase = normalizarProxyBase(CLEVER.proxyFallback);
+}
+
+async function fetchCleverLive(pathAndQuery){
+    if (!CLEVER.proxyBase) throw new Error("Mapa ao vivo indisponível (API proxy não configurada).");
+    const path = String(pathAndQuery || "").replace(/^\//, "");
+    return fetchJson(CLEVER.proxyBase + "/" + path);
+}
+
+/** Normaliza o corpo padrão do BusTime v3 ("bustime-response") em array, aceitando item único ou lista. */
+function extrairListaBustime(data, chave){
+    const raiz = data?.["bustime-response"] ?? data ?? {};
+    if (Array.isArray(raiz.error) && raiz.error.length && !raiz[chave]) return [];
+    const val = raiz[chave];
+    if (!val) return [];
+    return Array.isArray(val) ? val : [val];
+}
+
+/** ===== Telemetria FleetBus (velocidade, RPM, odômetro, combustível, falhas) =====
+ *  Reaproveita o mesmo proxy AWS usado pelo Clever, só que apontando para o caminho
+ *  "/fleetbus" (igual à página fleetbus-agora.html). A localização do FleetBus não é
+ *  usada aqui — só os sinais de telemetria e a lista de falhas do veículo selecionado.
+ *  As listas de IDs por métrica foram reordenadas/ampliadas em 2026-07-23 depois de
+ *  amostrar ao vivo ~30 veículos da frota: os IDs confirmados (que realmente aparecem
+ *  com valores plausíveis) vêm primeiro; os antigos (nunca observados na amostra, mas
+ *  que podem existir em outra variante de equipamento) ficam como último fallback. */
+const FLEETBUS = {
+    proxyFallback: "https://62wvo4yk9b.execute-api.sa-east-1.amazonaws.com",
+    proxyBase: null,
+    waitMs: 6000,
+    pollGapMs: 700,
+    signals: {
+        speed: ["20", "6054", "100", "99", "168"],
+        rpm: ["11", "4670", "50", "140"],
+        odometer: ["4563", "4669", "19", "66", "67", "122", "244", "68", "18"],
+        fuel: ["33", "81", "25", "72", "4660", "63", "64", "9", "10"]
+    }
+};
+
+let fleetbusIndicePromise = null;
+/** Última telemetria conhecida (já acumulada) por veículo, chave = mesma "key" dos marcadores
+ *  no mapa. Fica guardada mesmo depois do popup fechar, para reabrir instantâneo em vez de
+ *  esperar de novo — só é atualizada, nunca apagada, exceto quando o marcador é recriado. */
+const telemetriaCache = new Map();
+/** Chaves com um loop de atualização contínua de telemetria em andamento (enquanto o popup
+ *  daquele veículo estiver aberto). */
+const telemetriaPollAtivo = new Set();
+
+function normalizarProxyBaseFleetBus(apiUrl){
+    let url = String(apiUrl || "").trim().replace(/\/+$/, "");
+    if (!url) return "";
+    if (url.endsWith("/fleetbus")) return url;
+    return url + "/fleetbus";
+}
+
+async function initFleetBusProxy(){
+    if (FLEETBUS.proxyBase) return;
+    const candidatos = [
+        resolverBasePortal() + "/assets/data/portal-runtime.json",
+        new URL("../assets/data/portal-runtime.json", window.location.href).href
+    ];
+    for (const cfgUrl of candidatos){
+        try {
+            const cfg = await fetchJson(cfgUrl);
+            const base = normalizarProxyBaseFleetBus(cfg?.awsApiUrl);
+            if (base){ FLEETBUS.proxyBase = base; return; }
+        } catch { /* tenta próximo */ }
+    }
+    if (FLEETBUS.proxyFallback) FLEETBUS.proxyBase = normalizarProxyBaseFleetBus(FLEETBUS.proxyFallback);
+}
+
+async function fbGet(pathAndQuery){
+    if (!FLEETBUS.proxyBase) throw new Error("Proxy FleetBus não configurado.");
+    return fetchJson(FLEETBUS.proxyBase + "/" + String(pathAndQuery || "").replace(/^\//, ""));
+}
+
+/** Extrai o número do veículo (prefixo numérico) para casar o cadastro FleetBus com o vid do Clever. */
+function prefixoNumeroVeiculo(num){
+    const s = String(num || "");
+    const m = s.match(/^(\d+)/);
+    return m ? m[1] : s.split(" - ")[0] || s;
+}
+
+function pickSignal(signals, ids){
+    if (!signals) return null;
+    for (const id of ids){
+        if (signals[id] != null && Number.isFinite(Number(signals[id]))) return Number(signals[id]);
+    }
+    return null;
+}
+
+function fmtNumBR(v, digits){
+    if (v == null || !Number.isFinite(Number(v))) return "—";
+    return Number(v).toLocaleString("pt-BR", { maximumFractionDigits: digits ?? 0, minimumFractionDigits: digits ?? 0 });
+}
+
+/** Carrega (uma única vez) a lista de veículos cadastrados no FleetBus e monta um índice
+ *  "número do veículo" → "vehicleId interno do FleetBus", necessário para consultar telemetria. */
+async function carregarIndiceFleetBus(){
+    if (!fleetbusIndicePromise){
+        fleetbusIndicePromise = (async () => {
+            await initFleetBusProxy();
+            const data = await fbGet("vehicles");
+            const lista = Array.isArray(data) ? data : (data.vehicles || data.items || data.data || []);
+            const indice = new Map();
+            lista.forEach(v => {
+                const num = prefixoNumeroVeiculo(v.vehicleNumber);
+                if (num) indice.set(num, v.vehicleId);
+            });
+            return indice;
+        })().catch(err => { fleetbusIndicePromise = null; throw err; });
+    }
+    return fleetbusIndicePromise;
+}
+
+/** Busca a telemetria ao vivo (velocidade, RPM, odômetro, combustível e falhas) de um veículo
+ *  do Clever no FleetBus, casando pelo número do veículo. Retorna "sem-match" se o veículo do
+ *  Clever não tiver cadastro correspondente no FleetBus. */
+async function buscarTelemetriaFleetBus(vehicleIdClever){
+    const indice = await carregarIndiceFleetBus();
+    const vehicleIdFleetBus = indice.get(prefixoNumeroVeiculo(vehicleIdClever));
+    if (vehicleIdFleetBus == null) return "sem-match";
+    const data = await fbGet("live?vehicleId=" + encodeURIComponent(vehicleIdFleetBus) + "&waitMs=" + FLEETBUS.waitMs);
+    const src = { ...(data.signals || {}), ...(data.normalized || {}) };
+    return {
+        speed: pickSignal(src, FLEETBUS.signals.speed),
+        rpm: pickSignal(src, FLEETBUS.signals.rpm),
+        odometer: pickSignal(src, FLEETBUS.signals.odometer),
+        fuel: pickSignal(src, FLEETBUS.signals.fuel),
+        faults: Array.isArray(data.faults) ? data.faults : []
+    };
+}
+
+/** Mescla uma nova leitura de telemetria com a última acumulada: um sinal que não veio nesta
+ *  consulta (nulo) não apaga o valor anterior conhecido — é assim que o popup deixa de mostrar
+ *  "—" para campos que só chegam em consultas seguintes ao FleetBus. */
+function mesclarTelemetria(anterior, nova){
+    const base = (anterior && typeof anterior === "object") ? anterior : { speed: null, rpm: null, odometer: null, fuel: null, faults: [] };
+    return {
+        speed: nova.speed != null ? nova.speed : base.speed,
+        rpm: nova.rpm != null ? nova.rpm : base.rpm,
+        odometer: nova.odometer != null ? nova.odometer : base.odometer,
+        fuel: nova.fuel != null ? nova.fuel : base.fuel,
+        faults: (Array.isArray(nova.faults) && nova.faults.length) ? nova.faults : base.faults
+    };
+}
+
+/** Mantém a telemetria FleetBus se atualizando continuamente enquanto o popup de um veículo
+ *  estiver aberto: cada consulta é mesclada (nunca substitui um sinal já conhecido por "—") e o
+ *  popup é redesenhado a cada resposta, até o popup fechar. Se já houver telemetria em cache de
+ *  uma abertura anterior, ela aparece imediatamente — sem esperar a próxima consulta. */
+async function carregarTelemetriaParaPopup(key, marker){
+    if (telemetriaPollAtivo.has(key)) return;
+    telemetriaPollAtivo.add(key);
+    const cacheAtual = telemetriaCache.get(key);
+    if (cacheAtual == null) telemetriaCache.set(key, "carregando");
+    while (telemetriaPollAtivo.has(key) && marker.isPopupOpen()){
+        const v = state.vehicles.get(key);
+        try {
+            const resultado = await buscarTelemetriaFleetBus(v?.vehicleId);
+            if (!telemetriaPollAtivo.has(key)) break;
+            if (resultado === "sem-match"){
+                telemetriaCache.set(key, "sem-match");
+            } else {
+                telemetriaCache.set(key, mesclarTelemetria(telemetriaCache.get(key), resultado));
+            }
+        } catch {
+            if (!telemetriaPollAtivo.has(key)) break;
+            if (typeof telemetriaCache.get(key) !== "object") telemetriaCache.set(key, "erro");
+        }
+        const vAtual = state.vehicles.get(key);
+        if (marker.isPopupOpen() && vAtual){
+            marker.setPopupContent(popupVeiculoHtml(vAtual, telemetriaCache.get(key)));
+        }
+        if (!telemetriaPollAtivo.has(key) || !marker.isPopupOpen()) break;
+        await new Promise(resolve => setTimeout(resolve, FLEETBUS.pollGapMs));
+    }
+    telemetriaPollAtivo.delete(key);
+}
+
+/** Interrompe o loop de atualização contínua de telemetria de um veículo (chamado ao fechar o
+ *  popup). A última telemetria conhecida permanece em telemetriaCache para a próxima abertura. */
+function pararTelemetriaPopup(key){
+    telemetriaPollAtivo.delete(key);
+}
+
+async function fetchCleverRoutes(){
+    const data = await fetchCleverLive("getroutes");
+    const lista = extrairListaBustime(data, "routes");
+    return lista.map((r, i) => ({
+        routeId: String(r.rt ?? r.rtpidatafeed ?? i),
+        shortName: String(r.rt ?? "?"),
+        longName: String(r.rtnm || ""),
+        color: r.rtclr ? corCss(r.rtclr) : corPorIndice(i)
+    }));
+}
+
+async function fetchCleverVehicles(){
+    // O endpoint composto calcula o atraso real (getpredictions em lote) e sempre retorna a frota inteira;
+    // o filtro por linha é aplicado no cliente (veiculoPassaFiltro).
+    const data = await fetchCleverLive("getvehiclesdelay");
+    const lista = extrairListaBustime(data, "vehicle");
+    const found = [];
+    let nGpsInvalido = 0;
+    // Âncora dos veículos com GPS inválido: a posição ao vivo do carro 411, que fica na
+    // garagem. Usar um carro real em vez de uma coordenada fixa mantém o agrupamento certo
+    // mesmo se a garagem mudar de lugar. Se o 411 também estiver sem posição confiável,
+    // cai na coordenada fixa da garagem.
+    const ancora = (function(){
+        const ref = lista.find(x => String(x.vid ?? "") === ANCORA_GPS_INVALIDO_VID);
+        if (ref){
+            const rlat = Number(ref.lat), rlng = Number(ref.lon);
+            if (coordenadaNoBrasil(rlat, rlng)) return { lat: rlat, lng: rlng };
+        }
+        return GARAGEM_TCGL;
+    })();
+    lista.forEach(v => {
+        const latBruta = Number(v.lat);
+        const lngBruta = Number(v.lon);
+        const vidBruto = String(v.vid ?? "?");
+        const coordOk = coordenadaNoBrasil(latBruta, lngBruta);
+        // Coordenada fora do Brasil (ou ausente/zerada) = rastreador com defeito. Em vez de
+        // sumir com o carro do mapa, ele é agrupado junto ao carro 411 (na garagem) com status
+        // "GPS inválido", para o operador enxergar que o veículo existe mas está sem posição.
+        // Tratamento restrito à TCGL: veículos de outras operadoras com coordenada inválida
+        // continuam saindo do mapa, senão apareceriam empilhados na garagem da TCGL — que
+        // não é a garagem deles — ou plotados em (0,0) no meio do oceano.
+        const gpsInvalido = !coordOk && operadoraDoVeiculo(vidBruto) === "TCGL";
+        if (!coordOk && !gpsInvalido) return;
+        // Espalha em espiral (ângulo áureo) ao redor da âncora para os ícones não empilharem
+        // exatamente no mesmo pixel quando vários rastreadores falham ao mesmo tempo.
+        let lat = latBruta, lng = lngBruta;
+        if (gpsInvalido){
+            const ang = nGpsInvalido * 2.39996;
+            const raio = 0.00030 + nGpsInvalido * 0.00010;
+            lat = ancora.lat + raio * Math.cos(ang);
+            lng = ancora.lng + raio * Math.sin(ang);
+            nGpsInvalido += 1;
+        }
+        const rt = String(v.rt ?? "");
+        const categoria = categoriaOperacional(rt);
+        const route = categoria === "produtivo"
+            ? (state.routes.find(r => r.routeId === rt) || { routeId: rt, shortName: rt || "?", longName: "", color: "#2db4bf" })
+            : { routeId: rt, shortName: rt || "?", longName: CATEGORIA_LABEL[categoria], color: categoria === "ocioso" ? PONTUALIDADE.cores.ocioso : PONTUALIDADE.cores.foraServico };
+        const vid = String(v.vid ?? "?");
+        found.push({
+            vehicleId: vid,
+            lat, lng,
+            gpsInvalido,
+            // Só faz sentido para quem está fora de serviço e com posição confiável.
+            terminalReserva: (!gpsInvalido && categoria === "foraServico")
+                ? (terminalDoPonto(lat, lng)?.nome || null)
+                : null,
+            naGaragem: !gpsInvalido && categoria === "foraServico" && dentroDaGaragem(lat, lng),
+            latOriginal: Number.isFinite(latBruta) ? latBruta : null,
+            lngOriginal: Number.isFinite(lngBruta) ? lngBruta : null,
+            routeId: route.routeId,
+            route,
+            categoria,
+            heading: v.hdg != null ? Number(v.hdg) : null,
+            speed: v.spd != null ? Number(v.spd) : null,
+            tripDesc: v.des || "",
+            positionTime: formatarTmstmp(v.tmstmp),
+            delaySec: v.delaySec != null ? Number(v.delaySec) : null,
+            sentido: v.rtdir || null,
+            wid: v.tablockid || "",
+            pid: v.pid != null ? String(v.pid) : "",
+            // Distância percorrida (em pés, padrão BusTime) dentro do trajeto atual — usada para estimar
+            // a posição "no horário" (ghost) quando a linha/veículo está selecionado.
+            pdist: v.pdist != null && Number.isFinite(Number(v.pdist)) ? Number(v.pdist) : null,
+            operadora: operadoraDoVeiculo(vid),
+            // "oid" no retorno do Clever/BusTime é o registro (matrícula) do motorista escalado no veículo.
+            motorista: v.oid != null && String(v.oid).trim() ? String(v.oid).trim() : "",
+            // "rid" = run id (identificador do trabalho/turno de escala) do BusTime.
+            trabalho: v.rid != null && String(v.rid).trim() && String(v.rid).trim() !== "N/A" ? String(v.rid).trim() : "",
+            key: vid + ":" + rt
+        });
+    });
+    return found;
+}
+
+function formatarTmstmp(tmstmp){
+    const s = String(tmstmp || "").trim();
+    if (!s) return "—";
+    // formato BusTime: "20260722 14:35"
+    const m = s.match(/^(\d{4})(\d{2})(\d{2})[ T](\d{2}):(\d{2})/);
+    if (!m) return s;
+    return m[3] + "/" + m[2] + " " + m[4] + ":" + m[5];
+}
+
+function ordenarRotas(a, b){
+    const na = parseInt(String(a.shortName).replace(/\D/g, ""), 10);
+    const nb = parseInt(String(b.shortName).replace(/\D/g, ""), 10);
+    if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb;
+    return String(a.shortName).localeCompare(String(b.shortName), "pt-BR", { numeric: true });
+}
+
+function rotasVisiveis(){
+    const q = state.buscaLinha.trim().toLowerCase();
+    return state.routes.filter(r => {
+        if (!q) return true;
+        return String(r.shortName).toLowerCase().includes(q)
+            || String(r.longName || "").toLowerCase().includes(q);
+    }).sort(ordenarRotas);
+}
+
+function setLive(texto, busy){
+    $("liveText").textContent = texto;
+    $("liveDot").classList.toggle("busy", !!busy);
+    syncNativeHud();
+}
+
+function isNativeEmbedded(){
+    if (document.documentElement.classList.contains("native-embedded")) return true;
+    try {
+        if (window.self !== window.top && window.parent.document.documentElement.classList.contains("native-app")) return true;
+    } catch (e) { /* cross-origin */ }
+    try {
+        if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+}
+
+function syncNativeHud(){
+    const hudText = $("liveText")?.textContent || "Conectando...";
+    const busy = $("liveDot")?.classList.contains("busy");
+    if ($("oaHudLiveText")) $("oaHudLiveText").textContent = hudText;
+    $("oaHudDot")?.classList.toggle("busy", busy);
+    if ($("oaStatOnline")) $("oaStatOnline").textContent = String(state.vehicles.size);
+    if ($("oaStatLinhas")) $("oaStatLinhas").textContent = $("statLinhas")?.textContent || "0";
+    if ($("oaStatVisiveis")) $("oaStatVisiveis").textContent = String(state.countVisiveis ?? 0);
+}
+
+function setSheetAberta(id, aberta){
+    const sheet = $(id);
+    if (!sheet) return;
+    if (aberta) sheet.style.transform = "translateY(0)";
+    else sheet.style.removeProperty("transform");
+}
+
+function fecharSheetLinhas(){
+    document.body.classList.remove("oa-linhas-open");
+    setSheetAberta("oaSheetLinhas", false);
+}
+
+function abrirSheetLinhas(){
+    fecharSheetMapa();
+    document.body.classList.add("oa-linhas-open");
+    setSheetAberta("oaSheetLinhas", true);
+}
+
+function fecharSheetMapa(){
+    document.body.classList.remove("oa-mapa-open");
+    setSheetAberta("oaSheetMapa", false);
+}
+
+function abrirSheetMapa(){
+    fecharSheetLinhas();
+    document.body.classList.add("oa-mapa-open");
+    setSheetAberta("oaSheetMapa", true);
+}
+
+function acaoMapaMobile(fn){
+    if (typeof fn === "function") fn();
+    fecharSheetMapa();
+    scheduleMapResize();
+}
+
+function scheduleMapResize(){
+    if (!state.mapa) return;
+    const fix = () => { try { state.mapa?.invalidateSize({ pan: false }); } catch (_) {} };
+    requestAnimationFrame(fix);
+    [120, 350, 700, 1400, 2500].forEach(ms => setTimeout(fix, ms));
+}
+
+/** Alterna o mapa entre o layout normal e tela cheia (ocupando toda a viewport,
+ *  por cima do restante da página). O painel do mapa é movido para ser filho direto
+ *  do <body> enquanto está em tela cheia: o card que normalmente o envolve usa
+ *  backdrop-filter no layout desktop, e isso cria um "containing block" próprio que
+ *  prende o position:fixed dentro do card em vez de preencher a viewport — por isso
+ *  a reparentagem é necessária para o "tela cheia" realmente cobrir a tela toda.
+ *  Também tenta acionar a Fullscreen API nativa do navegador como reforço (opcional,
+ *  ignorada silenciosamente se não for permitida, por exemplo dentro do app nativo). */
+function mapaEmTelaCheia(){
+    return $("panelMapa")?.classList.contains("oa-fullscreen") ?? false;
+}
+
+function alternarTelaCheiaMapa(forcar){
+    const panel = $("panelMapa");
+    if (!panel) return;
+    const ativar = typeof forcar === "boolean" ? forcar : !panel.classList.contains("oa-fullscreen");
+
+    if (ativar){
+        if (!state.panelMapaPlaceholder){
+            const marcador = document.createComment("panelMapa-lugar-original");
+            panel.parentNode.insertBefore(marcador, panel);
+            state.panelMapaPlaceholder = marcador;
+        }
+        document.body.appendChild(panel);
+        panel.classList.add("oa-fullscreen");
+        document.body.classList.add("oa-mapa-fullscreen-ativo");
+        document.documentElement.requestFullscreen?.().catch(() => {});
+    } else {
+        panel.classList.remove("oa-fullscreen");
+        document.body.classList.remove("oa-mapa-fullscreen-ativo");
+        if (state.panelMapaPlaceholder?.parentNode){
+            state.panelMapaPlaceholder.parentNode.insertBefore(panel, state.panelMapaPlaceholder);
+            state.panelMapaPlaceholder.remove();
+            state.panelMapaPlaceholder = null;
+        }
+        if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    }
+
+    const texto = $("btnTelaCheiaTexto");
+    if (texto) texto.textContent = ativar ? "Sair da tela cheia" : "Tela cheia";
+    scheduleMapResize();
+}
+
+function ativarGestosMapa(mapa){
+    if (!mapa) return;
+    const container = mapa.getContainer?.();
+    if (container){
+        container.style.touchAction = "none";
+        container.style.webkitUserSelect = "none";
+        container.style.userSelect = "none";
+        container.style.pointerEvents = "auto";
+        container.classList.add("oa-touch-map");
+        if (!container.dataset.oaTouchBound){
+            const keepNativeZoomOut = (ev) => ev.preventDefault();
+            container.addEventListener("gesturestart", keepNativeZoomOut, { passive: false });
+            container.addEventListener("gesturechange", keepNativeZoomOut, { passive: false });
+            container.addEventListener("wheel", (ev) => {
+                if (ev.ctrlKey || ev.metaKey) ev.preventDefault();
+            }, { passive: false });
+            container.dataset.oaTouchBound = "1";
+        }
+    }
+    mapa.dragging?.enable?.();
+    mapa.touchZoom?.enable?.();
+    mapa.doubleClickZoom?.enable?.();
+    mapa.scrollWheelZoom?.enable?.();
+    if (mapa.options) {
+        mapa.options.wheelPxPerZoomLevel = 36;
+        mapa.options.wheelDebounceTime = 16;
+        mapa.options.inertiaDeceleration = 2500;
+        mapa.options.inertiaMaxSpeed = 2200;
+    }
+    mapa.boxZoom?.disable?.();
+    mapa.keyboard?.enable?.();
+    setTimeout(() => {
+        mapa.dragging?.enable?.();
+        mapa.touchZoom?.enable?.();
+        mapa.scrollWheelZoom?.enable?.();
+        mapa.invalidateSize?.();
+    }, 120);
+}
+
+function initMapa(){
+    if (state.mapa) return;
+    if (typeof L === "undefined") throw new Error("Mapa indisponível: biblioteca Leaflet não carregou.");
+    state.mapa = L.map("mapa", {
+        zoomControl: true,
+        dragging: true,
+        touchZoom: true,
+        bounceAtZoomLimits: true,
+        inertia: true,
+        inertiaDeceleration: 2500,
+        inertiaMaxSpeed: 2200,
+        scrollWheelZoom: true,
+        wheelPxPerZoomLevel: 36,
+        wheelDebounceTime: 16,
+        doubleClickZoom: true,
+        tap: true,
+        tapTolerance: 22,
+        boxZoom: false,
+        preferCanvas: false
+    }).setView(CLEVER.centro, CLEVER.zoom);
+    state.tileLayer = L.tileLayer(CLEVER.tiles.light, {
+        maxZoom: 18,
+        attribution: "© OpenStreetMap",
+        subdomains: "abc"
+    }).addTo(state.mapa);
+    ativarGestosMapa(state.mapa);
+    desenharAreasTerminais();
+    setTimeout(() => state.mapa.invalidateSize(), 200);
+    scheduleMapResize();
+}
+
+/** Desenha o círculo de abrangência de cada terminal. Fica na camada de baixo (pane de
+ *  overlay padrão), então os ônibus continuam clicáveis por cima. */
+function desenharAreasTerminais(){
+    if (!state.mapa) return;
+    state.camadaTerminais = L.layerGroup().addTo(state.mapa);
+    const areas = TERMINAIS.map(t => ({ ...t, cor: PONTUALIDADE.cores.reserva }))
+        .concat([{ ...GARAGEM_AREA, cor: PONTUALIDADE.cores.garagem }]);
+    areas.forEach(t => {
+        L.circle([t.lat, t.lng], {
+            radius: t.raio,
+            color: t.cor,
+            weight: 1.5,
+            opacity: .75,
+            dashArray: "5 4",
+            fillColor: t.cor,
+            fillOpacity: .10,
+            interactive: false
+        }).addTo(state.camadaTerminais);
+        L.marker([t.lat, t.lng], {
+            interactive: false,
+            icon: L.divIcon({
+                className: "terminal-rotulo-wrap",
+                html: '<span class="terminal-rotulo" style="background:' + esc(t.cor) + '">' + esc(t.nome) + '</span>',
+                iconSize: [0, 0]
+            })
+        }).addTo(state.camadaTerminais);
+    });
+}
+
+function trocarTile(tipo){
+    if (!state.mapa || !state.tileLayer) return;
+    state.mapa.removeLayer(state.tileLayer);
+    if (tipo === "sat"){
+        state.tileLayer = L.tileLayer(CLEVER.tiles.satellite, { maxZoom: 18, attribution: "© Esri" }).addTo(state.mapa);
+    } else if (tipo === "bus2"){
+        state.tileLayer = L.tileLayer(CLEVER.tiles.lightBus2, { maxZoom: 18, attribution: "© Bus2 / OpenStreetMap" }).addTo(state.mapa);
+    } else {
+        state.tileLayer = L.tileLayer(CLEVER.tiles.light, { maxZoom: 18, attribution: "© OpenStreetMap", subdomains: "abc" }).addTo(state.mapa);
+    }
+}
+
+function renderListaLinhas(){
+    const lista = rotasVisiveis();
+    $("listaLinhas").innerHTML = lista.map(r => {
+        const cor = corCss(r.color);
+        const ativo = state.routeFiltro?.routeId === r.routeId;
+        return '<button type="button" class="line-btn' + (ativo ? " active" : "") + '" data-id="' + esc(r.routeId) + '">' +
+            '<span class="line-count zero" data-contagem="' + esc(r.routeId) + '" title="Veículos na linha agora">0</span>' +
+            '<span class="line-chip" style="background:' + esc(cor) + ';color:' + contraste(cor) + '">' + esc(r.shortName) + '</span>' +
+            '<span class="line-meta"><div class="line-name">Linha ' + esc(r.shortName) + '</div><div class="line-route">' + esc(r.longName || "") + '</div></span>' +
+        '</button>';
+    }).join("") || '<div class="empty"><p>Nenhuma linha encontrada.</p></div>';
+
+    $("listaLinhas").querySelectorAll(".line-btn").forEach(btn => {
+        btn.addEventListener("click", () => selecionarLinha(btn.dataset.id));
+    });
+    atualizarContagemLinhas();
+    syncNativeHud();
+}
+
+/** Atualiza só os contadores de veículos por linha, sem redesenhar a lista — redesenhar
+ *  perderia a rolagem do operador a cada ciclo de 30s. A contagem respeita o filtro de
+ *  operadora (se estiver filtrando TCGL, mostra quantos TCGL tem em cada linha). */
+function atualizarContagemLinhas(){
+    const alvo = $("listaLinhas");
+    if (!alvo) return;
+    const porLinha = new Map();
+    state.vehicles.forEach(v => {
+        if (state.operadorFiltro && v.operadora !== state.operadorFiltro) return;
+        if (v.categoria !== "produtivo") return;
+        porLinha.set(v.routeId, (porLinha.get(v.routeId) || 0) + 1);
+    });
+    alvo.querySelectorAll(".line-count").forEach(el => {
+        const n = porLinha.get(el.dataset.contagem) || 0;
+        el.textContent = n;
+        el.classList.toggle("zero", n === 0);
+    });
+}
+
+/** Total da frota por operadora (independente dos filtros — é a régua de referência). */
+function atualizarKpisOperadora(){
+    let tcgl = 0, lsul = 0;
+    /* O percentual "no horario" nao existe pronto por operadora: o indicador oficial so
+       traz chegadas, partidas e viagens perdidas, e o indice geral e da frota inteira.
+       Entao calculamos aqui, com a MESMA regra do indice do topo — so veiculos
+       produtivos entram, porque fora de servico, reserva e garagem nao tem horario a
+       cumprir e diluiriam o resultado. */
+    const perf = { TCGL: { ok: 0, tot: 0 }, LondriSul: { ok: 0, tot: 0 } };
+    state.vehicles.forEach(v => {
+        if (v.operadora === "TCGL") tcgl += 1;
+        else if (v.operadora === "LondriSul") lsul += 1;
+        if (v.categoria !== "produtivo") return;
+        const alvo = perf[v.operadora];
+        if (!alvo) return;
+        const chave = statusPontualidade(v).chave;
+        if (chave === "noHorario" || chave === "atrasado" || chave === "adiantado"){
+            alvo.tot += 1;
+            if (chave === "noHorario") alvo.ok += 1;
+        }
+    });
+    if ($("statOpTodos")) $("statOpTodos").textContent = tcgl + lsul;
+    if ($("statOpTCGL")) $("statOpTCGL").textContent = tcgl;
+    if ($("statOpLondriSul")) $("statOpLondriSul").textContent = lsul;
+
+    /* Sem veiculo produtivo o percentual fica vazio em vez de mostrar 0%, que daria a
+       impressao de operacao pessima quando na verdade nao ha o que medir. */
+    const mostrar = (id, o) => {
+        const el = $(id);
+        if (!el) return;
+        el.textContent = o.tot ? formatarPctPerformance((o.ok / o.tot) * 100) : "";
+        el.title = o.tot ? o.ok + " de " + o.tot + " veiculos produtivos no horario" : "";
+    };
+    mostrar("perfOpTCGL", perf.TCGL);
+    mostrar("perfOpLondriSul", perf.LondriSul);
+}
+
+/** Marca visualmente quais chips estão filtrando o mapa no momento. */
+function sincronizarChipsFiltro(){
+    document.querySelectorAll("[data-filtro-status]").forEach(el => {
+        el.classList.toggle("filtro-ativo", state.statusFiltro === el.dataset.filtroStatus);
+    });
+    $("kpiOpTodos")?.classList.toggle("filtro-ativo", !state.operadorFiltro);
+    $("kpiOpTCGL")?.classList.toggle("filtro-ativo", state.operadorFiltro === "TCGL");
+    $("kpiOpLondriSul")?.classList.toggle("filtro-ativo", state.operadorFiltro === "LondriSul");
+}
+
+/** Clique no KPI alterna o filtro: clicar de novo no mesmo chip limpa e volta a ver tudo. */
+function alternarFiltroStatus(chave){
+    state.statusFiltro = state.statusFiltro === chave ? null : chave;
+    atualizarMarcadores();
+}
+
+function alternarFiltroOperadora(operadora){
+    state.operadorFiltro = state.operadorFiltro === operadora ? null : operadora;
+    renderListaLinhas();
+    atualizarMarcadores();
+}
+
+function veiculoPassaFiltro(v){
+    if (state.routeFiltro && v.routeId !== state.routeFiltro.routeId) return false;
+    if (state.operadorFiltro && v.operadora !== state.operadorFiltro) return false;
+    if (state.statusFiltro){
+        // "ocioso" e "foraServico" são categorias operacionais (PI/DH/PO e U), não pontualidade;
+        // os demais (atrasado/adiantado/noHorário) só fazem sentido para veículos produtivos.
+        if (state.statusFiltro === "gpsInvalido"){
+            if (!v.gpsInvalido) return false;
+        } else if (state.statusFiltro === "reserva"){
+            if (v.gpsInvalido || v.categoria !== "foraServico" || !v.terminalReserva) return false;
+        } else if (state.statusFiltro === "garagem"){
+            if (v.gpsInvalido || v.categoria !== "foraServico" || v.terminalReserva || !v.naGaragem) return false;
+        } else if (state.statusFiltro === "ocioso" || state.statusFiltro === "foraServico"){
+            // "Fora de serviço" inclui quem está em reserva de terminal ou na garagem.
+            if (v.gpsInvalido || v.categoria !== state.statusFiltro) return false;
+        } else {
+            if (v.categoria !== "produtivo") return false;
+            if (statusPontualidade(v).chave !== state.statusFiltro) return false;
+        }
+    }
+    const q = state.veiculoFiltro.trim();
+    if (q && !String(v.vehicleId || "").includes(q)) return false;
+    const m = state.motoristaFiltro.trim();
+    if (m && !String(v.motorista || "").toLowerCase().includes(m.toLowerCase())) return false;
+    return true;
+}
+
+/** Descreve o filtro ativo do mapa (ou null se está mostrando tudo). Usado para deixar
+ *  explícito no índice de performance que o número está restrito ao recorte da tela. */
+function descricaoFiltroAtivo(){
+    const partes = [];
+    if (state.routeFiltro) partes.push("linha " + state.routeFiltro.shortName);
+    if (state.operadorFiltro) partes.push(state.operadorFiltro);
+    if (state.statusFiltro){
+        const rotulos = { reserva: "reserva de terminal", garagem: "na garagem", ocioso: "ocioso", foraServico: "fora de serviço", noHorario: "no horário", atrasado: "atrasado", adiantado: "adiantado", gpsInvalido: "GPS inválido" };
+        partes.push(rotulos[state.statusFiltro] || state.statusFiltro);
+    }
+    const q = state.veiculoFiltro.trim();
+    if (q) partes.push("carro " + q);
+    return partes.length ? partes.join(" · ") : null;
+}
+
+function textoStatusComQuantidade(v){
+    const st = statusPontualidade(v);
+    if (st.chave === "especial" || st.chave === "gpsInvalido" || st.chave === "reserva" || st.chave === "garagem" || v.delaySec == null) return st.label;
+    const min = Math.round(Math.abs(v.delaySec) / 60);
+    return st.label + (min > 0 ? (" · " + min + " min") : "");
+}
+
+/** Bloco de telemetria FleetBus (velocidade do motor, RPM, odômetro, combustível e falhas)
+ *  anexado ao popup do veículo. "telemetria" pode ser: undefined/"carregando" (ainda buscando),
+ *  "sem-match" (o veículo do Clever não tem cadastro no FleetBus), "erro" (falha na consulta),
+ *  ou o objeto { speed, rpm, odometer, fuel, faults } já resolvido. */
+function telemetriaFleetBusHtml(telemetria){
+    if (telemetria == null || telemetria === "carregando"){
+        return '<div class="veiculo-panel-telemetria-titulo">Telemetria · FleetBus</div>' +
+            '<div class="veiculo-panel-telemetria-msg">Carregando telemetria...</div>';
+    }
+    if (telemetria === "sem-match"){
+        return '<div class="veiculo-panel-telemetria-titulo">Telemetria · FleetBus</div>' +
+            '<div class="veiculo-panel-telemetria-msg">Veículo sem cadastro no FleetBus.</div>';
+    }
+    if (telemetria === "erro"){
+        return '<div class="veiculo-panel-telemetria-titulo">Telemetria · FleetBus</div>' +
+            '<div class="veiculo-panel-telemetria-msg">Falha ao carregar telemetria.</div>';
+    }
+    const grid = [
+        ["Velocidade · FleetBus", telemetria.speed != null ? (fmtNumBR(telemetria.speed) + " km/h") : "—"],
+        ["RPM", telemetria.rpm != null ? fmtNumBR(telemetria.rpm) : "—"],
+        ["Odômetro", telemetria.odometer != null ? (fmtNumBR(telemetria.odometer, 1) + " km") : "—"],
+        ["Combustível", telemetria.fuel != null ? (fmtNumBR(telemetria.fuel) + " %") : "—"]
+    ].map(([k, val]) => '<div class="popup-item">' + esc(k) + '<strong>' + esc(val) + '</strong></div>').join("");
+    const faults = Array.isArray(telemetria.faults) ? telemetria.faults : [];
+    const falhasHtml = faults.length
+        ? '<div class="veiculo-panel-falhas">' +
+              '<div class="veiculo-panel-falhas-titulo">Falhas (' + faults.length + ')</div>' +
+              faults.slice(0, 4).map(f => '<div class="veiculo-panel-falha">' + esc(f.description || "Falha") + '</div>').join("") +
+          '</div>'
+        : '<div class="veiculo-panel-falhas ok">Sem falhas registradas</div>';
+    return '<div class="veiculo-panel-telemetria-titulo">Telemetria · FleetBus</div>' +
+        '<div class="veiculo-panel-grid">' + grid + '</div>' +
+        falhasHtml;
+}
+
+/** Conteúdo do popup Leaflet (caixa em vidro) que abre ancorada no ícone do veículo clicado.
+ *  A "Velocidade" da grade principal é sempre a informada pelo Clever (GPS/AVM); a velocidade
+ *  do motor (FleetBus) aparece separada, dentro do bloco de telemetria (ver telemetriaFleetBusHtml),
+ *  para as duas fontes ficarem visíveis lado a lado sem uma sobrescrever a outra.
+ *  "telemetria" é opcional: quando presente, mostra o bloco de telemetria FleetBus abaixo dos
+ *  dados de linha/operação já existentes. */
+/** Popup organizado em 3 linhas fixas, pedido pelo usuário em 2026-07-23:
+ *  cabeçalho = nº do veículo + empresa (Op); status = pontualidade + atraso em min;
+ *  linha 1 = Motorista/Velocidade·Clever/Tecnologia; linha 2 = Linha/Via; linha 3 = Bloco/Trabalho/Sentido. */
+function popupVeiculoHtml(v, telemetria){
+    const st = statusPontualidade(v);
+    const corLinha = corCss(v.route?.color);
+    const linha1 = [
+        ["Motorista", v.motorista || "—"],
+        ["Velocidade", v.speed != null ? (v.speed + " km/h") : "—"],
+        ["Tecnologia", tecnologiaVeiculo(v.vehicleId)]
+    ].map(([k, val]) => '<div class="popup-item">' + esc(k) + '<strong>' + esc(val) + '</strong></div>').join("");
+    const linha2 = [
+        ["Linha", v.route?.shortName || "—"],
+        ["Via", v.tripDesc || "—"]
+    ].map(([k, val]) => '<div class="popup-item">' + esc(k) + '<strong>' + esc(val) + '</strong></div>').join("");
+    const linha3 = [
+        ["Bloco", v.wid || "—"],
+        ["Trabalho", v.trabalho || "—"],
+        ["Sentido", v.sentido || "—"]
+    ].map(([k, val]) => '<div class="popup-item">' + esc(k) + '<strong>' + esc(val) + '</strong></div>').join("");
+    const titulo = 'Veículo ' + esc(v.vehicleId) + (v.operadora ? ' · ' + esc(v.operadora) : '');
+    return '<div class="veiculo-panel-inner" style="--cor:' + esc(st.cor) + '">' +
+        '<div class="veiculo-panel-head">' +
+            '<span class="veiculo-panel-chip" style="background:' + esc(corLinha) + ';color:' + contraste(corLinha) + '">' + esc(v.vehicleId) + '</span>' +
+            '<div>' +
+                '<div class="veiculo-panel-title">' + titulo + '</div>' +
+                '<span class="veiculo-panel-status" style="background:' + esc(st.cor) + ';color:' + contraste(st.cor) + '">' + esc(textoStatusComQuantidade(v)) + '</span>' +
+            '</div>' +
+        '</div>' +
+        (v.gpsInvalido
+            ? '<p class="veiculo-panel-aviso">Posição fora do Brasil'
+                + (v.latOriginal != null ? ' (' + v.latOriginal.toFixed(5) + ', ' + v.lngOriginal.toFixed(5) + ')' : ' (sem coordenada)')
+                + ' — ícone ancorado na garagem da TCGL.</p>'
+            : '') +
+        '<div class="veiculo-panel-grid veiculo-panel-grid-3">' + linha1 + '</div>' +
+        '<div class="veiculo-panel-grid veiculo-panel-grid-via">' + linha2 + '</div>' +
+        '<div class="veiculo-panel-grid veiculo-panel-grid-3">' + linha3 + '</div>' +
+        telemetriaFleetBusHtml(telemetria) +
+    '</div>';
+}
+
+function desselecionarVeiculo(){
+    if (state.veiculoSelecionado){
+        state.markers.get(state.veiculoSelecionado)?.closePopup();
+    }
+    state.veiculoSelecionado = null;
+    limparTraco();
+}
+
+function limparTraco(){
+    if (state.tracoLayer){ state.mapa?.removeLayer(state.tracoLayer); state.tracoLayer = null; }
+    if (state.paradasLayer){ state.mapa?.removeLayer(state.paradasLayer); state.paradasLayer = null; }
+    limparFantasmas();
+}
+
+function limparFantasmas(){
+    if (state.ghostLayer){ state.mapa?.removeLayer(state.ghostLayer); state.ghostLayer = null; }
+    state.ghostMarkers.forEach(m => m.remove());
+    state.ghostMarkers.clear();
+}
+
+/** Busca (com cache) os pontos do trajeto (pid) com a distância acumulada de cada um
+ *  (pdist, em pés — mesma unidade usada pelo pdist do veículo no getvehicles). */
+async function obterPontosPadrao(pid){
+    if (!pid) return [];
+    if (state.patternsCache.has(pid)) return state.patternsCache.get(pid);
+    try {
+        const data = await fetchCleverLive("getpatterns?pid=" + encodeURIComponent(pid));
+        const patterns = extrairListaBustime(data, "ptr");
+        const pat = patterns.find(p => String(p.pid) === String(pid)) || patterns[0];
+        const pontos = (pat?.pt || [])
+            .map(p => ({ lat: Number(p.lat), lon: Number(p.lon), pdist: Number(p.pdist) }))
+            .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lon) && Number.isFinite(p.pdist));
+        state.patternsCache.set(pid, pontos);
+        return pontos;
+    } catch (err) {
+        console.warn("Falha ao buscar trajeto para posição estimada (pid " + pid + "):", err);
+        state.patternsCache.set(pid, []);
+        return [];
+    }
+}
+
+/** Interpola um ponto lat/lon no trajeto para uma distância-alvo (pdist), andando pelos
+ *  segmentos do polyline até achar o par de pontos que contém o alvo. */
+function interpolarNoTrajeto(pontos, alvoPdist){
+    if (!pontos.length) return null;
+    const min = pontos[0].pdist, max = pontos[pontos.length - 1].pdist;
+    const alvo = Math.max(min, Math.min(alvoPdist, max));
+    for (let i = 1; i < pontos.length; i++){
+        const a = pontos[i - 1], b = pontos[i];
+        if (alvo <= b.pdist){
+            const span = b.pdist - a.pdist;
+            const f = span > 0 ? (alvo - a.pdist) / span : 0;
+            return { lat: a.lat + (b.lat - a.lat) * f, lon: a.lon + (b.lon - a.lon) * f };
+        }
+    }
+    const last = pontos[pontos.length - 1];
+    return { lat: last.lat, lon: last.lon };
+}
+
+const PES_POR_METRO = 3.28084;
+/** Velocidade mínima (km/h) usada para estimar a posição prevista quando o veículo está
+ *  parado ou bem lento (spd baixo). Sem esse piso, um ônibus atrasado mas parado num
+ *  semáforo/trânsito calcularia deslocamento zero e o fantasminha ficaria "colado" no
+ *  ícone real — invisível na prática. */
+const VEL_MINIMA_FANTASMA_KMH = 15;
+
+/** Estima, para cada veículo visível com atraso relevante, a posição em que ele deveria
+ *  estar agora segundo o horário programado: parte da distância já percorrida no trajeto
+ *  (pdist) e desloca essa distância pelo atraso atual × velocidade recente. É uma
+ *  aproximação (assume velocidade constante) — só aparece com uma linha ou um veículo
+ *  selecionado, para não poluir o mapa com a frota inteira. */
+async function atualizarPosicoesEstimadas(){
+    if (!state.mapa) return;
+    // Só mostra o(s) fantasminha(s) quando uma linha específica está selecionada
+    // (foco só nela) — não aparece com clique avulso em veículo nem na frota inteira.
+    if (!state.routeFiltro){
+        limparFantasmas();
+        return;
+    }
+    if (!state.ghostLayer) state.ghostLayer = L.layerGroup().addTo(state.mapa);
+
+    const alvos = [];
+    state.vehicles.forEach((v) => {
+        if (!veiculoPassaFiltro(v)) return;
+        if (!v.pid || v.pdist == null || v.delaySec == null || v.speed == null) return;
+        if (statusPontualidade(v).chave === "noHorario") return;
+        alvos.push(v);
+    });
+
+    // Busca os trajetos em paralelo (cada pid só é buscado uma vez, o resto vem do cache).
+    const resultados = await Promise.all(alvos.map(async (v) => {
+        const pontos = await obterPontosPadrao(v.pid);
+        return { v, pontos };
+    }));
+
+    const vistos = new Set();
+    resultados.forEach(({ v, pontos }) => {
+        if (!pontos.length) return;
+        // Com o veículo parado/muito lento (trânsito, semáforo), usar a velocidade instantânea
+        // (perto de zero) faria o fantasminha cair em cima do ícone real — usa um piso mínimo.
+        const velKmh = Number(v.speed) > 3 ? Number(v.speed) : VEL_MINIMA_FANTASMA_KMH;
+        const velFtSeg = (velKmh * 1000 / 3600) * PES_POR_METRO;
+        const alvoPdist = v.pdist + v.delaySec * velFtSeg;
+        const pos = interpolarNoTrajeto(pontos, alvoPdist);
+        if (!pos) return;
+
+        vistos.add(v.key);
+        const rotulo = "Posição prevista · " + esc(v.vehicleId) + " · " + esc(textoStatusComQuantidade(v));
+        // Mesmo ícone do ônibus real (iconeOnibusHtml) — corpo em branco (em vez da cor de
+        // status vermelho/amarelo) + transparência via CSS (ghost-pin-veh) para o efeito fantasma.
+        const icon = L.divIcon({
+            className: "bus-marker-wrap",
+            html: iconeOnibusHtml(v, "ghost-pin-veh", "#ffffff"),
+            iconSize: [96, 96],
+            iconAnchor: [48, 42]
+        });
+        let marker = state.ghostMarkers.get(v.key);
+        if (!marker){
+            marker = L.marker([pos.lat, pos.lon], { icon, zIndexOffset: -200, interactive: false })
+                .bindTooltip(rotulo, { direction: "top", offset: [0, -50], className: "ghost-tooltip", permanent: false })
+                .addTo(state.ghostLayer);
+            state.ghostMarkers.set(v.key, marker);
+        } else {
+            marker.setLatLng([pos.lat, pos.lon]);
+            marker.setIcon(icon);
+            marker.setTooltipContent(rotulo);
+        }
+    });
+
+    state.ghostMarkers.forEach((marker, key) => {
+        if (!vistos.has(key)){
+            state.ghostLayer?.removeLayer(marker);
+            state.ghostMarkers.delete(key);
+        }
+    });
+}
+
+/** Busca o traçado (getpatterns por pid) e desenha a linha + os pontos de parada no mapa. */
+async function desenharTracoLinha(v){
+    limparTraco();
+    if (!v.pid) return;
+    const data = await fetchCleverLive("getpatterns?pid=" + encodeURIComponent(v.pid));
+    const patterns = extrairListaBustime(data, "ptr");
+    const pat = patterns.find(p => String(p.pid) === String(v.pid)) || patterns[0];
+    if (!pat || !Array.isArray(pat.pt)) return;
+    const latlngs = pat.pt
+        .map(p => [Number(p.lat), Number(p.lon)])
+        .filter(([la, lo]) => Number.isFinite(la) && Number.isFinite(lo));
+    if (!latlngs.length) return;
+    const cor = corCss(v.route?.color);
+    state.tracoLayer = L.layerGroup([
+        L.polyline(latlngs, { color: "#fff", weight: 9, opacity: .65, lineCap: "round", lineJoin: "round" }),
+        L.polyline(latlngs, { color: cor, weight: 5, opacity: 1, lineCap: "round", lineJoin: "round" })
+    ]).addTo(state.mapa);
+    const paradas = pat.pt.filter(p => p.typ === "S" && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon)));
+    const marcadores = paradas.map(p => L.circleMarker([Number(p.lat), Number(p.lon)], {
+        radius: 5, weight: 2, color: "#fff", fillColor: cor, fillOpacity: 1
+    }).bindTooltip(esc(p.stpnm || "Parada"), { direction: "top" }));
+    state.paradasLayer = L.layerGroup(marcadores).addTo(state.mapa);
+    state.mapa.fitBounds(L.latLngBounds(latlngs), { padding: [40, 40] });
+}
+
+/** Ao selecionar uma linha na lista lateral: desenha todas as variantes/sentidos do traçado + paradas. */
+async function desenharTracoRota(routeId){
+    limparTraco();
+    if (!routeId) return;
+    try {
+        const data = await fetchCleverLive("getpatterns?rt=" + encodeURIComponent(routeId));
+        const patterns = extrairListaBustime(data, "ptr");
+        if (!patterns.length) return;
+        const cor = corCss(state.routes.find(r => r.routeId === routeId)?.color || "#2db4bf");
+        const linhas = [];
+        const paradas = [];
+        let todosPontos = [];
+        patterns.forEach(pat => {
+            if (!Array.isArray(pat.pt)) return;
+            const latlngs = pat.pt
+                .map(p => [Number(p.lat), Number(p.lon)])
+                .filter(([la, lo]) => Number.isFinite(la) && Number.isFinite(lo));
+            if (latlngs.length){
+                // Halo branco embaixo + linha colorida em cima: a linha completa fica bem
+                // visível em qualquer camada de mapa (clara, satélite, etc.).
+                linhas.push(L.polyline(latlngs, { color: "#fff", weight: 10, opacity: .65, lineCap: "round", lineJoin: "round" }));
+                linhas.push(L.polyline(latlngs, { color: cor, weight: 5.5, opacity: 1, lineCap: "round", lineJoin: "round" }));
+                todosPontos = todosPontos.concat(latlngs);
+            }
+            pat.pt.filter(p => p.typ === "S" && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon)))
+                .forEach(p => paradas.push(L.circleMarker([Number(p.lat), Number(p.lon)], {
+                    radius: 5, weight: 2.5, color: "#fff", fillColor: cor, fillOpacity: 1
+                }).bindTooltip(esc(p.stpnm || "Parada"), { direction: "top" })));
+        });
+        if (!linhas.length) return;
+        state.tracoLayer = L.layerGroup(linhas).addTo(state.mapa);
+        state.paradasLayer = L.layerGroup(paradas).addTo(state.mapa);
+        // Garante que a linha inteira (todas as variantes/sentidos) caiba na tela.
+        if (todosPontos.length) state.mapa.fitBounds(L.latLngBounds(todosPontos), { padding: [50, 50], maxZoom: 16 });
+    } catch (err) {
+        console.warn("Falha ao desenhar traçado da rota:", err);
+    }
+}
+
+async function selecionarVeiculo(v){
+    // O fantasminha (posição estimada) só aparece com uma linha selecionada — clique avulso
+    // em um veículo não mexe nele (ver atualizarPosicoesEstimadas).
+    state.veiculoSelecionado = v.key;
+    atualizarMarcadores();
+    try {
+        await desenharTracoLinha(v);
+    } catch (err) {
+        console.warn("Falha ao desenhar traçado da linha:", err);
+    }
+    // desenharTracoLinha chama limparTraco() (que também limpa o fantasminha); se ainda
+    // houver uma linha selecionada, repõe os fantasminhas dela em seguida.
+    atualizarPosicoesEstimadas();
+}
+
+/** Ícone de ônibus em pino quadrado (squircle) com efeito 3D (gradiente de luz/sombra e
+ *  sombra projetada): fundo pintado pela cor de status com borda leve em preto, silhueta do
+ *  ônibus em branco e o bico do pino — curto e bem gordo/arredondado — apontando "para cima"
+ *  (Norte) quando não rotacionado; a rotação usa o heading (bússola: 0°=N, 90°=E, sentido
+ *  horário) para apontar corretamente a direção real de deslocamento do veículo. */
+function iconeOnibusHtml(v, extraClass, corOverride){
+    // corOverride: usado pelo fantasminha para pintar o corpo de branco em vez da cor de
+    // status (vermelho/amarelo/verde) — mesmo desenho, só a cor do corpo muda.
+    const cor = corOverride || corCss(statusPontualidade(v).cor);
+    const cz = "#fff";
+    const rot = v.heading != null ? Number(v.heading) : 0;
+    const numero = esc(v.vehicleId || "—");
+    return '<div class="veh-pin ' + (extraClass || "") + '">' +
+        '<svg viewBox="0 0 60 60" aria-hidden="true">' +
+            '<defs>' +
+                '<linearGradient id="busBevel" x1="0" y1="0" x2="0" y2="1">' +
+                    '<stop offset="0" stop-color="#fff" stop-opacity=".6"/>' +
+                    '<stop offset=".45" stop-color="#fff" stop-opacity="0"/>' +
+                    '<stop offset="1" stop-color="#000" stop-opacity=".35"/>' +
+                '</linearGradient>' +
+                '<radialGradient id="busGloss" cx=".32" cy=".2" r=".6">' +
+                    '<stop offset="0" stop-color="#fff" stop-opacity=".7"/>' +
+                    '<stop offset="1" stop-color="#fff" stop-opacity="0"/>' +
+                '</radialGradient>' +
+                '<linearGradient id="beakBevel" x1="0" y1="0" x2="0" y2="1">' +
+                    '<stop offset="0" stop-color="#fff" stop-opacity=".45"/>' +
+                    '<stop offset="1" stop-color="#000" stop-opacity=".32"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="chumboGlass" x1="0" y1="0" x2="1" y2="1">' +
+                    '<stop offset="0" stop-color="#636d7c"/>' +
+                    '<stop offset=".5" stop-color="#333b47"/>' +
+                    '<stop offset="1" stop-color="#14171d"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="glassShine" x1="0" y1="0" x2="0" y2="1">' +
+                    '<stop offset="0" stop-color="#fff" stop-opacity=".4"/>' +
+                    '<stop offset=".45" stop-color="#fff" stop-opacity="0"/>' +
+                '</linearGradient>' +
+            '</defs>' +
+            '<g transform="rotate(' + rot + ' 30 26)">' +
+                '<path d="M30 1 L46 30 L14 30 Z" fill="' + esc(cor) + '" stroke="rgba(0,0,0,.5)" stroke-width="2.8" stroke-linejoin="round"/>' +
+                '<path d="M30 1 L46 30 L14 30 Z" fill="url(#beakBevel)" stroke="none"/>' +
+            '</g>' +
+            '<rect x="13" y="9" width="34" height="34" rx="10" fill="' + esc(cor) + '" stroke="rgba(0,0,0,.45)" stroke-width="1.4"/>' +
+            '<rect x="13" y="9" width="34" height="34" rx="10" fill="url(#busBevel)"/>' +
+            '<rect x="13" y="9" width="34" height="34" rx="10" fill="url(#busGloss)"/>' +
+            '<rect x="25" y="10.5" width="10" height="3.5" rx="1.2" fill="' + cz + '"/>' +
+            '<rect x="17" y="15" width="26" height="21" rx="6" fill="' + cz + '"/>' +
+            '<rect x="20" y="17.3" width="20" height="11.5" rx="2.8" fill="url(#chumboGlass)" stroke="rgba(0,0,0,.55)" stroke-width="1"/>' +
+            '<rect x="20" y="17.3" width="20" height="11.5" rx="2.8" fill="url(#glassShine)"/>' +
+            '<text x="30" y="25.9" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="7.2" font-weight="800" letter-spacing=".2" fill="#fff">' + numero + '</text>' +
+            '<circle cx="22.5" cy="33" r="2.1" fill="' + cz + '"/>' +
+            '<circle cx="37.5" cy="33" r="2.1" fill="' + cz + '"/>' +
+            '<rect x="20.3" y="35" width="4.4" height="3.4" rx="1" fill="' + cz + '"/>' +
+            '<rect x="35.3" y="35" width="4.4" height="3.4" rx="1" fill="' + cz + '"/>' +
+        '</svg>' +
+    '</div>';
+}
+
+/** Frota cadastrada (250 veículos da TCGL, carregada de assets/js/frota-patio-data.js) usada
+ *  para calcular quais veículos não estão se comunicando com o Clever agora. */
+const FROTA_TOTAL = Array.isArray(window.FROTA_PATIO) ? window.FROTA_PATIO : [];
+
+/** Busca a tecnologia cadastrada do veículo (ex.: "Pesado", "Leve") no roster FROTA_TOTAL,
+ *  casando pelo número do veículo (mesmo campo usado em "Sem comunicação"). */
+function tecnologiaVeiculo(vehicleId){
+    const alvo = String(vehicleId || "").trim();
+    if (!alvo) return "—";
+    const f = FROTA_TOTAL.find(item => String(item.veiculo || "").trim() === alvo);
+    return f?.tecnologia || "—";
+}
+
+function veiculosSemComunicacao(){
+    const online = new Set();
+    state.vehicles.forEach(v => online.add(String(v.vehicleId || "").trim()));
+    return FROTA_TOTAL
+        .filter(f => !online.has(String(f.veiculo || "").trim()))
+        .map(f => ({ ...f, ultimoContato: state.ultimoContato[String(f.veiculo || "").trim()] || null }))
+        .sort((a, b) => String(a.veiculo).localeCompare(String(b.veiculo), "pt-BR", { numeric: true }));
+}
+
+function atualizarSemComunicacao(){
+    const faltando = veiculosSemComunicacao();
+    if ($("statSemComunicacao")) $("statSemComunicacao").textContent = faltando.length;
+    if ($("oaSemComOverlay") && $("oaSemComOverlay").classList.contains("open")){
+        renderSemComunicacaoLista(faltando);
+    }
+    return faltando;
+}
+
+function renderSemComunicacaoLista(faltando){
+    const sub = $("oaSemComSubtitulo");
+    if (sub) sub.textContent = faltando.length + " de " + FROTA_TOTAL.length + " veículos da frota";
+    const lista = $("oaSemComLista");
+    if (!lista) return;
+    if (!faltando.length){
+        lista.innerHTML = '<li class="oa-semcom-empty">Toda a frota cadastrada está se comunicando.</li>';
+        return;
+    }
+    lista.innerHTML = faltando.map(f =>
+        '<li class="oa-semcom-item">' +
+            '<div class="oa-semcom-main">' +
+                '<span class="oa-semcom-vid">' + esc(f.veiculo) + '</span>' +
+                '<span class="oa-semcom-tag">' + esc(f.rotulo || f.tecnologia || "") + '</span>' +
+            '</div>' +
+            '<span class="oa-semcom-contato">Último contato: ' + esc(formatarUltimoContato(f.ultimoContato)) + '</span>' +
+        '</li>'
+    ).join("");
+}
+
+/** Mesma mecânica do "Sem comunicação", mas para os veículos que estão se comunicando e
+ *  mandando coordenada impossível — o operador clica no KPI e vê quem são, com a posição
+ *  errada que o rastreador reportou (ajuda a separar rastreador zerado de lat/lon trocada). */
+function veiculosGpsInvalido(){
+    // Respeita os filtros do mapa para a lista bater exatamente com o número do KPI.
+    const lista = [];
+    state.vehicles.forEach(v => { if (v.gpsInvalido && veiculoPassaFiltro(v)) lista.push(v); });
+    return lista.sort((a, b) => String(a.vehicleId).localeCompare(String(b.vehicleId), "pt-BR", { numeric: true }));
+}
+
+function renderGpsInvalidoLista(itens){
+    const sub = $("oaGpsInvSubtitulo");
+    if (sub){
+        sub.textContent = itens.length === 1
+            ? "1 veículo sem posição confiável"
+            : itens.length + " veículos sem posição confiável";
+    }
+    const lista = $("oaGpsInvLista");
+    if (!lista) return;
+    if (!itens.length){
+        lista.innerHTML = '<li class="oa-semcom-empty">Nenhum veículo com coordenada fora do Brasil no momento.</li>';
+        return;
+    }
+    lista.innerHTML = itens.map(v => {
+        const coord = v.latOriginal != null && v.lngOriginal != null
+            ? v.latOriginal.toFixed(5) + ", " + v.lngOriginal.toFixed(5)
+            : "sem coordenada";
+        const linha = v.categoria === "produtivo" ? ("linha " + (v.route?.shortName || "?")) : (CATEGORIA_LABEL[v.categoria] || "");
+        return '<li class="oa-semcom-item">' +
+            '<div class="oa-semcom-main">' +
+                '<span class="oa-semcom-vid">' + esc(v.vehicleId) + '</span>' +
+                '<span class="oa-semcom-tag">' + esc([v.operadora, linha].filter(Boolean).join(" · ")) + '</span>' +
+            '</div>' +
+            '<span class="oa-semcom-contato">Reportado: ' + esc(coord) + ' · última posição ' + esc(v.positionTime || "—") + '</span>' +
+        '</li>';
+    }).join("");
+}
+
+function atualizarGpsInvalidoLista(){
+    if ($("oaGpsInvOverlay")?.classList.contains("open")){
+        renderGpsInvalidoLista(veiculosGpsInvalido());
+    }
+}
+
+function abrirGpsInvalido(){
+    renderGpsInvalidoLista(veiculosGpsInvalido());
+    $("oaGpsInvOverlay")?.classList.add("open");
+}
+
+function fecharGpsInvalido(){
+    $("oaGpsInvOverlay")?.classList.remove("open");
+}
+
+function abrirSemComunicacao(){
+    renderSemComunicacaoLista(veiculosSemComunicacao());
+    $("oaSemComOverlay")?.classList.add("open");
+}
+
+function fecharSemComunicacao(){
+    $("oaSemComOverlay")?.classList.remove("open");
+}
+
+/** Dados oficiais de performance (OTP/CAD), publicados por scripts/sync-performance.mjs
+ *  em assets/data/performance.json. Enquanto não carregam (ou se o arquivo não existir),
+ *  cai no cálculo local derivado do Clever — assim a página nunca fica sem indicador. */
+const PERFORMANCE = {
+    // Origem oficial: S3 via Lambda portal-api (o agente que coleta roda dentro da rede
+    // do CIOP, porque a API OTP fica num IP privado). O JSON estático no repositório
+    // fica como segunda opção enquanto o caminho AWS não está configurado em todo lugar.
+    rotaAws: "/performance",
+    urlEstatica: "../assets/data/performance.json",
+    dados: null,
+    erro: null,
+    fonte: null,
+    recarregarMs: 300000
+};
+
+async function buscarPerformanceAws(){
+    const mod = await import("../assets/js/portal-aws-config.js");
+    const snap = await mod.carregarSnapshotAws(PERFORMANCE.rotaAws, { timeoutMs: 12000 });
+    return snap?.payload || null;
+}
+
+async function buscarPerformanceEstatica(){
+    const res = await fetch(PERFORMANCE.urlEstatica + "?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return res.json();
+}
+
+async function carregarPerformanceOficial(){
+    const tentativas = [
+        { fonte: "aws", fn: buscarPerformanceAws },
+        { fonte: "estatico", fn: buscarPerformanceEstatica }
+    ];
+    const falhas = [];
+
+    for (const t of tentativas){
+        try {
+            const dados = await t.fn();
+            if (dados && dados.indices){
+                PERFORMANCE.dados = dados;
+                PERFORMANCE.fonte = t.fonte;
+                PERFORMANCE.erro = null;
+                atualizarIndicePerformance();
+                return;
+            }
+            falhas.push(t.fonte + ": vazio");
+        } catch (err) {
+            falhas.push(t.fonte + ": " + (err.message || "erro"));
+        }
+    }
+
+    PERFORMANCE.dados = null;
+    PERFORMANCE.fonte = null;
+    PERFORMANCE.erro = "indisponível";
+    console.warn("[performance] nenhuma origem respondeu —", falhas.join(" | "));
+    atualizarIndicePerformance();
+}
+
+/** Índice de performance. Fonte preferida: indicador oficial "No horário" do OTP/CAD.
+ *  Fallback: % de veículos produtivos no horário segundo o delaySec do Clever.
+ *  Os dois medem coisas diferentes (o oficial é acumulado do dia; o local é o estado
+ *  agora), por isso a origem fica sempre explícita na tela. */
+function calcularIndicePerformance(){
+    const of = PERFORMANCE.dados;
+    // Com filtro ativo o indicador oficial não serve: ele é sempre da frota inteira e não
+    // sabe recortar por linha/carro. Nesse caso cai no cálculo local, que acompanha a tela.
+    const filtro = descricaoFiltroAtivo();
+    if (!filtro && of && of.indices && typeof of.indices.noHorario === "number"){
+        return {
+            oficial: true,
+            pct: of.indices.noHorario,
+            atrasadoPct: of.indices.atrasado,
+            adiantadoPct: of.indices.adiantado,
+            kpis: of.kpis || null,
+            garagens: Array.isArray(of.garagens) ? of.garagens : [],
+            operadoras: Array.isArray(of.operadoras) ? of.operadoras : [],
+            statusVeiculos: of.statusVeiculos || null,
+            geradoEm: of.geradoEm || of.atualizadoEm || null,
+            modo: of.modo
+        };
+    }
+    const { noHorario = 0, atrasado = 0, adiantado = 0 } = state.performance || {};
+    const total = noHorario + atrasado + adiantado;
+    return {
+        oficial: false,
+        filtro,
+        pct: total ? (noHorario / total) * 100 : null,
+        noHorario, atrasado, adiantado, total
+    };
+}
+
+/** Percentual do índice de performance com 2 casas e vírgula decimal (ex.: 79,91%).
+ *  Duas casas porque o indicador é acompanhado de perto e variação de décimo importa. */
+function formatarPctPerformance(valor){
+    if (valor == null || !Number.isFinite(Number(valor))) return "—";
+    return Number(valor).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+}
+
+function renderIndicePerformance(dados){
+    const numero = $("oaIndicePerfNumero");
+    if (numero) numero.textContent = formatarPctPerformance(dados.pct);
+
+    const sub = $("oaIndicePerfSubtitulo");
+    if (sub){
+        if (dados.oficial){
+            const modo = dados.modo === 1 ? "intervalo" : "aderência ao horário";
+            const via = PERFORMANCE.fonte === "aws" ? " · via AWS" : (PERFORMANCE.fonte === "estatico" ? " · via arquivo" : "");
+            sub.textContent = "Indicador oficial OTP/CAD (" + modo + ") · apurado " + formatarMomentoPerf(dados.geradoEm) + via;
+        } else if (dados.filtro){
+            sub.textContent = "Recorte atual do mapa: " + dados.filtro + " · cálculo local pelo Clever";
+        } else {
+            sub.textContent = PERFORMANCE.erro
+                ? "Estimativa local pelo Clever (indicador oficial " + PERFORMANCE.erro + ")"
+                : "Estimativa local pelo Clever · carregando indicador oficial…";
+        }
+    }
+
+    const alvo = $("oaIndicePerfBreakdown");
+    if (!alvo) return;
+
+    if (!dados.oficial){
+        const t = dados.total || 0;
+        const p = v => t ? (v / t) * 100 : 0;
+        alvo.innerHTML =
+            '<div class="oa-perf-card">' +
+                otpBarrasHtml(p(dados.adiantado), p(dados.noHorario), p(dados.atrasado),
+                    "Estado atual dos " + t + " veículos produtivos com previsão"
+                    + (dados.filtro ? " (" + dados.filtro + ")" : "")) +
+            '</div>';
+        return;
+    }
+
+    const k = dados.kpis || {};
+    let html = '<div class="oa-perf-grid">' +
+        '<div class="oa-perf-card" style="grid-column:1/-1">' +
+            otpBarrasHtml(dados.adiantadoPct, dados.pct, dados.atrasadoPct,
+                "Aderência ao horário: adiantado, no horário e atrasado") +
+        '</div>' +
+        donutHtml("Chegadas", k.chegadas) +
+        donutHtml("Partidas", k.partidas) +
+        donutHtml("Viagens perdidas", k.viagensPerdidas, true) +
+    '</div>';
+
+    if (dados.operadoras.length){
+        html += '<div class="oa-perf-gar"><h4>Por operadora</h4>' +
+            dados.operadoras.map(o =>
+                '<div class="oa-perf-op">' +
+                    '<div class="oa-perf-op-head">' +
+                        '<b>' + esc(o.operadora) + '</b>' +
+                        '<span>' + o.veiculos + ' veículos · ' + o.garagens.length + (o.garagens.length === 1 ? ' garagem' : ' garagens') + '</span>' +
+                    '</div>' +
+                    '<div class="oa-perf-op-kpis">' +
+                        miniKpiHtml("Chegadas", o.kpis?.chegadas?.percent) +
+                        miniKpiHtml("Partidas", o.kpis?.partidas?.percent) +
+                        miniKpiHtml("V. perdidas", o.kpis?.viagensPerdidas?.percent, true) +
+                    '</div>' +
+                '</div>'
+            ).join("") +
+        '</div>';
+    }
+
+    if (dados.garagens.length){
+        const ordem = ["TCGL", "LondriSul"];
+        const grupos = new Map();
+        dados.garagens.forEach(g => {
+            const op = g.operadora || "—";
+            if (!grupos.has(op)) grupos.set(op, []);
+            grupos.get(op).push(g);
+        });
+        const chaves = [...grupos.keys()].sort((a, b) => {
+            const ia = ordem.indexOf(a), ib = ordem.indexOf(b);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+        });
+
+        html += '<div class="oa-perf-gar"><h4>Por garagem</h4>' +
+            chaves.map(op =>
+                '<p class="oa-perf-gar-op">' + esc(op) + '</p>' +
+                grupos.get(op).map(g => {
+                    const pct = g.percentuais ? g.percentuais.noHorario : null;
+                    const largura = (pct == null ? 0 : Math.max(0, Math.min(100, Number(pct))));
+                    return '<div class="oa-perf-gar-row">' +
+                        '<span class="oa-perf-gar-nome">' + esc(g.garagem) + ' <span>(' + g.veiculos + ')</span></span>' +
+                        '<span class="oa-perf-gar-trilho"><span class="oa-perf-gar-fill" style="width:' + largura + '%;background:' + corPerf(pct) + '"></span></span>' +
+                        '<span class="oa-perf-gar-pct" style="color:' + corPerf(pct) + '">' + pctTexto(pct) + '</span>' +
+                    '</div>';
+                }).join("")
+            ).join("") +
+            '<p class="oa-perf-legenda" style="text-align:left;margin-top:6px">% no horário · (n) = veículos em operação</p>' +
+        '</div>';
+    }
+
+    alvo.innerHTML = html;
+}
+
+/** Trio de barras no estilo do painel OTP: adiantado (vermelho), no horário (verde), atrasado (amarelo).
+ *  Mesmas cores já usadas nos ônibus do mapa, para o operador não precisar reaprender legenda. */
+function otpBarrasHtml(adiantado, noHorario, atrasado, descricao){
+    const barras = [
+        { lab: "Adiantado", val: adiantado, cor: PONTUALIDADE.cores.adiantado },
+        { lab: "No horário", val: noHorario, cor: PONTUALIDADE.cores.noHorario },
+        { lab: "Atrasado", val: atrasado, cor: PONTUALIDADE.cores.atrasado }
+    ];
+    return '<h4>OTP</h4>' +
+        '<p class="oa-perf-card-sub">' + esc(descricao) + '</p>' +
+        '<div class="oa-perf-bars">' +
+            barras.map(b => {
+                const n = Number(b.val);
+                const v = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+                return '<div class="oa-perf-bar-col">' +
+                    '<span class="oa-perf-bar-val" style="background:' + corCss(b.cor) + ';color:' + contraste(b.cor) + '">' + pctTexto(b.val) + '</span>' +
+                    '<span class="oa-perf-bar" style="height:' + v + '%;background:' + corCss(b.cor) + '"></span>' +
+                '</div>';
+            }).join("") +
+        '</div>' +
+        '<div class="oa-perf-bars" style="height:auto;border:0;padding:0">' +
+            barras.map(b => '<span class="oa-perf-bar-lab" style="width:42px">' + b.lab + '</span>').join("") +
+        '</div>';
+}
+
+/** KPI compacto usado no resumo por operadora. */
+function miniKpiHtml(rotulo, pct, menorMelhor){
+    const cor = menorMelhor ? "#b91c1c" : corPerf(pct);
+    return '<div class="oa-perf-mini">' +
+        '<b style="color:' + cor + '">' + pctTexto(pct) + '</b>' +
+        '<span>' + rotulo + '</span>' +
+    '</div>';
+}
+
+/** Anel de progresso (SVG puro, sem biblioteca) no estilo dos medidores de Arrivals/Departures. */
+function donutHtml(titulo, kpi, menorMelhor){
+    const pct = kpi ? kpi.percent : null;
+    const n = Number(pct);
+    const v = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+    const raio = 34, circ = 2 * Math.PI * raio;
+    const preenchido = (v / 100) * circ;
+    const cor = menorMelhor ? "#b91c1c" : corCss(CLEVER_TEAL);
+
+    let linhas = "";
+    if (kpi && kpi.total != null){
+        const feitas = menorMelhor ? kpi.missed : kpi.onTime;
+        linhas += '<p class="oa-perf-frac">' + feitas + " / " + kpi.total + '</p>';
+        if (!menorMelhor && (kpi.early != null || kpi.late != null)){
+            linhas += '<p class="oa-perf-sub">Adiantado <b>' + (kpi.early ?? "—") + '</b> · Atrasado <b>' + (kpi.late ?? "—") + '</b></p>';
+        }
+        if (menorMelhor) linhas += '<p class="oa-perf-sub">viagens perdidas</p>';
+    }
+
+    return '<div class="oa-perf-card">' +
+        '<h4>' + esc(titulo) + '</h4>' +
+        '<svg class="oa-perf-donut" viewBox="0 0 90 90" role="img" aria-label="' + esc(titulo) + ' ' + pctTexto(pct) + '">' +
+            '<circle cx="45" cy="45" r="' + raio + '" fill="none" stroke="var(--surface-2)" stroke-width="10"/>' +
+            '<circle cx="45" cy="45" r="' + raio + '" fill="none" stroke="' + cor + '" stroke-width="10" stroke-linecap="round" ' +
+                'stroke-dasharray="' + preenchido.toFixed(1) + ' ' + (circ - preenchido).toFixed(1) + '" transform="rotate(-90 45 45)"/>' +
+            '<text x="45" y="52" text-anchor="middle" class="oa-perf-donut-num" style="fill:' + cor + '">' + pctTexto(pct) + '</text>' +
+        '</svg>' +
+        linhas +
+    '</div>';
+}
+
+const CLEVER_TEAL = "#2db4bf";
+
+/** Todos os percentuais do índice de performance (barras OTP, donuts, operadora, garagem)
+ *  usam o mesmo formato do KPI: 2 casas decimais com vírgula (ex.: 79,91%). */
+function pctTexto(v){
+    return formatarPctPerformance(v);
+}
+
+function corPerf(pct){
+    const n = Number(pct);
+    if (!Number.isFinite(n)) return "#3f4757";
+    if (n >= 80) return "#059669";
+    if (n >= 60) return "#d97706";
+    return "#b91c1c";
+}
+
+function formatarMomentoPerf(iso){
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+/** Atualiza o badge do topbar sempre (barato); só re-renderiza o conteúdo do modal
+ *  quando ele está aberto, para não desenhar algo que ninguém está vendo. */
+function atualizarIndicePerformance(){
+    const dados = calcularIndicePerformance();
+    const badge = $("statIndicePerformance");
+    if (badge) badge.textContent = formatarPctPerformance(dados.pct);
+    if ($("oaIndicePerfOverlay")?.classList.contains("open")){
+        renderIndicePerformance(dados);
+    }
+}
+
+function abrirIndicePerformance(){
+    renderIndicePerformance(calcularIndicePerformance());
+    $("oaIndicePerfOverlay")?.classList.add("open");
+}
+
+function fecharIndicePerformance(){
+    $("oaIndicePerfOverlay")?.classList.remove("open");
+}
+
+function atualizarMarcadores(){
+    if (!state.mapa) return;
+    const visiveis = new Set();
+    let countVis = 0;
+    let countAtrasado = 0, countAdiantado = 0, countNoHorario = 0;
+    let countOcioso = 0, countForaServico = 0, countGpsInvalido = 0, countReserva = 0, countGaragem = 0;
+    // Índice de performance desta tela ACOMPANHA os filtros do mapa (operadora/linha/status):
+    // ele responde "como está o que eu estou olhando agora". O Painel TV é que fica fixo na
+    // frota TCGL inteira, porque lá ninguém filtra nada — então os dois só coincidem quando
+    // esta tela está sem filtro e restrita à TCGL.
+    state.vehicles.forEach((v, key) => {
+        const chaveStatus = statusPontualidade(v).chave;
+
+        const ok = veiculoPassaFiltro(v);
+        if (!ok) return;
+        countVis += 1;
+        visiveis.add(key);
+        if (chaveStatus === "gpsInvalido") countGpsInvalido += 1;
+        // Reserva e garagem são RECORTES de "fora de serviço": somam nos dois lugares.
+        else if (chaveStatus === "reserva"){ countReserva += 1; countForaServico += 1; }
+        else if (chaveStatus === "garagem"){ countGaragem += 1; countForaServico += 1; }
+        else if (chaveStatus === "ocioso") countOcioso += 1;
+        else if (chaveStatus === "foraServico") countForaServico += 1;
+        else if (v.categoria === "produtivo"){
+            if (chaveStatus === "atrasado") countAtrasado += 1;
+            else if (chaveStatus === "adiantado") countAdiantado += 1;
+            else if (chaveStatus === "noHorario") countNoHorario += 1;
+        }
+        const destacado = (state.veiculoFiltro && String(v.vehicleId).includes(state.veiculoFiltro)) || state.veiculoSelecionado === key;
+        const extra = destacado ? "highlight" : "";
+        const icon = L.divIcon({
+            className: "bus-marker-wrap",
+            html: iconeOnibusHtml(v, extra),
+            iconSize: [96, 96],
+            iconAnchor: [48, 42],
+            popupAnchor: [0, -100]
+        });
+        let marker = state.markers.get(key);
+        if (!marker){
+            marker = L.marker([v.lat, v.lng], { icon }).addTo(state.mapa);
+            marker.bindPopup(() => popupVeiculoHtml(state.vehicles.get(key) || v, telemetriaCache.get(key)), {
+                className: "veiculo-popup", offset: [0, -6], autoPanPadding: [30, 30]
+            });
+            marker.on("click", () => selecionarVeiculo(state.vehicles.get(key) || v));
+            marker.on("popupopen", () => carregarTelemetriaParaPopup(key, marker));
+            marker.on("popupclose", () => {
+                pararTelemetriaPopup(key);
+                if (state.veiculoSelecionado === key){
+                    state.veiculoSelecionado = null;
+                    limparTraco();
+                    atualizarMarcadores();
+                }
+            });
+            state.markers.set(key, marker);
+        } else {
+            marker.setLatLng([v.lat, v.lng]);
+            marker.setIcon(icon);
+            if (marker.isPopupOpen()) marker.setPopupContent(popupVeiculoHtml(v, telemetriaCache.get(key)));
+        }
+    });
+
+    state.markers.forEach((marker, key) => {
+        if (!visiveis.has(key)){
+            if (state.veiculoSelecionado === key){
+                state.veiculoSelecionado = null;
+                limparTraco();
+            }
+            state.mapa.removeLayer(marker);
+            state.markers.delete(key);
+            pararTelemetriaPopup(key);
+            telemetriaCache.delete(key);
+        }
+    });
+
+    state.countVisiveis = countVis;
+    // O chip "Online" foi retirado da barra de KPIs; o total da frota continua no HUD
+    // nativo (oaStatOnline) e no texto do liveText ("N ônibus · hora").
+    $("statNoHorario").textContent = countNoHorario;
+    $("statAtrasados").textContent = countAtrasado;
+    $("statAdiantados").textContent = countAdiantado;
+    if ($("statOcioso")) $("statOcioso").textContent = countOcioso;
+    if ($("statForaServico")) $("statForaServico").textContent = countForaServico;
+    if ($("statReserva")) $("statReserva").textContent = countReserva;
+    if ($("statGaragem")) $("statGaragem").textContent = countGaragem;
+    atualizarListaLocal();
+    if ($("statGpsInvalido")) $("statGpsInvalido").textContent = countGpsInvalido;
+    atualizarGpsInvalidoLista();
+    atualizarKpisOperadora();
+    atualizarContagemLinhas();
+    sincronizarChipsFiltro();
+    // A janela do veículo acompanha o poll: reposiciona o marcador e reescreve a ficha.
+    if (janelaVeiculoAberta() && state.vehicles.has(VEICULO_JANELA.key)){
+        renderJanelaVeiculo();
+        centralizarMapaVeiculo(false);
+    }
+    state.performance = { noHorario: countNoHorario, atrasado: countAtrasado, adiantado: countAdiantado };
+    atualizarIndicePerformance();
+    atualizarSemComunicacao();
+    syncNativeHud();
+}
+
+async function pollLote(){
+    setLive("Atualizando posições...", true);
+    try {
+        const lista = await fetchCleverVehicles();
+        state.vehicles.clear();
+        lista.forEach(v => state.vehicles.set(v.key, v));
+        registrarContato(lista);
+        state.lastUpdate = new Date();
+        state.liveOk = true;
+        atualizarMarcadores();
+        atualizarPosicoesEstimadas();
+        const hora = state.lastUpdate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        setLive(state.vehicles.size + " ônibus · " + hora, false);
+    } catch (err) {
+        setLive(err.message || "Falha ao atualizar posições", false);
+    }
+}
+
+function iniciarPoll(){
+    clearInterval(state.pollTimer);
+    pollLote();
+    state.pollTimer = setInterval(pollLote, CLEVER.intervaloMs);
+}
+
+function selecionarLinha(routeId){
+    const route = state.routes.find(r => r.routeId === routeId);
+    if (!route) return;
+    desselecionarVeiculo();
+    state.routeFiltro = route;
+    renderListaLinhas();
+    atualizarMarcadores();
+    pollLote();
+    desenharTracoRota(routeId);
+    fecharSheetLinhas();
+}
+
+/* ===== Janela do veículo (metade mapa, metade ficha) ==================================
+   Aberta quando a busca por veículo isola um carro só. Tem o próprio mapa Leaflet, criado
+   sob demanda — instanciar antes do container ter tamanho faz o Leaflet calcular 0x0. */
+const VEICULO_JANELA = { mapa: null, tile: null, marcador: null, key: null, pollAtivo: false };
+
+function abrirJanelaVeiculo(key){
+    const v = state.vehicles.get(key);
+    if (!v) return;
+    VEICULO_JANELA.key = key;
+    $("oaVeiculoOverlay")?.classList.add("open");
+    renderJanelaVeiculo();
+    // invalidateSize depois da transição do modal, senão o mapa nasce cortado.
+    setTimeout(() => {
+        prepararMapaVeiculo();
+        VEICULO_JANELA.mapa?.invalidateSize();
+        centralizarMapaVeiculo(true);
+    }, 60);
+    iniciarTelemetriaJanela(key);
+}
+
+function fecharJanelaVeiculo(){
+    $("oaVeiculoOverlay")?.classList.remove("open");
+    VEICULO_JANELA.pollAtivo = false;
+    VEICULO_JANELA.key = null;
+}
+
+function janelaVeiculoAberta(){
+    return !!$("oaVeiculoOverlay")?.classList.contains("open");
+}
+
+function prepararMapaVeiculo(){
+    if (VEICULO_JANELA.mapa || typeof L === "undefined") return;
+    const el = $("oaVeiculoMapa");
+    if (!el) return;
+    VEICULO_JANELA.mapa = L.map(el, { zoomControl: true, attributionControl: false })
+        .setView(CLEVER.centro, 16);
+    VEICULO_JANELA.tile = L.tileLayer(CLEVER.tiles.light, { maxZoom: 18, subdomains: "abc" })
+        .addTo(VEICULO_JANELA.mapa);
+}
+
+function centralizarMapaVeiculo(recentrar){
+    const v = state.vehicles.get(VEICULO_JANELA.key);
+    if (!v || !VEICULO_JANELA.mapa) return;
+    const pos = [v.lat, v.lng];
+    const icon = L.divIcon({
+        className: "bus-marker-wrap",
+        html: iconeOnibusHtml(v, "highlight"),
+        iconSize: [96, 96], iconAnchor: [48, 42]
+    });
+    if (!VEICULO_JANELA.marcador){
+        VEICULO_JANELA.marcador = L.marker(pos, { icon }).addTo(VEICULO_JANELA.mapa);
+    } else {
+        VEICULO_JANELA.marcador.setLatLng(pos);
+        VEICULO_JANELA.marcador.setIcon(icon);
+    }
+    if (recentrar) VEICULO_JANELA.mapa.setView(pos, 16, { animate: false });
+    else VEICULO_JANELA.mapa.panTo(pos, { animate: true });
+}
+
+function itemInfo(rotulo, valor){
+    return '<div class="oa-vinfo-item"><span>' + esc(rotulo) + '</span><strong>' + esc(valor ?? "—") + '</strong></div>';
+}
+
+function renderJanelaVeiculo(){
+    const v = state.vehicles.get(VEICULO_JANELA.key);
+    if (!v) return;
+    const st = statusPontualidade(v);
+    const corLinha = corCss(v.route?.color);
+    $("oaVeiculoTitulo").textContent = "Veículo " + v.vehicleId;
+    $("oaVeiculoSubtitulo").textContent = [v.operadora, v.route?.longName || v.route?.shortName]
+        .filter(Boolean).join(" · ") || "—";
+
+    const alvo = $("oaVeiculoInfo");
+    if (!alvo) return;
+    alvo.innerHTML =
+        '<div class="oa-vinfo-head">' +
+            '<span class="oa-vinfo-chip" style="background:' + esc(corLinha) + ';color:' + contraste(corLinha) + '">' + esc(v.route?.shortName || "?") + '</span>' +
+            '<span class="oa-vinfo-status" style="background:' + esc(st.cor) + ';color:' + contraste(st.cor) + '">' + esc(textoStatusComQuantidade(v)) + '</span>' +
+        '</div>' +
+        (v.gpsInvalido
+            ? '<p class="veiculo-panel-aviso">Posição fora do Brasil'
+                + (v.latOriginal != null ? ' (' + v.latOriginal.toFixed(5) + ', ' + v.lngOriginal.toFixed(5) + ')' : ' (sem coordenada)')
+                + ' — ícone ancorado junto ao carro ' + esc(ANCORA_GPS_INVALIDO_VID) + '.</p>'
+            : '') +
+        '<p class="oa-vinfo-sec">Operação</p>' +
+        '<div class="oa-vinfo-grid">' +
+            itemInfo("Motorista", v.motorista || "—") +
+            itemInfo("Trabalho", v.trabalho || "—") +
+            itemInfo("Bloco", v.wid || "—") +
+            itemInfo("Sentido", v.sentido || "—") +
+            itemInfo("Via", v.tripDesc || "—") +
+            itemInfo("Tecnologia", tecnologiaVeiculo(v.vehicleId)) +
+        '</div>' +
+        '<p class="oa-vinfo-sec">Posição</p>' +
+        '<div class="oa-vinfo-grid">' +
+            itemInfo("Velocidade", v.speed != null ? (v.speed + " km/h") : "—") +
+            itemInfo("Atualizado", v.positionTime || "—") +
+            itemInfo("Latitude", v.lat != null ? v.lat.toFixed(5) : "—") +
+            itemInfo("Longitude", v.lng != null ? v.lng.toFixed(5) : "—") +
+        '</div>' +
+        '<p class="oa-vinfo-sec">Telemetria FleetBus</p>' +
+        telemetriaFleetBusHtml(telemetriaCache.get(VEICULO_JANELA.key));
+}
+
+/** Puxa telemetria enquanto a janela estiver aberta, no mesmo ritmo do popup do mapa. */
+async function iniciarTelemetriaJanela(key){
+    if (VEICULO_JANELA.pollAtivo) return;
+    VEICULO_JANELA.pollAtivo = true;
+    if (telemetriaCache.get(key) == null) telemetriaCache.set(key, "carregando");
+    while (VEICULO_JANELA.pollAtivo && janelaVeiculoAberta() && VEICULO_JANELA.key === key){
+        try {
+            const v = state.vehicles.get(key);
+            const resultado = await buscarTelemetriaFleetBus(v?.vehicleId);
+            if (resultado === "sem-match") telemetriaCache.set(key, "sem-match");
+            else telemetriaCache.set(key, mesclarTelemetria(telemetriaCache.get(key), resultado));
+        } catch {
+            if (typeof telemetriaCache.get(key) !== "object") telemetriaCache.set(key, "erro");
+        }
+        if (!VEICULO_JANELA.pollAtivo || !janelaVeiculoAberta()) break;
+        renderJanelaVeiculo();
+        await new Promise(r => setTimeout(r, FLEETBUS.pollGapMs));
+    }
+    VEICULO_JANELA.pollAtivo = false;
+}
+
+/* ===== Listas por local: garagem e reserva de terminal ================================
+   Abrem ao clicar nos KPIs "GA · TCGL" e "Reserva". A lista é agrupada por local e cada
+   carro é clicável — abre a janela do veículo. Selecionamos pelo status do próprio veículo,
+   não pelo filtro do mapa, para a lista sempre responder "quem está lá agora". */
+let listaLocalAtiva = null;
+
+function carrosPorLocal(tipo){
+    const grupos = new Map();
+    state.vehicles.forEach((v, key) => {
+        // A lista segue o filtro de operadora do topo (TODOS / TCGL / LSUL).
+        if (state.operadorFiltro && v.operadora !== state.operadorFiltro) return;
+        const chave = statusPontualidade(v).chave;
+        if (tipo === "garagem" && chave !== "garagem") return;
+        if (tipo === "reserva" && chave !== "reserva") return;
+        const local = tipo === "garagem" ? GARAGEM_AREA.nome : v.terminalReserva;
+        if (!grupos.has(local)) grupos.set(local, []);
+        grupos.get(local).push({ key, v });
+    });
+    grupos.forEach(arr => arr.sort((a, b) =>
+        String(a.v.vehicleId).localeCompare(String(b.v.vehicleId), "pt-BR", { numeric: true })));
+    // Mantém a ordem em que os terminais estão declarados; garagem é grupo único.
+    const ordem = TERMINAIS.map(t => t.nome);
+    return [...grupos.entries()].sort((a, b) => {
+        const ia = ordem.indexOf(a[0]), ib = ordem.indexOf(b[0]);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+}
+
+function renderListaLocal(){
+    if (!listaLocalAtiva) return;
+    const tipo = listaLocalAtiva;
+    const grupos = carrosPorLocal(tipo);
+    const total = grupos.reduce((n, g) => n + g[1].length, 0);
+    $("oaListaTitulo").textContent = tipo === "garagem"
+        ? "Veículos na garagem da TCGL"
+        : "Veículos em reserva nos terminais";
+    const escopo = " · " + (state.operadorFiltro || "todas as operadoras");
+    $("oaListaSubtitulo").textContent = (total === 1
+        ? "1 veículo fora de serviço"
+        : total + " veículos fora de serviço" + (tipo === "reserva" ? " em " + grupos.length + (grupos.length === 1 ? " terminal" : " terminais") : "")) + escopo;
+
+    const alvo = $("oaListaConteudo");
+    if (!alvo) return;
+    if (!total){
+        alvo.innerHTML = '<p class="oa-semcom-empty">'
+            + (tipo === "garagem" ? "Nenhum veículo recolhido na garagem agora." : "Nenhum veículo em reserva nos terminais agora.")
+            + '</p>';
+        return;
+    }
+    alvo.innerHTML = grupos.map(([local, itens]) =>
+        '<div class="oa-lista-grupo">' +
+            '<h4>' + esc(local) + ' <em>' + itens.length + '</em></h4>' +
+            '<div class="oa-lista-carros">' +
+                itens.map(it =>
+                    '<button type="button" class="oa-lista-carro" data-key="' + esc(it.key) + '">' +
+                        esc(it.v.vehicleId) +
+                        '<small>' + esc(it.v.operadora || "—") + '</small>' +
+                    '</button>'
+                ).join("") +
+            '</div>' +
+        '</div>'
+    ).join("");
+    alvo.querySelectorAll(".oa-lista-carro").forEach(el => {
+        el.addEventListener("click", () => {
+            fecharListaLocal();
+            abrirJanelaVeiculo(el.dataset.key);
+        });
+    });
+}
+
+function abrirListaLocal(tipo){
+    listaLocalAtiva = tipo;
+    renderListaLocal();
+    $("oaListaOverlay")?.classList.add("open");
+}
+
+function fecharListaLocal(){
+    $("oaListaOverlay")?.classList.remove("open");
+    listaLocalAtiva = null;
+}
+
+function atualizarListaLocal(){
+    if ($("oaListaOverlay")?.classList.contains("open")) renderListaLocal();
+}
+
+/* ===== Paleta de busca central (Ctrl/Cmd+T) ===========================================
+   Busca por número do veículo OU matrícula do motorista. Ao escolher um resultado, abre a
+   janela do carro e a paleta some — é uma via de acesso rápido, não um filtro do mapa. */
+function paletaAberta(){
+    return !!$("oaPaletaOverlay")?.classList.contains("open");
+}
+
+function abrirPaleta(){
+    $("oaPaletaOverlay")?.classList.add("open");
+    const campo = $("oaPaletaInput");
+    if (campo){ campo.value = ""; setTimeout(() => campo.focus(), 40); }
+    renderPaleta("");
+}
+
+function fecharPaleta(){
+    $("oaPaletaOverlay")?.classList.remove("open");
+}
+
+function buscarNaPaleta(termo){
+    const q = String(termo || "").trim().toLowerCase();
+    if (!q) return [];
+    const achados = [];
+    state.vehicles.forEach((v, key) => {
+        const vid = String(v.vehicleId || "").toLowerCase();
+        const mot = String(v.motorista || "").toLowerCase();
+        if (vid.includes(q) || (mot && mot.includes(q))) achados.push({ key, v });
+    });
+    return achados
+        .sort((a, b) => String(a.v.vehicleId).localeCompare(String(b.v.vehicleId), "pt-BR", { numeric: true }))
+        .slice(0, 40);
+}
+
+function renderPaleta(termo){
+    const lista = $("oaPaletaLista");
+    if (!lista) return;
+    const achados = buscarNaPaleta(termo);
+    if (!String(termo || "").trim()){
+        lista.innerHTML = '<li class="oa-paleta-vazio">Digite o número do carro ou a matrícula do motorista.</li>';
+        return;
+    }
+    if (!achados.length){
+        lista.innerHTML = '<li class="oa-paleta-vazio">Nenhum veículo em operação com esse número ou motorista.</li>';
+        return;
+    }
+    lista.innerHTML = achados.map((item, i) => {
+        const v = item.v;
+        const st = statusPontualidade(v);
+        const linha = v.categoria === "produtivo" ? ("Linha " + (v.route?.shortName || "?")) : (CATEGORIA_LABEL[v.categoria] || "");
+        return '<li class="oa-paleta-item' + (i === 0 ? " ativo" : "") + '" data-key="' + esc(item.key) + '">' +
+            '<span class="oa-paleta-vid">' + esc(v.vehicleId) + '</span>' +
+            '<span class="oa-paleta-txt">' +
+                '<b>' + esc([v.operadora, linha].filter(Boolean).join(" · ")) + '</b>' +
+                '<span>Motorista ' + esc(v.motorista || "—") + ' · ' + esc(st.label) + '</span>' +
+            '</span>' +
+        '</li>';
+    }).join("");
+    lista.querySelectorAll(".oa-paleta-item").forEach(el => {
+        el.addEventListener("click", () => escolherNaPaleta(el.dataset.key));
+    });
+}
+
+function escolherNaPaleta(key){
+    if (!key) return;
+    fecharPaleta();
+    abrirJanelaVeiculo(key);
+}
+
+/** Painéis de vidro sobrepostos à lateral do mapa: "Buscar" (lupa) e "Linhas" (3 riscos).
+ *  Os dois ocupam a mesma posição, então abrir um fecha o outro. */
+const PAINEIS_MAPA = {
+    busca:  { painel: "oaBuscaPainel",  botao: "oaBtnLupa",   foco: "buscaLinha" },
+    linhas: { painel: "oaLinhasPainel", botao: "oaBtnLinhas", foco: null }
+};
+
+function painelMapaAberto(nome){
+    return !!$(PAINEIS_MAPA[nome]?.painel)?.classList.contains("aberto");
+}
+
+function algumPainelMapaAberto(){
+    return Object.keys(PAINEIS_MAPA).some(painelMapaAberto);
+}
+
+function alternarPainelMapa(nome, forcar){
+    const cfg = PAINEIS_MAPA[nome];
+    if (!cfg) return;
+    const abrir = forcar != null ? forcar : !painelMapaAberto(nome);
+    Object.entries(PAINEIS_MAPA).forEach(([chave, item]) => {
+        const ativo = abrir && chave === nome;
+        const painel = $(item.painel);
+        const botao = $(item.botao);
+        painel?.classList.toggle("aberto", ativo);
+        painel?.setAttribute("aria-hidden", ativo ? "false" : "true");
+        botao?.classList.toggle("aberto", ativo);
+        botao?.setAttribute("aria-expanded", ativo ? "true" : "false");
+    });
+    if (abrir && cfg.foco) setTimeout(() => $(cfg.foco)?.focus(), 120);
+}
+
+function fecharPaineisMapa(){
+    Object.keys(PAINEIS_MAPA).forEach(nome => alternarPainelMapa(nome, false));
+}
+
+function limparFiltro(){
+    state.routeFiltro = null;
+    desselecionarVeiculo();
+    renderListaLinhas();
+    pollLote();
+}
+
+function initNativeAppMode(){
+    if (!isNativeEmbedded()) return;
+    if (!document.documentElement.classList.contains("native-embedded")) {
+        document.documentElement.classList.add("native-embedded");
+    }
+    document.body.classList.add("oa-native-mode");
+    document.documentElement.style.height = "100%";
+    document.body.style.height = "100%";
+
+    ["oaNativeTop", "oaNativeFloats"].forEach(id => {
+        const el = $(id);
+        if (el){
+            el.removeAttribute("hidden");
+            el.setAttribute("aria-hidden", "false");
+        }
+    });
+
+    $("oaFabLinhas")?.addEventListener("click", abrirSheetLinhas);
+    $("oaFabMapa")?.addEventListener("click", abrirSheetMapa);
+    $("oaBackdrop")?.addEventListener("click", () => {
+        fecharSheetLinhas();
+        fecharSheetMapa();
+    });
+
+    const sheetBody = $("oaSheetLinhasBody");
+    const lines = $("listaLinhas");
+    const btnLimpar = $("btnLimparFiltro");
+    if (sheetBody && lines) sheetBody.appendChild(lines);
+    if (sheetBody && btnLimpar){
+        btnLimpar.style.marginTop = "10px";
+        btnLimpar.style.width = "100%";
+        sheetBody.appendChild(btnLimpar);
+    }
+
+    requestAnimationFrame(() => state.mapa?.invalidateSize());
+    syncNativeHud();
+    scheduleMapResize();
+}
+
+function bind(){
+    $("buscaLinha").addEventListener("input", e => { state.buscaLinha = e.target.value; renderListaLinhas(); });
+    // O painel da lupa só FILTRA o mapa. Quem abre a janela do carro é a paleta central.
+    $("buscaVeiculo").addEventListener("input", e => {
+        state.veiculoFiltro = e.target.value.trim();
+        atualizarMarcadores();
+    });
+    $("buscaMotorista")?.addEventListener("input", e => {
+        state.motoristaFiltro = e.target.value.trim();
+        atualizarMarcadores();
+    });
+    $("oaPaletaInput")?.addEventListener("input", e => renderPaleta(e.target.value));
+    $("oaPaletaInput")?.addEventListener("keydown", e => {
+        if (e.key === "Enter"){
+            e.preventDefault();
+            escolherNaPaleta($("oaPaletaLista")?.querySelector(".oa-paleta-item")?.dataset.key);
+        }
+    });
+    $("oaPaletaOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaPaletaOverlay") fecharPaleta();
+    });
+    $("oaVeiculoFechar")?.addEventListener("click", fecharJanelaVeiculo);
+    $("oaVeiculoOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaVeiculoOverlay") fecharJanelaVeiculo();
+    });
+    $("btnLimparFiltro").addEventListener("click", limparFiltro);
+    // Os selects de Operadora e Status saíram do painel Buscar: agora quem filtra o mapa
+    // é o próprio KPI, clicando nele. Clicar no chip já ativo limpa o filtro.
+    document.querySelectorAll("[data-filtro-status]").forEach(el => {
+        el.addEventListener("click", () => alternarFiltroStatus(el.dataset.filtroStatus));
+    });
+    $("kpiOpTodos")?.addEventListener("click", () => {
+        state.operadorFiltro = null;
+        renderListaLinhas();
+        atualizarMarcadores();
+    });
+    $("kpiOpTCGL")?.addEventListener("click", () => alternarFiltroOperadora("TCGL"));
+    $("kpiOpLondriSul")?.addEventListener("click", () => alternarFiltroOperadora("LondriSul"));
+    // O "Atualizar agora" da topbar foi removido; a atualização manual continua disponível
+    // no painel de ações do mapa (#oaMapaAtualizar), além do poll automático a cada 30s.
+    $("btnMapaClaro").addEventListener("click", () => trocarTile("light"));
+    $("btnMapaBus2").addEventListener("click", () => trocarTile("bus2"));
+    $("btnMapaSat").addEventListener("click", () => trocarTile("sat"));
+    $("btnCentralizar").addEventListener("click", () => state.mapa?.setView(CLEVER.centro, CLEVER.zoom));
+    $("oaMapaClaro")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("light")));
+    $("oaMapaBus2")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("bus2")));
+    $("oaMapaSat")?.addEventListener("click", () => acaoMapaMobile(() => trocarTile("sat")));
+    $("oaMapaCentralizar")?.addEventListener("click", () => acaoMapaMobile(() => state.mapa?.setView(CLEVER.centro, CLEVER.zoom)));
+    $("oaMapaAtualizar")?.addEventListener("click", () => acaoMapaMobile(() => pollLote()));
+    window.addEventListener("resize", scheduleMapResize);
+    window.addEventListener("orientationchange", () => setTimeout(scheduleMapResize, 250));
+    window.visualViewport?.addEventListener("resize", scheduleMapResize);
+    $("kpiSemComunicacao")?.addEventListener("click", abrirSemComunicacao);
+    $("oaSemComFechar")?.addEventListener("click", fecharSemComunicacao);
+    $("oaSemComOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaSemComOverlay") fecharSemComunicacao();
+    });
+    $("kpiGpsInvalido")?.addEventListener("click", abrirGpsInvalido);
+    $("kpiGaragem")?.addEventListener("click", () => abrirListaLocal("garagem"));
+    $("kpiReserva")?.addEventListener("click", () => abrirListaLocal("reserva"));
+    $("oaListaFechar")?.addEventListener("click", fecharListaLocal);
+    $("oaListaOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaListaOverlay") fecharListaLocal();
+    });
+    $("oaGpsInvFechar")?.addEventListener("click", fecharGpsInvalido);
+    $("oaGpsInvOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaGpsInvOverlay") fecharGpsInvalido();
+    });
+    $("kpiIndicePerformance")?.addEventListener("click", abrirIndicePerformance);
+    $("oaIndicePerfFechar")?.addEventListener("click", fecharIndicePerformance);
+    $("oaIndicePerfOverlay")?.addEventListener("click", e => {
+        if (e.target.id === "oaIndicePerfOverlay") fecharIndicePerformance();
+    });
+    $("oaBtnLupa")?.addEventListener("click", () => alternarPainelMapa("busca"));
+    $("oaBtnLinhas")?.addEventListener("click", () => alternarPainelMapa("linhas"));
+    // Os painéis ficam dentro do container do mapa: sem isso o Leaflet captura o clique/scroll
+    // e o operador acaba arrastando o mapa ao tentar rolar a lista de linhas.
+    if (typeof L !== "undefined"){
+        ["oaBuscaPainel", "oaLinhasPainel"].forEach(id => {
+            const el = $(id);
+            if (!el) return;
+            L.DomEvent.disableClickPropagation(el);
+            L.DomEvent.disableScrollPropagation(el);
+        });
+        ["oaBtnLupa", "oaBtnLinhas"].forEach(id => {
+            const el = $(id);
+            if (el) L.DomEvent.disableClickPropagation(el);
+        });
+    }
+    $("btnTelaCheia")?.addEventListener("click", () => alternarTelaCheiaMapa());
+    document.addEventListener("keydown", e => {
+        // Atalho para abrir o Buscar. Ctrl/Cmd+T é o pedido original, mas o Chrome reserva
+        // essa combinação para "nova aba" e não entrega o evento para a página — por isso
+        // Ctrl/Cmd+K e a barra "/" ficam como alternativas que funcionam de fato.
+        const mod = e.ctrlKey || e.metaKey;
+        const digitando = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target?.tagName || "");
+        if ((mod && (e.key === "t" || e.key === "T" || e.key === "k" || e.key === "K"))
+            || (e.key === "/" && !digitando && !mod)){
+            e.preventDefault();
+            abrirPaleta();
+            return;
+        }
+        if (e.key === "Escape" && paletaAberta()){
+            fecharPaleta();
+            return;
+        }
+        if (e.key === "Escape"){
+            fecharSemComunicacao();
+            fecharGpsInvalido();
+            fecharIndicePerformance();
+            fecharJanelaVeiculo();
+            fecharListaLocal();
+            if (algumPainelMapaAberto()) fecharPaineisMapa();
+            if (mapaEmTelaCheia()) alternarTelaCheiaMapa(false);
+        }
+    });
+}
+
+async function boot(){
+    setLive("Carregando linhas...", true);
+    if (isNativeEmbedded()) initNativeAppMode();
+    if (!state.mapa) initMapa();
+    scheduleMapResize();
+
+    await initCleverProxy();
+    carregarIndiceFleetBus().catch(() => { /* telemetria fica indisponível até o próximo popup */ });
+    // Indicador oficial de performance: não bloqueia o boot e se recarrega sozinho.
+    // O JSON é publicado por um job na rede interna, então muda bem mais devagar (~5 min)
+    // que as posições do mapa (30s).
+    carregarPerformanceOficial();
+    setInterval(carregarPerformanceOficial, PERFORMANCE.recarregarMs);
+
+    try {
+        state.routes = (await fetchCleverRoutes()).sort(ordenarRotas);
+    } catch (err) {
+        state.routes = [];
+        setLive(err.message || "Falha ao carregar linhas Clever", false);
+    }
+    renderListaLinhas();
+    setLive(state.routes.length + " linhas · Clever", false);
+
+    const linhaParam = new URLSearchParams(location.search).get("linha");
+    if (linhaParam){
+        const alvo = state.routes.find(r => String(r.shortName) === linhaParam || String(r.routeId) === linhaParam);
+        if (alvo) selecionarLinha(alvo.routeId);
+    }
+
+    iniciarPoll();
+}
+
+function iniciar(){
+    bind();
+    boot().catch(err => {
+        setLive(err.message || "Erro ao iniciar", false);
+        $("listaLinhas").innerHTML = '<div class="empty"><h3>Falha ao carregar</h3><p>' + esc(err.message || "Não foi possível carregar os dados da Clever.") + '</p></div>';
+    });
+}
+
+if (window.portalUsuarioValidado) iniciar();
+else window.addEventListener("portal:usuario-validado", iniciar, { once: true });
+</script>
+</body>
+</html>

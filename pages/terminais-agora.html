@@ -5,8 +5,7 @@
 document.documentElement.classList.add("portal-auth-pending");
 </script>
 <style id="portalAuthBootStyle">
-.portal-auth-pending body > :not(#portalLoadingOverlay){
-    visibility:hidden!important;
+.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;
 }
 </style>
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
@@ -23,7 +22,7 @@ document.documentElement.classList.add("portal-auth-pending");
     --bg:#f5f7fb;
     --border:#dfe5ef;
     --text:#101828;
-    --muted:#667085;
+    --muted:#3f4757;
     --green:#15803d;
     --red:#dc2626;
     --yellow:#f59e0b;
@@ -60,22 +59,9 @@ h1{margin:0;color:var(--blue);font-size:24px;line-height:1.1}
     gap:10px;
     min-width:0;
 }
-.ciop-session{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    max-width:270px;
-    padding:4px 6px;
-    border:1px solid rgba(6,36,92,.12);
-    border-radius:6px;
-    background:rgba(255,255,255,.96);
-    box-shadow:0 2px 8px rgba(16,24,40,.08);
-    color:var(--blue);
-    font-size:11px;
-    line-height:1;
-}
-.ciop-session-user{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
-.ciop-session-profile{color:var(--muted);font-weight:600}
+/* session container: portal-session.css?v=20260720y */
+/* session user styles: portal-session.css?v=20260720y */
+/* session profile styles: portal-session.css?v=20260720y */
 .btn-logout,.btn{
     border:0;
     border-radius:6px;
@@ -84,15 +70,26 @@ h1{margin:0;color:var(--blue);font-size:24px;line-height:1.1}
     cursor:pointer;
     font-family:inherit;
 }
-.ciop-session .btn-logout{background:var(--red);color:#fff;padding:4px 7px;font-size:11px}
+/* session logout: portal-session.css?v=20260720y */
 .container{max-width:1280px;margin:20px auto 28px;padding:0 18px}
 .topbar{
-    display:flex;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
     align-items:center;
-    justify-content:space-between;
     gap:12px;
     margin-bottom:14px;
+    padding:10px 16px;
+    background:#fff;
+    border:1px solid #d9e2f0;
+    border-radius:14px;
+    box-shadow:0 8px 24px rgba(6,36,92,.06);
+}
+.topbar-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
     flex-wrap:wrap;
+    min-width:0;
 }
 .btn-link{
     display:inline-flex;
@@ -687,8 +684,21 @@ td{padding:10px;border-bottom:1px solid #eef2f7;border-right:1px solid #eef2f7;f
     background:linear-gradient(135deg,#eef4ff,#dbeafe) !important;
     color:var(--blue) !important;
     border:1px solid #c7d7f4 !important;
+    border-left:3px solid var(--orange) !important;
     box-shadow:0 6px 12px rgba(6,36,92,.10);
     transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.topbar-title{
+    margin:0;
+    text-align:center;
+    color:var(--blue);
+    font-size:18px;
+    font-weight:900;
+    letter-spacing:.2px;
+    white-space:nowrap;
+}
+.topbar > .fiscal-lead-card{
+    justify-self:end;
 }
 .btn-refresh:hover{
     transform:translateY(-1px);
@@ -872,21 +882,303 @@ h1 {
     }
 }
 /* Fim ajuste Codex */
+/* ===== Redesign iOS26 Liquid Glass (mobile/app nativo) =====
+   Suporta escuro (padrão) e claro (html.native-light), sincronizado
+   pelo shell nativo. Fontes ampliadas para leitura confortável. */
+@media (max-width:720px){
+  .body-bg-wall,
+  .body-bg-stain{
+    display:none !important;
+  }
+  :root{
+    --jewel-1:#7a5cff;
+    --jewel-2:#c04fd6;
+    --jewel-shadow:0 10px 26px -8px rgba(122,92,255,.65);
 
+    --glass-bg:rgba(255,255,255,.08);
+    --glass-bg-strong:rgba(255,255,255,.13);
+    --glass-border:rgba(255,255,255,.16);
+    --glass-blur:blur(30px) saturate(180%);
+    --glass-shadow:0 20px 40px -18px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.18);
+
+    --ink:#fff;
+    --ink-soft:rgba(255,255,255,.6);
+    --ink-faint:rgba(255,255,255,.48);
+    --field-bg:rgba(255,255,255,.07);
+
+    --g-green:#4ade80;
+    --g-amber:#fbbf24;
+    --g-red:#f87171;
+  }
+
+  html.native-light{
+    --glass-bg:rgba(255,255,255,.6);
+    --glass-bg-strong:rgba(255,255,255,.8);
+    --glass-border:rgba(30,20,70,.10);
+    --glass-shadow:0 16px 34px -16px rgba(40,25,90,.22), inset 0 1px 0 rgba(255,255,255,.75);
+
+    --ink:#18182a;
+    --ink-soft:rgba(24,24,42,.62);
+    --ink-faint:rgba(24,24,42,.5);
+    --field-bg:rgba(255,255,255,.8);
+
+    --g-green:#15803d;
+    --g-amber:#b45309;
+    --g-red:#dc2626;
+  }
+
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.4) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.3) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.26) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #0d0e14 !important;
+    color:var(--ink) !important;
+  }
+  html.native-light body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(122,92,255,.3) 0%, transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(255,110,180,.24) 0%, transparent 38%),
+      radial-gradient(circle at 20% 60%, rgba(60,180,255,.2) 0%, transparent 42%),
+      radial-gradient(circle at 85% 78%, rgba(255,170,60,.18) 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(80,255,190,.16) 0%, transparent 45%),
+      #f2effa !important;
+  }
+
+  .header{display:none !important;}
+
+  .container{
+    max-width:none !important;
+    margin:0 !important;
+    padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-left)) 28px calc(14px + env(safe-area-inset-right)) !important;
+  }
+  html.native-embedded .container{padding-top:14px !important;}
+
+  .topbar{grid-template-columns:1fr !important;flex-direction:column !important;align-items:stretch !important;gap:12px !important;}
+  .topbar-title{text-align:center !important;}
+  .topbar > .fiscal-lead-card{justify-self:stretch !important;}
+  .btn-portal,.btn,.btn-primary,.btn-secondary{
+    min-height:46px !important;
+    border-radius:14px !important;
+    font-size:15px !important;
+  }
+  .btn-portal{
+    background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;
+    box-shadow:var(--jewel-shadow) !important;
+    color:#fff !important;
+  }
+  .btn-primary{background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;box-shadow:var(--jewel-shadow) !important;color:#fff !important;}
+  .btn-secondary{background:var(--glass-bg-strong) !important;color:var(--ink) !important;}
+  .source-status{
+    background:var(--glass-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:16px !important;
+    padding:10px 12px !important;
+    color:var(--ink-soft) !important;
+    font-size:13px !important;
+  }
+  .error-box{color:var(--g-red) !important;}
+
+  .summary-panel{grid-template-columns:1fr !important;gap:14px !important;}
+  .exchange-card,.terminal-kpi-card,.panel{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:22px !important;
+    box-shadow:var(--glass-shadow) !important;
+  }
+  .kpi-label{color:var(--ink-faint) !important;font-size:12.5px !important;}
+  .kpi-value{color:var(--ink) !important;font-size:26px !important;}
+  .kpi-sub{color:var(--ink-faint) !important;font-size:13px !important;}
+  .exchange-meta{color:var(--ink-soft) !important;font-size:13px !important;}
+  .empty{color:var(--ink-faint) !important;font-size:14.5px !important;}
+  .section-title h2{color:var(--ink) !important;font-size:15px !important;}
+  .section-title span{color:var(--ink-faint) !important;font-size:13px !important;}
+  .fiscal-lead-card{background:var(--glass-bg-strong) !important;border:1px solid var(--glass-border) !important;}
+  .fiscal-lead-name{color:var(--ink) !important;font-size:14px !important;}
+  .fiscal-lead-meta{color:var(--ink-faint) !important;font-size:12.5px !important;}
+  .terminal-kpi-name,.terminal-name{color:var(--ink) !important;font-size:14.5px !important;}
+
+  .controls{grid-template-columns:1fr !important;gap:12px !important;}
+  .controls label{color:var(--ink-faint) !important;font-size:13px !important;font-weight:700 !important;}
+  .controls input,.controls select{
+    background:var(--field-bg) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:14px !important;
+    color:var(--ink) !important;
+    padding:12px !important;
+    font-size:16px !important;
+    min-height:46px !important;
+    width:100%;
+  }
+  .segmented{background:var(--field-bg) !important;border:1px solid var(--glass-border) !important;border-radius:14px !important;}
+  .segmented button{color:var(--ink-soft) !important;min-height:44px !important;font-size:14px !important;}
+  .segmented button[aria-pressed="true"],.segmented button.active{
+    background:linear-gradient(135deg, var(--jewel-1), var(--jewel-2)) !important;
+    color:#fff !important;
+  }
+
+  .table-wrap{
+    background:var(--glass-bg) !important;
+    backdrop-filter:var(--glass-blur) !important;
+    -webkit-backdrop-filter:var(--glass-blur) !important;
+    border:1px solid var(--glass-border) !important;
+    border-radius:20px !important;
+    max-height:60vh !important;
+  }
+  table th{
+    background:var(--glass-bg-strong) !important;
+    color:var(--ink-soft) !important;
+    border-color:var(--glass-border) !important;
+    font-size:12.5px !important;
+  }
+  table td{
+    color:var(--ink) !important;
+    border-color:var(--glass-border) !important;
+    font-size:14.5px !important;
+  }
+}
+
+/* ===== Fundo padrao-parede (tracos azul degrade) + mancha julho + vidro iOS 26 (desktop/portal web) ===== */
+@media (min-width:721px){
+  body{
+    background: transparent !important;
+  }
+  .body-bg-wall{
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .body-bg-stain{
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:linear-gradient(180deg, rgba(6,20,50,.30) 0%, rgba(6,20,50,.55) 100%);
+  }
+  .header{
+    background: rgba(255,255,255,.7) !important;
+    backdrop-filter: blur(18px) saturate(200%);
+    -webkit-backdrop-filter: blur(18px) saturate(200%);
+    border-bottom: none !important;
+    box-shadow: 0 8px 24px -18px rgba(20,20,40,.35) !important;
+  }
+  .container{
+    max-width: 100% !important;
+  }
+  .topbar{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(18px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.6) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .topbar .source-status{
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .exchange-card,
+  .terminal-kpi-card,
+  .panel,
+  .fiscal-lead-card,
+  .table-wrap{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 14px 32px -20px rgba(20,20,40,.28), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .source-status{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.6) !important;
+    box-shadow: 0 8px 20px -14px rgba(20,20,40,.3) !important;
+  }
+  .controls input,
+  .controls select,
+  .segmented{
+    background: rgba(255,255,255,.6) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(30,30,46,.12) !important;
+  }
+  table th{
+    background: rgba(255,255,255,.5) !important;
+    backdrop-filter: blur(10px) saturate(180%) !important;
+  }
+  .btn-link.btn-portal,
+  .btn-primary,
+  .btn-secondary{
+    transition: transform .2s ease, background .25s ease, box-shadow .25s ease, color .25s ease !important;
+  }
+  .btn-link.btn-portal,
+  .btn-primary{
+    min-height:44px !important;padding:8px 14px !important;border-radius:10px !important;font-size:14px !important;
+    background: linear-gradient(135deg, rgba(6,36,92,.85), rgba(11,58,138,.85)) !important;
+    backdrop-filter: blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.4) !important;
+    box-shadow: 0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.25) !important;
+    color: #fff !important;
+  }
+  .btn-link.btn-portal:hover,
+  .btn-primary:hover{
+    background: linear-gradient(135deg, var(--orange), #ff8f3d) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 28px -12px rgba(255,107,0,.5), inset 0 1px 0 rgba(255,255,255,.35) !important;
+  }
+  .btn-secondary{
+    background:rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(14px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(190%) !important;
+    border: 1px solid rgba(255,255,255,.6) !important;
+    box-shadow: 0 10px 24px -14px rgba(20,20,40,.3), inset 0 1px 0 rgba(255,255,255,.5) !important;
+  }
+  .btn-refresh{
+    border-left: 3px solid var(--orange) !important;
+  }
+  .btn-secondary:hover:not(:disabled){
+    background: rgba(224,235,255,.85) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 28px -14px rgba(6,36,92,.35), inset 0 1px 0 rgba(255,255,255,.6) !important;
+  }
+}
 </style>
-<script src="../assets/js/loading.js"></script>
-<link rel="stylesheet" href="../assets/css/portal-senha.css">
-<link rel="stylesheet" href="../assets/css/portal-titulos.css">
-<link rel="stylesheet" href="../assets/css/portal-brand.css">
-<link rel="stylesheet" href="../assets/css/portal-header.css">
-<link rel="stylesheet" href="../assets/css/portal-session.css">
+<script src="../assets/js/loading.js?v=20260718d"></script>
+<link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
+<link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260720y">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
 <!-- Defina a URL da API AWS quando estiver no ar: -->
 <!-- <script>window.PORTAL_AWS_API_URL = "https://sua-api.amazonaws.com";</script> -->
-<script type="module" src="../assets/js/auth.js"></script>
+<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
 </head>
 <body>
+<div class="body-bg-wall" aria-hidden="true"></div>
+<div class="body-bg-stain" aria-hidden="true"></div>
+<link rel="stylesheet" href="../assets/css/dashboard-kit.css">
+    
+
+<script src="../assets/js/theme-toggle.js?v=20260720w"></script>
 <header class="header">
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
     <div class="header-title">
@@ -896,11 +1188,12 @@ h1 {
         <div class="subtitle">Presença operacional por terminal</div>
     </div>
     <div class="header-actions">
-        <div class="ciop-session" aria-label="Sessão do usuário">
-            <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
-            <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
-            <button onclick="logout()" class="btn-logout" type="button">Sair</button>
-        </div>
+<div class="ciop-session" aria-label="Sessão do usuário">
+    <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+    <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+    <button data-portal-senha-btn="1" onclick="toggleSenhaPanel()" class="btn-senha-portal" type="button">Senha</button>
+    <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+</div>
         <a href="https://www.tcgrandelondrina.com.br/" target="_blank">
             <img src="../assets/img/LOGO_TCGL-removebg-preview.png" class="logo-tcgl" alt="TCGL">
         </a>
@@ -909,14 +1202,24 @@ h1 {
 
 <main class="container">
     <div class="topbar">
-        <a href="../index.html" class="btn-link btn-portal" aria-label="Voltar ao portal">
-            <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
-            <span>Portal</span>
-        </a>
-        <div class="source-status" aria-live="polite">
-            <span id="sourceDot" class="dot"></span>
-            <span id="sourceText">Aguardando dados</span>
+        <div class="topbar-left">
+            <a href="../index.html" class="btn-link btn-portal" aria-label="Voltar ao portal">
+                <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
+                <span>Portal</span>
+            </a>
             <button class="btn btn-secondary btn-refresh" id="btnAtualizarPlanilha" type="button" onclick="carregarPlanilha(true)">Atualizar</button>
+            <div class="source-status" aria-live="polite">
+                <span id="sourceDot" class="dot"></span>
+                <span id="sourceText">Aguardando dados</span>
+            </div>
+        </div>
+        <h2 class="topbar-title">Terminais</h2>
+        <div class="fiscal-lead-card" aria-label="Contato do fiscal">
+            <div class="fiscal-lead-name">Marcelo Selhost</div>
+            <div class="fiscal-lead-meta">
+                <span class="fiscal-lead-reg">Reg. 9825</span>
+                <div class="terminal-kpi-phone-inline" id="fiscalLeadPhone"></div>
+            </div>
         </div>
     </div>
 
@@ -938,16 +1241,6 @@ h1 {
             </div>
         </div>
         <div>
-            <div class="section-title compact terminals-head">
-                <h2>Terminais</h2>
-                <div class="fiscal-lead-card" aria-label="Contato do fiscal">
-                    <div class="fiscal-lead-name">Marcelo Selhost</div>
-                    <div class="fiscal-lead-meta">
-                        <span class="fiscal-lead-reg">Reg. 9825</span>
-                        <div class="terminal-kpi-phone-inline" id="fiscalLeadPhone"></div>
-                    </div>
-                </div>
-            </div>
             <div id="terminalKpis" class="terminal-kpis">
                 <div class="empty">Carregando terminais...</div>
             </div>
@@ -1771,5 +2064,6 @@ if (typeof window.portalAguardarUsuario === "function") {
 }
 renderFiscalLeadPhone();
 </script>
+<script src="../assets/js/portal-futuristic.js?v=20260718am" defer></script>
 </body>
 </html>

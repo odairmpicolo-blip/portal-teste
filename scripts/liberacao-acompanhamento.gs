@@ -4,9 +4,7 @@
  * Planilha CIOP: 1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA
  *   - D.Operacionais de In.Linhas (gráficos): gid 751419807
  *   - ACOMPANHAMENTO LIBERAÇÃO (lançamentos): gid 753262285
- *
- * Saída de carros / escalação: projeto Apps Script SEPARADO — ver scripts/escala-saida-carros.gs
- * Planilha: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
+ * Saída de carros semanal: 1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0 — gid 1482156234
  *
  * GET  ?liberacao=1&recurso=operacionais[&data=YYYY-MM-DD]
  * GET  ?liberacao=1&recurso=graficos&data_de=...&data_ate=...
@@ -17,21 +15,24 @@
  * POST ?liberacao=1  action=create|update|upsert  (+ campos da aba acompanhamento)
  */
 
-const LIBERACAO_VERSAO = "2026-06-22-liberacao-perf";
+const LIBERACAO_VERSAO = "2026-07-27-liberacao-scan-cap2";
 const LIBERACAO_DIAS_JANELA = 7;
 const LIBERACAO_CHUNK_LINHAS = 800;
 const LIBERACAO_CACHE_TTL = 600;
+// Trava de segurança por TEMPO (não por número de chunks): a aba pode ter um bloco enorme de
+// linhas em branco/formatadas no fim (getLastRow() conta essas linhas), então um limite fixo de
+// chunks pode desistir antes de alcançar os dados reais e devolver "0 resultados". Cortamos por
+// tempo decorrido, o que deixa a varredura ir o quanto for preciso para achar dado de verdade,
+// mas nunca deixa a execução do Apps Script (e o endpoint compartilhado com Folha/Protocolo/etc.)
+// travar por tempo indefinido.
+const LIBERACAO_MAX_MS_VARREDURA = 4 * 60 * 1000; // 4 minutos
+// Trava adicional (bem alta) só para garantir que o loop sempre termina mesmo se o relógio falhar.
+const LIBERACAO_MAX_CHUNKS = 400; // 400 x 800 = até 320.000 linhas
 const LIBERACAO_SPREADSHEET_ID = "1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA";
 const LIBERACAO_OPERACIONAIS_GID = 751419807;
 const LIBERACAO_ACOMPANHAMENTO_GID = 753262285;
 const LIBERACAO_SAIDA_SPREADSHEET_ID = "1F9L3b2JZPOMyEixvkTIML_UNNkvPZTZyGI4g05H4ln0";
 const LIBERACAO_SAIDA_GID = 1482156234;
-
-const CHAVES_CABECALHO_SAIDA_ = [
-  "data", "maquina", "linha", "work_id", "carro", "carro_escalado",
-  "f_carro", "motorista", "horario_de_inicio", "horario_saida_da_garagem",
-  "local_inicio", "preparo", "observacoes", "subst", "saida_real", "inicio_real"
-];
 
 function versaoCacheLiberacao_() {
   return PropertiesService.getScriptProperties().getProperty("liberacao_cache_v") || "0";
@@ -50,8 +51,9 @@ function solicitarAtualizacaoJsonLiberacaoHoje_(origem) {
   } catch (errPortal) {}
   var token = PropertiesService.getScriptProperties().getProperty("GITHUB_PAT");
   if (!token) return;
+  var repo = PropertiesService.getScriptProperties().getProperty("GITHUB_REPO") || "odairmpicolo-blip/portalCIOP";
   try {
-    UrlFetchApp.fetch("https://api.github.com/repos/odairmpicolo-blip/portal-teste/dispatches", {
+    UrlFetchApp.fetch("https://api.github.com/repos/" + repo + "/dispatches", {
       method: "post",
       contentType: "application/json",
       headers: {
@@ -187,23 +189,14 @@ function montarRespostaLiberacaoGet_(params) {
     return montarResumoDashboardLiberacao_(dataFiltro, String(params.incluir_colunas || "") === "1");
   }
   if (recurso === "saida_carros") {
-    const ignorarData = String(params.ignorar_data || "") === "1";
-    const leitura = lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, ignorarData);
     const ref = resolverSaidaCarrosPorData_(dataFiltro);
     return {
       ok: true,
-      dados: leitura.dados,
-      colunas: leitura.colunas,
+      dados: lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro),
       meta: {
         versao: LIBERACAO_VERSAO,
         recurso: recurso,
-        saida_ref: Object.assign({}, ref, {
-          aba: leitura.abaNome,
-          gid: leitura.gid,
-          linha_cabecalho: leitura.linhaCabecalho,
-          linhas_lidas: leitura.linhasLidas,
-          ignorou_filtro_data: leitura.ignorouFiltroData
-        })
+        saida_ref: ref
       }
     };
   }
@@ -444,64 +437,6 @@ function abrirSaidaCarrosPorData_(dataIso) {
   return abrirAbaPorGid_(LIBERACAO_SAIDA_SPREADSHEET_ID, LIBERACAO_SAIDA_GID);
 }
 
-function abrirPlanilhaSaidaCarros_() {
-  return SpreadsheetApp.openById(LIBERACAO_SAIDA_SPREADSHEET_ID);
-}
-
-function pontuarLinhaCabecalhoSaida_(cabecalho) {
-  let score = 0;
-  const vistos = {};
-  cabecalho.forEach(function (chave) {
-    if (!chave || vistos[chave]) return;
-    vistos[chave] = true;
-    if (CHAVES_CABECALHO_SAIDA_.indexOf(chave) >= 0) score += 3;
-    else if (/horario|carro|linha|maquina|motorista|work|local|preparo|obs|inicio|saida|subst|f_carro/.test(chave)) score += 1;
-  });
-  return score;
-}
-
-function detectarIndiceCabecalhoSaida_(valores) {
-  let melhorIdx = -1;
-  let melhorScore = 0;
-  const maxScan = Math.min(20, valores.length);
-  for (let i = 0; i < maxScan; i++) {
-    const cabecalho = valores[i].map(normalizarChaveLiberacao_);
-    const colsValidas = cabecalho.filter(Boolean).length;
-    if (colsValidas < 3) continue;
-    const score = pontuarLinhaCabecalhoSaida_(cabecalho);
-    if (score > melhorScore) {
-      melhorScore = score;
-      melhorIdx = i;
-    }
-  }
-  return melhorScore >= 2 ? melhorIdx : -1;
-}
-
-function detectarLinhaCabecalhoSaida_(sheet) {
-  const range = sheet.getDataRange();
-  if (!range) return 1;
-  const valores = range.getValues();
-  const idx = detectarIndiceCabecalhoSaida_(valores);
-  return idx >= 0 ? idx + 1 : 1;
-}
-
-function linhaCorrespondeDataSaida_(dataIso, dataFiltro, ignorarData) {
-  if (ignorarData || !dataFiltro) return true;
-  if (!dataIso) return true;
-  return dataIso === dataFiltro;
-}
-
-function linhaTemConteudoSaida_(bruto) {
-  if (pickCampoLiberacao_(bruto, [
-    "work_id", "workid", "work", "carro", "carro_escalado", "linha", "maquina",
-    "horario_de_inicio", "horario_inicio", "horario_saida_da_garagem", "motorista"
-  ])) return true;
-  const vals = Object.keys(bruto).filter(function (k) {
-    return bruto[k] != null && String(bruto[k]).trim() !== "";
-  });
-  return vals.length >= 3;
-}
-
 function isoDataDiasAtrasLiberacao_(dias) {
   const d = new Date();
   d.setDate(d.getDate() - dias);
@@ -517,8 +452,11 @@ function lerAcompanhamentoDiaCompleto_(dataIso, limit, maquinaFiltro) {
   const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(normalizarChaveLiberacao_);
   const dados = [];
   var endRow = lastRow;
+  var chunksLidos = 0;
+  var inicioVarredura = Date.now();
 
-  while (endRow >= 2) {
+  while (endRow >= 2 && chunksLidos < LIBERACAO_MAX_CHUNKS && (Date.now() - inicioVarredura) < LIBERACAO_MAX_MS_VARREDURA) {
+    chunksLidos++;
     const startRow = Math.max(2, endRow - LIBERACAO_CHUNK_LINHAS + 1);
     const numRows = endRow - startRow + 1;
     const valores = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
@@ -573,8 +511,11 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janelaOpt
   const cabecalho = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(normalizarChaveLiberacao_);
   const dados = [];
   var endRow = lastRow;
+  var chunksLidos = 0;
+  var inicioVarredura = Date.now();
 
-  while (endRow >= 2) {
+  while (endRow >= 2 && chunksLidos < LIBERACAO_MAX_CHUNKS && (Date.now() - inicioVarredura) < LIBERACAO_MAX_MS_VARREDURA) {
+    chunksLidos++;
     const startRow = Math.max(2, endRow - LIBERACAO_CHUNK_LINHAS + 1);
     const numRows = endRow - startRow + 1;
     const valores = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
@@ -603,143 +544,48 @@ function lerAcompanhamentoLiberacao_(dataFiltro, limit, maquinaFiltro, janelaOpt
   return dados;
 }
 
-function montarColunasSaidaCarrosLiberacao_(cabecalho, titulos) {
-  const colunas = [];
-  cabecalho.forEach(function (chave, idx) {
-    if (!chave) return;
-    colunas.push({
-      chave: chave,
-      rotulo: String(titulos[idx] || chave).trim()
-    });
-  });
-  return colunas;
-}
-
-function lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, ignorarData) {
-  const range = sheet.getDataRange();
-  if (!range) {
-    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
+function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
+  if (!dataFiltro) return [];
+  var sheet;
+  try {
+    sheet = abrirSaidaCarrosPorData_(dataFiltro);
+  } catch (err) {
+    return [];
   }
-  const valores = range.getValues();
-  if (valores.length < 2) {
-    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
-  }
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 2) return [];
 
-  const headerIdx = detectarIndiceCabecalhoSaida_(valores);
-  if (headerIdx < 0) {
-    return { dados: [], colunas: [], linhaCabecalho: 0, linhasLidas: 0, abaNome: sheet.getName(), gid: sheet.getSheetId() };
-  }
-
-  const titulos = valores[headerIdx];
+  const titulos = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   const cabecalho = titulos.map(normalizarChaveLiberacao_);
-  const colunas = montarColunasSaidaCarrosLiberacao_(cabecalho, titulos);
+  const valores = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
   const dados = [];
 
-  for (let i = headerIdx + 1; i < valores.length; i++) {
+  for (let i = 0; i < valores.length; i++) {
     const bruto = {};
     cabecalho.forEach(function (chave, idx) {
       if (!chave) return;
       bruto[chave] = valorCelulaLiberacao_(valores[i][idx]);
     });
-    if (!linhaTemConteudoSaida_(bruto)) continue;
     const dataBr = pickCampoLiberacao_(bruto, ["data", "dia", "data_saida", "data_dia", "dt", "date"]);
     const dataIso = normalizarDataIsoLiberacao_(dataBr);
-    if (!linhaCorrespondeDataSaida_(dataIso, dataFiltro, ignorarData)) continue;
-    const item = Object.assign({}, bruto, mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr));
+    if (dataFiltro && dataIso !== dataFiltro) continue;
+    const item = mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr);
     if (!filtrarMaquinaLiberacao_(item, maquinaFiltro)) continue;
     dados.push(item);
   }
 
-  return {
-    dados: dados,
-    colunas: colunas,
-    linhaCabecalho: headerIdx + 1,
-    linhasLidas: valores.length - headerIdx - 1,
-    abaNome: sheet.getName(),
-    gid: sheet.getSheetId()
-  };
-}
-
-function finalizarLeituraSaidaCarrosLiberacao_(melhor, ignorouFiltroData) {
-  if (!melhor) {
-    return {
-      dados: [],
-      colunas: [],
-      abaNome: "",
-      gid: LIBERACAO_SAIDA_GID,
-      linhaCabecalho: 0,
-      linhasLidas: 0,
-      ignorouFiltroData: ignorouFiltroData
-    };
-  }
-  return {
-    dados: melhor.dados,
-    colunas: melhor.colunas,
-    abaNome: melhor.abaNome || "",
-    gid: melhor.gid || LIBERACAO_SAIDA_GID,
-    linhaCabecalho: melhor.linhaCabecalho,
-    linhasLidas: melhor.linhasLidas,
-    ignorouFiltroData: ignorouFiltroData
-  };
-}
-
-function lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, ignorarDataForcado) {
-  const ss = abrirPlanilhaSaidaCarros_();
-  const sheets = ss.getSheets();
-  const ordem = [];
-  let preferida = null;
-  try {
-    preferida = abrirSaidaCarrosPorData_(dataFiltro);
-  } catch (err) {
-    preferida = null;
-  }
-  if (preferida) ordem.push(preferida);
-  sheets.forEach(function (sheet) {
-    if (preferida && sheet.getSheetId() === preferida.getSheetId()) return;
-    ordem.push(sheet);
-  });
-
-  let melhor = null;
-  ordem.forEach(function (sheet) {
-    const lido = lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, ignorarDataForcado);
-    if (!melhor || lido.dados.length > melhor.dados.length) melhor = lido;
-  });
-
-  if (!melhor || melhor.dados.length || ignorarDataForcado) {
-    return finalizarLeituraSaidaCarrosLiberacao_(melhor, ignorarDataForcado);
-  }
-
-  ordem.forEach(function (sheet) {
-    const lido = lerSaidaCarrosDaAbaLiberacao_(sheet, dataFiltro, maquinaFiltro, true);
-    if (!melhor || lido.dados.length > melhor.dados.length) melhor = lido;
-  });
-
-  return finalizarLeituraSaidaCarrosLiberacao_(melhor, true);
-}
-
-function lerSaidaCarrosLiberacao_(dataFiltro, maquinaFiltro) {
-  return lerSaidaCarrosCompletoLiberacao_(dataFiltro, maquinaFiltro, false).dados;
-}
-
-function lerColunasSaidaCarros_() {
-  return lerSaidaCarrosCompletoLiberacao_("", "", true).colunas;
+  return dados;
 }
 
 function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
   const dataExibir = dataBr || (dataIso ? formatarDataBrLiberacao_(dataIso) : "");
-  const carroEscalado = pickCampoLiberacao_(bruto, [
-    "carro_escalado", "carro_esc", "veiculo_escalado", "prefixo_escalado"
-  ]);
-  const carro = pickCampoLiberacao_(bruto, ["carro", "prefixo", "veiculo", "frota"]);
   return {
     data: dataExibir,
     maquina: pickCampoLiberacao_(bruto, ["maquina", "maquina_", "maq", "equipamento"]),
     linha: pickCampoLiberacao_(bruto, ["linha", "linha_"]),
-    work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "serv", "id_servico"]),
-    carro: carro,
-    carro_escalado: carroEscalado || carro,
-    f_carro: pickCampoLiberacao_(bruto, ["f_carro", "f_carro_", "fcarro", "f_car"]),
-    subst: pickCampoLiberacao_(bruto, ["subst", "substituto", "substituicao"]),
+    work_id: pickCampoLiberacao_(bruto, ["work_id", "workid", "work", "id_servico"]),
+    carro: pickCampoLiberacao_(bruto, ["carro", "prefixo", "veiculo", "frota"]),
     motorista: pickCampoLiberacao_(bruto, ["motorista", "matricula", "mot", "registro"]),
     preparo: pickCampoLiberacao_(bruto, ["preparo", "tempo_preparo"]),
     horario_saida_da_garagem: pickCampoLiberacao_(bruto, [
@@ -747,7 +593,7 @@ function mapearSaidaCarrosParaAcompanhamento_(bruto, dataIso, dataBr) {
     ]),
     saida_real: pickCampoLiberacao_(bruto, ["saida_real", "realizado", "saida_efetiva", "hora_real"]),
     local_inicio: pickCampoLiberacao_(bruto, ["local_inicio", "local", "terminal"]),
-    horario_de_inicio: pickCampoLiberacao_(bruto, ["horario_de_inicio", "horario_inicio", "inicio_programado", "inicio"]),
+    horario_de_inicio: pickCampoLiberacao_(bruto, ["horario_de_inicio", "horario_inicio", "inicio_programado"]),
     inicio_real: pickCampoLiberacao_(bruto, ["inicio_real", "inicio_efetivo"]),
     observacoes: pickCampoLiberacao_(bruto, ["observacoes", "obs", "observacao"]),
     _origem: "saida_carros"
@@ -864,9 +710,12 @@ function calcularResumoDiaLiberacao_(dados, dataIso) {
   };
 }
 
-function calcularHistoricoResumoLiberacao_() {
-  const janela = montarJanelaLeituraLiberacao_("", "", "", true);
-  const todos = lerAcompanhamentoLiberacao_("", 0, "", janela);
+function calcularHistoricoResumoLiberacao_(todosPreCarregados) {
+  var todos = todosPreCarregados;
+  if (!todos) {
+    const janela = montarJanelaLeituraLiberacao_("", "", "", true);
+    todos = lerAcompanhamentoLiberacao_("", 0, "", janela);
+  }
   const porData = {};
   todos.forEach(function (row) {
     const iso = normalizarDataIsoLiberacao_(row.data);
@@ -922,7 +771,7 @@ function montarResumoDashboardLiberacao_(dataFiltro, incluirColunas) {
   const payload = {
     ok: true,
     resumo: calcularResumoDiaLiberacao_(dadosDia, dataFiltro),
-    historico: calcularHistoricoResumoLiberacao_(),
+    historico: calcularHistoricoResumoLiberacao_(todos),
     base_dados: calcularBaseDadosLiberacao_(dadosDia),
     dados: dadosDia,
     meta: {
@@ -1036,20 +885,8 @@ function linhaAcompanhamentoParaObjeto_(cabecalho, valores, rowNumber) {
   return item;
 }
 
-function formatarHoraCelulaLiberacao_(valor) {
-  if (typeof valor === "number" && isFinite(valor) && valor >= 0 && valor < 1) {
-    const total = Math.round(valor * 24 * 60);
-    const h = Math.floor(total / 60) % 24;
-    const m = total % 60;
-    return Utilities.formatString("%02d:%02d", h, m);
-  }
-  return "";
-}
-
 function valorCelulaLiberacao_(valor) {
   if (valor == null || valor === "") return "";
-  const horaFracao = formatarHoraCelulaLiberacao_(valor);
-  if (horaFracao) return horaFracao;
   if (Object.prototype.toString.call(valor) === "[object Date]" && !isNaN(valor)) {
     const tz = Session.getScriptTimeZone();
     if (valor.getHours() === 0 && valor.getMinutes() === 0 && valor.getSeconds() === 0) {
@@ -1057,12 +894,7 @@ function valorCelulaLiberacao_(valor) {
     }
     return Utilities.formatDate(valor, tz, "HH:mm");
   }
-  const texto = String(valor).trim();
-  const hhmm = texto.match(/^(\d{1,2})[:h](\d{2})$/);
-  if (hhmm) {
-    return Utilities.formatString("%02d:%02d", Number(hhmm[1]), Number(hhmm[2]));
-  }
-  return texto;
+  return String(valor).trim();
 }
 
 function parseNumeroLiberacao_(valor) {

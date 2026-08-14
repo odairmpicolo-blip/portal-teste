@@ -10,33 +10,63 @@ let DATA = [];
 let periodChart = null;
 let agentChart = null;
 let sortState = { key: "data_iso", dir: "desc" };
-let carregandoAutuacoes = false;
-let filtrosLigados = false;
 
 const COLORS = ["#00d4ff", "#1359c7", "#ff6b00", "#7045b8", "#28a64a", "#f6bf26", "#00a6a6", "#de1b1b", "#9b59b6", "#16a085", "#e67e22", "#4d7cff"];
-const CHART_THEME = {
-    navy: "#071f57",
-    muted: "#667085",
-    cyan: "#00d4ff",
-    blue: "#1359c7",
-    orange: "#ff6b00",
-    grid: "rgba(6,36,92,.06)",
-    tooltipBg: "rgba(7,31,87,.94)",
-    tooltipBorder: "rgba(0,212,255,.35)"
-};
 
-const TOOLTIP_FUTURO = {
-    backgroundColor: CHART_THEME.tooltipBg,
-    titleColor: "#fff",
-    bodyColor: "#e2e8f0",
-    borderColor: CHART_THEME.tooltipBorder,
-    borderWidth: 1,
-    padding: 12,
-    cornerRadius: 10,
-    displayColors: false,
-    titleFont: { weight: "700", size: 12 },
-    bodyFont: { weight: "600", size: 11 }
-};
+function isDarkTheme() {
+    return document.documentElement.classList.contains("dk-dark")
+        || (window.innerWidth <= 720 && !document.documentElement.classList.contains("native-light"));
+}
+
+function chartTheme() {
+    if (isDarkTheme()) {
+        return {
+            navy: "#e8edf2",
+            muted: "#ffffff",
+            cyan: "#00d4ff",
+            blue: "#38bdf8",
+            orange: "#ff6b00",
+            grid: "rgba(255,255,255,.12)",
+            tooltipBg: "rgba(20,20,24,.94)",
+            tooltipBorder: "rgba(0,212,255,.35)"
+        };
+    }
+    return {
+        navy: "#071f57",
+        muted: "#667085",
+        cyan: "#00d4ff",
+        blue: "#1359c7",
+        orange: "#ff6b00",
+        grid: "rgba(6,36,92,.06)",
+        tooltipBg: "rgba(7,31,87,.94)",
+        tooltipBorder: "rgba(0,212,255,.35)"
+    };
+}
+
+let CHART_THEME = chartTheme();
+
+function refreshChartTheme() {
+    CHART_THEME = chartTheme();
+    if (typeof Chart !== "undefined") {
+        Chart.defaults.color = CHART_THEME.muted;
+        Chart._autuacoesTheme = false;
+    }
+}
+
+function tooltipFuturo() {
+    return {
+        backgroundColor: CHART_THEME.tooltipBg,
+        titleColor: "#fff",
+        bodyColor: "#e2e8f0",
+        borderColor: CHART_THEME.tooltipBorder,
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 10,
+        displayColors: false,
+        titleFont: { weight: "700", size: 12 },
+        bodyFont: { weight: "600", size: 11 }
+    };
+}
 
 const ANIMACAO_FUTURO = { duration: 900, easing: "easeOutQuart" };
 
@@ -45,6 +75,7 @@ function fonteGrafico(peso, tamanho) {
 }
 
 function configurarChartDefaults() {
+    refreshChartTheme();
     if (typeof Chart === "undefined" || Chart._autuacoesTheme) return;
     Chart.defaults.font.family = "'Segoe UI', system-ui, Arial, sans-serif";
     Chart.defaults.color = CHART_THEME.muted;
@@ -587,7 +618,7 @@ function desenharGraficoPeriodo(rows) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    ...TOOLTIP_FUTURO,
+                    ...tooltipFuturo(),
                     callbacks: {
                         title(items) { return items[0]?.label || ""; },
                         label(ctx) { return `${formatInt(ctx.raw)} autuação(ões)`; }
@@ -659,7 +690,7 @@ function desenharGraficoAgentes(rows) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    ...TOOLTIP_FUTURO,
+                    ...tooltipFuturo(),
                     callbacks: {
                         title(items) { return agentes[items[0].dataIndex]?.[0] || ""; },
                         label(ctx) { return `${formatInt(ctx.raw)} autuação(ões)`; }
@@ -857,7 +888,7 @@ function drawPie(items, total) {
         const pct = ((val / total) * 100);
         const cor = COLORS[i % COLORS.length];
         return `<div class="legend-row">
-            <span class="dot" style="background:${cor};box-shadow:0 0 8px ${rgbaHex(cor, 0.55)}"></span>
+            <span class="dot" style="background:${cor}"></span>
             <span class="legend-name">${escapeHtml(name)}</span>
             <span class="legend-bar-wrap"><span class="legend-bar" style="width:${pct.toFixed(1)}%;background:linear-gradient(90deg,${cor},${rgbaHex(cor, 0.45)})"></span></span>
             <b>${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</b>
@@ -947,6 +978,7 @@ function renderTable(rows) {
 }
 
 function render() {
+    refreshChartTheme();
     const rows = getFiltered();
     const total = rows.length;
     const ag = groupSum(rows, "agente");
@@ -979,28 +1011,15 @@ function init() {
     if (dates.fim) byId("dataFim").value = dates.fim;
     renderTableHead();
     observarResizePie();
-    if (!filtrosLigados) {
-        filtrosLigados = true;
-        ["dataInicio", "dataFim", "motivoFilter", "agenteFilter", "busca"].forEach((id) => {
-            byId(id).addEventListener("input", render);
-        });
-    }
+    ["dataInicio", "dataFim", "motivoFilter", "agenteFilter", "busca"].forEach((id) => {
+        byId(id).addEventListener("input", render);
+    });
     render();
 }
 
-async function loadData(forcar = false) {
-    if (carregandoAutuacoes) return;
-    carregandoAutuacoes = true;
-    const btn = byId("btnAtualizar");
-    if (btn) btn.disabled = true;
-
-    const cacheLocal = !forcar ? lerCacheAutuacoesLocal() : null;
+async function loadData() {
+    const cacheLocal = lerCacheAutuacoesLocal();
     let mostrouDados = false;
-
-    if (cacheLocal && !forcar) {
-        aplicarPayloadAutuacoes(cacheLocal, "cache local");
-        mostrouDados = true;
-    }
 
     const snapshot = await carregarSnapshotAutuacoes();
     if (snapshot?.rows?.length) {
@@ -1009,7 +1028,8 @@ async function loadData(forcar = false) {
         salvarCacheAutuacoesLocal(snapshot.payload);
         console.info("Autuações carregadas: arquivo JSON", DATA.length);
         mostrouDados = true;
-    } else if (cacheLocal && !forcar) {
+    } else if (cacheLocal) {
+        aplicarPayloadAutuacoes(cacheLocal, "cache local");
         mostrouDados = true;
     }
 
@@ -1019,7 +1039,7 @@ async function loadData(forcar = false) {
     }
 
     if (!mostrouDados) {
-        window.portalMostrarCarregando?.(forcar ? "Atualizando autuações" : "Carregando autuações");
+        window.portalMostrarCarregando?.("Carregando autuações");
     }
 
     try {
@@ -1059,8 +1079,6 @@ async function loadData(forcar = false) {
             init();
         }
     } finally {
-        carregandoAutuacoes = false;
-        if (btn) btn.disabled = false;
         window.portalOcultarCarregando?.();
     }
 }
@@ -1076,8 +1094,7 @@ function limparFiltros() {
 }
 
 window.limparFiltros = limparFiltros;
-window.atualizarAutuacoes = () => loadData(true);
-byId("btnAtualizar")?.addEventListener("click", () => {
-    loadData(true).catch(() => {});
+window.addEventListener("dk-theme-change", function () {
+    try { render(); } catch (e) {}
 });
 window.portalAguardarUsuario?.(loadData);
