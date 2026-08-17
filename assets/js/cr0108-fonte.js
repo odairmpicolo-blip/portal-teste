@@ -418,6 +418,13 @@ async function cad(p) {
   return r;
 }
 
+async function ranking001(p) {
+  if (!(await disponivel())) return null;
+  const r = await chamar("/ranking-001", p);
+  if (!r || !r.ok) return null;
+  return r;
+}
+
 /* Período e totais segundo o banco. A página usa isto para corrigir o cabeçalho, o
    selo de atualização e os limites dos campos de data, que sem isso ficam presos no
    último dia do meta.json. */
@@ -430,6 +437,6 @@ async function meta() {
 global.Fonte = {
     usarEstaticos, usarSoArquivo, origem, disponivel,
     meta, serie, ranking, hora, pontosDaLinha, horariosDoPonto, icv, ipv,
-    operador, operadorLinha, histograma, cad, montarAjustes
+    operador, operadorLinha, histograma, cad, ranking001, montarAjustes
 };
 })(window);

@@ -74,7 +74,7 @@ table.rel td.txt{text-align:left}
     <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/titulo-portal-ciop.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
     <div class="title-wrap">
         <h1 class="header-title">Incidentes CAD</h1>
-        <div class="header-subtitle" id="statusLine">Relatório 002 · JSON primeiro, banco em segundo plano</div>
+        <div class="header-subtitle" id="statusLine">Relatório 002 · só incidentes CAD, sem misturar ranking nem IPV</div>
     </div>
     <div class="header-actions">
         <div class="ciop-session" aria-label="Sessão do usuário">
@@ -90,7 +90,6 @@ table.rel td.txt{text-align:left}
     <div class="toolbar toolbar-filtros">
         <a class="btn-portal" href="../index.html"><span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>Portal</a>
         <a class="btn-portal btn-ghost" href="relatorios.html">Relatórios</a>
-        <a class="btn-portal btn-ghost" href="incidentes-dashboard.html">Dashboard TCGL</a>
         <div class="campo campo-busca"><label for="fBusca">Buscar</label><input type="search" id="fBusca" placeholder="ID, linha, veículo, tipo…" autocomplete="off"></div>
         <div class="campo"><label for="fLinha">Linha</label><select id="fLinha"><option value="">Todas</option></select></div>
         <div class="campo"><label for="fTipo">Tipo</label><select id="fTipo"><option value="">Todos</option></select></div>
@@ -104,7 +103,7 @@ table.rel td.txt{text-align:left}
         <div class="card-head">
             <div>
                 <h2 class="card-title">Incidentes CAD · relatório 002</h2>
-                <div class="card-sub">A tela abre com o JSON publicado e, em seguida, troca pelos registros do banco quando a tabela do 002 responder.</div>
+                <div class="card-sub">Fonte exclusiva do relatório 002. Não mistura ranking de motoristas (001) nem pontualidade (custom / 0258).</div>
             </div>
         </div>
         <div class="tabela-wrap">
@@ -133,8 +132,7 @@ table.rel td.txt{text-align:left}
     </section>
 </main>
 <footer class="page-footer">Portal CIOP · Relatórios · Incidentes CAD (Clever 002)</footer>
-<script src="../assets/js/cr0108-fonte.js?v=20260816a"></script>
-<script src="../assets/js/incidentes-cad.js?v=20260816a"></script>
+<script src="../assets/js/incidentes-cad.js?v=20260816b"></script>
 <script>
 IncidentesCad.ligar();
 IncidentesCad.iniciar();

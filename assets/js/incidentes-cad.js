@@ -175,59 +175,47 @@ function baixarCsv() {
 }
 
 async function jsonCad() {
-  const urls = ["../assets/data/incidentes-cad.json", "../assets/data/incidentes-tcgl.json"];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
-      if (!res.ok) continue;
-      const payload = await res.json();
-      const lista = Array.isArray(payload.incidentes) ? payload.incidentes : [];
-      if (lista.length) {
-        return { lista, origem: url.includes("incidentes-cad") ? "arquivo 002" : "arquivo CAD TCGL", payload };
-      }
-    } catch (_) { /* próximo */ }
+  try {
+    const res = await fetch("../assets/data/incidentes-cad.json?t=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return { lista: [], origem: "arquivo 002" };
+    const payload = await res.json();
+    const lista = Array.isArray(payload.incidentes) ? payload.incidentes : (Array.isArray(payload) ? payload : []);
+    return { lista, origem: "arquivo 002", payload };
+  } catch (_) {
+    return { lista: [], origem: "arquivo 002" };
   }
-  return { lista: [], origem: "arquivo", payload: null };
 }
 
 async function iniciar() {
   const seq = ++state.seq;
-  status("Carregando JSON…");
+  status("Carregando JSON do 002…");
   const arq = await jsonCad();
   if (seq !== state.seq) return;
   aplicar(mesclar([arq.lista]), arq.origem);
-  const n = arq.lista.length;
-  status(n ? `${nInt(n)} registros no JSON · buscando o banco…` : "JSON vazio · buscando o relatório 002 no banco…");
+  status(arq.lista.length
+    ? `${nInt(arq.lista.length)} registros no JSON 002 · buscando o banco…`
+    : "JSON 002 vazio · buscando o relatório 002 no banco…");
 
   const segundoPlano = async () => {
     try {
-      if (typeof Fonte === "undefined" || !(await Fonte.disponivel())) {
-        const mod = await import("./incidentes-dados-leitura.js?v=20260627a");
-        const res = await mod.carregarDadosIncidentes({});
-        if (seq !== state.seq) return;
-        const lista = res?.payload?.incidentes || [];
-        if (lista.length) {
-          aplicar(mesclar([state.all, lista]), (state.origem + " · snapshot"));
-        }
-        status(`${nInt(state.all.length)} incidentes · ${state.origem}`);
+      const cfg = await import("./portal-aws-config.js");
+      if (typeof cfg.initPortalAwsRuntime === "function") await cfg.initPortalAwsRuntime();
+      if (!cfg.awsApiEnabled()) {
+        status(`${nInt(state.all.length)} registros · ${state.origem}`);
         return;
       }
-      const cad = await Fonte.cad({});
+      const token = await cfg.firebaseIdToken();
+      const cad = await cfg.awsFetch("/cr0108/cad", { token });
       if (seq !== state.seq) return;
       const itens = cad && cad.itens ? cad.itens : [];
       if (itens.length) {
-        aplicar(mesclar([itens]), "banco " + (cad.tabela || "002"));
-        status(`${nInt(state.all.length)} incidentes do relatório 002 (${cad.tabela})`);
+        aplicar(mesclar([itens]), "banco 002" + (cad.tabela ? " · " + cad.tabela : ""));
+        status(`${nInt(state.all.length)} incidentes do relatório 002`);
       } else {
-        const mod = await import("./incidentes-dados-leitura.js?v=20260627a");
-        const res = await mod.carregarDadosIncidentes({});
-        if (seq !== state.seq) return;
-        const lista = res?.payload?.incidentes || [];
-        if (lista.length) aplicar(mesclar([state.all, lista]), state.origem + " · snapshot");
-        status(`${nInt(state.all.length)} incidentes · ${state.origem}` + (cad && cad.tabela === null ? " · tabela 002 ainda não encontrada" : ""));
+        status(`${nInt(state.all.length)} registros · ${state.origem}` + (cad && cad.tabela == null ? " · tabela 002 ainda não encontrada" : ""));
       }
     } catch (err) {
-      console.info("Incidentes CAD: banco não veio.", err && err.message);
+      console.info("Incidentes CAD: banco 002 não veio.", err && err.message);
       status(`${nInt(state.all.length)} registros · ${state.origem}`);
     }
   };
