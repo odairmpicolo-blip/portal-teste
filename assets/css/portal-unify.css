@@ -196,3 +196,125 @@ body.login-v2 input,
 body.login-v2 button {
   font-family: var(--font) !important;
 }
+
+/* —— Home: menos chrome, campanha em chip, wallpaper mais quieto —— */
+body:has(#portalAbas) .bg-blobs,
+body:has(#portalAbas) .bg-blob-mid {
+  opacity: 0.28 !important;
+}
+body:has(#portalAbas) .hero-pro-aura,
+body:has(#portalAbas) .hero-pro-sep,
+body:has(#portalAbas) .hero-pro-logo,
+body:has(#portalAbas) .hero-pro-logo--emblem {
+  display: none !important;
+}
+body:has(#portalAbas) .header-hero-pro,
+body:has(#portalAbas) .hero-pro-panel {
+  min-height: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+body:has(#portalAbas) .hero-pro-campanha-meta,
+body:has(#portalAbas) #heroCampanha {
+  display: inline-flex !important;
+  align-items: center;
+  max-width: 280px;
+}
+body:has(#portalAbas) #heroCampanha {
+  gap: 8px;
+  padding: 4px 10px 4px 8px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--borda) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+body:has(#portalAbas) .header-hero-ribbon {
+  width: 14px !important;
+  height: 14px !important;
+  flex: 0 0 auto;
+}
+body:has(#portalAbas) .header-hero-campanha-texto {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+body:has(#portalAbas) .header-hero-mes {
+  display: none !important;
+}
+body:has(#portalAbas) .grid {
+  gap: 12px !important;
+}
+body:has(#portalAbas) .grid .card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+body:has(#portalAbas) .ciop-kpi-label {
+  font-size: 10px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+body:has(#portalAbas) .ciop-kpi-value {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+}
+
+/* —— Casco interno: header estável, dados em superfície, sem vidro extra no desktop —— */
+@media (min-width: 861px) {
+  body:has(.body-bg-wall) .header,
+  body:has(.body-bg-stain) .header {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(0, 2.2fr) minmax(120px, 1fr);
+    align-items: center;
+    min-height: 56px;
+    padding: 8px 18px !important;
+    background: color-mix(in srgb, var(--surface) 92%, transparent) !important;
+    border-bottom: 1px solid var(--borda) !important;
+    box-shadow: none !important;
+  }
+  body:has(.body-bg-wall) .kpi-card,
+  body:has(.body-bg-wall) .chart-card,
+  body:has(.body-bg-wall) .table-card,
+  body:has(.body-bg-wall) .toolbar,
+  body:has(.body-bg-wall) .sidebar.portal-filters-bar,
+  body:has(.body-bg-wall) .filters-panel,
+  body:has(.body-bg-wall) .panel,
+  body:has(.body-bg-wall) .password-panel {
+    background: var(--surface) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid var(--borda) !important;
+    box-shadow: var(--shadow) !important;
+  }
+  body:has(.body-bg-wall) .body-bg-stain {
+    opacity: 0.22;
+  }
+}
+
+body:has(.body-bg-wall) table th {
+  background: var(--surface) !important;
+  box-shadow: inset 0 -1px 0 var(--borda);
+  color: var(--texto) !important;
+}
+
+body:has(.body-bg-wall) .portal-filters-bar,
+body:has(.body-bg-wall) .filters-panel,
+body:has(.body-bg-wall) .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+html.dk-dark body:has(.body-bg-wall) .kpi-card,
+html.dk-dark body:has(.body-bg-wall) .chart-card,
+html.dk-dark body:has(.body-bg-wall) .table-card,
+html.dk-dark body:has(.body-bg-wall) .toolbar,
+html.dk-dark body:has(.body-bg-wall) .panel {
+  background: var(--surface) !important;
+  border-color: var(--borda) !important;
+}
