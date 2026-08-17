@@ -487,6 +487,45 @@
     .agosto-coracao{ animation:none; }
   }
 
+  /* ===== Campanha do mês (meses coloridos; agosto usa o slide especial) ===== */
+  .campanha-scene{
+    position:relative; z-index:1; width:100%; height:100%; overflow:hidden;
+    border-radius:clamp(16px,1.6vw,26px);
+    background:#050b18;
+    --campanha-cor:#facc15;
+  }
+  .campanha-scene .hud-corner{ opacity:.45; animation:none; z-index:4; border-color:rgba(255,255,255,.55); }
+  .campanha-img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+    filter:saturate(1.05) contrast(1.04);
+  }
+  .campanha-overlay{
+    position:absolute; inset:0; z-index:3;
+    background:linear-gradient(90deg, rgba(5,11,24,.88) 0%, rgba(5,11,24,.55) 42%, rgba(5,11,24,.12) 72%, transparent 100%);
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:clamp(22px,3.4vh,52px) clamp(22px,3vw,48px);
+    gap:clamp(8px,1.2vh,14px);
+  }
+  .campanha-nome{
+    font-size:clamp(12px,1.05vw,16px); font-weight:800; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--campanha-cor);
+  }
+  .campanha-titulo{
+    margin:0; max-width:16ch;
+    font-size:clamp(28px,3.8vw,58px); font-weight:900; line-height:1.08;
+    letter-spacing:-.03em; color:var(--ink);
+    text-shadow:0 8px 28px rgba(0,0,0,.45);
+  }
+  .campanha-sub{
+    margin:0; max-width:38ch;
+    font-size:clamp(14px,1.25vw,20px); font-weight:600; color:var(--muted); line-height:1.35;
+  }
+  .campanha-logo{
+    position:absolute; top:clamp(14px,2.4vh,28px); right:clamp(14px,2.4vw,32px); z-index:4;
+    height:clamp(44px,7vh,80px); width:auto;
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,.45));
+  }
+
   /* ===== Carregamento inicial ===== */
   .boot-loading{
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
@@ -549,6 +588,8 @@
     .hud-corner{ width:18px; height:18px; }
     .agosto-arte{ height:auto; width:100%; }
     .agosto-coracao{ width:16%; }
+    .campanha-titulo{ font-size:28px; max-width:20ch; }
+    .campanha-overlay{ background:linear-gradient(180deg, rgba(5,11,24,.2) 0%, rgba(5,11,24,.88) 70%); }
   }
 </style>
 </head>
@@ -836,6 +877,23 @@
         <div class="next-hint">
           <span class="next-label" id="nextLabel">Carregando próximo painel…</span>
           <div class="next-progress"><div class="next-progress-bar" id="nextBar"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Campanha do mês (Janeiro–Julho, Setembro–Dezembro) ===== -->
+    <section class="kiosk-slide" id="slide-campanha">
+      <div class="campanha-scene" id="campanhaScene">
+        <img class="campanha-img" id="campanhaImg" alt="">
+        <span class="hud-corner hud-tl"></span>
+        <span class="hud-corner hud-tr"></span>
+        <span class="hud-corner hud-bl"></span>
+        <span class="hud-corner hud-br"></span>
+        <img class="campanha-logo" src="../assets/img/LOGO_TCGL-dark.png" alt="TCGL">
+        <div class="campanha-overlay">
+          <div class="campanha-nome" id="campanhaNome">Campanha</div>
+          <h2 class="campanha-titulo" id="campanhaTitulo"></h2>
+          <p class="campanha-sub" id="campanhaSub"></p>
         </div>
       </div>
     </section>
@@ -1743,6 +1801,7 @@ const NOMES_PAINEL = {
   icv: "Cumprimento de Viagens",
   km: "Quilometragem TCGL",
   live: "Pontualidade em Tempo Real",
+  campanha: "Campanha do mês",
   agosto: "Agosto Lilás",
   tempo: "Previsão do Tempo"
 };
@@ -1763,12 +1822,59 @@ function tocarTransicao(proximoId) {
    Controlador central do carrossel (SPA — sem recarregar a página)
 ============================================================ */
 const PARAMS_TV = new URLSearchParams(location.search);
-function campanhaAgostoAtiva() {
-  const c = String(PARAMS_TV.get("campanha") || "").toLowerCase();
-  if (c === "agosto") return true;
-  if (c === "off") return false;
-  return new Date().getMonth() === 7;
+
+const CAMPANHAS = [
+  { chave: ["jan", "janeiro", "branco"], nome: "Janeiro Branco", tag: "Saúde mental · TCGL", titulo: "Cuidar da mente também é segurança", sub: "Fale, ouça e peça ajuda. Ninguém na operação precisa enfrentar isso sozinho.", img: "../assets/img/painel-tv-jan-branco.jpg", cor: "#f4f0e6" },
+  { chave: ["fev", "fevereiro", "laranja"], nome: "Fevereiro Laranja", tag: "Leucemia e solidariedade · TCGL", titulo: "Laranja da vida", sub: "Conscientização sobre leucemia e o valor de doar medula e esperança.", img: "../assets/img/painel-tv-fev-laranja.jpg", cor: "#fb923c" },
+  { chave: ["mar", "marco", "março", "lilas-marco"], nome: "Março Lilás", tag: "Câncer de colo do útero · TCGL", titulo: "Prevenir é cuidar", sub: "O exame periódico detecta cedo e salva vidas. Informação também é cuidado.", img: "../assets/img/painel-tv-mar-lilas.jpg", cor: "#c4b5fd" },
+  { chave: ["abr", "abril", "verde"], nome: "Abril Verde", tag: "Segurança no trabalho · TCGL", titulo: "A segurança começa no pátio", sub: "Cada viagem segura nasce de um cuidado antes de sair da garagem.", img: "../assets/img/painel-tv-abr-verde.jpg", cor: "#4ade80" },
+  { chave: ["mai", "maio", "amarelo"], nome: "Maio Amarelo", tag: "Segurança no trânsito · TCGL", titulo: "No trânsito, enxergar o outro é salvar vidas", sub: "Tema 2026 do movimento Maio Amarelo. Pedestre, moto, bike e ônibus compartilham a mesma rua.", img: "../assets/img/painel-tv-mai-amarelo.jpg", cor: "#facc15" },
+  { chave: ["jun", "junho", "vermelho"], nome: "Junho Vermelho", tag: "Doação de sangue · TCGL", titulo: "Uma doação, várias vidas", sub: "Doe sangue. O estoque dos hemocentros depende de quem decide ajudar hoje.", img: "../assets/img/painel-tv-jun-vermelho.jpg", cor: "#f87171" },
+  { chave: ["jul", "julho"], nome: "Julho Amarelo", tag: "Hepatites virais · TCGL", titulo: "Hepatites têm prevenção e tratamento", sub: "Vacina, diagnóstico e cuidado. Informação protege a operação e a família.", img: "../assets/img/painel-tv-jul-amarelo.jpg", cor: "#fde047" },
+  { chave: ["ago", "agosto", "lilas"], nome: "Agosto Lilás", tag: "Combate à violência contra a mulher · TCGL", especial: true },
+  { chave: ["set", "setembro"], nome: "Setembro Amarelo", tag: "Prevenção ao suicídio · TCGL", titulo: "Você não está sozinho", sub: "Fale com alguém. O CVV atende 24h pelo 188, de forma gratuita e sigilosa.", img: "../assets/img/painel-tv-set-amarelo.jpg", cor: "#facc15" },
+  { chave: ["out", "outubro", "rosa"], nome: "Outubro Rosa", tag: "Câncer de mama · TCGL", titulo: "Cuidar de si é um ato de coragem", sub: "Diagnóstico precoce muda o caminho. Cuide de você e de quem você ama.", img: "../assets/img/painel-tv-out-rosa.jpg", cor: "#fb7185" },
+  { chave: ["nov", "novembro", "azul"], nome: "Novembro Azul", tag: "Câncer de próstata · TCGL", titulo: "Prevenir também é coisa de homem", sub: "Exame no tempo certo. Saúde não espera a dor chegar.", img: "../assets/img/painel-tv-nov-azul.jpg", cor: "#60a5fa" },
+  { chave: ["dez", "dezembro"], nome: "Dezembro Vermelho", tag: "HIV/AIDS · TCGL", titulo: "Informação protege", sub: "Prevenção, teste e respeito. Cuidar de si é cuidar de todos.", img: "../assets/img/painel-tv-dez-vermelho.jpg", cor: "#ef4444" }
+];
+
+function campanhaPorChave(q) {
+  const s = String(q || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!s) return null;
+  return CAMPANHAS.find((c) => c.chave.some((k) => k.normalize("NFD").replace(/[\u0300-\u036f]/g, "") === s)) || null;
 }
+function slideIdCampanha(c) {
+  return c && c.especial ? "agosto" : "campanha";
+}
+function aplicarCampanha(c) {
+  if (!c || c.especial) return;
+  const img = document.getElementById("campanhaImg");
+  const scene = document.getElementById("campanhaScene");
+  if (img) {
+    img.src = c.img;
+    img.alt = c.nome + " — " + c.titulo;
+  }
+  if (scene) scene.style.setProperty("--campanha-cor", c.cor);
+  const nome = document.getElementById("campanhaNome");
+  const titulo = document.getElementById("campanhaTitulo");
+  const sub = document.getElementById("campanhaSub");
+  if (nome) nome.textContent = c.nome;
+  if (titulo) titulo.textContent = c.titulo;
+  if (sub) sub.textContent = c.sub;
+  statusPainel.campanha = c.nome + " · TCGL";
+  INFO_SLIDE.campanha = { titulo: c.nome, tag: c.tag };
+  NOMES_PAINEL.campanha = c.nome;
+}
+function campanhaAtiva() {
+  const q = String(PARAMS_TV.get("campanha") || "").toLowerCase();
+  if (q === "off") return null;
+  const forcada = campanhaPorChave(q);
+  if (forcada) return forcada;
+  const tela = campanhaPorChave(PARAMS_TV.get("tela"));
+  if (tela) return tela;
+  return CAMPANHAS[new Date().getMonth()] || null;
+}
+
 function duracaoSlideMs() {
   const ciclo = String(PARAMS_TV.get("ciclo") || "").toLowerCase();
   if (ciclo === "rapido") return 30 * 1000;
@@ -1783,11 +1889,14 @@ const INFO_SLIDE = {
   icv: { titulo: "Cumprimento de Viagens", tag: "ICV · mês a mês" },
   km: { titulo: "Quilometragem da Frota", tag: "KM · mês a mês" },
   live: { titulo: "Pontualidade em Tempo Real", tag: "Ao vivo · somente TCGL" },
+  campanha: { titulo: "Campanha do mês", tag: "TCGL" },
   agosto: { titulo: "Agosto Lilás", tag: "Combate à violência contra a mulher · TCGL" },
   tempo: { titulo: "Previsão do Tempo", tag: "Clima · Londrina/PR" }
 };
+const CAMPANHA_ATUAL = campanhaAtiva();
+if (CAMPANHA_ATUAL) aplicarCampanha(CAMPANHA_ATUAL);
 const ORDEM_SLIDES = ["visao", "ipv", "icv", "tempo", "km", "live"];
-if (campanhaAgostoAtiva() || PARAMS_TV.get("tela") === "agosto") ORDEM_SLIDES.push("agosto");
+if (CAMPANHA_ATUAL) ORDEM_SLIDES.push(slideIdCampanha(CAMPANHA_ATUAL));
 const BLOCO_DADOS = new Set(["visao", "ipv", "icv", "km"]);
 const DURACAO_SLIDE_MS = duracaoSlideMs();
 const DURACAO_TRANSICAO_MS = 4000;
@@ -1930,9 +2039,11 @@ setInterval(carregarClima, CLIMA_REFRESH_MS);
     document.getElementById("kiosk").style.transform = `translate(${x}px, ${y}px)`;
   }, 12 * 60 * 1000);
 
-  // ?tela=visao|ipv|icv|tempo|km|live|agosto trava a tela (swipe ainda troca).
-  // ?ciclo=rapido (30s) ou ?ciclo=45. ?campanha=agosto|off força o Agosto Lilás.
-  const telaFixa = PARAMS_TV.get("tela");
+  // ?tela=visao|ipv|icv|tempo|km|live|agosto|campanha|maio…
+  // ?ciclo=rapido (30s). ?campanha=maio|off escolhe ou desliga a campanha do mês.
+  let telaFixa = PARAMS_TV.get("tela");
+  const campanhaTela = campanhaPorChave(telaFixa);
+  if (campanhaTela) telaFixa = slideIdCampanha(campanhaTela);
   if (telaFixa && ORDEM_SLIDES.includes(telaFixa)) {
     modoFixo = true;
     document.getElementById("kiosk").classList.add("modo-fixo");
