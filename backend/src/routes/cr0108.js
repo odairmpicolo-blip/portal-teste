@@ -72,7 +72,7 @@ function faixas(req) {
   return pedacos;
 }
 
-const SOMAVEIS = ["total", "noHorario", "adiantado", "atrasado", "divergente", "somaDif", "semDif"];
+const SOMAVEIS = ["total", "noHorario", "adiantado", "atrasado", "divergente", "somaDif", "semDif", "n"];
 
 /** Soma as linhas das faixas, agrupando pelas colunas-chave. */
 function juntar(listas, chaves) {
@@ -452,6 +452,89 @@ router.get("/ipv", requireFirebaseUser, async (req, res) => {
       par
     );
     res.json({ ok: true, origem: "dsql", fonte: chave, itens: r.rows });
+  } catch (err) { erro(res, err); }
+});
+
+/* Histograma compacto para o diagnóstico de ajustes: um bin por
+   (linha, sentido, ponto, programado, desvio). Só para janelas de até 90 dias —
+   o histórico inteiro estoura o gateway. A página pinta o JSON e só pede isto
+   quando o recorte cabe. */
+router.get("/histograma", requireFirebaseUser, async (req, res) => {
+  const de = String(req.query.de || "");
+  const ate = String(req.query.ate || "");
+  if (!ISO.test(de) || !ISO.test(ate)) {
+    res.json({ ok: true, periodoLongo: true, itens: [] });
+    return;
+  }
+  const nDias = (dia(ate) - dia(de)) / 86400000 + 1;
+  if (nDias > 90) {
+    res.json({ ok: true, periodoLongo: true, itens: [] });
+    return;
+  }
+  try {
+    const itens = await consultar(
+      req,
+      ["linha", "direcao", "ponto_de_controle", "btrim(programado) AS programado"],
+      (sql) => `SELECT linha, direcao AS sentido, ponto_de_controle AS ponto, programado,
+                       m::int AS desvio, count(*)::int AS n
+                FROM (${sql}) t
+                WHERE m BETWEEN -90 AND 90
+                GROUP BY linha, direcao, ponto_de_controle, programado, m`,
+      ["linha", "sentido", "ponto", "programado", "desvio"]
+    );
+    res.json({ ok: true, origem: "dsql", itens });
+  } catch (err) { erro(res, err); }
+});
+
+/* Relatório Clever 002 (Incidentes CAD). A tabela foi carregada à parte;
+   o nome varia (cr_002 / cr_0002). Se nenhuma existir, devolve lista vazia
+   para a página ficar no JSON. */
+router.get("/cad", requireFirebaseUser, async (req, res) => {
+  const candidatos = ["cr_002", "cr_0002", "cr_002_reports"];
+  try {
+    let tabela = null;
+    for (const nome of candidatos) {
+      try {
+        await query(`SELECT 1 FROM ${nome} LIMIT 1`);
+        tabela = nome;
+        break;
+      } catch (_) { /* tenta o próximo nome */ }
+    }
+    if (!tabela) {
+      res.json({ ok: true, origem: "dsql", tabela: null, itens: [] });
+      return;
+    }
+
+    let colunas = [];
+    try {
+      const c = await query(
+        `SELECT column_name FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = $1`,
+        [tabela]
+      );
+      colunas = c.rows.map((r) => String(r.column_name));
+    } catch (_) { /* SELECT * sem filtro de data */ }
+
+    const dataCol = ["data_ref", "data", "date", "event_date", "dia"]
+      .find((c) => colunas.includes(c));
+    const de = String(req.query.de || "");
+    const ate = String(req.query.ate || "");
+    const cond = [];
+    const par = [];
+    if (dataCol && ISO.test(de)) {
+      par.push(de);
+      cond.push(`${dataCol}::text >= $${par.length}`);
+    }
+    if (dataCol && ISO.test(ate)) {
+      par.push(ate);
+      cond.push(`${dataCol}::text <= $${par.length}`);
+    }
+
+    const r = await query(
+      `SELECT * FROM ${tabela}${cond.length ? ` WHERE ${cond.join(" AND ")}` : ""} LIMIT 8000`,
+      par
+    );
+    res.json({ ok: true, origem: "dsql", tabela, itens: r.rows });
   } catch (err) { erro(res, err); }
 });
 
