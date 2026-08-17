@@ -247,10 +247,12 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 
 
 <script src="../assets/js/loading.js?v=20260718d"></script>
-<script type="module" src="../assets/js/auth.js?v=20260720a"></script>
+<script type="module" src="../assets/js/auth.js?v=20260817q"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 <link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260720y">
 <link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260720y">
+<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260817w">
+<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260817w">
 </head>
 <body data-require-perfis="Administrador,Supervisor,Analista">
 <div class="body-bg-wall" aria-hidden="true"></div>
@@ -349,6 +351,17 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
             </div>
             <div class="card-desc">Diagnóstico por ponto de controle: quanto antecipar ou atrasar cada horário programado, quanto isso melhora a pontualidade e quais casos não se resolvem com tabela.</div>
             <span class="card-btn">Abrir diagnóstico</span>
+        </a>
+
+        <a href="incidentes-cad.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes">
+            <div class="card-top">
+                <div class="card-figure">
+                    <svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16v-5"/><path d="M12 16V8"/><path d="M16 16v-7"/><path d="M20 16v-3"/></svg>
+                </div>
+                <div class="card-title">Incidentes CAD</div>
+            </div>
+            <div class="card-desc">Dashboard do relatório 002 do Clever (CAD): indicadores, gráficos, filtros e exportação CSV.</div>
+            <span class="card-btn">Abrir relatório</span>
         </a>
     </div>
 </main>

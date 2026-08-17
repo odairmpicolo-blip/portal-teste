@@ -46,6 +46,16 @@ const AGG = `
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
+/** 0=domingo … 6=sábado (calendário da data_ref, sem fuso). */
+function condTipoDia(req) {
+  const t = String(req.query.tipoDia || "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (t === "uteis") return "EXTRACT(DOW FROM data_ref) BETWEEN 1 AND 5";
+  if (t === "sabado") return "EXTRACT(DOW FROM data_ref) = 6";
+  if (t === "domingo") return "EXTRACT(DOW FROM data_ref) = 0";
+  return "";
+}
+
 /* Uma varredura do histórico inteiro leva ~32 s e o API Gateway corta em 30. Mas o
    trabalho é divisível: faixas de datas são disjuntas, então quatro consultas menores
    em paralelo terminam em ~8 s e depois somamos os contadores aqui. Medido: 31 dias
@@ -72,7 +82,7 @@ function faixas(req) {
   return pedacos;
 }
 
-const SOMAVEIS = ["total", "noHorario", "adiantado", "atrasado", "divergente", "somaDif", "semDif"];
+const SOMAVEIS = ["total", "noHorario", "adiantado", "atrasado", "divergente", "somaDif", "semDif", "n"];
 
 /** Soma as linhas das faixas, agrupando pelas colunas-chave. */
 function juntar(listas, chaves) {
@@ -121,6 +131,8 @@ function base(req, colunas = []) {
   if (req.query.sentido) add("direcao = ?", String(req.query.sentido));
   if (req.query.garagem) add("garagem = ?", String(req.query.garagem));
   if (req.query.ponto) add("ponto_de_controle = ?", String(req.query.ponto));
+  const tipoDia = condTipoDia(req);
+  if (tipoDia) cond.push(tipoDia);
 
   const where = cond.length ? `WHERE ${cond.join(" AND ")}` : "";
   const extras = colunas.length ? colunas.join(", ") + "," : "";
@@ -177,6 +189,8 @@ function filtroAgregado(req, comLinha) {
   if (ISO.test(ate)) add("data_ref <= ?::date", ate);
   if (comLinha && req.query.linha) add("linha = ?", String(req.query.linha));
   if (comLinha && req.query.sentido) add("direcao = ?", String(req.query.sentido));
+  const tipoDia = condTipoDia(req);
+  if (tipoDia) cond.push(tipoDia);
 
   return { where: cond.length ? `WHERE ${cond.join(" AND ")}` : "", par };
 }
@@ -391,6 +405,8 @@ router.get("/icv", requireFirebaseUser, async (req, res) => {
       const v = String(req.query[campo] || "");
       if (ISO.test(v)) { par.push(v); cond.push(sql.replace("?", `$${par.length}`)); }
     }
+    const tipoDia = condTipoDia(req);
+    if (tipoDia) cond.push(tipoDia);
     const r = await query(
       `SELECT data_ref::text AS data,
               ${numero("icv")}              AS icv,
@@ -441,6 +457,8 @@ router.get("/ipv", requireFirebaseUser, async (req, res) => {
       const v = String(req.query[campo] || "");
       if (ISO.test(v)) { par.push(v); cond.push(sql.replace("?", `$${par.length}`)); }
     }
+    const tipoDia = condTipoDia(req);
+    if (tipoDia) cond.push(tipoDia);
     const r = await query(
       `SELECT data_ref::text AS data,
               ${numero(f.ipv)}       AS ipv,
@@ -452,6 +470,228 @@ router.get("/ipv", requireFirebaseUser, async (req, res) => {
       par
     );
     res.json({ ok: true, origem: "dsql", fonte: chave, itens: r.rows });
+  } catch (err) { erro(res, err); }
+});
+
+/* Histograma compacto para o diagnóstico de ajustes: um bin por
+   (linha, sentido, ponto, programado, desvio). Só para janelas de até 90 dias —
+   o histórico inteiro estoura o gateway. A página pinta o JSON e só pede isto
+   quando o recorte cabe. */
+router.get("/histograma", requireFirebaseUser, async (req, res) => {
+  const de = String(req.query.de || "");
+  const ate = String(req.query.ate || "");
+  if (!ISO.test(de) || !ISO.test(ate)) {
+    res.json({ ok: true, periodoLongo: true, itens: [] });
+    return;
+  }
+  const nDias = (dia(ate) - dia(de)) / 86400000 + 1;
+  if (nDias > 90) {
+    res.json({ ok: true, periodoLongo: true, itens: [] });
+    return;
+  }
+  try {
+    const itens = await consultar(
+      req,
+      ["linha", "direcao", "ponto_de_controle", "btrim(programado) AS programado"],
+      (sql) => `SELECT linha, direcao AS sentido, ponto_de_controle AS ponto, programado,
+                       m::int AS desvio, count(*)::int AS n
+                FROM (${sql}) t
+                WHERE m BETWEEN -90 AND 90
+                GROUP BY linha, direcao, ponto_de_controle, programado, m`,
+      ["linha", "sentido", "ponto", "programado", "desvio"]
+    );
+    res.json({ ok: true, origem: "dsql", itens });
+  } catch (err) { erro(res, err); }
+});
+
+function cadValor(v, profundidade = 0) {
+  if (v == null) return v;
+  if (typeof v === "bigint") return Number(v);
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === "string") return v.length > 4000 ? `${v.slice(0, 4000)}…` : v;
+  if (Buffer.isBuffer(v)) return undefined;
+  if (Array.isArray(v)) {
+    if (profundidade > 2) return v.slice(0, 20).map(String);
+    return v.slice(0, 80).map((x) => cadValor(x, profundidade + 1));
+  }
+  if (typeof v === "object") {
+    if (profundidade > 3) return undefined;
+    const o = {};
+    for (const [k, val] of Object.entries(v)) {
+      if (/html|xml|foto|image|blob|bytea/i.test(k)) continue;
+      const n = cadValor(val, profundidade + 1);
+      if (n !== undefined) o[k] = n;
+    }
+    return o;
+  }
+  return v;
+}
+
+function cadLinha(row) {
+  if (!row || typeof row !== "object") return row;
+  let extra = row.payload;
+  if (typeof extra === "string") {
+    try { extra = JSON.parse(extra); } catch (_) { extra = null; }
+  }
+  const merged = extra && typeof extra === "object" && !Array.isArray(extra)
+    ? { ...row, ...extra }
+    : { ...row };
+  delete merged.payload;
+  return cadValor(merged);
+}
+
+function citarColuna(nome) {
+  const n = String(nome || "");
+  if (/^[a-z_][a-z0-9_]*$/i.test(n)) return n;
+  return `"${n.replace(/"/g, "")}"`;
+}
+
+function isoCad(v) {
+  if (v == null || v === "") return "";
+  if (v instanceof Date && !Number.isNaN(v.getTime())) return v.toISOString().slice(0, 10);
+  const t = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t.slice(0, 10);
+  const br = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (br) return `${br[3]}-${br[2].padStart(2, "0")}-${br[1].padStart(2, "0")}`;
+  return "";
+}
+
+function dataDaLinhaCad(row, dataCol) {
+  const keys = [dataCol, "data_ref", "data", "dt", "date", "dt_incidente", "data_hora", "inicio"].filter(Boolean);
+  for (const k of keys) {
+    if (row?.[k] != null) {
+      const iso = isoCad(row[k]);
+      if (iso) return iso;
+    }
+    const found = Object.keys(row || {}).find((x) => x.toLowerCase() === String(k).toLowerCase());
+    if (found) {
+      const iso = isoCad(row[found]);
+      if (iso) return iso;
+    }
+  }
+  return "";
+}
+
+/* Relatório Clever 002 — cr_0002 em páginas (OFFSET). Sem teto de 5000.
+   O cliente junta as páginas até count(*). */
+router.get("/cad", requireFirebaseUser, async (req, res) => {
+  try {
+    const pagina = Math.max(1, Number(req.query.pagina) || 1);
+    const limite = Math.min(Math.max(Number(req.query.limite) || 800, 50), 2000);
+    const offset = (pagina - 1) * limite;
+
+    let colunas = [];
+    try {
+      const c = await query(
+        `SELECT column_name, data_type
+         FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = 'cr_0002'
+         ORDER BY ordinal_position`
+      );
+      colunas = c.rows
+        .filter((r) => !/bytea|xml/i.test(r.data_type || "") && !/html|foto|image|blob/i.test(r.column_name))
+        .map((r) => r.column_name);
+    } catch (_) { /* SELECT * */ }
+
+    const dataCol = colunas.find((n) => /^(data_ref|data|dt|date)$/i.test(n))
+      || colunas.find((n) => /data|date|dia/i.test(n));
+    const idCol = colunas.find((n) => /^(id|id_incidente|pk)$/i.test(n));
+    const lista = colunas.length ? colunas.map(citarColuna).join(", ") : "*";
+    const ordem = idCol
+      ? ` ORDER BY ${citarColuna(idCol)}`
+      : (dataCol ? ` ORDER BY ${citarColuna(dataCol)} DESC` : " ORDER BY 1");
+
+    let totalTabela = 0;
+    try {
+      const c = await query(`SELECT count(*)::int AS n FROM cr_0002`);
+      totalTabela = Number(c.rows?.[0]?.n || 0);
+    } catch (_) { /* segue no SELECT */ }
+
+    let r;
+    try {
+      r = await query(`SELECT ${lista} FROM cr_0002${ordem} LIMIT ${limite} OFFSET ${offset}`);
+    } catch (_) {
+      r = await query(`SELECT ${lista} FROM cr_0002 LIMIT ${limite} OFFSET ${offset}`);
+    }
+    const itens = (r.rows || []).map(cadLinha);
+    if (!colunas.length && itens[0]) colunas = Object.keys(itens[0]);
+    if (!totalTabela) totalTabela = offset + itens.length + (itens.length === limite ? 1 : 0);
+
+    let cargas = {};
+    try {
+      const c = await query(
+        `SELECT min(data_ref)::text AS "primeiroDia",
+                max(data_ref)::text AS "ultimoDia",
+                count(*)::int AS dias,
+                coalesce(sum(linhas), 0) AS registros
+         FROM cr_0002_cargas`
+      );
+      cargas = c.rows[0] || {};
+    } catch (_) { /* cargas pode ter outro desenho */ }
+
+    res.json({
+      ok: true,
+      origem: "dsql",
+      tabela: "cr_0002",
+      colunas,
+      meta: {
+        total: totalTabela,
+        totalTabela,
+        pagina,
+        limite,
+        recorte: itens.length,
+        temMais: offset + itens.length < totalTabela,
+        janela: "tabela",
+        ...cargas
+      },
+      itens
+    });
+  } catch (err) { erro(res, err); }
+});
+
+async function primeiraTabela(nomes) {
+  for (const nome of nomes) {
+    try {
+      await query(`SELECT 1 FROM ${nome} LIMIT 1`);
+      return nome;
+    } catch (_) { /* próximo nome */ }
+  }
+  return null;
+}
+
+function campo(row, chaves) {
+  for (const k of chaves) {
+    if (row[k] != null && String(row[k]).trim() !== "") return row[k];
+  }
+  return "";
+}
+
+/* Relatório Clever 001 — ranking de motoristas. Não usa cr_0108 nem o 002. */
+router.get("/ranking-001", requireFirebaseUser, async (req, res) => {
+  try {
+    const tabela = await primeiraTabela(["cr_001", "cr_0001", "cr_001_reports"]);
+    if (!tabela) {
+      res.json({ ok: true, origem: "dsql", tabela: null, itens: [] });
+      return;
+    }
+    const r = await query(`SELECT * FROM ${tabela} LIMIT 20000`);
+    const itens = r.rows.map((row) => {
+      const data = String(campo(row, ["mes", "month", "data_ref", "data", "date"]));
+      const mes = /^\d{4}-\d{2}/.test(data) ? data.slice(0, 7) : data;
+      return {
+        mes,
+        matricula: String(campo(row, ["matricula", "badge", "operator_id", "id"])),
+        nome: String(campo(row, ["nome", "name", "operador", "operator"])),
+        noHorario: Number(campo(row, ["noHorario", "no_horario", "on_time"]) || 0),
+        adiantado: Number(campo(row, ["adiantado", "early"]) || 0),
+        atrasado: Number(campo(row, ["atrasado", "late"]) || 0),
+        divergente: Number(campo(row, ["divergente", "divergent"]) || 0),
+        total: Number(campo(row, ["total", "trips", "passagens"]) || 0),
+        somaDif: Number(campo(row, ["somaDif", "soma_dif", "sum_diff"]) || 0),
+        semDif: Number(campo(row, ["semDif", "sem_dif"]) || 0)
+      };
+    }).filter((x) => x.mes && x.matricula);
+    res.json({ ok: true, origem: "dsql", tabela, itens });
   } catch (err) { erro(res, err); }
 });
 

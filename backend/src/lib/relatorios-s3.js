@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config } from "../config.js";
 
@@ -15,7 +15,7 @@ export function relatoriosS3Configurado() {
   return Boolean(String(config.relatoriosS3Bucket || "").trim());
 }
 
-export function montarChaveRelatorio({ userEmail, dataIso, filename }) {
+export function montarChaveRelatorio({ userEmail, dataIso, filename, uniqueId = "" }) {
   const email = String(userEmail || "")
     .trim()
     .toLowerCase()
@@ -26,7 +26,9 @@ export function montarChaveRelatorio({ userEmail, dataIso, filename }) {
     .replace(/\s+/g, "_")
     .slice(0, 180);
   const final = /\.pdf$/i.test(nome) ? nome : `${nome}.pdf`;
-  return `relatorios/${email}/${data}/${final}`;
+  const id = String(uniqueId || "").replace(/[^a-zA-Z0-9-]+/g, "").slice(0, 12);
+  const prefixo = id ? `${id}-` : "";
+  return `relatorios/${email}/${data}/${prefixo}${final}`;
 }
 
 export async function enviarPdfRelatorioS3({ key, buffer, contentType = "application/pdf", metadata = {} }) {
@@ -71,6 +73,34 @@ export async function enviarPdfRelatorioS3({ key, buffer, contentType = "applica
   };
 }
 
+export async function urlPresignPutRelatorioS3(key, expiresIn = 60 * 15) {
+  const bucket = String(config.relatoriosS3Bucket || "").trim();
+  if (!bucket) throw new Error("RELATORIOS_S3_BUCKET não configurado");
+  if (!key) throw new Error("Chave S3 inválida");
+  return getSignedUrl(
+    getClient(),
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: "application/pdf"
+    }),
+    { expiresIn }
+  );
+}
+
+export async function relatorioExisteNoS3(key) {
+  const bucket = String(config.relatoriosS3Bucket || "").trim();
+  if (!bucket || !key) return false;
+  try {
+    await getClient().send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return true;
+  } catch (err) {
+    const status = err?.$metadata?.httpStatusCode;
+    if (status === 404 || err?.name === "NotFound") return false;
+    throw err;
+  }
+}
+
 export async function urlAssinadaRelatorioS3(key, expiresIn = 60 * 30) {
   const bucket = String(config.relatoriosS3Bucket || "").trim();
   if (!bucket) throw new Error("RELATORIOS_S3_BUCKET não configurado");
@@ -80,4 +110,35 @@ export async function urlAssinadaRelatorioS3(key, expiresIn = 60 * 30) {
     new GetObjectCommand({ Bucket: bucket, Key: key }),
     { expiresIn }
   );
+}
+
+export function parseChaveRelatorio(key) {
+  const m = String(key || "").match(/^relatorios\/([^/]+)\/(\d{4}-\d{2}-\d{2})\/(.+)$/);
+  if (!m) return null;
+  return { userEmail: decodeURIComponent(m[1]), dataIso: m[2], filename: m[3], key };
+}
+
+export async function listarPdfsRelatorioS3() {
+  const bucket = String(config.relatoriosS3Bucket || "").trim();
+  if (!bucket) return [];
+  const itens = [];
+  let token;
+  do {
+    const res = await getClient().send(new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: "relatorios/",
+      ContinuationToken: token
+    }));
+    for (const obj of res.Contents || []) {
+      const parsed = parseChaveRelatorio(obj.Key);
+      if (!parsed) continue;
+      itens.push({
+        ...parsed,
+        size: obj.Size || 0,
+        lastModified: obj.LastModified || null
+      });
+    }
+    token = res.IsTruncated ? res.NextContinuationToken : undefined;
+  } while (token);
+  return itens;
 }

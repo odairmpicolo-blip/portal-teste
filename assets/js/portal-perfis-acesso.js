@@ -47,6 +47,7 @@ export const MODULOS_PORTAL = [
   { id: "autuacoes", label: "Autuações", grupo: "Indicadores" },
   { id: "evidencias", label: "Evidências", grupo: "Indicadores" },
   { id: "incidentes", label: "Incidentes", grupo: "Indicadores" },
+  { id: "incidentes-cad", label: "Incidentes CAD (relatório 002)", grupo: "Indicadores" },
   { id: "incidentes-analise", label: "Analytics de Incidentes", grupo: "Indicadores" },
   { id: "liberacao-dashboard", label: "Liberação (dashboard)", grupo: "Indicadores" },
   { id: "comparacao-km", label: "Comparação de KM", grupo: "Indicadores" },
@@ -61,8 +62,6 @@ export const MODULOS_PORTAL = [
   { id: "side-globus", label: "Menu: Globus", grupo: "Menu lateral" },
   { id: "side-mobilibus", label: "Menu: Mobilibus", grupo: "Menu lateral" },
   { id: "gerenciar-usuarios", label: "Menu: Gerenciar Usuários", grupo: "Menu lateral" },
-  { id: "side-chat", label: "Menu: Chat", grupo: "Menu lateral" },
-  { id: "chat-historico", label: "Menu: Histórico de Chat", grupo: "Menu lateral" },
   { id: "side-ponto", label: "Menu: Ponto Eletrônico", grupo: "Menu lateral" },
   { id: "side-reconhecimento", label: "Menu: Reconhecimento Facial", grupo: "Menu lateral" },
   { id: "side-linea", label: "Menu: Linea", grupo: "Menu lateral" },
@@ -145,22 +144,34 @@ function aplicarEstadoGlobal(estado) {
   return estado;
 }
 
+async function buscarAcessosRede() {
+  const snap = await getDoc(doc(db, ...DOC_PATH));
+  if (!snap.exists()) return null;
+  const estado = normalizarEstado(snap.data() || {});
+  gravarCache(estado);
+  aplicarEstadoGlobal(estado);
+  window.dispatchEvent(new CustomEvent("portal:acessos-atualizados"));
+  return estado;
+}
+
 export async function carregarAcessosPerfis() {
   const cache = lerCache();
   if (cache) aplicarEstadoGlobal(cache);
 
+  if (cache) {
+    buscarAcessosRede().catch((err) => {
+      console.warn("Não foi possível atualizar acessos de perfis:", err);
+    });
+    return cache;
+  }
+
   try {
-    const snap = await getDoc(doc(db, ...DOC_PATH));
-    if (snap.exists()) {
-      const estado = normalizarEstado(snap.data() || {});
-      gravarCache(estado);
-      return aplicarEstadoGlobal(estado);
-    }
+    const estado = await buscarAcessosRede();
+    if (estado) return estado;
   } catch (err) {
     console.warn("Não foi possível carregar acessos de perfis:", err);
   }
 
-  if (cache) return cache;
   const defaults = estadoVazio();
   return aplicarEstadoGlobal(defaults);
 }
@@ -188,10 +199,21 @@ export function listaModulosDePerfil(perfil, mapa) {
   return lista;
 }
 
+const ALIASES_MODULO = {
+  "incidentes-cad": ["incidentes-cad", "incidentes", "pontualidadeincidentes"],
+};
+
+function listaTemModulo(lista, moduloId) {
+  if (!Array.isArray(lista) || !moduloId) return false;
+  if (lista.includes("*")) return true;
+  const ids = ALIASES_MODULO[moduloId] || [moduloId];
+  return ids.some((id) => lista.includes(id));
+}
+
 export function perfilTemModulo(perfil, moduloId, mapa) {
   const lista = listaModulosDePerfil(perfil, mapa);
   if (!lista || !moduloId) return null;
-  return lista.includes(moduloId) || lista.includes("*");
+  return listaTemModulo(lista, moduloId);
 }
 
 export function usuarioTemModulo(email, perfil, moduloId) {
@@ -201,8 +223,7 @@ export function usuarioTemModulo(email, perfil, moduloId) {
   if (usuarios && Object.prototype.hasOwnProperty.call(usuarios, emailKey)) {
     const lista = usuarios[emailKey];
     if (!Array.isArray(lista)) return null;
-    if (lista.includes("*")) return true;
-    return lista.includes(moduloId);
+    return listaTemModulo(lista, moduloId);
   }
   return perfilTemModulo(perfil, moduloId);
 }

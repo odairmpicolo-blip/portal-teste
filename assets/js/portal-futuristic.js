@@ -73,7 +73,16 @@
     const n = Array.isArray(lista) ? lista.length : 0;
     el.dataset.live = "1";
     el.textContent = String(n);
-    el.title = n === 1 ? "1 usuário logado agora" : n + " usuários logados agora";
+    el.title = n === 1 ? "1 usuário ativo agora" : n + " usuários ativos agora";
+  }
+
+  function iniciarKpiPresenca() {
+    if (!document.getElementById("ciopKpiUsuarios")) return;
+    import("./portal-presenca.js").then((m) => {
+      m.ouvirPresenca(atualizarKpiUsuariosLogados);
+    }).catch((err) => {
+      console.warn("Presença de usuários indisponível:", err);
+    });
   }
 
   var CLIMA_CACHE_KEY = "ciop_clima_londrina_v1";
@@ -506,6 +515,7 @@
     bindFlashSalvar();
     setInterval(atualizarCommandCenter, 1000);
     iniciarClimaCommandCenter();
+    iniciarKpiPresenca();
     window.addEventListener("portal:presenca", (ev) => {
       atualizarKpiUsuariosLogados(ev?.detail?.usuarios);
     });

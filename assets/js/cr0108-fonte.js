@@ -72,6 +72,19 @@ async function disponivel() {
 
 const dentro = (iso, p) => iso >= p.de && iso <= p.ate;
 
+function passaTipoDia(iso, tipo) {
+  const t = String(tipo || "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (!t || t === "todos") return true;
+  const d = new Date(iso + "T12:00:00").getDay();
+  if (t === "uteis") return d >= 1 && d <= 5;
+  if (t === "sabado") return d === 6;
+  if (t === "domingo") return d === 0;
+  return true;
+}
+
+const noRecorte = (iso, p) => dentro(iso, p) && passaTipoDia(iso, p.tipoDia);
+
 /** Meses tocados pelo período — o recorte possível quando a base é mensal. */
 function mesesDoPeriodo(p) {
   const meses = new Set();
@@ -114,7 +127,7 @@ async function serie(p) {
   const base = p.linha ? ESTATICO.porDiaLinha : ESTATICO.porDia;
   const mapa = new Map();
   base.forEach(r => {
-    if (!dentro(r.data, p)) return;
+    if (!noRecorte(r.data, p)) return;
     if (p.linha && r.linha !== p.linha) return;
     if (!mapa.has(r.data)) mapa.set(r.data, { data: r.data, ...zero() });
     acumular(mapa.get(r.data), r);
@@ -150,13 +163,14 @@ async function ranking(dim, p) {
 
   if (cfg.diario) {
     ESTATICO[cfg.base].forEach(r => {
-      if (!dentro(r.data, p)) return;
+      if (!noRecorte(r.data, p)) return;
       if (p.linha && r.linha !== p.linha) return;
       const k = r[cfg.campo];
       if (!mapa.has(k)) mapa.set(k, { chave: k, rotulo: k, extra: ESTATICO.meta.linhas[k] || "", ...zero() });
       acumular(mapa.get(k), r);
     });
   } else {
+    if (p.tipoDia) return { exato: false, itens: [] };
     const meses = mesesDoPeriodo(p);
     ESTATICO[cfg.base].forEach(r => {
       if (!meses.has(r.mes)) return;
@@ -181,11 +195,12 @@ async function hora(p) {
   const mapa = new Map();
   if (!p.linha && !p.sentido) {
     ESTATICO.porDiaHora.forEach(r => {
-      if (!dentro(r.data, p)) return;
+      if (!noRecorte(r.data, p)) return;
       if (!mapa.has(r.hora)) mapa.set(r.hora, { hora: r.hora, ...zero() });
       acumular(mapa.get(r.hora), r);
     });
   } else {
+    if (p.tipoDia) return [];
     const meses = mesesDoPeriodo(p);
     ESTATICO.porMesHoraLinha.forEach(r => {
       if (!meses.has(r.m)) return;
@@ -208,7 +223,7 @@ async function pontosDaLinha(linha, p) {
       divergente: +x.divergente, somaDif: +x.somaDif }));
   }
   const ctx = await serieDiariaLocal();
-  return window.CR0108Serie.pontosDaLinha(ctx, linha, p.sentido || "", p.de, p.ate);
+  return window.CR0108Serie.pontosDaLinha(ctx, linha, p.sentido || "", p.de, p.ate, p.tipoDia);
 }
 
 async function horariosDoPonto(linha, sentido, ponto, p) {
@@ -217,7 +232,7 @@ async function horariosDoPonto(linha, sentido, ponto, p) {
     if (!r.periodoLongo) return r.itens.map(x => avaliarNoNavegador(x));
   }
   const ctx = await serieDiariaLocal();
-  return window.CR0108Serie.horariosDoPonto(ctx, linha, sentido, ponto, p.de, p.ate);
+  return window.CR0108Serie.horariosDoPonto(ctx, linha, sentido, ponto, p.de, p.ate, 20, p.tipoDia);
 }
 
 /* O banco devolve o histograma de desvios; o melhor deslocamento (-20..+20) é
@@ -276,6 +291,204 @@ async function ipv(p) {
   return r.itens.map(x => ({ ...x, ipv: +x.ipv }));
 }
 
+async function operador(p) {
+  if (!(await disponivel())) return null;
+  const r = await chamar("/operador", p);
+  if (!r || r.periodoLongo || !r.itens) return null;
+  return r.itens.map(x => ({
+    mes: x.mes, matricula: x.matricula, nome: x.nome,
+    noHorario: +x.noHorario, adiantado: +x.adiantado, atrasado: +x.atrasado,
+    divergente: +x.divergente, total: +x.total, somaDif: +x.somaDif, semDif: +x.semDif || 0
+  }));
+}
+
+async function operadorLinha(p) {
+  if (!(await disponivel())) return null;
+  const r = await chamar("/operador-linha", p);
+  if (!r || r.periodoLongo || !r.itens) return null;
+  return r.itens;
+}
+
+function avaliaHist(cnt) {
+  let total = 0;
+  for (const n of Object.values(cnt)) total += n;
+  if (!total) return null;
+  const noHorario = (s) => {
+    let v = 0;
+    for (const [d, n] of Object.entries(cnt)) {
+      const x = Number(d) - s;
+      if (x >= -2 && x <= 6) v += n;
+    }
+    return v;
+  };
+  const atual = noHorario(0);
+  let melhor = atual, melhorS = 0;
+  for (let s = -20; s <= 20; s++) {
+    const v = noHorario(s);
+    if (v > melhor || (v === melhor && Math.abs(s) < Math.abs(melhorS))) {
+      melhor = v; melhorS = s;
+    }
+  }
+  const desvios = [];
+  Object.keys(cnt).sort((a, b) => Number(a) - Number(b)).forEach(d => {
+    for (let i = 0; i < cnt[d]; i++) desvios.push(Number(d));
+  });
+  const p10 = desvios[Math.floor(desvios.length * 0.10)];
+  const p90 = desvios[Math.floor(desvios.length * 0.90)];
+  const mediana = desvios[Math.floor(desvios.length / 2)];
+  return {
+    n: total,
+    pctAtual: Math.round(10000 * atual / total) / 100,
+    shift: melhorS,
+    pctPotencial: Math.round(10000 * melhor / total) / 100,
+    ganhoPct: Math.round(10000 * (melhor - atual) / total) / 100,
+    recuperadas: melhor - atual,
+    mediana, p10, p90, amplitude: p90 - p10
+  };
+}
+
+function hmShift(prog, shift) {
+  const m = String(prog || "").match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const mi = (((Number(m[1]) * 60 + Number(m[2]) + shift) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(mi / 60)).padStart(2, "0")}:${String(mi % 60).padStart(2, "0")}`;
+}
+
+/** Converte o histograma do banco no mesmo formato dos JSONs de ajustes. */
+function montarAjustes(bins, nomes = {}) {
+  const porHorario = new Map();
+  (bins || []).forEach(b => {
+    const k = [b.linha, b.sentido, b.ponto, b.programado].join("\u0001");
+    let cnt = porHorario.get(k);
+    if (!cnt) {
+      cnt = { linha: b.linha, sentido: b.sentido, ponto: b.ponto, programado: b.programado, cnt: {} };
+      porHorario.set(k, cnt);
+    }
+    cnt.cnt[String(b.desvio)] = (cnt.cnt[String(b.desvio)] || 0) + Number(b.n || 0);
+  });
+
+  const porPonto = new Map();
+  const porFaixa = new Map();
+  const horarios = [];
+  porHorario.forEach(h => {
+    const a = avaliaHist(h.cnt);
+    if (!a) return;
+    const pk = [h.linha, h.sentido, h.ponto].join("\u0001");
+    if (!porPonto.has(pk)) {
+      porPonto.set(pk, { linha: h.linha, sentido: h.sentido, ponto: h.ponto, cnt: {} });
+    }
+    const pto = porPonto.get(pk);
+    Object.entries(h.cnt).forEach(([d, n]) => { pto.cnt[d] = (pto.cnt[d] || 0) + n; });
+
+    const hora = /^\d{2}:/.test(h.programado) ? h.programado.slice(0, 2) : "??";
+    const fk = pk + "\u0001" + hora;
+    if (!porFaixa.has(fk)) porFaixa.set(fk, { hora, cnt: {} });
+    const fx = porFaixa.get(fk);
+    Object.entries(h.cnt).forEach(([d, n]) => { fx.cnt[d] = (fx.cnt[d] || 0) + n; });
+
+    if (!/^\d{1,2}:\d{2}$/.test(h.programado) || a.n < 20) return;
+    if (a.shift === 0 || a.recuperadas < 5) return;
+    horarios.push({
+      linha: h.linha, sentido: h.sentido, ponto: h.ponto,
+      programado: h.programado, sugerido: hmShift(h.programado, a.shift),
+      ...a
+    });
+  });
+
+  const pontos = [];
+  porPonto.forEach((p, pk) => {
+    const a = avaliaHist(p.cnt);
+    if (!a || a.n < 60) return;
+    const faixas = [];
+    porFaixa.forEach((f, fk) => {
+      if (!fk.startsWith(pk + "\u0001")) return;
+      const af = avaliaHist(f.cnt);
+      if (!af || af.n < 20) return;
+      faixas.push({ hora: f.hora, ...af });
+    });
+    faixas.sort((x, y) => y.recuperadas - x.recuperadas);
+    pontos.push({
+      linha: p.linha, linhaNome: nomes[p.linha] || "",
+      sentido: p.sentido, ponto: p.ponto, ...a,
+      faixas: faixas.slice(0, 5),
+      faixasHomogeneas: faixas.length ? (new Set(faixas.map(f => f.shift)).size <= 2) : null
+    });
+  });
+  pontos.sort((a, b) => b.recuperadas - a.recuperadas);
+  horarios.sort((a, b) => b.recuperadas - a.recuperadas);
+  return { pontos, horarios };
+}
+
+async function histograma(p) {
+  if (!(await disponivel())) return null;
+  const r = await chamar("/histograma", p);
+  if (!r || r.periodoLongo || !r.itens) return null;
+  return montarAjustes(r.itens, p.nomes || {});
+}
+
+function mesAtualCad() {
+  const br = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const [y, m] = br.split("-");
+  const ultimo = new Date(Number(y), Number(m), 0).getDate();
+  return {
+    de: `${y}-${m}-01`,
+    ate: `${y}-${m}-${String(ultimo).padStart(2, "0")}`
+  };
+}
+
+async function cad(p) {
+  try {
+    if (SO_ARQUIVO) return { ok: false, erro: "modo arquivo", itens: [] };
+    const cfg = await import("./portal-aws-config.js");
+    if (typeof cfg.initPortalAwsRuntime === "function") await cfg.initPortalAwsRuntime();
+    if (!cfg.awsApiEnabled()) return { ok: false, erro: "API AWS não configurada", itens: [] };
+    const limite = Number(p?.limite) || 800;
+    const base = { todos: "1", ...(p || {}) };
+    delete base.pagina;
+    delete base.limite;
+    let pagina = 1;
+    let itens = [];
+    let colunas = [];
+    let meta = {};
+    let prevSig = "";
+    while (pagina <= 200) {
+      const r = await chamar("/cad", { ...base, pagina, limite });
+      if (!r) return { ok: false, erro: "resposta vazia da API", itens };
+      if (r.ok === false) return itens.length ? { ok: true, origem: "dsql", tabela: "cr_0002", itens, colunas, meta } : r;
+      colunas = r.colunas && r.colunas.length ? r.colunas : colunas;
+      meta = r.meta || meta;
+      const lote = Array.isArray(r.itens) ? r.itens : [];
+      const sig = JSON.stringify(lote[0] || null) + "|" + lote.length;
+      if (pagina > 1 && sig && sig === prevSig) break;
+      prevSig = sig;
+      itens = itens.concat(lote);
+      const total = Number(meta.totalTabela || meta.total || 0);
+      if (!lote.length) break;
+      if (total && itens.length >= total) break;
+      if (lote.length < limite) break;
+      if (meta.temMais === false) break;
+      pagina += 1;
+    }
+    return {
+      ok: true,
+      origem: "dsql",
+      tabela: "cr_0002",
+      colunas,
+      meta: { ...meta, total: Number(meta.totalTabela || meta.total || itens.length), carregados: itens.length, janela: "tabela" },
+      itens
+    };
+  } catch (err) {
+    return { ok: false, erro: err.message || String(err), itens: [] };
+  }
+}
+
+async function ranking001(p) {
+  if (!(await disponivel())) return null;
+  const r = await chamar("/ranking-001", p);
+  if (!r || !r.ok) return null;
+  return r;
+}
+
 /* Período e totais segundo o banco. A página usa isto para corrigir o cabeçalho, o
    selo de atualização e os limites dos campos de data, que sem isso ficam presos no
    último dia do meta.json. */
@@ -287,6 +500,7 @@ async function meta() {
 
 global.Fonte = {
     usarEstaticos, usarSoArquivo, origem, disponivel,
-    meta, serie, ranking, hora, pontosDaLinha, horariosDoPonto, icv, ipv
+    meta, serie, ranking, hora, pontosDaLinha, horariosDoPonto, icv, ipv,
+    operador, operadorLinha, histograma, cad, ranking001, montarAjustes
 };
 })(window);
