@@ -125,26 +125,31 @@ body:has(#portalAbas) .toolbar {
   padding-bottom: 8px;
 }
 
-/* —— Títulos de módulo: texto no lugar do PNG —— */
-h1[class*="title-art"] {
+/* —— Títulos de módulo: tipografia real —— */
+h1[class*="title-art"],
+h1.header-title,
+.header .subtitle {
   font-family: var(--font) !important;
+}
+h1[class*="title-art"],
+h1.header-title {
   font-size: clamp(1.05rem, 2vw, 1.35rem) !important;
   font-weight: 800 !important;
   letter-spacing: -0.03em !important;
   color: var(--azul) !important;
   line-height: 1.15 !important;
   text-align: center;
+  margin: 0;
 }
 h1[class*="title-art"] img {
   display: none !important;
 }
 h1[class*="title-art"][aria-label]::after {
-  content: attr(aria-label);
-  display: block;
-  max-width: min(42ch, 90vw);
-  margin-inline: auto;
+  content: none !important;
+  display: none !important;
 }
-html.dk-dark h1[class*="title-art"] {
+html.dk-dark h1[class*="title-art"],
+html.dk-dark h1.header-title {
   color: #f4f6f8 !important;
 }
 
@@ -318,3 +323,64 @@ html.dk-dark body:has(.body-bg-wall) .panel {
   background: var(--surface) !important;
   border-color: var(--borda) !important;
 }
+
+/* —— Próximo passo: fundo de produto, não wallpaper —— */
+body:has(.header):not(:has(#portalAbas)) .body-bg-wall,
+body:has(.header):not(:has(#portalAbas)) .body-bg-stain {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+body:has(.header):not(:has(#portalAbas)):not(.login-v2) {
+  background: var(--fundo) !important;
+}
+
+body:has(.header):not(:has(#portalAbas)) .btn-portal {
+  background: var(--azul) !important;
+  color: #fff !important;
+  border: 0 !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+body:has(.header):not(:has(#portalAbas)) .btn-portal:hover {
+  background: var(--azul-hover) !important;
+  transform: none;
+}
+
+body:has(.portal-filters-bar) .filter-group,
+body:has(.filters-panel) .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+body:has(.portal-filters-bar) .filter-group label,
+body:has(.filters-panel) .filter-group label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+body:has(.kpi-card) .kpi-title {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+body:has(.kpi-card) .kpi-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em;
+  color: var(--texto) !important;
+}
+
+/* Cor só para estado operacional */
+.kpi-card.highlight .kpi-value,
+.tv-hero-ok,
+.chip-ok,
+.status-ok { color: var(--teal) !important; }
+.status-warn, .chip-warn { color: var(--laranja) !important; }
+.status-bad, .chip-bad { color: #dc2626 !important; }
