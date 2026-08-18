@@ -257,6 +257,16 @@ body:has(.header):not(:has(#portalAbas)):not(.login-v2) .chart-card .chart-wrap 
   flex: 0 0 auto;
 }
 
+body:has(#portalAbas) .portal-brand-lockup .portal-home-tcgl {
+  display: inline-flex !important;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
 .logo-tcgl-link .logo-tcgl,
 .logo-tcgl-link .logo-right,
 .portal-brand-lockup .logo-tcgl {
@@ -266,6 +276,12 @@ body:has(.header):not(:has(#portalAbas)):not(.login-v2) .chart-card .chart-wrap 
   object-fit: contain;
   background: transparent !important;
   filter: drop-shadow(0 4px 6px rgba(6, 36, 92, 0.28));
+}
+
+body:has(#portalAbas) .portal-brand-lockup .portal-home-tcgl img.logo-tcgl {
+  height: 92px !important;
+  max-height: none !important;
+  filter: none;
 }
 
 /* HUD 3D nos cantos do casco */
