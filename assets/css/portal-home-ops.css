@@ -536,7 +536,7 @@ body:has(#portalAbas) .grid {
 body:has(#portalAbas) .grid .card {
   width: auto !important;
   flex: none !important;
-  min-height: 114px !important;
+  min-height: 104px !important;
   background: var(--home-glass) !important;
   backdrop-filter: var(--home-glass-blur) !important;
   -webkit-backdrop-filter: var(--home-glass-blur) !important;
