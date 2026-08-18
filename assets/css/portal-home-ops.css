@@ -91,9 +91,9 @@ body:has(#portalAbas) .hero-pro-saudacao-label {
 }
 
 body:has(#portalAbas) .hero-pro-nome {
-  font-size: clamp(0.82rem, 1.4vw, 0.95rem) !important;
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem) !important;
   font-weight: 800 !important;
-  line-height: 1.05 !important;
+  line-height: 1.1 !important;
 }
 
 body:has(#portalAbas) .hero-pro-campanha-meta:not([hidden]),
