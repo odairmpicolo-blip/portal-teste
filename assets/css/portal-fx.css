@@ -1,18 +1,18 @@
 /* Portal CIOP — linhas 3D, vidro e caixas de título. */
 
 :root {
-  --home-glass: rgba(248, 250, 252, 0.28);
+  --home-glass: rgba(248, 250, 252, 0.40);
   --home-glass-border: rgba(255, 255, 255, 0.55);
   --home-glass-blur: blur(28px) saturate(180%);
   --home-edge: linear-gradient(135deg, #06245c 0%, #1d4ed8 48%, #ff6b00 100%);
-  --home-glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(226, 232, 240, 0.22));
+  --home-glass-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(226, 232, 240, 0.34));
 }
 
 html.dk-dark {
-  --home-glass: rgba(16, 20, 26, 0.22);
+  --home-glass: rgba(16, 20, 26, 0.34);
   --home-glass-border: rgba(255, 255, 255, 0.22);
   --home-edge: linear-gradient(135deg, rgba(125, 211, 252, 0.85) 0%, rgba(148, 163, 184, 0.28) 50%, rgba(255, 107, 0, 0.7) 100%);
-  --home-glass-fill: linear-gradient(165deg, rgba(44, 50, 60, 0.28) 0%, rgba(12, 16, 22, 0.32) 100%);
+  --home-glass-fill: linear-gradient(165deg, rgba(44, 50, 60, 0.40) 0%, rgba(12, 16, 22, 0.44) 100%);
 }
 
 .portal-fx-3d {
