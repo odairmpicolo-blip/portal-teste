@@ -1,13 +1,13 @@
 /* Home: comando sobre avisos, vidro cinza, sem acesso rápido. */
 
 body:has(#portalAbas) {
-  --home-glass: rgba(248, 250, 252, 0.28);
+  --home-glass: rgba(248, 250, 252, 0.40);
   --home-glass-border: rgba(255, 255, 255, 0.55);
   --home-glass-blur: blur(28px) saturate(180%);
 }
 
 html.dk-dark body:has(#portalAbas) {
-  --home-glass: rgba(16, 20, 26, 0.22);
+  --home-glass: rgba(16, 20, 26, 0.34);
   --home-glass-border: rgba(255, 255, 255, 0.22);
   --home-glass-blur: blur(28px) saturate(180%);
 }
