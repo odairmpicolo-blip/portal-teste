@@ -76,7 +76,7 @@ body:has(#portalAbas) .grid .card-figure svg {
 }
 
 body:has(#portalAbas) .grid .card-btn {
-  display: flex !important;
+  display: none !important;
 }
 
 body:has(#portalAbas) .grid .card:hover,
