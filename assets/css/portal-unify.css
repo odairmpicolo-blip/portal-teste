@@ -98,7 +98,7 @@ html.dk-dark body:has(#portalAbas) .grid .card-figure {
 
 /* —— Home: header e comando mais densos —— */
 body:has(#portalAbas) .header.header-v2 {
-  min-height: 56px;
+  min-height: 72px;
   padding-top: 8px !important;
   padding-bottom: 8px !important;
 }

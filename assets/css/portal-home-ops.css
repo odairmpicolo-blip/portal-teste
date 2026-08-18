@@ -30,12 +30,15 @@ body:has(#portalAbas) .header::after {
 /* Saudação: cartão compacto, mesma superfície dos módulos. */
 body:has(#portalAbas) .header-hero.header-hero-pro {
   width: max-content !important;
-  max-width: min(52vw, 480px) !important;
+  max-width: min(68vw, 680px) !important;
   justify-self: center !important;
   padding: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   border: 0 !important;
+  position: static !important;
+  transform: none !important;
+  z-index: 1;
 }
 
 body:has(#portalAbas) .hero-pro-aura {
@@ -72,7 +75,7 @@ body:has(#portalAbas) .hero-pro-panel {
 
 body:has(#portalAbas) .hero-pro-copy {
   flex: 0 1 auto !important;
-  padding: 4px 12px 4px 12px !important;
+  padding: 8px 22px !important;
 }
 
 body:has(#portalAbas) .hero-pro-welcome {
@@ -124,14 +127,6 @@ html.dk-dark body:has(#portalAbas) .hero-pro-panel {
 }
 
 @media (min-width: 901px) {
-  body:has(#portalAbas) .header-hero.header-hero-pro {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    z-index: 4;
-  }
-
   body:has(#portalAbas) .hero-pro-panel {
     width: max-content !important;
     max-width: 100% !important;
@@ -143,7 +138,7 @@ html.dk-dark body:has(#portalAbas) .hero-pro-panel {
     position: static !important;
     transform: none !important;
     width: 100% !important;
-    max-width: min(100%, 420px) !important;
+    max-width: min(100%, 520px) !important;
   }
 }
 
@@ -206,7 +201,16 @@ body:has(#portalAbas) .ciop-command-inner > .toolbar-whatsapp {
 body:has(#portalAbas) .header-actions {
   display: flex !important;
   align-items: center;
+  justify-content: flex-end !important;
+  justify-self: end !important;
   gap: 8px;
+  position: relative;
+  z-index: 5;
+}
+
+body:has(#portalAbas) .header-actions .ciop-session {
+  display: flex !important;
+  flex: 0 0 auto !important;
 }
 
 body:has(#portalAbas) .ciop-hud-bell {
