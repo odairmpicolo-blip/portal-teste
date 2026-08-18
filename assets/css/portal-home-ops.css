@@ -25,25 +25,6 @@ body:has(#portalAbas) .header::after {
   display: none !important;
 }
 
-body:has(#portalAbas) .portal-brand-art {
-  height: 78px !important;
-}
-
-body:has(#portalAbas) .header .portal-home-tcgl {
-  display: inline-flex !important;
-  align-items: center;
-  flex: 0 0 auto;
-}
-
-body:has(#portalAbas) .header .portal-home-tcgl img.logo-tcgl {
-  display: block !important;
-  height: 92px !important;
-  width: auto !important;
-  max-height: none !important;
-  object-fit: contain;
-  border-radius: 10px;
-}
-
 /* Saudação: cartão compacto, mesma superfície dos módulos. */
 body:has(#portalAbas) .header-hero.header-hero-pro {
   width: max-content !important;
