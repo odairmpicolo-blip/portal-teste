@@ -412,7 +412,7 @@ html:not(.dk-dark) body:has(.header):not(:has(#portalAbas)):not(.login-v2) table
 
 html.dk-dark body:has(.bg-wall) .portal-brand-art,
 html.dk-dark body:has(.body-bg-wall) .portal-brand-art {
-  filter: none !important;
+  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.45)) !important;
   opacity: 1 !important;
 }
 
