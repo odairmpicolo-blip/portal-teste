@@ -32,7 +32,7 @@ body:has(#portalAbas) .header::after {
 /* Saudação: cartão compacto, mesma superfície dos módulos. */
 body:has(#portalAbas) .header-hero.header-hero-pro {
   width: max-content !important;
-  max-width: min(82vw, 920px) !important;
+  max-width: min(92vw, 1100px) !important;
   justify-self: center !important;
   padding: 0 !important;
   background: transparent !important;
@@ -77,7 +77,7 @@ body:has(#portalAbas) .hero-pro-panel {
 
 body:has(#portalAbas) .hero-pro-copy {
   flex: 0 1 auto !important;
-  padding: 10px 28px !important;
+  padding: 12px 36px !important;
 }
 
 body:has(#portalAbas) .hero-pro-welcome {
@@ -215,6 +215,10 @@ body:has(#portalAbas) .header-actions {
 body:has(#portalAbas) .header-actions .ciop-session {
   display: flex !important;
   flex: 0 0 auto !important;
+  width: max-content !important;
+  min-width: 280px !important;
+  max-width: min(520px, 42vw) !important;
+  padding: 10px 18px !important;
 }
 
 body:has(#portalAbas) .ciop-hud-bell {
