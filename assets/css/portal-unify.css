@@ -24,12 +24,14 @@ html body {
 
 /* —— Home: cards neutros, faixa por área, sem botão interno —— */
 body:has(#portalAbas) .grid .card {
-  background: var(--surface) !important;
+  background: var(--lg-fill, rgba(255, 255, 255, 0.18)) !important;
+  backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
+  -webkit-backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
   color: var(--texto) !important;
-  border: 1px solid var(--borda) !important;
+  border: 1px solid var(--lg-border, rgba(255, 255, 255, 0.45)) !important;
   border-left: 3px solid var(--accent-op) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: var(--shadow) !important;
+  border-radius: 20px !important;
+  box-shadow: var(--lg-shadow, var(--shadow)) !important;
   aspect-ratio: auto !important;
   min-height: 148px !important;
   height: auto !important;
@@ -175,7 +177,8 @@ body:has(.body-bg-wall) .portal-filters-bar select {
 }
 
 body:has(.body-bg-wall) .header {
-  backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: var(--lg-blur, blur(32px) saturate(190%));
+  -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(190%));
 }
 
 /* Login acompanha a fonte */
@@ -209,7 +212,7 @@ body:has(#portalAbas) .ciop-kpi-value {
   font-weight: 700 !important;
 }
 
-/* —— Casco interno: header estável, dados em superfície, sem vidro extra no desktop —— */
+/* —— Casco interno: header e dados em liquid glass —— */
 @media (min-width: 861px) {
   body:has(.body-bg-wall) .header,
   body:has(.body-bg-stain) .header {
@@ -218,23 +221,31 @@ body:has(#portalAbas) .ciop-kpi-value {
     align-items: center;
     min-height: 56px;
     padding: 8px 18px !important;
-    background: color-mix(in srgb, var(--surface) 92%, transparent) !important;
-    border-bottom: 1px solid var(--borda) !important;
-    box-shadow: none !important;
+    background: var(--lg-fill-header, var(--lg-fill)) !important;
+    backdrop-filter: var(--lg-blur, blur(32px) saturate(190%)) !important;
+    -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(190%)) !important;
+    border-bottom: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
+    box-shadow: var(--lg-shadow) !important;
   }
   body:has(.body-bg-wall) .kpi-card,
   body:has(.body-bg-wall) .chart-card,
   body:has(.body-bg-wall) .table-card,
-  body:has(.body-bg-wall) .toolbar,
   body:has(.body-bg-wall) .sidebar.portal-filters-bar,
   body:has(.body-bg-wall) .filters-panel,
   body:has(.body-bg-wall) .panel,
   body:has(.body-bg-wall) .password-panel {
-    background: var(--surface) !important;
+    background: var(--lg-fill-data, var(--lg-fill)) !important;
+    backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
+    -webkit-backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
+    border: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
+    box-shadow: var(--lg-shadow, var(--shadow)) !important;
+  }
+  body:has(.body-bg-wall) .toolbar {
+    background: var(--lg-fill-data, rgba(255, 255, 255, 0.28)) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border: 1px solid var(--borda) !important;
-    box-shadow: var(--shadow) !important;
+    border: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
+    box-shadow: var(--lg-shadow, var(--shadow)) !important;
   }
   body:has(.body-bg-wall) .body-bg-stain {
     opacity: 0.22;

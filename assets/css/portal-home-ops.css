@@ -14,14 +14,11 @@ html.dk-dark body:has(#portalAbas) {
 
 body:has(#portalAbas) .header,
 body:has(#portalAbas) .header.header-v2 {
-  background: var(--home-glass) !important;
-  backdrop-filter: var(--home-glass-blur) !important;
-  -webkit-backdrop-filter: var(--home-glass-blur) !important;
-  border-bottom: 1px solid color-mix(in srgb, #38bdf8 35%, var(--home-glass-border)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -1px 0 rgba(6, 36, 92, 0.08),
-    0 18px 36px -22px rgba(6, 36, 92, 0.45) !important;
+  background: var(--lg-fill-header, var(--home-glass)) !important;
+  backdrop-filter: var(--lg-blur, var(--home-glass-blur)) !important;
+  -webkit-backdrop-filter: var(--lg-blur, var(--home-glass-blur)) !important;
+  border-bottom: 1px solid color-mix(in srgb, #38bdf8 28%, var(--lg-border, var(--home-glass-border))) !important;
+  box-shadow: var(--lg-shadow, var(--home-glass)) !important;
 }
 
 body:has(#portalAbas) .header::after {
