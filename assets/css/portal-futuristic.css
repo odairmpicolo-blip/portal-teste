@@ -998,8 +998,8 @@ html.dk-dark {
   --lg-fill: rgba(32, 36, 42, 0.72);
   --lg-fill-strong: rgba(26, 30, 36, 0.86);
   --lg-fill-hover: rgba(44, 48, 56, 0.8);
-  --lg-fill-data: rgba(34, 38, 44, 0.88);
-  --lg-fill-data-head: rgba(40, 44, 50, 0.94);
+  --lg-fill-data: rgba(34, 38, 44, 0.42);
+  --lg-fill-data-head: rgba(40, 44, 50, 0.50);
   --lg-border: rgba(168, 178, 188, 0.34);
   --lg-edge: 1px solid rgba(168, 178, 188, 0.34);
   --lg-shadow:
@@ -1069,8 +1069,8 @@ html.dk-dark .stat-card,
 html.dk-dark .chart-card,
 html.dk-dark .table-card {
   background: var(--lg-fill) !important;
-  backdrop-filter: blur(40px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  backdrop-filter: var(--lg-blur, blur(32px) saturate(180%)) !important;
+  -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(180%)) !important;
   border-color: var(--lg-border) !important;
   color: #f8fafc !important;
   box-shadow: var(--lg-shadow) !important;
@@ -1301,7 +1301,7 @@ html.dk-dark .table-wrap,
 html.dk-dark .planilha-wrap,
 html.dk-dark .grafico-card,
 html.dk-dark .grafico-box {
-  background: var(--lg-fill-data, rgba(34, 38, 44, 0.88)) !important;
+  background: var(--lg-fill-data, rgba(34, 38, 44, 0.42)) !important;
   color: #f4f6f8 !important;
   border-color: var(--lg-border) !important;
 }
@@ -1655,8 +1655,8 @@ body:has(.body-bg-wall) .dk-theme-toggle:not(.side-link) {
 /* —— Header / rodapé / títulos: contraste uniforme no escuro —— */
 html.dk-dark .header,
 html.dk-dark .header.header-v2 {
-  background: var(--lg-fill, rgba(32, 36, 42, 0.72)) !important;
-  border-bottom-color: var(--lg-border, rgba(168, 178, 188, 0.34)) !important;
+  background: var(--lg-fill-header, var(--lg-fill)) !important;
+  border-bottom-color: var(--lg-border, rgba(168, 178, 188, 0.28)) !important;
   color: #f4f6f8 !important;
 }
 
@@ -1689,7 +1689,6 @@ html.dk-dark .autuacoes-title-wrap .subtitle {
   color: #f4f6f8 !important;
 }
 
-html.dk-dark .portal-brand-art,
 html.dk-dark [class$="-title-art"] img,
 html.dk-dark .header-title img,
 html.dk-dark .title-wrap > img,
