@@ -3,8 +3,8 @@
 .header,
 .header.header-v2 {
   display: grid;
-  min-height: 114px;
-  padding: 8px clamp(14px, 2.5vw, 22px) !important;
+  min-height: 56px;
+  padding: 4px clamp(12px, 2vw, 18px) !important;
   align-items: center;
   position: relative;
   isolation: isolate;
@@ -50,8 +50,8 @@
 .header .logo-right,
 .header .logo-tcgl,
 .header-v2 .logo-right {
-  height: 52px !important;
-  max-height: 52px !important;
+  height: 36px !important;
+  max-height: 36px !important;
   width: auto;
   object-fit: contain;
 }
@@ -182,4 +182,15 @@ html.dk-dark .title-wrap .subtitle,
 html.dk-dark .title-wrap .title-sub {
   color: #f4f6f8 !important;
   text-shadow: none !important;
+}
+
+.header,
+.header.header-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  min-height: 56px !important;
+  padding: 4px 14px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
 }

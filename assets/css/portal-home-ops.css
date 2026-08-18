@@ -47,9 +47,9 @@ body:has(#portalAbas) .hero-pro-sep {
 body:has(#portalAbas) .hero-pro-logo:not([hidden]),
 body:has(#portalAbas) .hero-pro-logo--emblem:not([hidden]) {
   display: block !important;
-  width: 52px !important;
-  height: 52px !important;
-  min-width: 52px !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
 }
 
 body:has(#portalAbas) .hero-pro-logo-img {
@@ -70,7 +70,7 @@ body:has(#portalAbas) .hero-pro-panel {
 
 body:has(#portalAbas) .hero-pro-copy {
   flex: 0 1 auto !important;
-  padding: 10px 16px 10px 18px !important;
+  padding: 4px 12px 4px 12px !important;
 }
 
 body:has(#portalAbas) .hero-pro-welcome {
@@ -84,9 +84,9 @@ body:has(#portalAbas) .hero-pro-saudacao-label {
 }
 
 body:has(#portalAbas) .hero-pro-nome {
-  font-size: clamp(0.98rem, 1.8vw, 1.18rem) !important;
+  font-size: clamp(0.82rem, 1.4vw, 0.95rem) !important;
   font-weight: 800 !important;
-  line-height: 1.1 !important;
+  line-height: 1.05 !important;
 }
 
 body:has(#portalAbas) .hero-pro-campanha-meta:not([hidden]),
