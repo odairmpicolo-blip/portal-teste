@@ -3,7 +3,7 @@
 .header,
 .header.header-v2 {
   display: grid;
-  min-height: 60px;
+  min-height: 132px;
   padding: 8px clamp(14px, 2.5vw, 22px) !important;
   align-items: center;
   position: relative;
