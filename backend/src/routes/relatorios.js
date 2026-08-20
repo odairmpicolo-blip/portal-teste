@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import { query } from "../db.js";
+import { registrarAudit } from "../lib/audit.js";
+import { HttpError } from "../lib/http.js";
+import { intervaloDatas } from "../lib/validar.js";
 import { requireFirebaseUser } from "../middleware/auth.js";
 import {
   enviarPdfRelatorioS3,
@@ -106,14 +109,15 @@ function mapearLinha(r) {
 }
 
 async function registrarMetadado(row) {
-  await query(
+  const ins = await query(
     `INSERT INTO relatorios_ocorrencia (
        id, user_email, data_documento, protocolo, funcionario_registro, funcionario_nome,
        funcionario_texto, nome_arquivo, storage_key, storage_uri, origem, criado_por_nome, criado_em
      ) VALUES (
        $1, $2, $3::date, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13::timestamptz, NOW())
      )
-     ON CONFLICT (id) DO NOTHING`,
+     ON CONFLICT (id) DO NOTHING
+     RETURNING id`,
     [
       row.id,
       row.userEmail,
@@ -130,6 +134,19 @@ async function registrarMetadado(row) {
       row.criadoEm || null
     ]
   );
+  if (!ins.rowCount) return;
+  await registrarAudit({
+    uid: row.userEmail || null,
+    tabela: "relatorios_ocorrencia",
+    chave: row.id,
+    acao: "insert",
+    depois: {
+      dataDocumento: row.dataDocumento,
+      protocolo: row.protocolo || null,
+      nomeArquivo: row.nomeArquivo,
+      storageKey: row.storageKey
+    }
+  });
 }
 
 async function sincronizarS3() {
@@ -319,8 +336,7 @@ router.get("/", requireFirebaseUser, async (req, res) => {
     } catch (errSync) {
       console.warn("relatorios sync S3:", errSync.message);
     }
-    const de = String(req.query.de || "").slice(0, 10);
-    const ate = String(req.query.ate || "").slice(0, 10);
+    const { de, ate } = intervaloDatas(req.query.de, req.query.ate, { obrigatorio: false });
     const params = [];
     let sql = `SELECT id, user_email, data_documento, protocolo, funcionario_registro, funcionario_nome,
                       funcionario_texto, nome_arquivo, storage_key, storage_uri, origem, criado_por_nome, criado_em
@@ -342,11 +358,14 @@ router.get("/", requireFirebaseUser, async (req, res) => {
       dados: result.rows.map(mapearLinha)
     });
   } catch (err) {
+    if (err instanceof HttpError) {
+      res.status(err.status).json({ ok: false, erro: err.message, codigo: err.codigo });
+      return;
+    }
     console.error("relatorios GET:", err);
     try {
       const arquivos = await listarPdfsRelatorioS3();
-      const de = String(req.query.de || "").slice(0, 10);
-      const ate = String(req.query.ate || "").slice(0, 10);
+      const { de, ate } = intervaloDatas(req.query.de, req.query.ate, { obrigatorio: false });
       const dados = arquivos
         .filter((a) => (!de || a.dataIso >= de) && (!ate || a.dataIso <= ate))
         .sort((a, b) => String(b.dataIso).localeCompare(String(a.dataIso)))

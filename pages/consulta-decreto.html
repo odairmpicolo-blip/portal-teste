@@ -21,10 +21,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 .page-title-art img{display:block;width:min(340px,30vw);height:40px;max-height:40px;object-fit:contain}
 .title-wrap .subtitle{margin-top:4px;text-align:center;font-size:13px;color:var(--blue);font-weight:800;letter-spacing:0;text-transform:uppercase}
 .header-actions{justify-self:end;display:flex;align-items:center;gap:10px}
-/* session container: portal-session.css?v=20260817ar */
-/* session user styles: portal-session.css?v=20260817ar */
-/* session profile styles: portal-session.css?v=20260817ar */
-/* session logout: portal-session.css?v=20260817ar */
+/* session container: portal-session.css?v=20260818open */
+/* session user styles: portal-session.css?v=20260818open */
+/* session profile styles: portal-session.css?v=20260818open */
+/* session logout: portal-session.css?v=20260818open */
 .container{max-width:min(1680px,96vw);margin:16px auto 20px;padding:0 20px;flex:1;width:100%;display:flex;flex-direction:column;min-height:0}
 .toolbar{display:none}
 .btn-portal{display:inline-flex;align-items:center;gap:8px;min-height:40px;text-decoration:none;border-radius:10px;font-size:13px;font-weight:800;padding:8px 14px;background:var(--blue);color:#fff;flex:0 0 auto;white-space:nowrap}
@@ -307,7 +307,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
     border: 1px solid rgba(255,255,255,.55) !important;
     box-shadow: 0 14px 32px -20px rgba(20,20,40,.28), inset 0 1px 0 rgba(255,255,255,.5) !important;
   }
-  /* session container: portal-session.css?v=20260817ar */
+  /* session container: portal-session.css?v=20260818open */
   .ai-console-top .btn-portal,
   .btn-portal{
     min-height:40px !important;padding:8px 14px !important;border-radius:10px !important;font-size:13px !important;
@@ -381,30 +381,28 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 </style>
 <link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
 <link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
-<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260818q">
-<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818slim">
-<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260817ar">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260818open">
 
 
 <script src="../assets/js/loading.js?v=20260718d"></script>
-<script src="../assets/js/portal-shell.js?v=20260817ar" defer></script>
-<script src="../assets/js/portal-fx.js?v=20260817ar" defer></script>
-<script type="module" src="../assets/js/auth.js?v=20260818p"></script>
+<script type="module" src="../assets/js/auth.js?v=20260818logo6"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
-<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260818i">
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260818p">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260818p">
+<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260818p">
 <link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260818r">
-<link rel="stylesheet" href="../assets/css/portal-shell.css?v=20260817ar">
-<link rel="stylesheet" href="../assets/css/portal-fx.css?v=20260818i">
 </head>
 <body data-require-perfis="Administrador,Supervisor,Analista">
 <div class="body-bg-wall" aria-hidden="true"></div>
 <div class="body-bg-stain" aria-hidden="true"></div>
 <header class="header">
-    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/logomarca-portalciop-tcgl-claro.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
+    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
     <div class="title-wrap">
-        <h1 class="page-title-art" aria-label="Consulta do Decreto">Consulta do Decreto</h1>
+        <h1 class="page-title-art" aria-label="Consulta do Decreto">
+            <img src="../assets/img/titulo-consulta-decreto.png" alt="Consulta do Decreto">
+        </h1>
         <div class="subtitle">Assistente de IA · Decretos 1082/2008 e 1666/2024</div>
     </div>
     <div class="header-actions">
@@ -454,132 +452,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica
 </main>
 
 <footer class="page-footer">Portal CIOP · Consulta do Decreto · TCGL</footer>
-<script>
-(function(){
-  var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZq6C3GCHBmDOE6OK1cseTD8qXx450BPcNLtWKBn7yBJegM6jx7zQxTiE1VR2Nwu7L/exec";
-
-  var form = document.getElementById('aiChatForm');
-  var input = document.getElementById('aiChatInput');
-  var sendBtn = document.getElementById('aiChatSend');
-  var log = document.getElementById('aiChatLog');
-
-  function scrollToEnd(){
-    log.scrollTop = log.scrollHeight;
-  }
-
-  function addUserMsg(texto){
-    var div = document.createElement('div');
-    div.className = 'ai-chat-msg ai-chat-user';
-    div.textContent = texto;
-    log.appendChild(div);
-    scrollToEnd();
-  }
-
-  function addBotTyping(){
-    var wrap = document.createElement('div');
-    wrap.className = 'ai-chat-msg ai-chat-bot';
-    wrap.innerHTML = '<span class="ai-chat-avatar"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg></span>' +
-      '<span class="ai-chat-typing"><span></span><span></span><span></span></span>';
-    log.appendChild(wrap);
-    scrollToEnd();
-    return wrap;
-  }
-
-  function escapeHtml(s){
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function mdToHtml(texto){
-    var lines = escapeHtml(texto).replace(/\r\n/g,'\n').split('\n');
-    var html = '';
-    var inList = false;
-    for (var i = 0; i < lines.length; i++){
-      var raw = lines[i];
-      var trimmed = raw.trim();
-      var bulletMatch = /^[-*]\s+(.*)$/.exec(trimmed);
-      var quoteMatch = /^&gt;\s?(.*)$/.exec(trimmed);
-      if (bulletMatch){
-        if (!inList){ html += '<ul>'; inList = true; }
-        html += '<li>' + inline(bulletMatch[1]) + '</li>';
-        continue;
-      }
-      if (inList){ html += '</ul>'; inList = false; }
-      if (quoteMatch){
-        html += '<blockquote>' + inline(quoteMatch[1]) + '</blockquote>';
-      } else if (trimmed === ''){
-        // linha em branco: apenas separa parágrafos, não emite tag vazia
-      } else {
-        html += '<p>' + inline(trimmed) + '</p>';
-      }
-    }
-    if (inList) html += '</ul>';
-    return html || inline(escapeHtml(texto));
-
-    function inline(s){
-      // negrito **texto**
-      s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      // itálico simples *texto* (depois do negrito, para não conflitar)
-      s = s.replace(/(^|[^*])\*([^*]+)\*([^*]|$)/g, '$1<em>$2</em>$3');
-      return s;
-    }
-  }
-
-  function setBotText(wrap, texto, isError){
-    if (isError) wrap.classList.add('ai-chat-error');
-    wrap.innerHTML = '<span class="ai-chat-avatar"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/></svg></span><span class="ai-chat-content"></span>';
-    var contentEl = wrap.querySelector('.ai-chat-content');
-    if (isError){
-      contentEl.textContent = texto;
-    } else {
-      contentEl.innerHTML = mdToHtml(texto);
-    }
-    scrollToEnd();
-  }
-
-  form.addEventListener('submit', function(ev){
-    ev.preventDefault();
-    var pergunta = input.value.trim();
-    if (!pergunta) return;
-
-    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('COLE_AQUI') === 0){
-      addUserMsg(pergunta);
-      var wrapCfg = addBotTyping();
-      setBotText(wrapCfg, 'Assistente ainda não configurado. Peça ao administrador do portal para concluir a integração.', true);
-      input.value = '';
-      return;
-    }
-
-    addUserMsg(pergunta);
-    input.value = '';
-    input.disabled = true;
-    sendBtn.disabled = true;
-    var wrap = addBotTyping();
-
-    fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ pergunta: pergunta })
-    })
-    .then(function(resp){ return resp.json(); })
-    .then(function(data){
-      if (data && data.resposta){
-        setBotText(wrap, data.resposta, false);
-      } else {
-        setBotText(wrap, (data && data.erro) || 'Não foi possível obter uma resposta agora. Tente novamente.', true);
-      }
-    })
-    .catch(function(){
-      setBotText(wrap, 'Falha ao conectar com o assistente. Verifique sua conexão e tente novamente.', true);
-    })
-    .finally(function(){
-      input.disabled = false;
-      sendBtn.disabled = false;
-      input.focus();
-    });
-  });
-})();
-</script>
-<script src="../assets/js/theme-toggle.js?v=20260818p"></script>
+<script src="../assets/js/consulta-decreto.js?v=20260818d1"></script>
+<script src="../assets/js/theme-toggle.js?v=20260818logo6"></script>
 <script src="../assets/js/portal-futuristic.js?v=20260718am" defer></script>
 </body>
 </html>

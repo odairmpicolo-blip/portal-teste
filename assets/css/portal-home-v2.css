@@ -1,8 +1,8 @@
 /* Cabeçalho mesclado */
 
 .header.header-v2 {
-  gap: 10px;
-  padding: 8px clamp(14px, 2vw, 20px);
+  gap: 14px;
+  padding: 10px clamp(16px, 3vw, 25px);
 }
 
 .header-brand {

@@ -1069,8 +1069,8 @@ html.dk-dark .stat-card,
 html.dk-dark .chart-card,
 html.dk-dark .table-card {
   background: var(--lg-fill) !important;
-  backdrop-filter: var(--lg-blur, blur(32px) saturate(180%)) !important;
-  -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(180%)) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
   border-color: var(--lg-border) !important;
   color: #f8fafc !important;
   box-shadow: var(--lg-shadow) !important;

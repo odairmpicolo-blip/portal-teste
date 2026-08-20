@@ -7,7 +7,7 @@
   --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18));
   --lg-fill-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.18));
   --lg-fill-data: linear-gradient(165deg, rgba(255, 255, 255, 0.46) 0%, rgba(244, 247, 252, 0.34) 100%);
-  --lg-fill-data-head: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.22));
+  --lg-fill-data-head: linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.32));
   --lg-blur: blur(32px) saturate(190%);
   --lg-blur-soft: blur(24px) saturate(175%);
   --lg-blur-data: blur(26px) saturate(165%);
@@ -44,17 +44,9 @@ body:has(.body-bg-wall) .body-bg-wall {
   visibility: visible !important;
 }
 
+.ciop-liquid-glass,
 body:has(.bg-wall) .header,
 body:has(.bg-wall) .header.header-v2,
-body:has(.body-bg-wall) .header,
-body:has(.body-bg-wall) .header.header-v2 {
-  background: var(--lg-fill-header, var(--lg-fill)) !important;
-  backdrop-filter: var(--lg-blur) !important;
-  -webkit-backdrop-filter: var(--lg-blur) !important;
-  border-color: var(--lg-border) !important;
-  box-shadow: var(--lg-shadow) !important;
-  color: var(--lg-text);
-}
 body:has(.bg-wall) .hero-pro-panel,
 body:has(.bg-wall) .ciop-session,
 body:has(.bg-wall) .ciop-session.ciop-session-modern,
@@ -65,6 +57,8 @@ body:has(.bg-wall) .notice-item,
 body:has(.bg-wall) .toolbar-whatsapp,
 body:has(.bg-wall) .menu-toggle,
 body:has(.bg-wall) footer.portal-site-footer,
+body:has(.body-bg-wall) .header,
+body:has(.body-bg-wall) .header.header-v2,
 body:has(.body-bg-wall) .ciop-session,
 body:has(.body-bg-wall) .ciop-session.ciop-session-modern,
 body:has(.body-bg-wall) .topbar,
@@ -482,7 +476,7 @@ html.dk-dark {
   --lg-fill-strong: linear-gradient(180deg, rgba(36, 42, 52, 0.42), rgba(16, 20, 28, 0.28));
   --lg-fill-hover: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(32, 38, 48, 0.34));
   --lg-fill-data: linear-gradient(165deg, rgba(36, 42, 52, 0.50) 0%, rgba(18, 22, 28, 0.40) 100%);
-  --lg-fill-data-head: linear-gradient(180deg, rgba(52, 58, 70, 0.42), rgba(24, 28, 36, 0.30));
+  --lg-fill-data-head: linear-gradient(180deg, rgba(48, 54, 64, 0.50), rgba(24, 28, 36, 0.38));
   --lg-border: rgba(186, 210, 230, 0.28);
   --lg-edge: 1px solid rgba(186, 210, 230, 0.28);
   --lg-text: #f4f6f8;
@@ -662,6 +656,7 @@ html.dk-dark body:has(.body-bg-wall) .page-footer {
   color: rgba(255, 255, 255, 0.88) !important;
 }
 
+html.dk-dark body:has(.body-bg-wall) .portal-brand-art,
 html.dk-dark body:has(.body-bg-wall) [class$="-title-art"] img,
 html.dk-dark body:has(.body-bg-wall) .header-title img,
 html.dk-dark body:has(.body-bg-wall) .title-wrap > img {
