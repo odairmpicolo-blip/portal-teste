@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add("portal-auth-pending");</script>
+<style id="portalAuthBootStyle">.portal-auth-pending body > :not(#portalLoadingOverlay){pointer-events:none!important;}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoramento | Portal CIOP</title>
+<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260821fx">
+<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260821hud">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260818open">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260821hud">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="../assets/css/cad-monitor.css?v=20260821cad13">
+<script type="module" src="../assets/js/auth.js?v=20260820t21"></script>
+</head>
+<body class="cad-page" data-require-usuarios="odair.marin@icloud.com" data-require-somente-usuarios="true">
+<div class="body-bg-wall" aria-hidden="true"></div>
+<header class="header">
+  <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP"><img class="portal-brand-art" src="../assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6" alt="Portal CIOP"></a>
+  <div class="title-wrap"><h1>Monitoramento</h1></div>
+  <div class="header-actions">
+    <button type="button" class="btn-prog" id="btnAbrirProgramacao">Visualização de programação</button>
+    <div class="ciop-session">
+      <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
+      <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
+      <button onclick="logout()" class="btn-logout" type="button">Sair</button>
+    </div>
+  </div>
+</header>
+
+<div class="cad-app">
+  <nav class="cad-views" aria-label="Seções">
+    <button type="button" class="ativo" data-abrir="mapa">Mapa</button>
+    <button type="button" data-abrir="status">Frota agora</button>
+    <button type="button" data-abrir="programacao">Linhas</button>
+    <button type="button" data-abrir="incidentes">Incidentes</button>
+    <button type="button" data-abrir="registros">Cadastros</button>
+  </nav>
+
+  <div class="cad-stage">
+    <section class="cad-pane ativo" id="paneMapa">
+      <div class="map-bar">
+        <div class="cad-map-ctrl">
+          <button type="button" class="ativo" data-tiles="mapa">Mapa</button>
+          <button type="button" data-tiles="hibrido">Híbrido</button>
+        </div>
+        <div class="st-subtabs">
+          <button type="button" class="ativo" data-map-filtro="todos">TCGL</button>
+          <button type="button" data-map-filtro="fora">Fora de serviço</button>
+        </div>
+        <input id="mapBusca" type="search" placeholder="Localizar prefixo" aria-label="Localizar no mapa">
+        <span class="map-legenda">
+          <i style="background:#16a34a"></i>No horário
+          <i style="background:#eab308"></i>Atrasado
+          <i style="background:#c81e1e"></i>Adiantado
+          <i style="background:#94a3b8"></i>Fora / ocioso
+        </span>
+      </div>
+      <div id="cadMap"></div>
+      <p class="map-foot">Somente TCGL. Clique no ônibus (ou na lista Frota agora) para abrir o popup.</p>
+    </section>
+
+    <section class="cad-pane" id="paneStatus">
+      <div class="st-kpis" id="stKpis"></div>
+      <div class="st-toolbar">
+        <div class="st-subtabs">
+          <button type="button" class="ativo" data-st-aba="todos">Todos</button>
+          <button type="button" data-st-aba="semcom">Sem comunicação</button>
+          <button type="button" data-st-aba="fora">Fora de serviço</button>
+        </div>
+        <select id="stFiltroVeic" aria-label="Situação">
+          <option value="">Todas as situações</option>
+          <option>Adiantado</option>
+          <option>Atrasado</option>
+          <option>No horário</option>
+          <option>Ocioso</option>
+          <option>Fora de serviço</option>
+        </select>
+        <input id="stBusca" type="search" placeholder="Buscar prefixo, linha, serviço ou motorista">
+        <span class="st-live" id="stLive">Atualizando…</span>
+      </div>
+      <p class="st-dica">Somente TCGL · clique no veículo para abrir o popup no mapa</p>
+      <div class="st-grid-wrap" id="cadStatusLista"></div>
+    </section>
+
+    <section class="cad-pane cad-scroll" id="paneProgramacao">
+      <p class="mn-status" id="mnStatus">Carregando…</p>
+      <section class="mn-painel">
+        <h2>Linhas da programação</h2>
+        <p class="mn-meta" id="mnProgMeta"></p>
+        <input id="mnBuscaProg" type="search" placeholder="Buscar linha ou descrição" aria-label="Filtrar linhas">
+        <div id="mnProg"></div>
+        <div class="mn-detalhe" id="mnProgDetalhe" hidden>
+          <h3 id="mnProgDetalheTitulo"></h3>
+          <ul id="mnProgDetalheLista"></ul>
+        </div>
+      </section>
+    </section>
+
+    <section class="cad-pane cad-scroll" id="paneIncidentes">
+      <section class="mn-painel">
+        <h2>Incidentes recentes</h2>
+        <p class="mn-meta" id="mnIncMeta"></p>
+        <input id="mnBuscaInc" type="search" placeholder="Buscar veículo, linha, tipo ou número" aria-label="Filtrar incidentes">
+        <div id="mnInc"></div>
+      </section>
+    </section>
+
+    <section class="cad-pane cad-scroll" id="paneRegistros">
+      <section class="mn-painel">
+        <h2>Cadastros do CAD</h2>
+        <div class="mn-abas">
+          <button type="button" class="ativo" data-reg-aba="veiculos">Veículos</button>
+          <button type="button" data-reg-aba="funcionarios">Pessoas</button>
+          <button type="button" data-reg-aba="garagens">Garagens</button>
+          <button type="button" data-reg-aba="tipos">Tipos de incidente</button>
+        </div>
+        <p class="mn-meta" id="mnRegsMeta"></p>
+        <input id="mnBuscaReg" type="search" placeholder="Filtrar cadastro" aria-label="Filtrar cadastros">
+        <div id="mnRegs"></div>
+      </section>
+    </section>
+  </div>
+</div>
+
+<div class="cad-ads-modal" id="cadAdsModal" hidden>
+  <div class="cad-ads-bar">
+    <strong>Visualização de programação</strong>
+    <span>Work-ID útil: 7 dígitos · sábado começa com 2 · domingo com 3</span>
+    <button type="button" id="cadAdsNovaAba">Abrir em nova aba</button>
+    <button type="button" id="cadAdsFechar">Fechar</button>
+  </div>
+  <iframe id="cadAdsFrame" title="Visualização de programação CAD"></iframe>
+</div>
+
+<script src="../assets/js/frota-patio-data.js?v=20260821cad13"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="../assets/js/monitoramento.js?v=20260821cad13"></script>
+<script type="module" src="../assets/js/cad-ads-sessao.js?v=20260821cad13"></script>
+</body>
+</html>

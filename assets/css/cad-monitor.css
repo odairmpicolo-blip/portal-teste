@@ -1,0 +1,134 @@
+html,body{height:100%;margin:0}
+body.cad-page{display:flex;flex-direction:column;color:#101828;font-family:var(--font,Inter,sans-serif);min-height:100vh}
+.body-bg-wall{position:fixed;inset:0;z-index:-3;background:#0b1f4d url('../assets/img/portal-bg-onibus.jpg?v=20260718j') center/cover no-repeat}
+body.cad-page .header{flex:0 0 auto}
+.btn-prog{
+  border:0;background:#06245c;color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;cursor:pointer;margin-right:8px
+}
+.cad-app{flex:1;display:flex;flex-direction:column;min-height:0;padding:0 14px 14px}
+.cad-views{display:flex;gap:8px;align-items:center;padding:10px 4px 0;flex-wrap:wrap}
+.cad-views button{
+  border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.72);padding:9px 16px;font-size:13px;font-weight:800;
+  cursor:pointer;border-radius:12px;color:#06245c;backdrop-filter:blur(16px)
+}
+.cad-views button.ativo{background:#06245c;color:#fff;border-color:#06245c}
+.cad-stage{
+  flex:1;min-height:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;
+  background:rgba(255,255,255,.82);border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(18px);
+  box-shadow:0 18px 40px -24px rgba(15,23,42,.45)
+}
+.cad-pane{display:none;flex:1;min-height:0;flex-direction:column;overflow:auto}
+.cad-pane.ativo{display:flex}
+#paneMapa{overflow:hidden}
+#paneMapa,#paneStatus{flex-direction:column}
+#cadMap{flex:1;min-height:280px;background:#dbe4ee}
+.map-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;background:rgba(255,255,255,.92);border-bottom:1px solid #e8eef6;z-index:500}
+.cad-map-ctrl{display:flex}
+.cad-map-ctrl button{border:1px solid #c5d0de;background:#fff;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;color:#06245c}
+.cad-map-ctrl button:first-child{border-radius:8px 0 0 8px}
+.cad-map-ctrl button:last-child{border-radius:0 8px 8px 0}
+.cad-map-ctrl button.ativo{background:#06245c;color:#fff;border-color:#06245c}
+.map-bar input{min-height:34px;border:1px solid #dfe5ef;border-radius:8px;padding:4px 10px;font-weight:700;width:160px}
+.map-legenda{margin-left:auto;font-size:11px;font-weight:800;color:#475569;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.map-legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.map-foot{margin:0;padding:4px 10px;font-size:11px;font-weight:700;color:#667085;background:#f8fafc}
+.cad-map-lab{background:#fff;border:1px solid #94a3b8;border-radius:4px;padding:3px 6px;font:11px/1.25 Tahoma,sans-serif;color:#111;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.leaflet-div-icon.bus-marker-wrap,.bus-marker-wrap{background:transparent!important;border:0!important;overflow:visible!important}
+.veh-pin{
+  position:relative;width:96px;cursor:pointer;
+  filter:drop-shadow(0 6px 10px rgba(15,23,42,.5)) drop-shadow(0 2px 3px rgba(15,23,42,.35));
+  transition:transform .2s ease;
+}
+.veh-pin.highlight{transform:scale(1.15);z-index:900!important}
+.veh-pin svg{display:block;width:96px;height:96px}
+.veiculo-popup .leaflet-popup-content-wrapper{background:transparent;box-shadow:none;padding:0;border-radius:16px}
+.veiculo-popup .leaflet-popup-content{margin:0;width:auto!important}
+.veiculo-popup .leaflet-popup-tip-container{display:none}
+.veiculo-popup .leaflet-popup-close-button{color:#667085!important;font-size:18px!important;top:6px!important;right:8px!important}
+.veiculo-panel-inner{
+  position:relative;width:min(268px,80vw);border-radius:14px;padding:10px 11px;
+  background:rgba(255,255,255,.68);backdrop-filter:blur(20px) saturate(190%);
+  -webkit-backdrop-filter:blur(20px) saturate(190%);
+  border:2px solid var(--cor,#16a34a);
+  box-shadow:0 14px 34px -16px rgba(20,20,40,.4), inset 0 1px 0 rgba(255,255,255,.5)
+}
+.veiculo-panel-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:12px}
+.veiculo-panel-chip{width:34px;height:28px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:11px;flex:0 0 auto}
+.veiculo-panel-title{font-size:13px;font-weight:800;color:#06245c;line-height:1.2}
+.veiculo-panel-status{display:inline-block;margin-top:3px;padding:1.5px 8px;border-radius:999px;font-size:9.5px;font-weight:800}
+.veiculo-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.veiculo-panel-grid-3{grid-template-columns:1fr 1fr 1fr;margin-bottom:5px}
+.veiculo-panel-grid-via{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.popup-item{padding:5px 7px;border-radius:10px;background:#f1f5f9;font-size:9.5px;color:#667085}
+.popup-item strong{display:block;font-size:11px;color:#101828;margin-top:1px}
+.veiculo-panel-telemetria-titulo{
+  margin:8px 0 5px;padding-top:7px;border-top:1px solid rgba(15,23,42,.12);
+  font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#667085
+}
+.veiculo-panel-telemetria-msg{font-size:10px;color:#667085;padding:2px 0}
+.veiculo-panel-falhas{margin-top:5px;display:grid;gap:4px}
+.veiculo-panel-falhas-titulo{font-size:9.5px;font-weight:800;color:#b91c1c}
+.veiculo-panel-falha{font-size:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;padding:4px 7px}
+.veiculo-panel-falhas.ok{font-size:10px;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;padding:4px 7px}
+.cad-scroll{padding:16px 18px 28px;overflow:auto;flex:1}
+.st-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px 12px 0}
+@media (max-width:800px){.st-kpis{grid-template-columns:repeat(2,1fr)}}
+.st-kpi{border-radius:12px;padding:10px 12px;background:rgba(248,250,252,.9);border:1px solid #e8eef6}
+.st-kpi b{display:block;font-size:22px;color:#06245c;letter-spacing:-.03em}
+.st-kpi span{font-size:11px;font-weight:800;color:#667085;text-transform:uppercase;letter-spacing:.04em}
+.st-kpi.adiantado b{color:#c81e1e}
+.st-kpi.atrasado b{color:#b45309}
+.st-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px}
+.st-subtabs{display:flex;flex-wrap:wrap;gap:6px}
+.st-subtabs button{
+  border:1px solid #dfe5ef;background:#fff;padding:7px 12px;font-weight:800;font-size:12px;cursor:pointer;border-radius:999px;color:#06245c
+}
+.st-subtabs button.ativo{background:#06245c;color:#fff;border-color:#06245c}
+.st-toolbar select,.st-toolbar input{
+  min-height:36px;border:1px solid #dfe5ef;border-radius:10px;padding:4px 10px;font-weight:700
+}
+.st-toolbar input[type=search]{flex:1;min-width:200px;margin:0}
+.st-live{margin-left:auto;font-size:12px;font-weight:700;color:#667085}
+.st-dica{margin:0 12px 8px;font-size:12px;font-weight:600;color:#667085}
+.st-grid-wrap{flex:1;overflow:auto;padding:0 12px 12px}
+.st-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.st-table th{position:sticky;top:0;background:#eef3f9;padding:8px 10px;text-align:left;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:#667085;z-index:1}
+.st-table td{padding:7px 10px;border-bottom:1px solid #eef2f7}
+.st-table tr.st-g td{background:#e8f0fa;font-weight:800;cursor:pointer;color:#06245c}
+.st-table tr.st-row{cursor:pointer}
+.st-table tr.st-row:hover td{background:#f8fafc}
+.st-cor{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:6px;vertical-align:middle}
+.st-vazio{padding:28px;font-weight:700;color:#667085;text-align:center}
+.mn-painel{background:rgba(255,255,255,.72);border:1px solid rgba(223,229,239,.9);border-radius:16px;padding:16px}
+.mn-painel h2,.mn-detalhe h3{margin:0 0 8px;font-size:16px;color:#06245c}
+.mn-meta,.mn-status{margin:0 0 10px;font-size:13px;font-weight:700;color:#667085}
+.mn-painel input[type=search],.cad-scroll input[type=search]{
+  width:100%;min-height:42px;border:1px solid #dfe5ef;border-radius:12px;padding:8px 12px;font-weight:700;margin-bottom:10px;box-sizing:border-box
+}
+.mn-abas{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.mn-abas button{border:1px solid #dfe5ef;background:#f8fafc;border-radius:999px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;color:#06245c}
+.mn-abas button.ativo{background:#06245c;color:#fff;border-color:#06245c}
+.mn-lista{list-style:none;margin:0;padding:0;max-height:52vh;overflow:auto;border:1px solid #eef2f7;border-radius:12px;background:#fff}
+.mn-lista li{border-bottom:1px solid #eef2f7;padding:10px 12px;font-size:13px;font-weight:600}
+.mn-lista li:last-child{border-bottom:0}
+.mn-row{display:grid;grid-template-columns:64px 1fr auto;gap:2px 10px;width:100%;text-align:left;border:0;background:transparent;font:inherit;cursor:pointer;padding:0}
+.mn-row strong{grid-row:1 / span 2;align-self:center;color:#06245c}
+.mn-row span{grid-column:2;color:#344054}
+.mn-row em{grid-column:3;grid-row:1 / span 2;align-self:center;font-style:normal;font-size:11px;color:#059669;font-weight:800}
+.mn-row small{grid-column:2;color:#667085;font-size:12px}
+.mn-vazio{margin:12px 0;color:#667085;font-weight:700}
+.mn-detalhe{margin-top:14px;padding-top:12px;border-top:1px dashed #dfe5ef}
+.mn-detalhe ul{max-height:240px;overflow:auto;columns:2;margin:0;padding-left:18px;font-size:13px;font-weight:700}
+.mn-chip{display:inline-block;margin-left:6px;font-size:10px;font-weight:800;color:#06245c;background:#e8f0fa;border-radius:999px;padding:1px 7px}
+.cad-ads-modal{position:fixed;inset:18px;z-index:8000;display:flex;flex-direction:column;background:#0f172a;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.45);overflow:hidden}
+.cad-ads-modal[hidden]{display:none !important}
+.cad-ads-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:#06245c;color:#fff}
+.cad-ads-bar strong{font-size:15px}
+.cad-ads-bar span{font-size:12px;opacity:.88;flex:1}
+.cad-ads-bar button{border:0;border-radius:999px;padding:7px 14px;font-weight:800;cursor:pointer}
+#cadAdsNovaAba{background:#fff;color:#06245c}
+#cadAdsFechar{background:#ef4444;color:#fff}
+.cad-ads-modal iframe{flex:1;width:100%;border:0;background:#fff}
+html.dk-dark .cad-stage,html.dk-dark .mn-painel{background:rgba(16,24,40,.82);border-color:rgba(186,210,230,.28)}
+html.dk-dark .cad-views button{background:rgba(16,24,40,.7);color:#f8fafc}
+html.dk-dark .title-wrap h1,html.dk-dark .mn-painel h2,html.dk-dark .mn-row strong,html.dk-dark .st-kpi b{color:#f8fafc}
