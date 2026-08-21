@@ -23,11 +23,13 @@
   --lg-blur-soft: blur(24px) saturate(175%);
   --lg-fill:
     linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 240, 255, 0.12) 42%, rgba(255, 244, 235, 0.16) 100%);
-  --lg-fill-header:
-    linear-gradient(105deg, rgba(6, 36, 92, 0.10) 0%, rgba(255, 255, 255, 0.20) 46%, rgba(255, 107, 0, 0.08) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08));
-  --lg-fill-data:
-    linear-gradient(165deg, rgba(255, 255, 255, 0.46) 0%, rgba(244, 247, 252, 0.34) 100%);
+  --ciop-light-grad: linear-gradient(135deg, #6ea6d4 0%, #b4d4ee 36%, #e4f1fa 72%, #f8fbfe 100%);
+  --ciop-light-grad-y: linear-gradient(180deg, #6ea6d4 0%, #b4d4ee 40%, #e4f1fa 76%, #f8fbfe 100%);
+  --ciop-light-grad-fx:
+    repeating-linear-gradient(-28deg, transparent 0 52px, rgba(6, 36, 92, 0.055) 52px 53px),
+    linear-gradient(135deg, #6ea6d4 0%, #b4d4ee 36%, #e4f1fa 72%, #f8fbfe 100%);
+  --lg-fill-header: var(--ciop-light-grad-fx);
+  --lg-fill-data: var(--ciop-light-grad);
   --lg-border: rgba(255, 255, 255, 0.48);
   --lg-shadow:
     0 16px 40px -24px rgba(6, 36, 92, 0.32),
@@ -45,10 +47,11 @@ html.dk-dark {
   --lg-fill:
     linear-gradient(135deg, rgba(56, 189, 248, 0.10) 0%, rgba(20, 24, 32, 0.28) 46%, rgba(255, 107, 0, 0.08) 100%);
   --lg-fill-header:
-    linear-gradient(105deg, rgba(56, 189, 248, 0.14) 0%, rgba(16, 20, 28, 0.22) 48%, rgba(255, 107, 0, 0.10) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(8, 12, 18, 0.18));
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%);
   --lg-fill-data:
-    linear-gradient(165deg, rgba(36, 42, 52, 0.50) 0%, rgba(18, 22, 28, 0.40) 100%);
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%);
   --lg-border: rgba(186, 210, 230, 0.28);
   --lg-shadow:
     0 16px 40px -22px rgba(0, 0, 0, 0.55),

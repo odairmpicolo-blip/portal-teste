@@ -8,21 +8,21 @@
   gap: 0 10px;
   align-items: center;
   width: max-content;
-  max-width: min(380px, 64vw);
-  padding: 8px 12px 8px 12px !important;
-  line-height: 1.25 !important;
+  max-width: min(520px, 44vw);
+  padding: 10px 16px !important;
+  line-height: 1.2 !important;
   overflow: visible !important;
   position: relative;
   isolation: isolate;
   border-radius: 999px !important;
-  border: 2px solid transparent !important;
-  background: var(--home-glass-fill, linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(226, 232, 240, 0.22))) padding-box,
-    var(--home-edge, linear-gradient(135deg, #06245c, #ff6b00)) border-box !important;
-  backdrop-filter: var(--home-glass-blur, blur(28px) saturate(180%)) !important;
-  -webkit-backdrop-filter: var(--home-glass-blur, blur(28px) saturate(180%)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.62) !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(28px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(210%) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 14px 28px -18px rgba(6, 36, 92, 0.4) !important;
+    0 14px 36px -18px rgba(6, 20, 50, 0.45),
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.1) inset !important;
   color: #06245c;
   font-size: inherit !important;
 }
@@ -87,9 +87,11 @@
   text-overflow: unset !important;
   overflow-wrap: anywhere;
   font-weight: 800;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   line-height: 1.2;
   color: #06245c;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .ciop-session-profile,
@@ -101,10 +103,10 @@
   overflow: visible !important;
   text-overflow: unset !important;
   overflow-wrap: anywhere;
-  color: #475569;
+  color: #344054;
   font-weight: 600;
-  font-size: 0.68rem;
-  line-height: 1.2;
+  font-size: 0.58rem;
+  line-height: 1.15;
 }
 
 .ciop-session-profile:empty,
@@ -122,7 +124,7 @@
   align-items: center;
   gap: 5px;
   padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
   position: relative;
   z-index: 1;
 }
@@ -135,10 +137,10 @@
   grid-row: unset !important;
   justify-self: unset !important;
   align-self: unset !important;
-  min-width: 46px;
+  min-width: 0;
   border-radius: 999px !important;
-  padding: 7px 11px !important;
-  font-size: 0.68rem !important;
+  padding: 4px 8px !important;
+  font-size: 0.6rem !important;
   font-weight: 700 !important;
   line-height: 1;
   cursor: pointer;
@@ -150,56 +152,39 @@
     transform 0.18s ease;
 }
 
+/* Senha: vidro azul */
 .ciop-session .btn-senha-portal,
 .ciop-session button.btn-senha-portal {
-  background: #ff6b00 !important;
+  background: rgba(6, 36, 92, 0.38) !important;
   color: #fff !important;
-  border: 1px solid rgba(255, 107, 0, 0.7) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.28) !important;
-}
-
-html.dk-dark .ciop-session .btn-senha-portal,
-html.dk-dark .ciop-session button.btn-senha-portal {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #fff !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  box-shadow:
+    0 4px 14px rgba(6, 36, 92, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
 }
 
 .ciop-session .btn-senha-portal:hover,
 .ciop-session .btn-senha-portal:focus-visible,
 .ciop-session button.btn-senha-portal:hover,
 .ciop-session button.btn-senha-portal:focus-visible {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 107, 0, 0.62) !important;
   color: #fff !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 107, 0, 0.22) !important;
+  box-shadow: 0 8px 18px rgba(255, 107, 0, 0.28) !important;
 }
 
 /* Sair: vidro claro + texto vermelho (não botão vermelho sólido) */
 .ciop-session .btn-logout:not(.btn-senha-portal),
 .ciop-session button.btn-logout:not(.btn-senha-portal) {
-  background: #fff !important;
+  background: rgba(255, 255, 255, 0.32) !important;
   color: #b91c1c !important;
-  border: 1px solid rgba(185, 28, 28, 0.35) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-}
-
-html.dk-dark .ciop-session .btn-logout:not(.btn-senha-portal),
-html.dk-dark .ciop-session button.btn-logout:not(.btn-senha-portal) {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: #fecaca !important;
-  border: 1px solid rgba(255, 255, 255, 0.24) !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
 }
 
 .ciop-session .btn-logout:not(.btn-senha-portal):hover,
@@ -250,21 +235,30 @@ html.dk-dark .ciop-session button.btn-logout:not(.btn-senha-portal) {
   body:has(.bg-wall) .ciop-session.ciop-session-modern,
   body:has(.body-bg-wall) .ciop-session,
   body:has(.body-bg-wall) .ciop-session.ciop-session-modern {
-    background: var(--home-glass-fill) padding-box, var(--home-edge) border-box !important;
+    background: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+    backdrop-filter: blur(32px) saturate(220%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(220%) !important;
   }
 }
 
+/* Tema escuro — pílula do usuário */
 html.dk-dark .ciop-session,
 html.dk-dark .ciop-session.ciop-session-modern {
-  color: #f8fafc !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(168, 178, 188, 0.34) !important;
+  color: #f4f6f8 !important;
+  box-shadow:
+    0 14px 36px -18px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset !important;
 }
 
 html.dk-dark .ciop-session-user {
-  color: #fff !important;
-  text-shadow: 0 1px 2px #000 !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
 }
 
 html.dk-dark .ciop-session-profile,
 html.dk-dark .ciop-session-cargo {
-  color: #fff !important;
+  color: rgba(255, 255, 255, 0.82) !important;
 }

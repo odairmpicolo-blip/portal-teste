@@ -9,12 +9,15 @@ export const DOC_PATH = ["config", "perfisAcesso"];
 export const PERFIS_PORTAL = [
   "Administrador",
   "Supervisor",
+  "Encarregado",
   "Gerência",
   "Analista",
+  "Planejamento",
   "SAC",
   "Fiscalização",
   "Monitoramento",
   "Secretária",
+  "Consulta",
 ];
 
 /** Módulos configuráveis (home + menu lateral) */
@@ -24,6 +27,7 @@ export const MODULOS_PORTAL = [
   { id: "terminais-agora", label: "Terminais Agora", grupo: "Operação" },
   { id: "itinerarios", label: "Itinerários", grupo: "Operação" },
   { id: "onibus-agora", label: "Horários", grupo: "Operação" },
+  { id: "monitoramento", label: "Monitoramento", grupo: "Operação" },
   { id: "onibus-agora-clever", label: "Monitoramento Ao Vivo", grupo: "Operação" },
   { id: "fleetbus-agora", label: "FleetBus Agora", grupo: "Operação" },
   { id: "criar-relatorio", label: "Criar Relatório", grupo: "Operação" },
@@ -36,11 +40,12 @@ export const MODULOS_PORTAL = [
   { id: "canva", label: "Canva", grupo: "Operação" },
   { id: "cenario-atual", label: "Cenário Atual", grupo: "Operação" },
   { id: "pontos-controle", label: "Pontos de controle", grupo: "Operação" },
-  { id: "planilha", label: "Planilha", grupo: "Operação" },
+  { id: "planilha", label: "Planilha", grupo: "Relatórios" },
   { id: "gerenciar-patio", label: "Gerenciar Pátio", grupo: "Operação" },
   { id: "escala-saida-carros", label: "Saída de carros (escala)", grupo: "Operação" },
   { id: "relatorios", label: "Relatórios", grupo: "Operação" },
   { id: "consulta-decreto", label: "Consulta do Decreto", grupo: "Operação" },
+  { id: "consulta-veiculo", label: "Consulta de veículo", grupo: "Operação" },
   { id: "dashboard-servico", label: "Dashboard de Serviço", grupo: "Indicadores" },
   { id: "ipv", label: "IPV", grupo: "Indicadores" },
   { id: "icv", label: "ICV", grupo: "Indicadores" },
@@ -62,6 +67,9 @@ export const MODULOS_PORTAL = [
   { id: "side-globus", label: "Menu: Globus", grupo: "Menu lateral" },
   { id: "side-mobilibus", label: "Menu: Mobilibus", grupo: "Menu lateral" },
   { id: "gerenciar-usuarios", label: "Menu: Gerenciar Usuários", grupo: "Menu lateral" },
+  { id: "integracoes", label: "Menu: Integrações", grupo: "Menu lateral" },
+  { id: "automacoes", label: "Menu: Automações", grupo: "Menu lateral" },
+  { id: "auditoria", label: "Menu: Auditoria", grupo: "Menu lateral" },
   { id: "side-ponto", label: "Menu: Ponto Eletrônico", grupo: "Menu lateral" },
   { id: "side-reconhecimento", label: "Menu: Reconhecimento Facial", grupo: "Menu lateral" },
   { id: "side-linea", label: "Menu: Linea", grupo: "Menu lateral" },
@@ -86,13 +94,26 @@ export function defaultsAcessos() {
   PERFIS_PORTAL.forEach((perfil) => {
     const key = normalizarPerfilKey(perfil);
     if (key === "administrador") mapa[key] = ["*"];
-    else mapa[key] = [...todos];
+    else if (key === "consulta") {
+      mapa[key] = MODULOS_PORTAL.filter((m) => m.grupo === "Indicadores").map((m) => m.id);
+    } else mapa[key] = [...todos];
   });
   return mapa;
 }
 
 function estadoVazio() {
   return { acessos: defaultsAcessos(), usuarios: {} };
+}
+
+/** Lista salva antiga (~catálogo cheio) ganha módulos novos; lista enxuta não. */
+function completarListaModulos(lista) {
+  if (!Array.isArray(lista) || lista.includes("*")) return lista;
+  const todos = MODULOS_PORTAL.map((m) => m.id);
+  if (!todos.length) return lista;
+  const cobertos = todos.filter((id) => lista.includes(id)).length;
+  if (cobertos / todos.length < 0.8) return lista;
+  const extra = todos.filter((id) => !lista.includes(id));
+  return extra.length ? lista.concat(extra) : lista;
 }
 
 /** Garante chaves de perfil conhecidas + mapa de usuários válido. */
@@ -102,13 +123,13 @@ export function normalizarEstado(raw) {
   const acessos = { ...base };
   Object.keys(acessosIn).forEach((key) => {
     const lista = acessosIn[key];
-    if (Array.isArray(lista)) acessos[key] = lista;
+    if (Array.isArray(lista)) acessos[key] = completarListaModulos(lista);
   });
   const usuariosIn = raw?.usuarios && typeof raw.usuarios === "object" ? raw.usuarios : {};
   const usuarios = {};
   Object.keys(usuariosIn).forEach((email) => {
     const lista = usuariosIn[email];
-    if (Array.isArray(lista)) usuarios[normalizarEmailKey(email)] = lista;
+    if (Array.isArray(lista)) usuarios[normalizarEmailKey(email)] = completarListaModulos(lista);
   });
   return { acessos, usuarios };
 }

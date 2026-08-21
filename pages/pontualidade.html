@@ -333,6 +333,17 @@ td {
 tr:hover {
     background: #f8fafc;
 }
+.tabela-mes { cursor: pointer; }
+.tabela-mes-rotulo { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; }
+.tabela-mes-caret {
+    display: inline-block; width: 0; height: 0;
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+    border-left: 6px solid currentColor; opacity: .7;
+    transition: transform .15s ease;
+}
+.tabela-mes[aria-expanded="true"] .tabela-mes-caret { transform: rotate(90deg); }
+.tabela-dia td { background: #f8fafc; color: var(--muted); }
+.tabela-dia-label { padding-left: 28px !important; font-weight: 600; }
 .highlight-cell {
     font-weight: bold;
     background-color: #f2faf4;
@@ -349,10 +360,10 @@ tr:hover {
 .btn-logout{background:#dc2626;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:bold;}
 
 
-/* session container: portal-session.css?v=20260817ar */
-/* session user styles: portal-session.css?v=20260817ar */
-/* session profile styles: portal-session.css?v=20260817ar */
-/* session logout: portal-session.css?v=20260817ar */
+/* session container: portal-session.css?v=20260818open */
+/* session user styles: portal-session.css?v=20260818open */
+/* session profile styles: portal-session.css?v=20260818open */
+/* session logout: portal-session.css?v=20260818open */
 .ciop-session .btn-logout:hover{
     background:#b91c1c;
 }
@@ -537,7 +548,7 @@ h1.pontualidade-title-art {
         justify-content: center;
         width: 100%;
     }
-    /* session container: portal-session.css?v=20260817ar */
+    /* session container: portal-session.css?v=20260818open */
     .kpi-container {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1445,7 +1456,7 @@ h1 {
     color: #fff !important;
   }
 
-  /* session container: portal-session.css?v=20260817ar */
+  /* session container: portal-session.css?v=20260818open */
 
   .dk-theme-toggle{
     background: rgba(255,255,255,.5) !important;
@@ -1464,33 +1475,31 @@ h1 {
 
 <link rel="stylesheet" href="../assets/css/portal-senha.css?v=20260718e">
 <link rel="stylesheet" href="../assets/css/portal-titulos.css?v=20260720y">
-<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260818q">
-<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260817ar">
+<link rel="stylesheet" href="../assets/css/portal-brand.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818head3">
+<link rel="stylesheet" href="../assets/css/portal-session.css?v=20260818open">
 <link rel="stylesheet" href="../assets/css/portal-filtros.css">
 <link rel="stylesheet" href="../assets/css/dashboard-kit.css?v=20260720p">
     
 
-<script src="../assets/js/theme-toggle.js?v=20260818p"></script>
-<script src="../assets/js/portal-shell.js?v=20260817ar" defer></script>
-<script src="../assets/js/portal-fx.js?v=20260817ar" defer></script>
-<script type="module" src="../assets/js/auth.js?v=20260818p"></script>
+<script src="../assets/js/theme-toggle.js?v=20260818logo6"></script>
+<script type="module" src="../assets/js/auth.js?v=20260820t20"></script>
 <script src="../assets/js/portal-senha.js" defer></script>
 
-<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260818i">
-<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260818r">
-<link rel="stylesheet" href="../assets/css/portal-shell.css?v=20260817ar">
-<link rel="stylesheet" href="../assets/css/portal-fx.css?v=20260818i">
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260821hud">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260820bar4">
+<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260821fx">
+<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260821hud">
 </head>
 <body>
 <div class="body-bg-wall" aria-hidden="true"></div>
 <div class="body-bg-stain" aria-hidden="true"></div>
 <div class="header">
-    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/logomarca-portalciop-tcgl-claro.png" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
+    <a class="portal-brand-mark" href="../index.html" aria-label="Portal CIOP TCGL Operações"><img class="portal-brand-art" src="../assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6" alt="Portal CIOP"><span class="portal-brand-meta">TCGL · Operações</span></a>
     <div class="pontualidade-title-wrap">
-        <h1 class="pontualidade-title-art" aria-label="Pontualidade IPV">Pontualidade IPV</h1>
+        <h1 class="pontualidade-title-art" aria-label="Pontualidade IPV">
+            <img src="../assets/img/pontualidade-titulo-ipv.png" alt="Pontualidade IPV">
+        </h1>
         <div class="subtitle" id="dashboardSubtitle">CIOP / TCGL</div>
     </div>
     <div class="header-actions">
@@ -1513,6 +1522,7 @@ h1 {
                     <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></span>
                     <span>Portal</span>
                 </a>
+                <a href="pontualidade-ajustada.html" class="btn-portal" aria-label="IPV com incidentes">IPV + Incidentes</a>
                 <button type="button" class="btn-pdf-pontualidade" id="btnExportarPdf" disabled aria-label="Exportar PDF">
                     <span class="btn-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></span>
                     <span>PDF</span>
@@ -1903,6 +1913,7 @@ async function loadDashboardData() {
                 mostrouSnapshot = true;
                 initFilters();
                 renderDashboard();
+                window.portalLimparAvisoDashboard?.();
             }
 
             let novos = [];
@@ -1927,9 +1938,11 @@ async function loadDashboardData() {
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
             if (seq !== loadSeq) return;
+            const msg = window.portalMensagemErro ? window.portalMensagemErro(error) : error.message;
+            window.portalMostrarAvisoDashboard?.(msg);
             if (!mostrouSnapshot) {
                 rawData = [];
-                document.getElementById('dashboardSubtitle').innerText = 'Erro ao carregar ' + cenario.nome + ': ' + error.message;
+                document.getElementById('dashboardSubtitle').innerText = 'Erro ao carregar ' + cenario.nome + ': ' + msg;
                 initFilters();
                 renderDashboard();
             }
@@ -2072,11 +2085,12 @@ function montarVisualizacaoPontualidade(filteredData, anoSel, mesSel, diaSel) {
     filteredData.forEach((d) => {
         const parts = d.date.split('-');
         const key = (anoSel === 'todos') ? parts[0] + '-' + parts[1] : parts[1];
-        if (!groupKey[key]) groupKey[key] = { no_horario: 0, adiantado: 0, atrasado: 0, count: 0 };
+        if (!groupKey[key]) groupKey[key] = { no_horario: 0, adiantado: 0, atrasado: 0, count: 0, dias: [] };
         groupKey[key].no_horario += d.no_horario;
         groupKey[key].adiantado += d.adiantado;
         groupKey[key].atrasado += d.atrasado;
         groupKey[key].count++;
+        groupKey[key].dias.push(d);
     });
 
     const linhas = [];
@@ -2099,9 +2113,18 @@ function montarVisualizacaoPontualidade(filteredData, anoSel, mesSel, diaSel) {
         }
         linhas.push({
             periodo,
+            chave: key,
             no_horario: (groupKey[key].no_horario / count) * 100,
             adiantado: (groupKey[key].adiantado / count) * 100,
-            atrasado: (groupKey[key].atrasado / count) * 100
+            atrasado: (groupKey[key].atrasado / count) * 100,
+            dias: groupKey[key].dias.slice().sort(function (a, b) { return a.date.localeCompare(b.date); }).map(function (d) {
+                return {
+                    periodo: formatDateBR(d.date),
+                    no_horario: d.no_horario * 100,
+                    adiantado: d.adiantado * 100,
+                    atrasado: d.atrasado * 100
+                };
+            })
         });
         chartLabels.push(labelGrafico);
         chartNoHorario.push((groupKey[key].no_horario / count) * 100);
@@ -2121,6 +2144,33 @@ function montarVisualizacaoPontualidade(filteredData, anoSel, mesSel, diaSel) {
     };
 }
 
+function ligarExpansaoTabelaPontualidade() {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody || tbody.dataset.expandeMes === '1') return;
+    tbody.dataset.expandeMes = '1';
+    const alternar = (trMes) => {
+        const chave = trMes.getAttribute('data-abre-mes');
+        if (!chave) return;
+        const aberto = trMes.getAttribute('aria-expanded') === 'true';
+        trMes.setAttribute('aria-expanded', aberto ? 'false' : 'true');
+        tbody.querySelectorAll('tr.tabela-dia[data-mes="' + chave + '"]').forEach((tr) => {
+            tr.hidden = aberto;
+        });
+    };
+    tbody.addEventListener('click', (ev) => {
+        const trMes = ev.target.closest('tr.tabela-mes');
+        if (!trMes || !tbody.contains(trMes)) return;
+        alternar(trMes);
+    });
+    tbody.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'Enter' && ev.key !== ' ') return;
+        const trMes = ev.target.closest('tr.tabela-mes');
+        if (!trMes || !tbody.contains(trMes)) return;
+        ev.preventDefault();
+        alternar(trMes);
+    });
+}
+
 function renderizarTabelaFiltrada(visual) {
     const tbody = document.getElementById('tableBody');
     const thPeriodo = document.getElementById('thColPeriodo');
@@ -2138,14 +2188,29 @@ function renderizarTabelaFiltrada(visual) {
     }
 
     tbody.innerHTML = visual.linhas.map((row) => {
-        return `<tr>
+        const dias = Array.isArray(row.dias) ? row.dias : [];
+        const celulas = (item, classeTd) => `<td class="${classeTd || ''}">${item.no_horario.toFixed(2)}%</td>
+            <td style="color: var(--red); font-weight: 500;">${item.adiantado.toFixed(2)}%</td>
+            <td style="color: var(--yellow); font-weight: 500;">${item.atrasado.toFixed(2)}%</td>`;
+        if (!dias.length) {
+            return `<tr>
             <td>${row.periodo}</td>
-            <td class="highlight-cell">${row.no_horario.toFixed(2)}%</td>
-            <td style="color: var(--red); font-weight: 500;">${row.adiantado.toFixed(2)}%</td>
-            <td style="color: var(--yellow); font-weight: 500;">${row.atrasado.toFixed(2)}%</td>
+            ${celulas(row, 'highlight-cell')}
         </tr>`;
+        }
+        const chave = String(row.chave || row.periodo);
+        const mes = `<tr class="tabela-mes" data-abre-mes="${chave}" tabindex="0" aria-expanded="false">
+            <td><span class="tabela-mes-rotulo"><span class="tabela-mes-caret" aria-hidden="true"></span><span>${row.periodo}</span></span></td>
+            ${celulas(row, 'highlight-cell')}
+        </tr>`;
+        const filhos = dias.map((dia) => `<tr class="tabela-dia" hidden data-mes="${chave}">
+            <td class="tabela-dia-label">${dia.periodo}</td>
+            ${celulas(dia, 'highlight-cell')}
+        </tr>`).join('');
+        return mes + filhos;
     }).join('');
 
+    ligarExpansaoTabelaPontualidade();
     if (btnPdf) btnPdf.disabled = false;
     pontualidadeExportState = { ...visual };
 }

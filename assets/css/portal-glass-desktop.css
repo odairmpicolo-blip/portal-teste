@@ -6,8 +6,8 @@
   --lg-fill: linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(226, 240, 255, 0.12) 45%, rgba(255, 244, 235, 0.16) 100%);
   --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18));
   --lg-fill-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.18));
-  --lg-fill-data: linear-gradient(165deg, rgba(255, 255, 255, 0.46) 0%, rgba(244, 247, 252, 0.34) 100%);
-  --lg-fill-data-head: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.22));
+  --lg-fill-data: var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #b4d4ee 36%, #e4f1fa 72%, #f8fbfe 100%));
+  --lg-fill-data-head: linear-gradient(135deg, #6ea6d4 0%, #e4f1fa 70%, #f8fbfe 100%);
   --lg-blur: blur(32px) saturate(190%);
   --lg-blur-soft: blur(24px) saturate(175%);
   --lg-blur-data: blur(26px) saturate(165%);
@@ -44,17 +44,9 @@ body:has(.body-bg-wall) .body-bg-wall {
   visibility: visible !important;
 }
 
+.ciop-liquid-glass,
 body:has(.bg-wall) .header,
 body:has(.bg-wall) .header.header-v2,
-body:has(.body-bg-wall) .header,
-body:has(.body-bg-wall) .header.header-v2 {
-  background: var(--lg-fill-header, var(--lg-fill)) !important;
-  backdrop-filter: var(--lg-blur) !important;
-  -webkit-backdrop-filter: var(--lg-blur) !important;
-  border-color: var(--lg-border) !important;
-  box-shadow: var(--lg-shadow) !important;
-  color: var(--lg-text);
-}
 body:has(.bg-wall) .hero-pro-panel,
 body:has(.bg-wall) .ciop-session,
 body:has(.bg-wall) .ciop-session.ciop-session-modern,
@@ -65,6 +57,8 @@ body:has(.bg-wall) .notice-item,
 body:has(.bg-wall) .toolbar-whatsapp,
 body:has(.bg-wall) .menu-toggle,
 body:has(.bg-wall) footer.portal-site-footer,
+body:has(.body-bg-wall) .header,
+body:has(.body-bg-wall) .header.header-v2,
 body:has(.body-bg-wall) .ciop-session,
 body:has(.body-bg-wall) .ciop-session.ciop-session-modern,
 body:has(.body-bg-wall) .topbar,
@@ -335,9 +329,7 @@ body:has(.body-bg-wall):not(.oa-page) .card.theme-blue {
 body:has(.body-bg-wall) .chart-body,
 body:has(.body-bg-wall) .chart-card .chart-body,
 body:has(.body-bg-wall) .chart-box .chart-body {
-  background: rgba(255, 255, 255, 0.22) !important;
-  backdrop-filter: blur(18px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
+  background: transparent !important;
 }
 
 /* Cabeçalhos de tabela / planilha: fosco um pouco mais denso */
@@ -360,22 +352,22 @@ body:has(.body-bg-wall) .table-wrap table,
 body:has(.body-bg-wall) table.planilha,
 body:has(.body-bg-wall) table.planilha-detalhe,
 body:has(.body-bg-wall) .data-table {
-  background: rgba(255, 255, 255, 0.38) !important;
+  background: var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #f8fbfe 100%)) !important;
   color: var(--lg-text) !important;
 }
 
-body:has(.body-bg-wall) .table-wrap tbody tr,
-body:has(.body-bg-wall) table.planilha tbody tr,
-body:has(.body-bg-wall) table.planilha-detalhe tbody tr,
-body:has(.body-bg-wall) .data-table tbody tr {
-  background: rgba(255, 255, 255, 0.28) !important;
+html:not(.dk-dark) body:has(.body-bg-wall) .table-wrap tbody tr,
+html:not(.dk-dark) body:has(.body-bg-wall) table.planilha tbody tr,
+html:not(.dk-dark) body:has(.body-bg-wall) table.planilha-detalhe tbody tr,
+html:not(.dk-dark) body:has(.body-bg-wall) .data-table tbody tr {
+  background: rgba(186, 214, 238, 0.22) !important;
 }
 
-body:has(.body-bg-wall) .table-wrap tbody tr:nth-child(even),
-body:has(.body-bg-wall) table.planilha tbody tr:nth-child(even),
-body:has(.body-bg-wall) table.planilha-detalhe tbody tr:nth-child(even),
-body:has(.body-bg-wall) .data-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.4) !important;
+html:not(.dk-dark) body:has(.body-bg-wall) .table-wrap tbody tr:nth-child(even),
+html:not(.dk-dark) body:has(.body-bg-wall) table.planilha tbody tr:nth-child(even),
+html:not(.dk-dark) body:has(.body-bg-wall) table.planilha-detalhe tbody tr:nth-child(even),
+html:not(.dk-dark) body:has(.body-bg-wall) .data-table tbody tr:nth-child(even) {
+  background: rgba(210, 228, 244, 0.32) !important;
 }
 
 body:has(.body-bg-wall) .table-wrap td,
@@ -481,8 +473,10 @@ html.dk-dark {
   --lg-fill: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(20, 24, 32, 0.30) 48%, rgba(255, 107, 0, 0.08) 100%);
   --lg-fill-strong: linear-gradient(180deg, rgba(36, 42, 52, 0.42), rgba(16, 20, 28, 0.28));
   --lg-fill-hover: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(32, 38, 48, 0.34));
-  --lg-fill-data: linear-gradient(165deg, rgba(36, 42, 52, 0.50) 0%, rgba(18, 22, 28, 0.40) 100%);
-  --lg-fill-data-head: linear-gradient(180deg, rgba(52, 58, 70, 0.42), rgba(24, 28, 36, 0.30));
+  --lg-fill-data:
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%);
+  --lg-fill-data-head: linear-gradient(135deg, #152a4a 0%, #1c3d66 100%);
   --lg-border: rgba(186, 210, 230, 0.28);
   --lg-edge: 1px solid rgba(186, 210, 230, 0.28);
   --lg-text: #f4f6f8;
@@ -503,7 +497,9 @@ html.dk-dark body:has(.body-bg-wall) .table-wrap table,
 html.dk-dark body:has(.body-bg-wall) table.planilha,
 html.dk-dark body:has(.body-bg-wall) table.planilha-detalhe,
 html.dk-dark body:has(.body-bg-wall) .data-table {
-  background: rgba(34, 38, 44, 0.9) !important;
+  background:
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
   color: #f4f6f8 !important;
 }
 
@@ -662,6 +658,7 @@ html.dk-dark body:has(.body-bg-wall) .page-footer {
   color: rgba(255, 255, 255, 0.88) !important;
 }
 
+html.dk-dark body:has(.body-bg-wall) .portal-brand-art,
 html.dk-dark body:has(.body-bg-wall) [class$="-title-art"] img,
 html.dk-dark body:has(.body-bg-wall) .header-title img,
 html.dk-dark body:has(.body-bg-wall) .title-wrap > img {
@@ -674,4 +671,30 @@ html.dk-dark body:has(.body-bg-wall) img.logo-right,
 html.dk-dark body:has(.body-bg-wall) img[src*="LOGO_TCGL"] {
   filter: none !important;
   opacity: 1 !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .header,
+html:not(.dk-dark) body:has(.bg-wall) .header.header-v2,
+html:not(.dk-dark) body:has(.body-bg-wall) .header,
+html:not(.dk-dark) body:has(.body-bg-wall) .header.header-v2 {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(56, 189, 248, 0.22), transparent),
+    var(--ciop-light-grad-fx, var(--ciop-light-grad)) !important;
+  background-size: 26% 100%, auto, auto !important;
+  background-repeat: no-repeat !important;
+  background-position: -28% 0, 0 0, 0 0 !important;
+  animation: ciop-header-scan 11s ease-in-out infinite;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55) !important;
+}
+
+html.dk-dark body:has(.bg-wall) .header,
+html.dk-dark body:has(.bg-wall) .header.header-v2,
+html.dk-dark body:has(.body-bg-wall) .header,
+html.dk-dark body:has(.body-bg-wall) .header.header-v2 {
+  background:
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
+  border-bottom: 1px solid rgba(120, 170, 220, 0.22) !important;
 }

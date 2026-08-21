@@ -13,12 +13,14 @@ import {
 import { app, buscarUsuarioFirestore, normalizarCadastro } from "./portal-firestore.js";
 import { usuarios } from "./usuarios.js";
 import { aplicarSaudacaoHero } from "./portal-saudacao.js?v=20260704a";
-import { carregarAcessosPerfis, usuarioTemModulo } from "./portal-perfis-acesso.js?v=20260817p";
+import { carregarAcessosPerfis, usuarioTemModulo } from "./portal-perfis-acesso.js?v=20260820t21";
+import "./portal-mfa.js?v=20260820mfa";
 import {
   iniciarHeartbeatPresenca,
   pararHeartbeatPresenca,
   marcarPresencaOffline
 } from "./portal-presenca.js?v=20260817a";
+import "./portal-dashboard-ui.js?v=20260820d7";
 
 const auth = getAuth(app);
 
@@ -235,13 +237,45 @@ function modernizarSessaoUsuario() {
 
 window.modernizarSessaoUsuario = modernizarSessaoUsuario;
 
+function paginaEhHomePortal() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  return file === "" || file === "index.html" || file === "login.html";
+}
+
+function jaTemVoltarAoPortal() {
+  if (document.querySelector(".portal-return, [data-portal-voltar], a.btn-portal[href*='index.html']")) {
+    return true;
+  }
+  return [...document.querySelectorAll("a[href]")].some((a) => {
+    if (a.classList.contains("portal-brand-mark")) return false;
+    const href = a.getAttribute("href") || "";
+    if (!/index\.html(\?|$|#)/.test(href)) return false;
+    const rotulo = `${a.textContent || ""} ${a.getAttribute("aria-label") || ""}`;
+    return /voltar/i.test(rotulo);
+  });
+}
+
+function garantirVoltarAoPortal() {
+  if (PORTAL_NATIVE_EMBEDDED || paginaEhHomePortal() || jaTemVoltarAoPortal()) return;
+  const header = document.querySelector(".header");
+  if (!header) return;
+  const alvo = header.querySelector(".header-actions") || header;
+  const a = document.createElement("a");
+  a.href = portalPath("index.html");
+  a.className = "portal-voltar-auto";
+  a.dataset.portalVoltar = "1";
+  a.setAttribute("aria-label", "Voltar ao portal");
+  a.textContent = "Portal";
+  alvo.insertBefore(a, alvo.firstChild);
+}
+
 function atualizarSaudacaoHero(cadastroOuNome) {
   const nome = typeof cadastroOuNome === "string" ? cadastroOuNome : cadastroOuNome?.nome;
   const genero = typeof cadastroOuNome === "object" ? cadastroOuNome?.genero : "";
   aplicarSaudacaoHero(nome, { genero });
 }
 
-const PORTAL_SESSION_CSS_V = "20260817ar";
+const PORTAL_SESSION_CSS_V = "20260818open";
 
 function garantirCssSessao() {
   const href = portalPath(`assets/css/portal-session.css?v=${PORTAL_SESSION_CSS_V}`);
@@ -264,7 +298,7 @@ function garantirCssMarca() {
   if (document.querySelector("link[data-portal-brand]")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = portalPath("assets/css/portal-brand.css?v=20260818y");
+  link.href = portalPath("assets/css/portal-brand.css?v=20260818head3");
   link.dataset.portalBrand = "1";
   document.head.appendChild(link);
 }
@@ -273,7 +307,7 @@ function garantirCssHeader() {
   if (document.querySelector("link[data-portal-header]")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = portalPath("assets/css/portal-header.css");
+  link.href = portalPath("assets/css/portal-header.css?v=20260818head3");
   link.dataset.portalHeader = "1";
   document.head.appendChild(link);
 }
@@ -288,7 +322,7 @@ function notificarPortalPronto() {
 function garantirMarcaPortal() {
   if (document.querySelector("script[data-portal-brand-js]")) return;
   const script = document.createElement("script");
-  script.src = portalPath("assets/js/portal-brand.js?v=20260818logo");
+  script.src = portalPath("assets/js/portal-brand.js?v=20260818logo6");
   script.defer = true;
   script.dataset.portalBrandJs = "1";
   script.onload = () => {
@@ -299,18 +333,99 @@ function garantirMarcaPortal() {
   document.head.appendChild(script);
 }
 
+function garantirCssLiquidGlass() {
+  if (document.querySelector("link[data-portal-liquid]")) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = portalPath("assets/css/portal-liquid-glass.css?v=20260818p");
+  link.dataset.portalLiquid = "1";
+  document.head.appendChild(link);
+}
+
 function garantirThemeToggle() {
   if (document.querySelector("script[src*='theme-toggle.js']")) return;
   const script = document.createElement("script");
-  script.src = portalPath("assets/js/theme-toggle.js?v=20260818logo");
+  script.src = portalPath("assets/js/theme-toggle.js?v=20260818logo6");
+  document.head.appendChild(script);
+}
+
+function garantirNavIncidentes() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  if (!/^incidentes-|^relatorio-ocorrencia\.html$/.test(file)) return;
+  if (document.querySelector("script[data-portal-inc-nav]")) return;
+  const script = document.createElement("script");
+  script.src = portalPath("assets/js/incidentes-nav.js?v=20260820i8");
+  script.defer = true;
+  script.dataset.portalIncNav = "1";
+  document.head.appendChild(script);
+}
+
+function garantirNavTempoReal() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  if (!/^(onibus-agora|onibus-horarios|fleetbus-agora|terminais-agora)\.html$/.test(file)) return;
+  if (document.querySelector("script[data-portal-live-nav]")) return;
+  const script = document.createElement("script");
+  script.src = portalPath("assets/js/tempo-real-nav.js?v=20260820t20");
+  script.defer = true;
+  script.dataset.portalLiveNav = "1";
+  document.head.appendChild(script);
+}
+
+function garantirTempoRealPoll() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  if (!/^(onibus-agora|onibus-agora-clever|onibus-horarios|fleetbus-agora|terminais-agora)\.html$/.test(file)) return;
+  if (document.querySelector("script[data-portal-live-poll]")) return;
+  const script = document.createElement("script");
+  script.src = portalPath("assets/js/portal-tempo-real.js?v=20260820t20");
+  script.dataset.portalLivePoll = "1";
+  document.head.appendChild(script);
+}
+
+function garantirPwa() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  if (/^painel-tv|^pontualidade-tempo-real\.html$/.test(file)) return;
+  if (!document.querySelector("link[rel=\"manifest\"]")) {
+    const man = document.createElement("link");
+    man.rel = "manifest";
+    man.href = portalPath("assets/pwa/manifest.webmanifest");
+    document.head.appendChild(man);
+  }
+  if (!document.querySelector("meta[name=\"theme-color\"]")) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = "#06245c";
+    document.head.appendChild(meta);
+  }
+  if (!document.querySelector("link[rel=\"apple-touch-icon\"]")) {
+    const icon = document.createElement("link");
+    icon.rel = "apple-touch-icon";
+    icon.href = portalPath("assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6");
+    document.head.appendChild(icon);
+  }
+}
+
+function garantirNavRelatorios() {
+  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
+  if (!/^(relatorios|criar-relatorio|liberacao-relatorio|folha-servico-relatorio|relatorio-ocorrencia)\.html$/.test(file)) return;
+  if (document.querySelector("script[data-portal-rel-nav]")) return;
+  const script = document.createElement("script");
+  script.src = portalPath("assets/js/relatorios-nav.js?v=20260820r9");
+  script.defer = true;
+  script.dataset.portalRelNav = "1";
   document.head.appendChild(script);
 }
 
 garantirCssSessao();
 garantirCssMarca();
 garantirCssHeader();
+garantirCssLiquidGlass();
 garantirThemeToggle();
 garantirMarcaPortal();
+garantirNavIncidentes();
+garantirNavRelatorios();
+garantirNavTempoReal();
+garantirTempoRealPoll();
+garantirPwa();
 
 function garantirRodapePortal() {
   if (document.querySelector("script[data-portal-footer]")) return;
@@ -352,16 +467,14 @@ async function getCadastro(user) {
 
   const cadastroLocal = usuarios[email] || usuarios[user.email];
   if (!cadastroLocal) {
-    const padrao = {
+    return {
       email,
       nome: user.displayName || user.email,
       perfil: "Usuario",
       registro: "",
       cargo: "",
-      ativo: true
+      ativo: false
     };
-    salvarCadastroCache(email, padrao);
-    return padrao;
   }
 
   const cadastro = normalizarCadastro(cadastroLocal, email);
@@ -378,7 +491,7 @@ async function getCadastro(user) {
 }
 
 const CADASTRO_CACHE_KEY = "portal_cadastro_v1";
-const CADASTRO_CACHE_TTL_MS = 8 * 60 * 60 * 1000;
+const CADASTRO_CACHE_TTL_MS = 30 * 60 * 1000;
 
 function lerCadastroCache(email) {
   try {
@@ -540,6 +653,7 @@ function aplicarPermissoes(cadastro) {
 
   atualizarSaudacaoHero(cadastro);
   modernizarSessaoUsuario();
+  garantirVoltarAoPortal();
 
   document.querySelectorAll("[data-admin-only]").forEach((el) => {
     el.style.display = admin ? "flex" : "none";

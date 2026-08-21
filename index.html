@@ -64,6 +64,9 @@ document.documentElement.classList.add("portal-auth-pending");
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#06245c">
+<link rel="manifest" href="assets/pwa/manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6">
 <title>Portal Operacional - CIOP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1399,9 +1402,9 @@ footer{
 .btn-logout{background:#dc2626;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;font-weight:bold;}
 
 
-/* session container: portal-session.css?v=20260817ar */
-/* session user styles: portal-session.css?v=20260817ar */
-/* session profile styles: portal-session.css?v=20260817ar */
+/* session container: portal-session.css?v=20260818open */
+/* session user styles: portal-session.css?v=20260818open */
+/* session profile styles: portal-session.css?v=20260818open */
 
 .header-actions{
     justify-self:end;
@@ -1890,15 +1893,15 @@ body{
 </style>
 
 <script src="assets/js/loading.js?v=20260718d"></script>
-<script type="module" src="assets/js/auth.js?v=20260818logo"></script>
+<script type="module" src="assets/js/auth.js?v=20260820t21"></script>
   <script type="module" src="assets/js/incidentes-alerta.js?v=20260708a"></script>
 <link rel="stylesheet" href="assets/css/portal-senha.css?v=20260718e">
 <link rel="stylesheet" href="assets/css/portal-titulos.css?v=20260720y">
 <link rel="stylesheet" href="assets/css/portal-home-v2.css?v=20260702b">
 <link rel="stylesheet" href="assets/css/portal-saudacao-pro.css?v=20260704a">
-<link rel="stylesheet" href="assets/css/portal-brand.css?v=20260818y">
-<link rel="stylesheet" href="assets/css/portal-header.css?v=20260818i">
-<link rel="stylesheet" href="assets/css/portal-session.css?v=20260817ar">
+<link rel="stylesheet" href="assets/css/portal-brand.css?v=20260818head3">
+<link rel="stylesheet" href="assets/css/portal-header.css?v=20260818head3">
+<link rel="stylesheet" href="assets/css/portal-session.css?v=20260818open">
 <link rel="stylesheet" href="assets/css/portal-footer.css?v=20260720y">
 <style>
 /* ===== Round 4: overrides finais (depois de todos os CSS externos) — avisos/saudacao mais largos, vidro visivel, texto sem corte ===== */
@@ -1987,13 +1990,14 @@ html.dk-dark .ciop-command-inner{
 
 /* Saudacao mais larga e sem cortar texto */
 .header.header-v2{
-    grid-template-columns:minmax(140px,auto) minmax(0,1fr) minmax(140px,auto) !important;
+    grid-template-columns:1fr auto 1fr !important;
     align-items:center !important;
     gap:12px !important;
 }
 .header-hero.header-hero-pro{
-    width:100% !important;
-    max-width:min(98%, 1300px) !important;
+    width:max-content !important;
+    max-width:min(92vw, 1100px) !important;
+    justify-self:center !important;
 }
 .hero-pro-panel{
     overflow:visible !important;
@@ -2074,11 +2078,12 @@ html.dk-dark .ciop-command-inner{
 
 /* ===== Round 6: saudacao ainda mais larga + "Bem-vindo" em cima, nome maior embaixo ===== */
 .header-hero.header-hero-pro{
-    width:100% !important;
-    max-width:none !important;
+    width:max-content !important;
+    max-width:min(92vw, 1100px) !important;
+    justify-self:center !important;
 }
 .hero-pro-panel{
-    width:100% !important;
+    width:max-content !important;
 }
 .hero-pro-copy{
     flex:1 1 auto !important;
@@ -2096,8 +2101,8 @@ html.dk-dark .ciop-command-inner{
     letter-spacing:.08em !important;
 }
 .hero-pro-nome{
-    font-size:clamp(1.25rem, 2.5vw, 1.75rem) !important;
-    font-weight:900 !important;
+    font-size:clamp(1.25rem, 2.2vw, 1.55rem) !important;
+    font-weight:800 !important;
     line-height:1.1 !important;
 }
 
@@ -2310,16 +2315,15 @@ html.dk-dark .ciop-command-inner{
     .portal-aba-indicador{ transition:none; }
 }
 </style>
-<link rel="stylesheet" href="assets/css/portal-glass-desktop.css?v=20260818z">
-<link rel="stylesheet" href="assets/css/portal-futuristic.css?v=20260818i">
-<link rel="stylesheet" href="assets/css/portal-tokens.css?v=20260818z">
-<link rel="stylesheet" href="assets/css/portal-unify.css?v=20260818r">
-<link rel="stylesheet" href="assets/css/portal-home-ops.css?v=20260818ae">
-<link rel="stylesheet" href="assets/css/portal-fx.css?v=20260818z">
-<script src="assets/js/theme-toggle.js?v=20260818logo"></script>
+<link rel="stylesheet" href="assets/css/portal-glass-desktop.css?v=20260821hud">
+<link rel="stylesheet" href="assets/css/portal-futuristic.css?v=20260820bar4">
+<link rel="stylesheet" href="assets/css/portal-tokens.css?v=20260821fx">
+<link rel="stylesheet" href="assets/css/portal-unify.css?v=20260821full">
+<link rel="stylesheet" href="assets/css/portal-ciop-home.css?v=20260821full">
+<link rel="stylesheet" href="assets/css/portal-liquid-glass.css?v=20260821full">
+<script src="assets/js/theme-toggle.js?v=20260818logo6"></script>
 <script src="assets/js/portal-futuristic.js?v=20260817d" defer></script>
-<script src="assets/js/portal-ciop-home.js?v=20260818ae" defer></script>
-<script src="assets/js/portal-fx.js?v=20260817ar" defer></script>
+<script src="assets/js/portal-ciop-home.js?v=20260818areas2cm" defer></script>
 <script src="assets/js/portal-senha.js" defer></script>
 <script src="assets/js/portal-footer.js" defer></script>
 
@@ -2343,40 +2347,6 @@ html.dk-dark .ciop-command-inner{
 <div class="bg-wall" aria-hidden="true"></div>
 <div class="bg-blobs" aria-hidden="true"></div>
 <div class="bg-blob-mid" aria-hidden="true"></div>
-<div class="portal-fx-3d" aria-hidden="true">
-  <div class="portal-fx-3d-ceil"></div>
-  <div class="portal-fx-3d-floor"></div>
-  <div class="portal-fx-3d-scan"></div>
-  <div class="portal-fx-bus"></div>
-  <svg class="portal-fx-3d-lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
-    <defs>
-      <linearGradient id="fxLineAzul" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0"/>
-        <stop offset="35%" stop-color="#38bdf8" stop-opacity=".85"/>
-        <stop offset="100%" stop-color="#06245c" stop-opacity=".1"/>
-      </linearGradient>
-      <linearGradient id="fxLineLaranja" x1="1" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ff6b00" stop-opacity="0"/>
-        <stop offset="40%" stop-color="#ff6b00" stop-opacity=".8"/>
-        <stop offset="100%" stop-color="#ffb347" stop-opacity=".05"/>
-      </linearGradient>
-    </defs>
-    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="url(#fxLineAzul)" stroke-width="1.6" d="M80 120 L260 120 L320 220 L520 220 L560 80 L820 80"/>
-      <path stroke="url(#fxLineAzul)" stroke-width="1.2" d="M40 420 L180 360 L180 240 L340 240"/>
-      <path stroke="url(#fxLineLaranja)" stroke-width="1.5" d="M1360 90 L1180 90 L1120 180 L980 180 L940 60"/>
-      <path stroke="url(#fxLineLaranja)" stroke-width="1.2" d="M1400 380 L1260 320 L1260 210 L1100 210"/>
-      <path stroke="url(#fxLineAzul)" stroke-width="1" d="M720 40 L720 160 L860 200 L1020 200"/>
-      <path stroke="url(#fxLineLaranja)" stroke-width="1" d="M200 760 L360 680 L640 680 L760 560"/>
-      <circle cx="260" cy="120" r="3.2" fill="#38bdf8"/>
-      <circle cx="320" cy="220" r="2.6" fill="#7dd3fc"/>
-      <circle cx="1180" cy="90" r="3.2" fill="#ff6b00"/>
-      <circle cx="1120" cy="180" r="2.6" fill="#ffb347"/>
-      <circle cx="180" cy="360" r="2.4" fill="#38bdf8"/>
-      <circle cx="640" cy="680" r="2.4" fill="#ff6b00"/>
-    </g>
-  </svg>
-</div>
 <!-- MENU LATERAL -->
 
 <div class="sidebar" id="sidebar">
@@ -2468,6 +2438,30 @@ html.dk-dark .ciop-command-inner{
         <span class="side-text">Gerenciar Usuários</span>
         <span class="side-arrow" aria-hidden="true">›</span>
     </a>
+    <a class="side-link"
+       href="pages/integracoes.html"
+       data-perfis="Administrador"
+       data-modulo="integracoes">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93"/><path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 1 0 7.07 7.07L14 18.07"/></svg></span>
+        <span class="side-text">Integrações</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="side-link"
+       href="pages/automacoes.html"
+       data-perfis="Administrador"
+       data-modulo="automacoes">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
+        <span class="side-text">Automações</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
+    <a class="side-link"
+       href="pages/auditoria.html"
+       data-perfis="Administrador"
+       data-modulo="auditoria">
+        <span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+        <span class="side-text">Auditoria</span>
+        <span class="side-arrow" aria-hidden="true">›</span>
+    </a>
 
     <!-- Página Perfis desativada: módulos agora em Gerenciar Usuários -->
 
@@ -2515,9 +2509,12 @@ html.dk-dark .ciop-command-inner{
 
 <header class="header header-v2">
 
-    <div class="portal-brand-lockup">
+    <div class="header-brand-lock">
+        <button class="menu-toggle" onclick="toggleMenu()" type="button" aria-label="Abrir links operacionais">
+            <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+        </button>
         <div class="header-brand portal-brand-mark" aria-label="Portal CIOP TCGL Operações">
-            <img class="portal-brand-art" src="assets/img/logomarca-portalciop-tcgl-claro.png" alt="Portal CIOP TCGL Operações">
+            <img class="portal-brand-art" src="assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6" alt="Portal CIOP TCGL Operações" fetchpriority="high" decoding="async">
         </div>
     </div>
 
@@ -2555,10 +2552,6 @@ html.dk-dark .ciop-command-inner{
     </section>
 
     <div class="header-actions">
-        <button type="button" class="ciop-hud-bell" id="ciopBellAvisos" aria-label="Abrir avisos">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M15.2 17.6a3.2 3.2 0 0 1-6.4 0M6.2 8.8a5.8 5.8 0 1 1 11.6 0c0 4.2 1.4 5.4 1.4 5.4H4.8s1.4-1.2 1.4-5.4"/></svg>
-            <span class="ciop-hud-bell-badge" id="ciopBellBadge" hidden>0</span>
-        </button>
         <div class="ciop-session" aria-label="Sessão do usuário">
     <span id="usuarioLogado" class="ciop-session-user">Usuário</span>
     <span id="perfilUsuario" class="ciop-session-cargo" hidden></span>
@@ -2572,9 +2565,6 @@ html.dk-dark .ciop-command-inner{
 
 <div class="toolbar">
     <div class="toolbar-inner">
-        <button class="menu-toggle" onclick="toggleMenu()" type="button" aria-label="Abrir links operacionais">
-            <span class="menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>
-        </button>
         <div class="toolbar-main">
             <section class="ciop-command-row" aria-label="Central de comando e busca">
                 <div class="ciop-command">
@@ -2612,7 +2602,7 @@ html.dk-dark .ciop-command-inner{
                                 <span class="ciop-kpi-label">Ativos</span>
                                 <span class="ciop-kpi-value" id="ciopKpiUsuarios">—</span>
                             </div>
-                            <div class="ciop-kpi ciop-kpi-avisos" id="ciopKpiAvisosWrap" role="button" tabindex="0" title="Abrir avisos">
+                            <div class="ciop-kpi">
                                 <span class="ciop-kpi-label">Avisos</span>
                                 <span class="ciop-kpi-value" id="ciopKpiAvisos">—</span>
                             </div>
@@ -2624,7 +2614,7 @@ html.dk-dark .ciop-command-inner{
                             <input id="ciopBuscaModulos" class="ciop-search-input" type="text" name="ciop-filtro-modulos" placeholder="Buscar módulos..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" enterkeyhint="search" inputmode="search" role="searchbox">
                             <button class="ciop-search-clear" type="button" id="ciopBuscaLimpar" aria-label="Limpar busca" hidden>×</button>
                         </label>
-                        <a class="toolbar-whatsapp ciop-command-whatsapp" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="Conectar ao WhatsApp" title="Conectar ao WhatsApp">
+                        <a class="toolbar-whatsapp" href="https://web.whatsapp.com/" target="_blank" rel="noopener noreferrer" aria-label="Conectar ao WhatsApp" title="Conectar ao WhatsApp">
                             <span class="toolbar-whatsapp-icon" aria-hidden="true">
                                 <svg viewBox="0 0 32 32" role="img" focusable="false">
                                     <circle cx="16" cy="16" r="15" fill="#25D366" stroke="#fff" stroke-width="2"/>
@@ -2635,32 +2625,23 @@ html.dk-dark .ciop-command-inner{
                     </div>
                 </div>
             </section>
+            <section class="notice-board" aria-label="Quadro de avisos">
+                <div class="notice-board-head">
+                    <span class="notice-board-title">Avisos</span>
+                    <span id="avisosContador" class="notice-count" hidden>0</span>
+                </div>
+                <div class="notice-carousel-wrap">
+                    <div id="avisosLista" class="notice-list notice-carousel-track">
+                        <div class="notice-empty">Carregando avisos...</div>
+                    </div>
+                    <div id="avisosDots" class="notice-carousel-dots" hidden aria-label="Navegação de avisos"></div>
+                    <div id="avisosProgress" class="notice-carousel-progress" hidden aria-hidden="true">
+                        <span class="notice-carousel-progress-bar"></span>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
-</div>
-
-<div id="avisosPopup" class="avisos-popup-backdrop" hidden>
-  <div class="avisos-popup" role="dialog" aria-modal="true" aria-labelledby="avisosPopupTitulo">
-    <div class="avisos-popup-head">
-      <h2 id="avisosPopupTitulo">Avisos</h2>
-      <span id="avisosContador" class="notice-count" hidden>0</span>
-      <button id="abrirAvisoEditor" class="avisos-popup-manage" type="button" hidden>Gerenciar</button>
-      <button class="avisos-popup-close" type="button" id="avisosPopupFechar" aria-label="Fechar avisos">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </button>
-    </div>
-    <section class="notice-board" aria-label="Quadro de avisos">
-      <div class="notice-carousel-wrap">
-        <div id="avisosLista" class="notice-list notice-carousel-track">
-          <div class="notice-empty">Carregando avisos...</div>
-        </div>
-        <div id="avisosDots" class="notice-carousel-dots" hidden aria-label="Navegação de avisos"></div>
-        <div id="avisosProgress" class="notice-carousel-progress" hidden aria-hidden="true">
-          <span class="notice-carousel-progress-bar"></span>
-        </div>
-      </div>
-    </section>
-  </div>
 </div>
 
 <div id="avisoModal" class="notice-modal-backdrop" hidden>
@@ -2788,6 +2769,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Registrar informações na folha de serviço.
             </div>
+            <div class="card-btn">Lançar</div>
         </a>
 
         <a href="pages/liberacao-lancamento.html" class="card theme-orange" data-perfis="Administrador,Supervisor,Analista" data-modulo="liberacao-lancamento">
@@ -2798,6 +2780,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Acompanhamento da liberação
             </div>
+            <div class="card-btn">Lançar</div>
         </a>
 
         <a href="pages/terminais-agora.html" class="card theme-violet" data-modulo="terminais-agora">
@@ -2808,6 +2791,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Presença de Fiscais por terminal em tempo real.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://monitoramentotcgl.github.io/tajetos/index.html" class="card theme-sky" target="_blank" data-modulo="itinerarios">
@@ -2818,6 +2802,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Consulta de itinerários e trajetos das linhas.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/onibus-horarios.html" class="card theme-cyan" data-somente-usuarios="true" data-modulo="onibus-agora">
@@ -2828,6 +2813,18 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Consulta de horários por linha e local · dados Bus2.
             </div>
+            <div class="card-btn">Abrir</div>
+        </a>
+
+        <a href="pages/monitoramento.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="monitoramento">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 18v2"/><path d="M17 18v2"/><path d="M8 9h3v5H8z"/><path d="M13 11h3v3h-3z"/></svg></div>
+                <div class="card-title">Monitoramento</div>
+            </div>
+            <div class="card-desc">
+                Console tipo CAD: mapa, incidentes, telemetria e o que dá para abrir por link.
+            </div>
+            <div class="card-btn">Abrir</div>
         </a>
 
         <a href="pages/onibus-agora-clever.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="onibus-agora-clever">
@@ -2838,6 +2835,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Mapa ao vivo, busca por linha e veículo — dados da API Clever.
             </div>
+            <div class="card-btn">Abrir</div>
         </a>
 
         <a href="pages/fleetbus-agora.html" class="card theme-teal" data-modulo="fleetbus-agora">
@@ -2848,6 +2846,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Cluster On-Demand: mapa, velocidade, RPM, odômetro, combustível e temperatura.
             </div>
+            <div class="card-btn">Abrir</div>
         </a>
         
         <a href="pages/criar-relatorio.html" class="card theme-blue" data-modulo="criar-relatorio">
@@ -2858,6 +2857,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Gerar relatório operacional com protocolo.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://drive.google.com/drive/folders/140AXmLicGVvTm2Z5ALESVEmv0-K_mhYW" class="card theme-cyan" target="_blank" data-saida-carros-cot="true" data-modulo="saida-carros-drive">
@@ -2868,6 +2868,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Saída de carros da COT.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://drive.google.com/drive/folders/1-jBeEFxHtTgvXbjkJbhonY-ijKg16UcF" class="card theme-slate" target="_blank" data-diarios-bordo="true" data-modulo="diarios-bordo">
@@ -2878,6 +2879,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Diários de bordo.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://www.canva.com/design/DAGmHCnCGlc/hBDsSXTyhOo_FJjbAsIRMQ/edit" class="card theme-rose" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="desvios">
@@ -2888,6 +2890,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Acesso aos desvios criados.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://drive.google.com/drive/folders/1oq_QLjcIpZGqWD6zRcLtK4PIj5my6TtE?usp=sharing" class="card theme-teal" data-modulo="tabelas-horarias">
@@ -2898,6 +2901,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Consulta das tabelas por linha (úteis, sábado e domingo).
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://drive.google.com/drive/folders/1m9ODnZuVVtFVUP1p_FUECy9E1xVBN1yd" class="card theme-green" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="drive-monitoramento">
@@ -2908,6 +2912,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Drive - Oficial Monitoramento.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
             
         <a href="https://drive.google.com/drive/folders/111RpLw8iQI3Pypwi_sYdJ3NO1iG_Ow5K" class="card theme-indigo" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="horarios-fiscais">
@@ -2918,6 +2923,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                Horários por terminal.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://www.canva.com/" class="card theme-violet" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="canva">
@@ -2928,6 +2934,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Acesso ao Canva — Início.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://canva.link/nsecrfpmgcjqlwr" class="card theme-amber" target="_blank" data-perfis="Administrador,Supervisor,Analista" data-modulo="cenario-atual">
@@ -2938,6 +2945,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Acesso ao cenário atual - Divergências.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQcoPBPbjoZKmWb6KlDMMpwm0-AbzPA4PRziV6zS8U-VzXRKMtKEp_sbVf4cgHNEg/pubhtml#" class="card theme-red" target="_blank" data-modulo="pontos-controle">
@@ -2948,6 +2956,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Localização dos pontos de controle.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
 
@@ -2959,6 +2968,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Controle das filas para a saída dos carros.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/escala-saida-carros.html" class="card theme-indigo" data-perfis="Administrador,Supervisor" data-usuarios="pedroisrael2009@gmail.com" data-modulo="escala-saida-carros">
@@ -2969,8 +2979,20 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Importa a planilha e cruza com o pátio — início entre 04:10 e 07:00, substituto quando pedido ou sem saída.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
+
+        <a href="pages/consulta-veiculo.html" class="card theme-sky">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M5 11V8h4"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="16.5" cy="18" r="1.5"/><circle cx="14" cy="7" r="3.2"/><path d="M16.2 9.2 20 13"/></svg></div>
+                <div class="card-title">Consulta de veículo</div>
+            </div>
+            <div class="card-desc">
+                Prefixo, placa, tecnologia ou modelo — com a foto da tecnologia.
+            </div>
+            <div class="card-btn">Consultar</div>
+        </a>
 
         <a href="pages/consulta-decreto.html" class="card theme-indigo" data-perfis="Administrador,Supervisor,Analista" data-modulo="consulta-decreto">
             <div class="card-top">
@@ -2980,16 +3002,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Assistente de IA (NotebookLM) para consultar o decreto oficial.
             </div>
-        </a>
-
-        <a href="https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA/edit?gid=1013912232#gid=1013912232" class="card theme-blue" target="_blank" data-perfis="Administrador,Supervisor" data-modulo="planilha">
-            <div class="card-top">
-                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div>
-                <div class="card-title">Planilha</div>
-            </div>
-            <div class="card-desc">
-                Acesso à planilha CIOP.
-            </div>
+            <div class="card-btn">Acessar</div>
         </a>
         </div>
     </section>
@@ -3011,6 +3024,18 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Índice de Pontualidade das Viagens.
             </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
+        <a href="pages/pontualidade-ajustada.html" class="card theme-teal" data-modulo="ipv-incidentes" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/><path d="M4 19h16"/></svg></div>
+                <div class="card-title">IPV + Incidentes</div>
+            </div>
+            <div class="card-desc">
+                Pontualidade Custom (pontos de controle) com cada incidente recuperando a viagem inteira da linha.
+            </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/icv.html?v=20260702g" class="card theme-sky" data-modulo="icv">
@@ -3021,6 +3046,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Índice de Cumprimento de Viagem.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/autuacoes.html" class="card theme-amber" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="autuacoes">
@@ -3031,6 +3057,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Consulta e indicadores de autuações.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
 
@@ -3042,6 +3069,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Painel visual com gráficos e KPIs dos incidentes TCGL.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
         <a href="pages/incidentes-cad.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes">
             <div class="card-top">
@@ -3051,6 +3079,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Relatório 002 do Clever (CAD): indicadores, filtros e ocorrências.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/Folhadeservico.html" class="card theme-blue" data-modulo="dashboard-servico">
@@ -3061,6 +3090,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Indicadores da planilha CIOP.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/liberacao-dashboard.html" class="card theme-orange" data-modulo="liberacao-dashboard">
@@ -3071,6 +3101,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Acompanhamento da liberação.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/comparacao-km.html" class="card theme-sky" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="comparacao-km">
@@ -3081,6 +3112,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Comparativo mensal e diário TCGL, Clever e Noxxon.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
 
@@ -3092,6 +3124,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Evidenciar autos CMTU com imagens e ficha CIOP.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
 
         <a href="pages/painel-tv.html" class="card theme-violet" target="_blank" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="painel-tv-indicadores">
@@ -3102,6 +3135,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 IPV, ICV, KM e pontualidade ao vivo em uma única tela, sem recarregar.
             </div>
+            <div class="card-btn">Abrir</div>
         </a>
 
 
@@ -3118,6 +3152,17 @@ html.dk-dark .ciop-command-inner{
         </div>
         <div class="grid card-section-corpo" id="conteudoSecaoRelatorios">
 
+        <a href="https://docs.google.com/spreadsheets/d/1zY_BFsidZyF4RnzKTZkZAlmo-Qiz6JEdIEb3E2xoIeA/edit?gid=1013912232#gid=1013912232" class="card theme-blue" target="_blank" data-perfis="Administrador,Supervisor" data-modulo="planilha">
+            <div class="card-top">
+                <div class="card-figure"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div>
+                <div class="card-title">Planilha</div>
+            </div>
+            <div class="card-desc">
+                Acesso à planilha CIOP.
+            </div>
+            <div class="card-btn">Acessar</div>
+        </a>
+
         <a href="pages/liberacao-relatorio.html" class="card theme-orange">
             <div class="card-top">
                 <div class="card-figure">
@@ -3126,6 +3171,7 @@ html.dk-dark .ciop-command-inner{
                 <div class="card-title">Acompanhamento da Liberação</div>
             </div>
             <div class="card-desc">Relatório tabular com saídas, inícios, trajeto ocioso e observações por data. Exportação CSV, Excel e PDF.</div>
+            <span class="card-btn">Abrir relatório</span>
         </a>
         <a href="pages/folha-servico-relatorio.html" class="card theme-blue">
             <div class="card-top">
@@ -3135,6 +3181,7 @@ html.dk-dark .ciop-command-inner{
                 <div class="card-title">Folha de Serviço</div>
             </div>
             <div class="card-desc">Relatório tabular por período com ocorrências, linhas e situação. Exportação CSV, Excel e PDF.</div>
+            <span class="card-btn">Abrir relatório</span>
         </a>
         <a href="pages/relatorio-ocorrencia.html" class="card theme-teal">
             <div class="card-top">
@@ -3144,6 +3191,7 @@ html.dk-dark .ciop-command-inner{
                 <div class="card-title">Relatório de Ocorrência</div>
             </div>
             <div class="card-desc">Acesse os PDFs já gerados e enviados, salvos na AWS por usuário e data.</div>
+            <span class="card-btn">Abrir relatório</span>
         </a>
         <a href="pages/cr0108.html" class="card theme-indigo" data-perfis="Administrador">
             <div class="card-top">
@@ -3153,6 +3201,7 @@ html.dk-dark .ciop-command-inner{
                 <div class="card-title">CR-0108 — Pontualidade por Ponto de Controle</div>
             </div>
             <div class="card-desc">Histórico do ano com filtros por período, linha e sentido: no horário, adiantado, atrasado e divergente, com ranking de linhas, pontos, operadores e veículos.</div>
+            <span class="card-btn">Abrir relatório</span>
         </a>
         <a href="pages/cr0108-ajustes.html" class="card theme-indigo" data-perfis="Administrador">
             <div class="card-top">
@@ -3162,6 +3211,7 @@ html.dk-dark .ciop-command-inner{
                 <div class="card-title">CR-0108 — Onde ajustar a tabela horária</div>
             </div>
             <div class="card-desc">Diagnóstico por ponto de controle: quanto antecipar ou atrasar cada horário programado, quanto isso melhora a pontualidade e quais casos não se resolvem com tabela.</div>
+            <span class="card-btn">Abrir diagnóstico</span>
         </a>
         <a href="pages/consumo-diario-2026-05-12.html" class="card theme-indigo" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="telemetria-fleetbus">
             <div class="card-top">
@@ -3171,6 +3221,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Consumo diário por veículo: distância, combustível e eventos de segurança.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
         <a href="pages/incidentes-dashboard.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes">
             <div class="card-top">
@@ -3180,6 +3231,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Dashboard dos incidentes TCGL.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
         <a href="pages/dados-telemetria.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia" data-modulo="dados-telemetria">
             <div class="card-top">
@@ -3189,6 +3241,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 TCGL · Clever · FleetBus
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
         <a href="pages/incidentes-cad.html" class="card theme-teal" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Analista" data-modulo="incidentes">
             <div class="card-top">
@@ -3198,6 +3251,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Dashboard do relatório 002 do Clever (CAD): KPIs, filtros e ocorrências.
             </div>
+            <div class="card-btn">Acessar</div>
         </a>
         <a href="pages/desempenho-motoristas.html" class="card theme-indigo" hidden data-usuarios="odair.marin@icloud.com" data-somente-usuarios="true" data-modulo="desempenho-motoristas">
             <div class="card-top">
@@ -3207,6 +3261,7 @@ html.dk-dark .ciop-command-inner{
             <div class="card-desc">
                 Ranking de pontualidade por motorista, do melhor ao pior, com evolução mês a mês.
             </div>
+            <div class="card-btn">Acessar</div>
            </a>
         </div>
     </section>
@@ -3261,20 +3316,21 @@ function aplicarEstadoSecaoPortal(botao, corpo, aberta) {
 }
 
 function aplicarPreferenciasSecoesPortal(preferencias = lerPreferenciasSecoesPortal()) {
+    const abasAtivas = Boolean(document.getElementById("portalAbas"));
     aplicarEstadoSecaoPortal(
         document.getElementById("toggleSecaoOperacao"),
         document.getElementById("conteudoSecaoOperacao"),
-        preferencias.operacao
+        abasAtivas ? true : preferencias.operacao
     );
     aplicarEstadoSecaoPortal(
         document.getElementById("toggleSecaoDashboards"),
         document.getElementById("conteudoSecaoDashboards"),
-        preferencias.dashboards
+        abasAtivas ? true : preferencias.dashboards
     );
     aplicarEstadoSecaoPortal(
         document.getElementById("toggleSecaoRelatorios"),
         document.getElementById("conteudoSecaoRelatorios"),
-        preferencias.relatorios
+        abasAtivas ? true : preferencias.relatorios
     );
 }
 
@@ -3690,11 +3746,6 @@ function renderAvisos(lista) {
     avisosVisiveisLista = lista.slice();
     avisosContador.textContent = String(lista.length);
     avisosContador.hidden = lista.length === 0;
-    const bellBadge = document.getElementById("ciopBellBadge");
-    if (bellBadge) {
-        bellBadge.textContent = lista.length > 99 ? "99+" : String(lista.length);
-        bellBadge.hidden = lista.length === 0;
-    }
 
     if (!avisosVisiveisLista.length) {
         avisosLista.innerHTML = '<div class="notice-empty">Nenhum aviso no momento.</div>';
@@ -3782,8 +3833,6 @@ async function carregarAvisos() {
         if (avisosContador) {
             avisosContador.hidden = true;
         }
-        const bellBadge = document.getElementById("ciopBellBadge");
-        if (bellBadge) bellBadge.hidden = true;
     }
 }
 
@@ -3960,54 +4009,9 @@ if (avisoCarouselWrap) {
 }
 
 document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") return;
-    const pop = document.getElementById("avisosPopup");
-    if (pop && !pop.hidden) {
-        fecharPopupAvisos();
-        return;
-    }
-    if (avisoModal && !avisoModal.hidden) {
+    if (event.key === "Escape" && avisoModal && !avisoModal.hidden) {
         window.fecharEditorAvisos();
     }
-});
-
-function abrirPopupAvisos() {
-    const pop = document.getElementById("avisosPopup");
-    if (!pop) return;
-    pop.hidden = false;
-    document.body.classList.add("avisos-popup-open");
-    requestAnimationFrame(() => {
-        ajustarAlturaCarouselAvisos();
-        reiniciarProgressoAvisos();
-    });
-}
-
-function fecharPopupAvisos() {
-    const pop = document.getElementById("avisosPopup");
-    if (!pop) return;
-    pop.hidden = true;
-    document.body.classList.remove("avisos-popup-open");
-}
-
-window.abrirPopupAvisos = abrirPopupAvisos;
-window.fecharPopupAvisos = fecharPopupAvisos;
-
-document.getElementById("ciopBellAvisos")?.addEventListener("click", abrirPopupAvisos);
-document.getElementById("avisosPopupFechar")?.addEventListener("click", fecharPopupAvisos);
-document.getElementById("avisosPopup")?.addEventListener("click", (event) => {
-    if (event.target && event.target.id === "avisosPopup") fecharPopupAvisos();
-});
-document.getElementById("ciopKpiAvisosWrap")?.addEventListener("click", abrirPopupAvisos);
-document.getElementById("ciopKpiAvisosWrap")?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        abrirPopupAvisos();
-    }
-});
-
-avisoEditorBtn?.addEventListener("click", async () => {
-    if (!usuarioPodeEnviarAviso()) return;
-    await window.abrirEditorAvisos();
 });
 
 function iniciarAvisosPortal() {
@@ -4167,8 +4171,8 @@ if (window.portalUsuarioValidado) {
 
 
 <script>
-/* PROTOTIPO — abas. Mostra uma secao por vez, lembrando a escolha no navegador.
-   Nao altera nenhum card: so controla qual das tres areas esta visivel. */
+/* Abas: uma secao por vez. Cada recarregamento abre Operação (inicio).
+   A escolha durante a sessao nao e restaurada no F5. */
 (function () {
     "use strict";
     const CHAVE = "portalCiopAbaAtiva";
@@ -4176,10 +4180,12 @@ if (window.portalUsuarioValidado) {
     if (!abas.length) return;
     const secoes = abas.map((b) => document.getElementById(b.dataset.alvo)).filter(Boolean);
     if (secoes.length !== abas.length) return;
+    let atual = "secaoOperacao";
 
     document.body.classList.add("portal-abas-ativo");
 
     function mostrar(id, guardar) {
+        atual = id;
         abas.forEach((b) => {
             const ativa = b.dataset.alvo === id;
             b.setAttribute("aria-selected", ativa ? "true" : "false");
@@ -4191,7 +4197,7 @@ if (window.portalUsuarioValidado) {
             const corpo = sec.querySelector(".card-section-corpo");
             if (corpo) corpo.classList.remove("portal-secao-fechada");
         });
-        if (guardar) { try { localStorage.setItem(CHAVE, id); } catch (_) {} }
+        if (guardar) { try { localStorage.removeItem(CHAVE); } catch (_) {} }
         moverIndicador();
         const sec = document.getElementById(id);
         if (sec && !sec.hidden) animarEntrada(sec);
@@ -4252,8 +4258,7 @@ if (window.portalUsuarioValidado) {
     }
 
     function abaAtiva() {
-        try { const g = localStorage.getItem(CHAVE); if (g && document.getElementById(g)) return g; } catch (_) {}
-        return "secaoOperacao";
+        return atual || "secaoOperacao";
     }
 
     if (busca) {
@@ -4263,7 +4268,9 @@ if (window.portalUsuarioValidado) {
             busca.addEventListener(ev, () => setTimeout(sincronizar, 0)));
     }
 
-    mostrar(abaAtiva(), false);
+    mostrar("secaoOperacao", false);
+    window.addEventListener("portal:usuario-validado", () => mostrar(atual || "secaoOperacao", false));
+    try { localStorage.removeItem(CHAVE); } catch (_) {}
 })();
 </script>
 </body>

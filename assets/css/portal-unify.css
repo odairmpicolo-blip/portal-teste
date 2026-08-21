@@ -24,7 +24,7 @@ html body {
 
 /* —— Home: cards neutros, faixa por área, sem botão interno —— */
 body:has(#portalAbas) .grid .card {
-  background: var(--lg-fill, rgba(255, 255, 255, 0.18)) !important;
+  background: var(--lg-fill-data, rgba(255, 255, 255, 0.38)) !important;
   backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
   -webkit-backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
   color: var(--texto) !important;
@@ -33,7 +33,7 @@ body:has(#portalAbas) .grid .card {
   border-radius: 20px !important;
   box-shadow: var(--lg-shadow, var(--shadow)) !important;
   aspect-ratio: auto !important;
-  min-height: 104px !important;
+  min-height: 128px !important;
   height: auto !important;
   justify-content: flex-start !important;
   gap: 6px !important;
@@ -102,6 +102,23 @@ body:has(#portalAbas) .header.header-v2 {
   padding-top: 8px !important;
   padding-bottom: 8px !important;
 }
+body:has(#portalAbas) .hero-pro-logo--emblem,
+body:has(#portalAbas) .hero-pro-logo {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+}
+body:has(#portalAbas) .hero-pro-logo-img {
+  max-height: 36px !important;
+}
+body:has(#portalAbas) .header-hero-campanha-titulo,
+body:has(#portalAbas) .header-hero-mes {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+body:has(#portalAbas) .hero-pro-welcome {
+  font-size: 14px !important;
+}
 body:has(#portalAbas) .ciop-command-inner {
   gap: 10px;
 }
@@ -110,31 +127,26 @@ body:has(#portalAbas) .toolbar {
   padding-bottom: 8px;
 }
 
-/* —— Títulos de módulo: tipografia real —— */
-h1[class*="title-art"],
-h1.header-title,
-.header .subtitle {
+/* —— Títulos de módulo: texto no lugar do PNG —— */
+h1[class*="title-art"] {
   font-family: var(--font) !important;
-}
-h1[class*="title-art"],
-h1.header-title {
   font-size: clamp(1.05rem, 2vw, 1.35rem) !important;
   font-weight: 800 !important;
   letter-spacing: -0.03em !important;
   color: var(--azul) !important;
   line-height: 1.15 !important;
   text-align: center;
-  margin: 0;
 }
 h1[class*="title-art"] img {
   display: none !important;
 }
 h1[class*="title-art"][aria-label]::after {
-  content: none !important;
-  display: none !important;
+  content: attr(aria-label);
+  display: block;
+  max-width: min(42ch, 90vw);
+  margin-inline: auto;
 }
-html.dk-dark h1[class*="title-art"],
-html.dk-dark h1.header-title {
+html.dk-dark h1[class*="title-art"] {
   color: #f4f6f8 !important;
 }
 
@@ -181,6 +193,98 @@ body:has(.body-bg-wall) .header {
   -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(190%));
 }
 
+.portal-mod-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.portal-mod-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--azul, #06245c);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(6, 36, 92, 0.14);
+}
+.portal-mod-nav a[aria-current="page"] {
+  color: #fff;
+  background: var(--azul, #06245c);
+  border-color: transparent;
+}
+
+.portal-incidentes-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.portal-incidentes-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--azul, #06245c);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(6, 36, 92, 0.14);
+}
+.portal-incidentes-nav a[aria-current="page"] {
+  color: #fff;
+  background: var(--azul, #06245c);
+  border-color: transparent;
+}
+
+.portal-dash-aviso {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.portal-dash-aviso[hidden] {
+  display: none !important;
+}
+.portal-dash-aviso--erro {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.portal-dash-aviso--ok {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.portal-dash-aviso--info {
+  background: #e0f2fe;
+  color: #075985;
+  border: 1px solid #bae6fd;
+}
+
+a.portal-voltar-auto {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  background: var(--azul, #06245c);
+  white-space: nowrap;
+}
+
 /* Login acompanha a fonte */
 body.login-v2,
 body.login-v2 input,
@@ -188,151 +292,289 @@ body.login-v2 button {
   font-family: var(--font) !important;
 }
 
-/* —— Home: wallpaper mais quieto (a saudação volta no portal-home-ops) —— */
-body:has(#portalAbas) .bg-blobs,
-body:has(#portalAbas) .bg-blob-mid {
-  opacity: 0.28 !important;
-}
-body:has(#portalAbas) .grid {
-  gap: 12px !important;
-}
-body:has(#portalAbas) .grid .card-desc {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-body:has(#portalAbas) .ciop-kpi-label {
-  font-size: 10px !important;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-body:has(#portalAbas) .ciop-kpi-value {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-}
+/* Celular: só páginas com sessão (não paineis de TV) */
+@media (max-width: 720px) {
+  html body:has(.ciop-session) .header {
+    gap: 8px !important;
+    padding: 8px 12px !important;
+  }
 
-/* —— Casco interno: header e dados em liquid glass —— */
-@media (min-width: 861px) {
-  body:has(.body-bg-wall) .header,
-  body:has(.body-bg-stain) .header {
-    display: grid;
-    grid-template-columns: minmax(120px, 1fr) minmax(0, 2.2fr) minmax(120px, 1fr);
+  html body:has(.ciop-session) .portal-return a,
+  html body:has(.ciop-session) a.btn-link,
+  html body:has(.ciop-session) .btn-link {
+    min-height: 44px;
+    padding: 10px 14px;
+    display: inline-flex;
     align-items: center;
-    min-height: 56px;
-    padding: 8px 18px !important;
-    background: var(--lg-fill-header, var(--lg-fill)) !important;
-    backdrop-filter: var(--lg-blur, blur(32px) saturate(190%)) !important;
-    -webkit-backdrop-filter: var(--lg-blur, blur(32px) saturate(190%)) !important;
-    border-bottom: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
-    box-shadow: var(--lg-shadow) !important;
+    box-sizing: border-box;
   }
-  body:has(.body-bg-wall) .kpi-card,
-  body:has(.body-bg-wall) .chart-card,
-  body:has(.body-bg-wall) .table-card,
-  body:has(.body-bg-wall) .sidebar.portal-filters-bar,
-  body:has(.body-bg-wall) .filters-panel,
-  body:has(.body-bg-wall) .panel,
-  body:has(.body-bg-wall) .password-panel {
-    background: var(--lg-fill-data, var(--lg-fill)) !important;
-    backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
-    -webkit-backdrop-filter: var(--lg-blur-soft, blur(24px) saturate(175%)) !important;
-    border: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
-    box-shadow: var(--lg-shadow, var(--shadow)) !important;
+
+  html body:has(.ciop-session) .table-wrapper,
+  html body:has(.ciop-session) .tabela-wrap,
+  html body:has(.ciop-session) .table-wrap,
+  html body:has(.ciop-session) .table-card {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  body:has(.body-bg-wall) .toolbar {
-    background: var(--lg-fill-data, rgba(255, 255, 255, 0.28)) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid var(--lg-border, rgba(255, 255, 255, 0.42)) !important;
-    box-shadow: var(--lg-shadow, var(--shadow)) !important;
+
+  html body:has(.ciop-session) input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  html body:has(.ciop-session) select,
+  html body:has(.ciop-session) textarea {
+    min-height: 44px;
+    font-size: 16px !important;
   }
-  body:has(.body-bg-wall) .body-bg-stain {
-    opacity: 0.22;
+
+  html body:has(.ciop-session) .ciop-session button {
+    min-height: 42px;
   }
 }
 
-body:has(.body-bg-wall) table th {
-  background: var(--surface) !important;
-  box-shadow: inset 0 -1px 0 var(--borda);
-  color: var(--texto) !important;
+/* Tema claro: azul iluminado até quase branco + traços HUD */
+html:not(.dk-dark) .header,
+html:not(.dk-dark) .header.header-v2 {
+  background: var(--ciop-light-grad-fx, var(--ciop-light-grad)) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(6, 36, 92, 0.08),
+    0 8px 24px -18px rgba(6, 36, 92, 0.28) !important;
+}
+html:not(.dk-dark) .portal-abas,
+html:not(.dk-dark) .portal-dock,
+html:not(.dk-dark) .portal-mod-nav,
+html:not(.dk-dark) .ciop-command-inner,
+html:not(.dk-dark) .notice-board {
+  background: var(--ciop-light-grad-fx, var(--ciop-light-grad)) !important;
+  backdrop-filter: blur(22px) saturate(175%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(175%) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+}
+html:not(.dk-dark) .sidebar {
+  background: var(--ciop-light-grad-y, var(--ciop-light-grad)) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(6, 36, 92, 0.08),
+    8px 0 24px -12px rgba(6, 36, 92, 0.28);
+}
+html:not(.dk-dark) .sidebar-header {
+  color: #06245c !important;
+  border-bottom-color: rgba(6, 36, 92, 0.12) !important;
+}
+html:not(.dk-dark) .side-link {
+  color: #06245c !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+  border-color: rgba(6, 36, 92, 0.10) !important;
+}
+html:not(.dk-dark) .side-link:hover,
+html:not(.dk-dark) .side-link:focus-visible {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #0b3a8a !important;
+}
+html:not(.dk-dark) .side-icon {
+  background: rgba(6, 36, 92, 0.10) !important;
+  color: #06245c !important;
+}
+html:not(.dk-dark) .side-arrow {
+  color: #06245c !important;
+}
+html:not(.dk-dark) .sidebar .dk-theme-picker {
+  border-color: rgba(6, 36, 92, 0.16) !important;
+  background: rgba(255, 255, 255, 0.42) !important;
+}
+html:not(.dk-dark) .sidebar .dk-theme-picker-label {
+  color: #06245c !important;
+}
+html:not(.dk-dark) .sidebar .dk-theme-opt {
+  color: #06245c !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  border-color: rgba(6, 36, 92, 0.18) !important;
+}
+html:not(.dk-dark) .sidebar .dk-theme-opt:hover,
+html:not(.dk-dark) .sidebar .dk-theme-opt:focus-visible {
+  background: rgba(255, 107, 0, 0.22) !important;
+  color: #06245c !important;
+}
+html:not(.dk-dark) .sidebar .dk-theme-opt.is-active {
+  background: rgba(6, 36, 92, 0.16) !important;
+  border-color: #06245c !important;
+  box-shadow: inset 0 0 0 1px rgba(6, 36, 92, 0.22);
+  color: #06245c !important;
 }
 
-body:has(.body-bg-wall) .portal-filters-bar,
-body:has(.body-bg-wall) .filters-panel,
-body:has(.body-bg-wall) .toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
+/* Tema escuro: cabeçalho e menus em marinho iluminado */
+html.dk-dark .header,
+html.dk-dark .header.header-v2 {
+  background:
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
+  border-bottom: 1px solid rgba(120, 170, 220, 0.22) !important;
+  color: #f4f6f8 !important;
+}
+html.dk-dark .portal-abas,
+html.dk-dark .portal-dock,
+html.dk-dark .portal-mod-nav {
+  background:
+    radial-gradient(120% 140% at 100% 0%, #3d6aa8 0%, transparent 50%),
+    linear-gradient(135deg, #0b1628 0%, #163154 100%) !important;
+}
+html.dk-dark .sidebar {
+  background:
+    radial-gradient(140% 80% at 100% 0%, #3d6aa8 0%, transparent 48%),
+    linear-gradient(180deg, #0b1628 0%, #152a4a 55%, #1c3d66 100%) !important;
 }
 
-html.dk-dark body:has(.body-bg-wall) .kpi-card,
-html.dk-dark body:has(.body-bg-wall) .chart-card,
-html.dk-dark body:has(.body-bg-wall) .table-card,
-html.dk-dark body:has(.body-bg-wall) .toolbar,
-html.dk-dark body:has(.body-bg-wall) .panel {
-  background: var(--surface) !important;
-  border-color: var(--borda) !important;
+/* Contraste: texto claro no marinho, texto escuro nos painéis claros */
+html:not(.dk-dark) .header,
+html:not(.dk-dark) .header h1,
+html:not(.dk-dark) .header h2,
+html:not(.dk-dark) .header .title-wrap,
+html:not(.dk-dark) .header [class*="title-wrap"],
+html:not(.dk-dark) .header .subtitle,
+html:not(.dk-dark) .header .menu-toggle,
+html:not(.dk-dark) .side-text,
+html:not(.dk-dark) .sidebar-header {
+  color: #06245c !important;
 }
-
-/* —— Próximo passo: fundo de produto, não wallpaper —— */
-body:has(.header):not(:has(#portalAbas)) .body-bg-wall,
-body:has(.header):not(:has(#portalAbas)) .body-bg-stain {
-  opacity: 0 !important;
-  pointer-events: none;
+html:not(.dk-dark) .header .menu-bars span {
+  background: #06245c !important;
 }
-body:has(.header):not(:has(#portalAbas)):not(.login-v2) {
-  background: var(--fundo) !important;
+html.dk-dark .header,
+html.dk-dark .header h1,
+html.dk-dark .header h2,
+html.dk-dark .header .title-wrap,
+html.dk-dark .header [class*="title-wrap"],
+html.dk-dark .header .subtitle,
+html.dk-dark .header .title-sub,
+html.dk-dark .header .menu-toggle,
+html.dk-dark .header .ciop-session-user,
+html.dk-dark .portal-aba:not([aria-selected="true"]),
+html.dk-dark .sidebar-header,
+html.dk-dark .side-link,
+html.dk-dark .side-text {
+  color: #f8fafc !important;
 }
-
-body:has(.header):not(:has(#portalAbas)) .btn-portal {
-  background: var(--azul) !important;
+html.dk-dark .header .menu-bars span {
+  background: #f8fafc !important;
+}
+html.dk-dark .portal-aba[aria-selected="true"] {
   color: #fff !important;
-  border: 0 !important;
-  border-radius: var(--radius-sm) !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
 }
-body:has(.header):not(:has(#portalAbas)) .btn-portal:hover {
-  background: var(--azul-hover) !important;
-  transform: none;
+html.dk-dark .ciop-session .btn-logout,
+html.dk-dark .ciop-session .btn-senha-portal {
+  color: #fff !important;
 }
 
-body:has(.portal-filters-bar) .filter-group,
-body:has(.filters-panel) .filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 140px;
+/* Planilhas e gráficos — mesmo degradê do cabeçalho */
+html:not(.dk-dark) :is(
+  .chart-card, .chart-box, .chart-panel, .chart-body, .grafico-card, .grafico-box,
+  .table-card, .table-panel, .table-wrap, .tabela-wrap, .planilha-wrap,
+  .telemetria-table-panel, .data-table-wrap, .wrap-table, table.planilha,
+  .folha-card, .dash-card, .relatorio-card
+) {
+  background: var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #f8fbfe 100%)) !important;
+  color: #0f172a !important;
 }
-body:has(.portal-filters-bar) .filter-group label,
-body:has(.filters-panel) .filter-group label {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: var(--muted) !important;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+html.dk-dark :is(
+  .chart-card, .chart-box, .chart-panel, .chart-body, .grafico-card, .grafico-box,
+  .table-card, .table-panel, .table-wrap, .tabela-wrap, .planilha-wrap,
+  .telemetria-table-panel, .data-table-wrap, .wrap-table, table.planilha,
+  .folha-card, .dash-card, .relatorio-card
+) {
+  background:
+    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
+    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
+  color: #f4f6f8 !important;
+}
+html.dk-dark :is(.table-card-header, .chart-head, .table-head) {
+  color: #f8fafc !important;
+  background: linear-gradient(135deg, #152a4a 0%, #1c3d66 100%) !important;
+}
+html:not(.dk-dark) :is(.table-card-header, .chart-head, .table-head) {
+  color: #06245c !important;
+}
+html:not(.dk-dark) .grid .card,
+html:not(.dk-dark) body:not(:has(#portalAbas)) .toolbar,
+html:not(.dk-dark) .cv-panel {
+  background: var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #f8fbfe 100%)) !important;
 }
 
-body:has(.kpi-card) .kpi-title {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: var(--muted) !important;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+/* Cantos em L no hover dos cards */
+.grid .card:hover {
+  background-image:
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    linear-gradient(#06245c, #06245c),
+    var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #f8fbfe 100%)) !important;
+  background-size:
+    13px 1.5px, 1.5px 13px,
+    13px 1.5px, 1.5px 13px,
+    13px 1.5px, 1.5px 13px,
+    13px 1.5px, 1.5px 13px,
+    auto !important;
+  background-position:
+    top 8px left 8px, top 8px left 8px,
+    top 8px right 8px, top 8px right 8px,
+    bottom 8px left 8px, bottom 8px left 8px,
+    bottom 8px right 8px, bottom 8px right 8px,
+    0 0 !important;
+  background-repeat: no-repeat !important;
 }
-body:has(.kpi-card) .kpi-value {
-  font-variant-numeric: tabular-nums;
-  font-weight: 800 !important;
-  letter-spacing: -0.03em;
-  color: var(--texto) !important;
+html.dk-dark .grid .card:hover {
+  background-image:
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    linear-gradient(#7dd3fc, #7dd3fc),
+    var(--lg-fill-data) !important;
 }
 
-/* Cor só para estado operacional */
-.kpi-card.highlight .kpi-value,
-.tv-hero-ok,
-.chip-ok,
-.status-ok { color: var(--teal) !important; }
-.status-warn, .chip-warn { color: var(--laranja) !important; }
-.status-bad, .chip-bad { color: #dc2626 !important; }
+/* Varredura suave no cabeçalho */
+html:not(.dk-dark) body:has(.header) .header,
+html:not(.dk-dark) body:has(.bg-wall) .header,
+html:not(.dk-dark) body:has(.body-bg-wall) .header,
+html:not(.dk-dark) body:has(#portalAbas) .header.header-v2 {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(56, 189, 248, 0.22), transparent),
+    var(--ciop-light-grad-fx, var(--ciop-light-grad)) !important;
+  background-size: 26% 100%, auto, auto !important;
+  background-repeat: no-repeat !important;
+  background-position: -28% 0, 0 0, 0 0 !important;
+  animation: ciop-header-scan 11s ease-in-out infinite;
+}
+html.dk-dark body:has(.header) .header,
+html.dk-dark body:has(.bg-wall) .header,
+html.dk-dark body:has(.body-bg-wall) .header,
+html.dk-dark body:has(#portalAbas) .header.header-v2 {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.45), transparent),
+    var(--lg-fill-header) !important;
+  background-size: 26% 100%, auto, auto !important;
+  background-repeat: no-repeat !important;
+  background-position: -28% 0, 0 0, 0 0 !important;
+  animation: ciop-header-scan 11s ease-in-out infinite;
+}
+@keyframes ciop-header-scan {
+  0%, 18% { background-position: -28% 0, 0 0, 0 0; }
+  52% { background-position: 128% 0, 0 0, 0 0; }
+  53%, 100% { background-position: 128% 0, 0 0, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .header,
+  html body .header.header-v2 {
+    animation: none !important;
+  }
+}
