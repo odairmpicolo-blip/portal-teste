@@ -18,16 +18,31 @@ function sanitizarPayload(row, dataIso) {
   return payload;
 }
 
+function conflitoTransacaoDsql(err) {
+  return err?.code === "40001" || /change conflicts with another transaction/i.test(String(err?.message || ""));
+}
+
 async function upsertLinha(dataIso, rowId, payload, origem) {
-  await query(
-    `INSERT INTO liberacao_linhas (data_iso, row_id, payload, atualizado_por, atualizado_em)
-     VALUES ($1::date, $2, $3::jsonb, $4, NOW())
-     ON CONFLICT (data_iso, row_id) DO UPDATE SET
-       payload = EXCLUDED.payload,
-       atualizado_por = EXCLUDED.atualizado_por,
-       atualizado_em = NOW()`,
-    [dataIso, rowId, JSON.stringify(payload), origem]
-  );
+  let ultimo = null;
+  for (let tentativa = 1; tentativa <= 4; tentativa++) {
+    try {
+      await query(
+        `INSERT INTO liberacao_linhas (data_iso, row_id, payload, atualizado_por, atualizado_em)
+         VALUES ($1::date, $2, $3::jsonb, $4, NOW())
+         ON CONFLICT (data_iso, row_id) DO UPDATE SET
+           payload = EXCLUDED.payload,
+           atualizado_por = EXCLUDED.atualizado_por,
+           atualizado_em = NOW()`,
+        [dataIso, rowId, JSON.stringify(payload), origem]
+      );
+      return;
+    } catch (err) {
+      ultimo = err;
+      if (!conflitoTransacaoDsql(err) || tentativa === 4) throw err;
+      await new Promise((r) => setTimeout(r, 200 * tentativa));
+    }
+  }
+  throw ultimo;
 }
 
 export async function importarPlanilhaParaDsql(dataDe, dataAte, origem) {
