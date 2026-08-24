@@ -726,6 +726,21 @@ function citarColuna(nome) {
   return `"${n.replace(/"/g, "")}"`;
 }
 
+function mesCorrenteSP() {
+  const br = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(new Date());
+  const [y, m] = br.split("-");
+  const ultimo = new Date(Number(y), Number(m), 0).getDate();
+  return {
+    de: `${y}-${m}-01`,
+    ate: `${y}-${m}-${String(ultimo).padStart(2, "0")}`
+  };
+}
+
 function isoCad(v) {
   if (v == null || v === "") return "";
   if (v instanceof Date && !Number.isNaN(v.getTime())) return v.toISOString().slice(0, 10);
@@ -752,62 +767,46 @@ function dataDaLinhaCad(row, dataCol) {
   return "";
 }
 
-/* Relatório Clever 002 — cr_0002 em páginas (OFFSET). Sem teto de 5000.
-   O cliente junta as páginas até count(*). */
+/* Relatório Clever 002 — cr_0002 do mês (ou de/ate). Sem count(*) da tabela inteira. */
 router.get("/cad", requireFirebaseUser, async (req, res) => {
   try {
     const pagina = Math.max(1, Number(req.query.pagina) || 1);
-    const limite = Math.min(Math.max(Number(req.query.limite) || 800, 50), 2000);
+    const limite = Math.min(Math.max(Number(req.query.limite) || 400, 50), 800);
     const offset = (pagina - 1) * limite;
+    let { de, ate } = intervaloDatas(req.query.de, req.query.ate, { obrigatorio: false });
+    if (!de || !ate) {
+      const mes = mesCorrenteSP();
+      de = mes.de;
+      ate = mes.ate;
+    }
 
-    let colunas = [];
-    try {
-      const c = await query(
-        `SELECT column_name, data_type
-         FROM information_schema.columns
-         WHERE table_schema = 'public' AND table_name = 'cr_0002'
-         ORDER BY ordinal_position`
-      );
-      colunas = c.rows
-        .filter((r) => !/bytea|xml/i.test(r.data_type || "") && !/html|foto|image|blob/i.test(r.column_name))
-        .map((r) => r.column_name);
-    } catch (_) { /* SELECT * */ }
+    const params = [de, ate];
+    const sqlBase = `SELECT * FROM cr_0002
+       WHERE data_ref >= $1::date AND data_ref <= $2::date`;
+    const sqlPagina = `${sqlBase} ORDER BY id LIMIT ${limite} OFFSET ${offset}`;
+    const sqlSemOrdem = `${sqlBase} LIMIT ${limite} OFFSET ${offset}`;
 
-    const dataCol = colunas.find((n) => /^(data_ref|data|dt|date)$/i.test(n))
-      || colunas.find((n) => /data|date|dia/i.test(n));
-    const idCol = colunas.find((n) => /^(id|id_incidente|pk)$/i.test(n));
-    const lista = colunas.length ? colunas.map(citarColuna).join(", ") : "*";
-    const ordem = idCol
-      ? ` ORDER BY ${citarColuna(idCol)}`
-      : (dataCol ? ` ORDER BY ${citarColuna(dataCol)} DESC` : " ORDER BY 1");
-
-    let totalTabela = 0;
-    try {
-      const c = await query(`SELECT count(*)::int AS n FROM cr_0002`);
-      totalTabela = Number(c.rows?.[0]?.n || 0);
-    } catch (_) { /* segue no SELECT */ }
+    const cargasP = pagina === 1
+      ? query(
+          `SELECT min(data_ref)::text AS "primeiroDia",
+                  max(data_ref)::text AS "ultimoDia",
+                  count(*)::int AS dias,
+                  coalesce(sum(linhas), 0) AS registros
+           FROM cr_0002_cargas`
+        ).catch(() => ({ rows: [{}] }))
+      : Promise.resolve({ rows: [{}] });
 
     let r;
     try {
-      r = await query(`SELECT ${lista} FROM cr_0002${ordem} LIMIT ${limite} OFFSET ${offset}`);
+      [r] = await Promise.all([query(sqlPagina, params), cargasP]);
     } catch (_) {
-      r = await query(`SELECT ${lista} FROM cr_0002 LIMIT ${limite} OFFSET ${offset}`);
+      r = await query(sqlSemOrdem, params);
     }
+    const cargas = (await cargasP).rows?.[0] || {};
     const itens = (r.rows || []).map(cadLinha);
-    if (!colunas.length && itens[0]) colunas = Object.keys(itens[0]);
-    if (!totalTabela) totalTabela = offset + itens.length + (itens.length === limite ? 1 : 0);
-
-    let cargas = {};
-    try {
-      const c = await query(
-        `SELECT min(data_ref)::text AS "primeiroDia",
-                max(data_ref)::text AS "ultimoDia",
-                count(*)::int AS dias,
-                coalesce(sum(linhas), 0) AS registros
-         FROM cr_0002_cargas`
-      );
-      cargas = c.rows[0] || {};
-    } catch (_) { /* cargas pode ter outro desenho */ }
+    const colunas = itens[0] ? Object.keys(itens[0]) : [];
+    const temMais = itens.length === limite;
+    const totalTabela = offset + itens.length + (temMais ? 1 : 0);
 
     res.json({
       ok: true,
@@ -820,8 +819,10 @@ router.get("/cad", requireFirebaseUser, async (req, res) => {
         pagina,
         limite,
         recorte: itens.length,
-        temMais: offset + itens.length < totalTabela,
-        janela: "tabela",
+        temMais,
+        janela: "mes",
+        de,
+        ate,
         ...cargas
       },
       itens
