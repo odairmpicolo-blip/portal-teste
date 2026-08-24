@@ -20,6 +20,34 @@ function payloadParaPortal(payload) {
   return rest;
 }
 
+function isoQuery(valor) {
+  const s = String(valor || "").trim().slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : "";
+}
+
+function dataIsoIncidente(row) {
+  const bruto = String(row?.data || row?.dataHora || row?.createdAt || "").trim();
+  const datePart = bruto.split(/\s+/)[0] || "";
+  const br = datePart.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (br) return `${br[3]}-${br[2].padStart(2, "0")}-${br[1].padStart(2, "0")}`;
+  if (/^\d{4}-\d{2}-\d{2}/.test(datePart)) return datePart.slice(0, 10);
+  return "";
+}
+
+function recortarIncidentes(payload, de, ate) {
+  if (!payload || typeof payload !== "object") return payload;
+  if (!de && !ate) return payload;
+  const lista = Array.isArray(payload.incidentes) ? payload.incidentes : [];
+  const incidentes = lista.filter((row) => {
+    const iso = dataIsoIncidente(row);
+    if (!iso) return false;
+    if (de && iso < de) return false;
+    if (ate && iso > ate) return false;
+    return true;
+  });
+  return { ...payload, incidentes, totalExtraido: incidentes.length };
+}
+
 function enviarSnapshot(req, res, body) {
   res.set("Cache-Control", "no-store");
   res.json(body);
@@ -52,6 +80,8 @@ router.get("/:nome", requireFirebaseUser, async (req, res) => {
     res.status(404).json({ ok: false, erro: "Snapshot não encontrado" });
     return;
   }
+  const de = nome === "incidentes" ? isoQuery(req.query.de) : "";
+  const ate = nome === "incidentes" ? isoQuery(req.query.ate) : "";
   try {
     if (nome === "incidentes") {
       try {
@@ -59,7 +89,7 @@ router.get("/:nome", requireFirebaseUser, async (req, res) => {
         if (s3?.payload) {
           enviarSnapshot(req, res, {
             ok: true,
-            payload: s3.payload,
+            payload: recortarIncidentes(s3.payload, de, ate),
             atualizadoEm: s3.atualizadoEm,
             origem: "aws"
           });
@@ -77,9 +107,10 @@ router.get("/:nome", requireFirebaseUser, async (req, res) => {
       return;
     }
     const row = result.rows[0];
+    const payload = nome === "incidentes" ? recortarIncidentes(row.payload, de, ate) : row.payload;
     res.json({
       ok: true,
-      payload: row.payload,
+      payload,
       atualizadoEm: row.atualizado_em,
       origem: "aws"
     });
