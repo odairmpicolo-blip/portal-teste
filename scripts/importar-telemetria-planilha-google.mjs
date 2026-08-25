@@ -43,12 +43,19 @@ function parseArgs(argv) {
 
 async function baixarCsv(sheetId, gid, nomeAba) {
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
-  const res = await fetch(url, { redirect: "follow" });
-  const text = await res.text();
-  if (!res.ok || text.trimStart().startsWith("<!DOCTYPE")) {
-    throw new Error(`Não foi possível baixar aba ${nomeAba} (gid=${gid}). Publique a planilha ou use --arquivo.`);
+  let ultimo = new Error(`Não foi possível baixar aba ${nomeAba} (gid=${gid}).`);
+  for (let i = 1; i <= 4; i++) {
+    try {
+      const res = await fetch(url, { redirect: "follow" });
+      const text = await res.text();
+      if (res.ok && !text.trimStart().startsWith("<!DOCTYPE")) return text;
+      ultimo = new Error(`Não foi possível baixar aba ${nomeAba} (gid=${gid} HTTP ${res.status}). Publique a planilha ou use --arquivo.`);
+    } catch (err) {
+      ultimo = err;
+    }
+    await new Promise((r) => setTimeout(r, 1500 * i));
   }
-  return text;
+  throw ultimo;
 }
 
 function parseCsv(texto) {

@@ -1,0 +1,43 @@
+name: Atualizar terminais planilha
+
+on:
+  schedule:
+    # A cada 5 minutos (UTC)
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: portalciop-json-push
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Baixar portal
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Configurar git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Atualizar snapshot da planilha
+        env:
+          PORTAL_ROOT: ${{ github.workspace }}
+        run: node scripts/atualizar-terminais-planilha.mjs
+
+      - name: Publicar dados atualizados
+        run: bash scripts/ci-git-commit-push.sh "Atualiza terminais agora" assets/data/terminais-agora.json
