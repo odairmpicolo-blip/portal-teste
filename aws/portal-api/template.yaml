@@ -122,6 +122,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:GetObject
+                  - s3:HeadObject
                 Resource: !Sub "arn:aws:s3:::${IncidentesStateBucket}/*"
 
   PortalApiFunction:
