@@ -72,3 +72,17 @@ CREATE TABLE IF NOT EXISTS relatorios_ocorrencia (
   criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (id)
 );
+
+-- Fichas de evidência de autuação (fotos no S3: evidencias/{email}/{id}/)
+CREATE TABLE IF NOT EXISTS evidencias_autuacoes (
+  id TEXT PRIMARY KEY,
+  user_email TEXT NOT NULL,
+  status TEXT,
+  protocolo TEXT,
+  auto_id TEXT,
+  carro TEXT,
+  linha TEXT,
+  data_br TEXT,
+  payload JSONB NOT NULL,
+  atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
