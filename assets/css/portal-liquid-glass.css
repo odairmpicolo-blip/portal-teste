@@ -25,23 +25,19 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .header.header-v2 {
 }
 html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .header,
 html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .header.header-v2 {
-  background-image:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(56, 189, 248, 0.22), transparent),
-    var(--ciop-light-grad-fx, var(--lg-fill-header)) !important;
-  background-size: 26% 100%, auto, auto !important;
-  background-repeat: no-repeat !important;
-  background-position: -28% 0, 0 0, 0 0 !important;
-  animation: ciop-header-scan 11s ease-in-out infinite;
+  background: var(--lg-fill-header) !important;
+  background-image: none !important;
+  animation: none !important;
+  box-shadow:
+    0 1px 0 #ff6b00,
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 10px 28px -18px rgba(15, 23, 42, 0.18) !important;
 }
 html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) .header,
 html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) .header.header-v2 {
-  background-image:
-    linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.42), transparent),
-    var(--lg-fill-header) !important;
-  background-size: 26% 100%, auto, auto !important;
-  background-repeat: no-repeat !important;
-  background-position: -28% 0, 0 0, 0 0 !important;
-  animation: ciop-header-scan 11s ease-in-out infinite;
+  background: var(--lg-fill-header) !important;
+  background-image: none !important;
+  animation: none !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-command-inner,
@@ -67,12 +63,10 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .topbar,
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .filters-panel,
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .password-panel {
   background: var(--lg-fill-data) !important;
-  backdrop-filter: blur(22px) saturate(170%) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(170%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.42) !important;
-  box-shadow:
-    0 14px 32px -20px rgba(6, 36, 92, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: var(--lg-blur, blur(16px) saturate(140%)) !important;
+  -webkit-backdrop-filter: var(--lg-blur, blur(16px) saturate(140%)) !important;
+  border: 1px solid var(--lg-border, rgba(6, 36, 92, 0.12)) !important;
+  box-shadow: var(--lg-shadow) !important;
   color: #0f172a !important;
 }
 
@@ -103,19 +97,15 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .data-table-wrap {
 }
 
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title,
-html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title *,
-html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-desc {
-  text-shadow: none !important;
-}
-
-html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title,
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title * {
   color: #06245c !important;
   -webkit-text-fill-color: #06245c !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.75) !important;
 }
 
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .grid .card-desc {
-  color: #334155 !important;
+  color: #1e293b !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92) !important;
 }
 
 html.dk-dark:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title,
@@ -169,7 +159,9 @@ html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-panel {
 }
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-saudacao-label,
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .header-hero-mes {
-  color: #3d5a80 !important;
+  color: #06245c !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-nome {
   background: none !important;

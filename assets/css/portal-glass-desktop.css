@@ -3,22 +3,22 @@
    Carregar por último nas páginas; na home, após os CSS de sessão/header. */
 
 :root {
-  --lg-fill: linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(226, 240, 255, 0.12) 45%, rgba(255, 244, 235, 0.16) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18));
-  --lg-fill-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.18));
-  --lg-fill-data: var(--ciop-light-grad, linear-gradient(135deg, #6ea6d4 0%, #b4d4ee 36%, #e4f1fa 72%, #f8fbfe 100%));
-  --lg-fill-data-head: linear-gradient(135deg, #6ea6d4 0%, #e4f1fa 70%, #f8fbfe 100%);
-  --lg-blur: blur(32px) saturate(190%);
-  --lg-blur-soft: blur(24px) saturate(175%);
-  --lg-blur-data: blur(26px) saturate(165%);
-  --lg-border: rgba(255, 255, 255, 0.46);
-  --lg-edge: 1px solid rgba(255, 255, 255, 0.46);
+  --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.70) 0%, rgba(255, 255, 255, 0.50) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.60));
+  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.80) 0%, rgba(255, 255, 255, 0.58) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.66) 100%);
+  --lg-fill-data-head: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58));
+  --lg-blur: blur(40px) saturate(190%);
+  --lg-blur-soft: blur(28px) saturate(180%);
+  --lg-blur-data: blur(28px) saturate(170%);
+  --lg-border: rgba(255, 255, 255, 0.62);
+  --lg-edge: 1px solid rgba(255, 255, 255, 0.62);
   --lg-shadow:
-    0 18px 48px -24px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -0.5px 0 rgba(255, 255, 255, 0.12);
-  --lg-text: #0f172a;
-  --lg-label: #334155;
+    0 12px 40px -18px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.22);
+  --lg-text: #06245c;
+  --lg-label: #1e293b;
   --lg-muted: #475569;
 
   --ciop-glass-bg: var(--lg-fill);
@@ -386,12 +386,30 @@ body:has(.body-bg-wall) .panel-title {
   text-shadow: none !important;
 }
 
-/* Tipografia sobre vidro */
-body:has(.bg-wall) .card-title,
-body:has(.bg-wall) .card-desc {
-  color: #fff !important;
+/* Tipografia sobre vidro — claro: navy; escuro: branco */
+html:not(.dk-dark) body:has(.bg-wall) .card-title,
+html:not(.dk-dark) body:has(.bg-wall) .card-title * {
+  color: #06245c !important;
+  -webkit-text-fill-color: #06245c !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.75) !important;
 }
 
+html:not(.dk-dark) body:has(.bg-wall) .card-desc {
+  color: #1e293b !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 0 10px rgba(255, 255, 255, 0.55) !important;
+}
+
+html.dk-dark body:has(.bg-wall) .card-title,
+html.dk-dark body:has(.bg-wall) .card-title * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+html.dk-dark body:has(.bg-wall) .card-desc {
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
 body:has(.body-bg-wall) .kpi-label,
 body:has(.body-bg-wall) .kpi-title,
 body:has(.body-bg-wall) .kpi-sub,
@@ -416,13 +434,7 @@ body:has(.body-bg-wall) .table-sub {
 }
 
 body:has(.bg-wall) .card-title {
-  color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-}
-
-body:has(.bg-wall) .card-desc {
-  color: rgba(255, 255, 255, 0.92) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  font-weight: 800;
 }
 
 body:has(.body-bg-wall) .kpi-value,
@@ -459,26 +471,28 @@ body.oa-page .leaflet-container {
 
 @media (max-width: 720px) {
   :root {
-    --lg-fill: rgba(255, 255, 255, 0.52);
-    --lg-fill-strong: rgba(255, 255, 255, 0.7);
-    --lg-fill-data: rgba(255, 255, 255, 0.66);
-    --lg-fill-data-head: rgba(255, 255, 255, 0.78);
+    --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.42));
+    --lg-fill-strong: rgba(255, 255, 255, 0.78);
+    --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.56));
+    --lg-fill-data-head: rgba(255, 255, 255, 0.82);
     --lg-blur: blur(28px) saturate(180%);
-    --lg-blur-data: blur(26px) saturate(160%);
+    --lg-blur-data: blur(24px) saturate(170%);
   }
 }
 
-/* Dark mode — vidro cinza + wallpaper noturno */
+/* Dark mode — vidro sóbrio, leitura estável */
 html.dk-dark {
-  --lg-fill: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(20, 24, 32, 0.30) 48%, rgba(255, 107, 0, 0.08) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(36, 42, 52, 0.42), rgba(16, 20, 28, 0.28));
-  --lg-fill-hover: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(32, 38, 48, 0.34));
-  --lg-fill-data:
-    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
-    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%);
-  --lg-fill-data-head: linear-gradient(135deg, #152a4a 0%, #1c3d66 100%);
-  --lg-border: rgba(186, 210, 230, 0.28);
-  --lg-edge: 1px solid rgba(186, 210, 230, 0.28);
+  --lg-fill: rgba(22, 28, 38, 0.86);
+  --lg-fill-strong: rgba(26, 32, 42, 0.94);
+  --lg-fill-hover: rgba(32, 40, 52, 0.92);
+  --lg-fill-data: rgba(22, 28, 38, 0.90);
+  --lg-fill-data-head: rgba(18, 24, 34, 0.94);
+  --lg-fill-header: rgba(16, 22, 32, 0.92);
+  --lg-blur: blur(16px) saturate(130%);
+  --lg-blur-soft: blur(14px) saturate(125%);
+  --lg-blur-data: blur(14px) saturate(125%);
+  --lg-border: rgba(255, 255, 255, 0.12);
+  --lg-edge: 1px solid rgba(255, 255, 255, 0.12);
   --lg-text: #f4f6f8;
   --lg-label: #e8edf2;
   --lg-muted: #c5ced8;
@@ -497,9 +511,7 @@ html.dk-dark body:has(.body-bg-wall) .table-wrap table,
 html.dk-dark body:has(.body-bg-wall) table.planilha,
 html.dk-dark body:has(.body-bg-wall) table.planilha-detalhe,
 html.dk-dark body:has(.body-bg-wall) .data-table {
-  background:
-    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
-    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
+  background: var(--lg-fill-data) !important;
   color: #f4f6f8 !important;
 }
 
@@ -677,24 +689,102 @@ html:not(.dk-dark) body:has(.bg-wall) .header,
 html:not(.dk-dark) body:has(.bg-wall) .header.header-v2,
 html:not(.dk-dark) body:has(.body-bg-wall) .header,
 html:not(.dk-dark) body:has(.body-bg-wall) .header.header-v2 {
-  background-image:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(56, 189, 248, 0.22), transparent),
-    var(--ciop-light-grad-fx, var(--ciop-light-grad)) !important;
-  background-size: 26% 100%, auto, auto !important;
-  background-repeat: no-repeat !important;
-  background-position: -28% 0, 0 0, 0 0 !important;
-  animation: ciop-header-scan 11s ease-in-out infinite;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.55) !important;
+  background: var(--lg-fill-header) !important;
+  background-image: none !important;
+  animation: none !important;
+  backdrop-filter: var(--lg-blur) !important;
+  -webkit-backdrop-filter: var(--lg-blur) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    0 1px 0 #ff6b00,
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 10px 28px -18px rgba(15, 23, 42, 0.18) !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .card,
+html:not(.dk-dark) body:has(.bg-wall) .hero-pro-panel,
+html:not(.dk-dark) body:has(.bg-wall) .notice-board,
+html:not(.dk-dark) body:has(.bg-wall) .toolbar-whatsapp,
+html:not(.dk-dark) body:has(.bg-wall) .menu-toggle,
+html:not(.dk-dark) body:has(.bg-wall) .ciop-session,
+html:not(.dk-dark) body:has(.body-bg-wall) .panel,
+html:not(.dk-dark) body:has(.body-bg-wall) .card,
+html:not(.dk-dark) body:has(.body-bg-wall) .kpi-card,
+html:not(.dk-dark) body:has(.body-bg-wall) .stat-card,
+html:not(.dk-dark) body:has(.body-bg-wall) .topbar,
+html:not(.dk-dark) body:has(.body-bg-wall) .filters-panel {
+  isolation: isolate;
+  box-shadow: var(--lg-shadow) !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .card,
+html:not(.dk-dark) body:has(.bg-wall) .hero-pro-panel,
+html:not(.dk-dark) body:has(.bg-wall) .notice-board {
+  border-radius: 26px !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .card {
+  transition: transform .2s ease, background .2s ease;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .card:hover,
+html:not(.dk-dark) body:has(.bg-wall) .card:focus-visible {
+  transform: translateY(-2px);
+  background: var(--lg-fill-hover) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.dk-dark) body:has(.bg-wall) .card:hover,
+  html:not(.dk-dark) body:has(.bg-wall) .card:focus-visible {
+    transform: none;
+  }
 }
 
 html.dk-dark body:has(.bg-wall) .header,
 html.dk-dark body:has(.bg-wall) .header.header-v2,
 html.dk-dark body:has(.body-bg-wall) .header,
 html.dk-dark body:has(.body-bg-wall) .header.header-v2 {
-  background:
-    radial-gradient(120% 160% at 92% 0%, #3d6aa8 0%, transparent 46%),
-    linear-gradient(135deg, #0b1628 0%, #152a4a 52%, #1c3d66 100%) !important;
-  border-bottom: 1px solid rgba(120, 170, 220, 0.22) !important;
+  background: var(--lg-fill-header) !important;
+  border-bottom: 1px solid var(--lg-border) !important;
+  box-shadow: 0 1px 0 #ff6b00, var(--lg-shadow) !important;
+}
+
+html.dk-dark body:has(.bg-wall) .card,
+html.dk-dark body:has(.bg-wall) .card:hover,
+html.dk-dark body:has(.bg-wall) .card:focus-visible,
+html.dk-dark body:has(.bg-wall) .notice-board,
+html.dk-dark body:has(.bg-wall) .notice-item,
+html.dk-dark body:has(.bg-wall) .hero-pro-panel,
+html.dk-dark body:has(.bg-wall) .toolbar-whatsapp,
+html.dk-dark body:has(.bg-wall) .card-figure,
+html.dk-dark body:has(.bg-wall) .card-section-toggle {
+  background: var(--lg-fill) !important;
+  border-color: var(--lg-border) !important;
+  box-shadow: var(--lg-shadow) !important;
+}
+
+html.dk-dark body:has(.bg-wall) .card:hover,
+html.dk-dark body:has(.bg-wall) .card:focus-visible {
+  background: var(--lg-fill-hover) !important;
+}
+
+html:not(.dk-dark) body:has(.body-bg-wall) .page-title,
+html:not(.dk-dark) body:has(.body-bg-wall) .page-title-art,
+html:not(.dk-dark) body:has(.body-bg-wall) .header-title,
+html:not(.dk-dark) body:has(.body-bg-wall) .panel-title,
+html:not(.dk-dark) body:has(.body-bg-wall) .group-title {
+  color: #06245c !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .notice-item-title,
+html:not(.dk-dark) body:has(.bg-wall) .notice-item-title-inner,
+html:not(.dk-dark) body:has(.bg-wall) .ciop-session-user {
+  color: #06245c !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+html:not(.dk-dark) body:has(.bg-wall) .notice-item-text,
+html:not(.dk-dark) body:has(.bg-wall) .notice-item-text-inner {
+  color: #1e293b !important;
 }

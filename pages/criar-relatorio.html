@@ -858,10 +858,10 @@ html.dk-dark .paper label{
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260821hud">
-<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260820bar4">
-<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260821fx">
-<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260828planilhas">
+<link rel="stylesheet" href="../assets/css/portal-glass-desktop.css?v=20260930v1">
+<link rel="stylesheet" href="../assets/css/portal-futuristic.css?v=20260930v1">
+<link rel="stylesheet" href="../assets/css/portal-tokens.css?v=20260930v1">
+<link rel="stylesheet" href="../assets/css/portal-unify.css?v=20260930v1">
 </head>
 <body>
 <div class="body-bg-wall" aria-hidden="true"></div>
@@ -1049,6 +1049,7 @@ html.dk-dark .paper label{
 <link rel="stylesheet" href="../assets/css/portal-header.css?v=20260818head3">
 <link rel="stylesheet" href="../assets/css/portal-session.css?v=20260818open">
     <link rel="stylesheet" href="../assets/css/dashboard-kit.css">
+<link rel="stylesheet" href="../assets/css/portal-visual.css?v=20260930v1">
     
 
 <script src="../assets/js/theme-toggle.js?v=20260818logo6"></script>
@@ -1528,7 +1529,7 @@ function aplicarImagemAssinatura(registro) {
         img.alt = "";
         return;
     }
-    const url = "../assets/img/assinaturas/" + id + ".png";
+    const url = "../assets/img/assinaturas/" + id + ".png?v=20260929d";
     img.onload = () => img.classList.add("is-on");
     img.onerror = () => {
         img.classList.remove("is-on");

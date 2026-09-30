@@ -1,0 +1,124 @@
+/* Portal CIOP — visual moderno + contraste rico em todas as páginas.
+   Carregar por último (exceto login / kiosk / PDF). */
+
+html:not(.dk-dark) {
+  --texto: #041530;
+  --muted: #334155;
+  --lg-text: #041530;
+  --lg-label: #1e293b;
+  --lg-muted: #334155;
+  --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.80) 0%, rgba(255, 255, 255, 0.60) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.90), rgba(255, 255, 255, 0.72));
+  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.68) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 255, 255, 0.78) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.58) 100%);
+}
+
+html.dk-dark {
+  --texto: #f8fafc;
+  --muted: #e2e8f0;
+  --lg-text: #f8fafc;
+  --lg-label: #e8eef5;
+  --lg-muted: #cbd5e1;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+  color: #041530;
+}
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+  color: #f8fafc;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  h1, h2, h3, h4,
+  .page-title, .page-title-art, .header-title, .panel-title, .group-title,
+  .card-title, .chart-title, .kpi-value, .stat-card .val, .kpi-card .val,
+  .ciop-session-user, .hero-pro-nome, .hero-pro-saudacao-label
+) {
+  color: #041530 !important;
+  -webkit-text-fill-color: #041530 !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .subtitle, .header-subtitle, .title-sub, .muted, .help-text,
+  .kpi-label, .kpi-sub, .stat-card .lbl, .field label, .status-line,
+  .notice-item-text, p, td, th, li, .card-note, .chart-note
+) {
+  color: #1e293b !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  h1, h2, h3, h4,
+  .page-title, .page-title-art, .header-title, .panel-title, .group-title,
+  .card-title, .chart-title, .kpi-value, .stat-card .val, .kpi-card .val,
+  .ciop-session-user, .hero-pro-nome
+) {
+  color: #f8fafc !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .subtitle, .muted, .help-text, .kpi-label, .field label,
+  .notice-item-text, p, td, th, li
+) {
+  color: #e2e8f0 !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  input, select, textarea, .filter-select, .ciop-search-input
+):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]) {
+  color: #041530 !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(4, 21, 48, 0.18) !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  input, select, textarea, .filter-select, .ciop-search-input
+):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]) {
+  color: #f8fafc !important;
+  background: rgba(16, 22, 32, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) table :is(th, td) {
+  color: #041530 !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) table :is(th, td) {
+  color: #f1f5f9 !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card, .panel, .kpi-card, .stat-card, .chart-card, .table-card,
+  .filters-panel, .topbar, .toolbar, .notice-board
+) {
+  border-radius: 20px;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .btn-primary,
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .btn.primary {
+  font-weight: 800;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill, .tag, .card-btn) {
+  -webkit-text-fill-color: unset;
+  text-shadow: none !important;
+}
+
+/* Relatório / mapa / login: não interferir */
+.paper,
+.paper *,
+.leaflet-container,
+.leaflet-container *,
+body.login-v2,
+body.login-v2 * {
+  text-shadow: none !important;
+}
+html:not(:has(#kiosk)) body:has(.header) .paper :is(h1, h2, h3, p, td, th, li, span, strong, label) {
+  color: unset !important;
+  -webkit-text-fill-color: unset !important;
+  text-shadow: none !important;
+}

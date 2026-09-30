@@ -1621,21 +1621,21 @@ body{
     border-bottom:none !important;
 }
 .notice-board{
-    background:rgba(255,255,255,.72) !important;
-    backdrop-filter:blur(18px) saturate(180%);
-    -webkit-backdrop-filter:blur(18px) saturate(180%);
-    border:1px solid rgba(30,30,46,.10) !important;
-    box-shadow:0 16px 34px -18px rgba(20,20,40,.22) !important;
+    background:var(--lg-fill) !important;
+    backdrop-filter:var(--lg-blur);
+    -webkit-backdrop-filter:var(--lg-blur);
+    border:var(--lg-edge, 1px solid rgba(255,255,255,.62)) !important;
+    box-shadow:var(--lg-shadow) !important;
 }
 .notice-item{
-    background:rgba(255,255,255,.82) !important;
-    border-color:rgba(30,30,46,.08) !important;
+    background:rgba(255,255,255,.42) !important;
+    border-color:rgba(255,255,255,.5) !important;
 }
 .toolbar-whatsapp{
-    background:rgba(255,255,255,.78) !important;
-    backdrop-filter:blur(14px) saturate(180%);
-    -webkit-backdrop-filter:blur(14px) saturate(180%);
-    box-shadow:0 10px 22px -12px rgba(20,20,40,.2) !important;
+    background:var(--lg-fill) !important;
+    backdrop-filter:var(--lg-blur-soft);
+    -webkit-backdrop-filter:var(--lg-blur-soft);
+    box-shadow:var(--lg-shadow) !important;
 }
 .toolbar{
     padding:6px 0 10px !important;
@@ -1724,29 +1724,30 @@ body{
 
 /* --- Cards de Operacao/Dashboards em vidro --- */
 .card{
-    background:rgba(255,255,255,.60) !important;
-    backdrop-filter:blur(16px) saturate(180%);
-    -webkit-backdrop-filter:blur(16px) saturate(180%);
-    border:1px solid rgba(30,30,46,.10) !important;
-    box-shadow:0 12px 26px -16px rgba(20,20,40,.18) !important;
-    border-radius:16px !important;
+    background:var(--lg-fill) !important;
+    backdrop-filter:var(--lg-blur);
+    -webkit-backdrop-filter:var(--lg-blur);
+    border:var(--lg-edge, 1px solid rgba(255,255,255,.62)) !important;
+    box-shadow:var(--lg-shadow) !important;
+    border-radius:26px !important;
+    transition:transform .2s ease, background .2s ease, box-shadow .2s ease;
 }
 .card:hover,
 .card:focus-visible{
-    background:rgba(255,255,255,.80) !important;
-    box-shadow:0 18px 34px -16px rgba(6,36,92,.22) !important;
+    background:var(--lg-fill-hover) !important;
+    box-shadow:var(--lg-shadow) !important;
 }
 .card-figure{
-    background:rgba(255,255,255,.42) !important;
-    backdrop-filter:blur(8px) saturate(160%);
-    -webkit-backdrop-filter:blur(8px) saturate(160%);
-    border:1px solid rgba(30,30,46,.06);
+    background:rgba(255,255,255,.28) !important;
+    backdrop-filter:blur(16px) saturate(170%);
+    -webkit-backdrop-filter:blur(16px) saturate(170%);
+    border:1px solid rgba(255,255,255,.5);
 }
 .card-section-toggle{
-    background:rgba(255,255,255,.6) !important;
-    backdrop-filter:blur(10px) saturate(160%);
-    -webkit-backdrop-filter:blur(10px) saturate(160%);
-    border:1px solid rgba(30,30,46,.10) !important;
+    background:var(--lg-fill) !important;
+    backdrop-filter:var(--lg-blur-soft);
+    -webkit-backdrop-filter:var(--lg-blur-soft);
+    border:var(--lg-edge, 1px solid rgba(255,255,255,.62)) !important;
 }
 .card-section-head{
     border-bottom:none !important;
@@ -1759,12 +1760,12 @@ body{
 }
 .hero-pro-panel{
     overflow:visible !important;
-    border-radius:18px !important;
-    background:rgba(255,255,255,.65) !important;
-    backdrop-filter:blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter:blur(20px) saturate(180%) !important;
-    border:1px solid rgba(30,30,46,.12) !important;
-    box-shadow:0 14px 30px -16px rgba(20,20,40,.22) !important;
+    border-radius:26px !important;
+    background:var(--lg-fill) !important;
+    backdrop-filter:var(--lg-blur) !important;
+    -webkit-backdrop-filter:var(--lg-blur) !important;
+    border:var(--lg-edge, 1px solid rgba(255,255,255,.62)) !important;
+    box-shadow:var(--lg-shadow) !important;
 }
 .hero-pro-copy{
     padding:14px 20px !important;
@@ -2163,12 +2164,21 @@ html.dk-dark .ciop-command-inner{
     background:var(--ciop-glass-bg, rgba(255,255,255,.72)) !important;
 }
 
-/* Round 10: textos dos cards em branco */
-.card-title{
+/* Round 10: textos dos cards — claro navy, escuro branco */
+html:not(.dk-dark) .card-title{
+    color:#06245c !important;
+    -webkit-text-fill-color:#06245c !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.95), 0 0 14px rgba(255,255,255,.75);
+}
+html:not(.dk-dark) .card-desc{
+    color:#1e293b !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.92);
+}
+html.dk-dark .card-title{
     color:#fff !important;
     text-shadow:0 1px 3px rgba(0,0,0,.45);
 }
-.card-desc{
+html.dk-dark .card-desc{
     color:rgba(255,255,255,.92) !important;
     text-shadow:0 1px 2px rgba(0,0,0,.35);
 }
@@ -2320,12 +2330,13 @@ html.dk-dark .ciop-command-inner{
     .portal-aba-indicador{ transition:none; }
 }
 </style>
-<link rel="stylesheet" href="assets/css/portal-glass-desktop.css?v=20260821hud">
+<link rel="stylesheet" href="assets/css/portal-glass-desktop.css?v=20260930v1">
 <link rel="stylesheet" href="assets/css/portal-futuristic.css?v=20260929gsap">
-<link rel="stylesheet" href="assets/css/portal-tokens.css?v=20260821fx">
-<link rel="stylesheet" href="assets/css/portal-unify.css?v=20260828planilhas">
-<link rel="stylesheet" href="assets/css/portal-ciop-home.css?v=20260821full">
-<link rel="stylesheet" href="assets/css/portal-liquid-glass.css?v=20260821full">
+<link rel="stylesheet" href="assets/css/portal-tokens.css?v=20260930v1">
+<link rel="stylesheet" href="assets/css/portal-unify.css?v=20260930v1">
+<link rel="stylesheet" href="assets/css/portal-ciop-home.css?v=20260930v1">
+<link rel="stylesheet" href="assets/css/portal-liquid-glass.css?v=20260930v1">
+<link rel="stylesheet" href="assets/css/portal-visual.css?v=20260930v1">
 <script src="assets/js/theme-toggle.js?v=20260818logo6"></script>
 <script src="assets/js/portal-futuristic.js?v=20260817d" defer></script>
 <script src="assets/js/portal-ciop-home.js?v=20260818areas2cm" defer></script>
