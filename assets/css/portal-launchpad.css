@@ -1,0 +1,262 @@
+/* Home no estilo Launchpad / Spotlight (vidro escuro + ícones). */
+html:not(:has(#kiosk)) body:has(#portalAbas) {
+  --lp-glass: rgba(22, 22, 24, 0.52);
+  --lp-glass-strong: rgba(18, 18, 20, 0.62);
+  --lp-stroke: rgba(255, 255, 255, 0.18);
+  --lp-text: #f5f5f7;
+  --lp-muted: rgba(245, 245, 247, 0.72);
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-hud-overlay,
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-hud-vignette {
+  display: none !important;
+}
+
+body.portal-dock-on:has(#portalAbas) .header,
+body.portal-dock-on:has(#portalAbas) .header.header-v2,
+body.portal-dock-on:has(#portalAbas) .toolbar {
+  padding-left: 16px !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .header,
+html:not(:has(#kiosk)) body:has(#portalAbas) .header.header-v2,
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-command-inner,
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-command,
+html:not(:has(#kiosk)) body:has(#portalAbas) .notice-board,
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-session,
+html:not(:has(#kiosk)) body:has(#portalAbas) .menu-toggle,
+html:not(:has(#kiosk)) body:has(#portalAbas) .toolbar-whatsapp,
+html:not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-panel,
+html:not(:has(#kiosk)) body:has(#portalAbas) .password-panel {
+  background: var(--lp-glass) !important;
+  background-image: none !important;
+  color: var(--lp-text) !important;
+  border: 1px solid var(--lp-stroke) !important;
+  backdrop-filter: blur(42px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(42px) saturate(180%) !important;
+  box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.45) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .header.header-v2 {
+  border-radius: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-top: 0 !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-command-inner {
+  border-radius: 22px !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) :is(
+  .ciop-kpi-label, .ciop-kpi-value, .ciop-kpi-sub, .ciop-session-user,
+  .ciop-session-cargo, .ciop-session-profile, .notice-board-title,
+  .notice-item-title, .notice-item-text, .hero-pro-nome, .hero-pro-saudacao-label
+) {
+  color: var(--lp-text) !important;
+  -webkit-text-fill-color: var(--lp-text) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-search {
+  background: rgba(0, 0, 0, 0.38) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 999px !important;
+  color: var(--lp-text) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-search-input {
+  background: transparent !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .ciop-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .container {
+  max-width: min(1080px, 94vw) !important;
+  margin: 12px auto 48px !important;
+  padding: 18px 22px 28px !important;
+  background: var(--lp-glass-strong) !important;
+  backdrop-filter: blur(48px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(190%) !important;
+  border: 1px solid var(--lp-stroke) !important;
+  border-radius: 32px !important;
+  box-shadow: 0 30px 80px -28px rgba(0, 0, 0, 0.55) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card-section-head {
+  display: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-aba-indicador {
+  display: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-abas {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin: 0 auto 18px !important;
+  padding: 6px !important;
+  max-width: 100% !important;
+  width: fit-content !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-aba {
+  color: rgba(255, 255, 255, 0.72) !important;
+  background: transparent !important;
+  font-weight: 650 !important;
+  font-size: 13px !important;
+  box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .portal-aba[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)) !important;
+  justify-content: center !important;
+  gap: 18px 10px !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.portal-card-visivel,
+html:not(:has(#kiosk)) body:has(#portalAbas) .card:not([data-perfis]):not([data-usuarios]):not([data-modulo]) {
+  display: flex !important;
+  width: auto !important;
+  flex: none !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  padding: 6px 4px 8px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card:hover,
+html:not(:has(#kiosk)) body:has(#portalAbas) .card:focus-visible {
+  transform: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card:hover .card-figure {
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card-top {
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card-figure {
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 18px !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow:
+    0 10px 22px -10px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure svg {
+  width: 34px !important;
+  height: 34px !important;
+  filter: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure path,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure line,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure polyline,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure polygon,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure circle,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure rect {
+  fill: none !important;
+  fill-opacity: 1 !important;
+  stroke: #fff !important;
+  stroke-width: 1.8 !important;
+  opacity: 1 !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .header-brand-lock,
+html:not(:has(#kiosk)) body:has(#portalAbas) .header-hero.header-hero-pro,
+html:not(:has(#kiosk)) body:has(#portalAbas) .header-actions {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-blue .card-figure { background: linear-gradient(180deg, #64d2ff, #0a84ff) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-orange .card-figure { background: linear-gradient(180deg, #ffd60a, #ff9f0a) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-violet .card-figure { background: linear-gradient(180deg, #e0aaff, #bf5af2) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-sky .card-figure { background: linear-gradient(180deg, #7ddcff, #32ade6) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-cyan .card-figure { background: linear-gradient(180deg, #63e6e2, #30b0c7) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-indigo .card-figure { background: linear-gradient(180deg, #b4a7ff, #5e5ce6) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-teal .card-figure { background: linear-gradient(180deg, #5de6c9, #30d158) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-slate .card-figure { background: linear-gradient(180deg, #c7c7cc, #8e8e93) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-rose .card-figure { background: linear-gradient(180deg, #ff6b8a, #ff375f) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-green .card-figure { background: linear-gradient(180deg, #7dff9a, #30d158) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-amber .card-figure { background: linear-gradient(180deg, #ffe14d, #ff9f0a) !important; }
+html:not(:has(#kiosk)) body:has(#portalAbas) .card.theme-red .card-figure { background: linear-gradient(180deg, #ff6961, #ff453a) !important; }
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title,
+html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-title *,
+html:not(.dk-dark) body:has(#portalAbas) .grid .card-title,
+html:not(.dk-dark) body:has(#portalAbas) .grid .card-title * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+  line-height: 1.25 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45) !important;
+}
+
+html:not(:has(#kiosk)) body:has(#portalAbas) .card-desc,
+html:not(:has(#kiosk)) body:has(#portalAbas) .card-btn {
+  display: none !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-panel,
+html.dk-dark:not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-panel {
+  background: var(--lp-glass) !important;
+  background-image: none !important;
+  border: 1px solid var(--lp-stroke) !important;
+  box-shadow: 0 18px 50px -20px rgba(0, 0, 0, 0.45) !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-nome,
+html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .hero-pro-saudacao-label,
+html:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas) .header-hero-mes {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  background: none !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+
+@media (max-width: 720px) {
+  html:not(:has(#kiosk)) body:has(#portalAbas) .grid {
+    grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)) !important;
+  }
+  html:not(:has(#kiosk)) body:has(#portalAbas) .card-figure {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 15px !important;
+  }
+}
