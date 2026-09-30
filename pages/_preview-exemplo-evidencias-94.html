@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulação — Evidência Auto 94</title>
+<style>
+body{margin:0;background:#e8edf4;padding:28px 16px 48px;font-family:Arial,Helvetica,sans-serif}
+.note{width:210mm;max-width:100%;margin:0 auto 16px;color:#344054;font-size:13px;font-weight:700}
+.note span{display:block;font-weight:600;color:#667085;margin-top:4px}
+.sheet-a4{width:210mm;max-width:100%;min-height:297mm;margin:0 auto;background:#fff;color:#1a2332;border:1px solid #d7dee8;box-shadow:0 22px 55px rgba(16,24,40,.16)}
+.sheet-brand{display:grid;grid-template-columns:88px 1fr 88px;gap:14px;align-items:center;padding:14px 18px 12px;background:linear-gradient(180deg,#f4f7fb 0%,#fff 100%)}
+.sheet-brand-logo{display:flex;align-items:center}
+.sheet-brand-logo img{height:48px;width:auto;max-width:100%;object-fit:contain}
+.sheet-brand-logo.is-tcgl img{height:50px}
+.sheet-brand-logo:last-child{justify-self:end}
+.sheet-org{text-align:center;color:#06245c}
+.sheet-org-title{margin:0;font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.3}
+.sheet-org-kicker{margin:4px 0 0;font-size:10.5px;font-weight:700;color:#3f4757}
+.sheet-accent{height:5px;background:linear-gradient(90deg,#06245c 0 70%,#ff6b00 70% 100%)}
+.sheet-title-row{display:grid;grid-template-columns:minmax(138px,1fr) auto minmax(138px,1fr);align-items:center;gap:10px;padding:12px 16px 8px}
+.sheet-capa-title{grid-column:2;margin:0;text-align:center;font-size:18px;font-weight:800;letter-spacing:.08em;color:#06245c;text-transform:uppercase}
+.sheet-protocolo{grid-column:3;justify-self:end;text-align:center;border:1.5px solid #e11d48;background:#fff5f5;border-radius:4px;padding:7px 12px 8px;min-width:138px}
+.sheet-protocolo span{display:block;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#9f1239}
+.sheet-capa-numero-text{display:block;padding:3px 0 0;font-size:13px;font-weight:800;color:#be123c}
+.sheet-rule{display:flex;align-items:center;gap:10px;margin:0 16px 12px}
+.sheet-rule::before,.sheet-rule::after{content:"";flex:1;height:1.5px;background:#06245c}
+.sheet-rule i{flex:0 0 42px;height:4px;background:#ff6b00;border-radius:2px}
+.sheet-rule.soft{margin:8px 16px}
+.sheet-rule.soft::before,.sheet-rule.soft::after{height:1px;background:#9aa8bc}
+.sheet-rule.soft i{height:3px;flex-basis:28px}
+.sheet-docs{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #d7dee8}
+.sheet-docs-pane{padding:8px;border-right:1px solid #d5deee}
+.sheet-docs-pane:last-child{border-right:0}
+.sheet-docs-pane label{display:block;font-size:10px;font-weight:800;color:#344054;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.sheet-docs-pane img{width:100%;border:1px solid #c9d0dc;background:#fff}
+.sheet-gallery{min-height:0;margin:10px 12px;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sheet-gallery img{width:100%;border:1px solid #dfe5ef;background:#fff}
+.sheet-text{padding:8px 16px;margin:0 16px 10px;border-left:2px solid #06245c;box-shadow:inset 4px 0 0 #ff6b00}
+.sheet-text-label{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#06245c;margin:0 0 8px}
+.sheet-text p{margin:0 0 8px;font-size:13px;line-height:1.5;font-family:Georgia,"Times New Roman",Times,serif;color:#1f2937}
+.sheet-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0 14px;padding:8px 16px 14px}
+.sheet-grid div{border-bottom:1.5px solid #06245c;border-left:3px solid #06245c;padding:8px 0 7px 10px;background:linear-gradient(90deg,#f4f7fb 0 8px,transparent 8px)}
+.sheet-grid .span-2{grid-column:span 2}
+.sheet-grid .span-3{grid-column:span 3}
+.sheet-grid .span-4{grid-column:span 4}
+.sheet-grid .span-6{grid-column:1/-1}
+.sheet-grid span{display:block;font-size:9px;color:#344054;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.sheet-grid b{display:block;font-size:14px;font-weight:800;color:#06245c}
+.sheet-foot{margin:8px 16px 14px;padding-top:10px;border-top:2px solid #06245c;box-shadow:inset 0 4px 0 #ff6b00;text-align:center;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#475467}
+@page{size:A4;margin:4mm}
+@media print{
+  html,body{height:297mm;background:#fff;padding:0;margin:0}
+  .note{display:none}
+  .sheet-a4{
+    width:auto;min-height:0;height:289mm;margin:0;border:0;box-shadow:none;
+    display:grid;
+    grid-template-rows:auto auto auto auto minmax(0,2.4fr) minmax(0,2fr) auto auto auto;
+  }
+  .sheet-brand{padding:6px 10px 4px}
+  .sheet-brand-logo img,.sheet-brand-logo.is-tcgl img{height:28px}
+  .sheet-org-title{font-size:10px}
+  .sheet-org-kicker{font-size:8px;margin:2px 0 0}
+  .sheet-title-row{padding:4px 10px 2px}
+  .sheet-capa-title{font-size:13px}
+  .sheet-rule{margin:0 10px 4px}
+  .sheet-rule.soft{margin:2px 10px}
+  .sheet-docs{min-height:0;align-items:stretch}
+  .sheet-docs-pane{display:flex;flex-direction:column;min-height:0;padding:4px}
+  .sheet-docs-pane img{flex:1;min-height:0;width:100%;height:100%;max-height:none;object-fit:contain;object-position:top}
+  .sheet-gallery{min-height:0;margin:2px 6px;padding:2px;align-items:stretch}
+  .sheet-gallery img{height:100%;min-height:0;max-height:none;object-fit:contain;object-position:top}
+  .sheet-text{padding:3px 10px;margin:0 10px 4px}
+  .sheet-text p{margin:0 0 3px;font-size:10px}
+  .sheet-grid{padding:2px 10px 6px}
+  .sheet-grid b{font-size:11px}
+}
+</style>
+</head>
+<body>
+<p class="note">
+  Simulação · Auto 94 · data corrigida 04/07/2026 · carro 3133 · linha 407
+  <span>No PDF antigo o quadro tinha 10/07/2026; o auto CMTU e o CAD são 04/07/2026.</span>
+</p>
+<article class="sheet-a4">
+  <div class="sheet-brand">
+    <div class="sheet-brand-logo is-tcgl"><img src="../assets/img/LOGO_TCGL-removebg-preview.png" alt="TCGL"></div>
+    <div class="sheet-org">
+      <p class="sheet-org-title">Transportes Coletivos Grande Londrina</p>
+      <p class="sheet-org-kicker">Centro de Inteligência Operacional de Londrina</p>
+    </div>
+    <div class="sheet-brand-logo"><img src="../assets/img/CIOP Sem Fundo.png" alt="CIOP"></div>
+  </div>
+  <div class="sheet-accent"></div>
+  <div class="sheet-title-row">
+    <div></div>
+    <h2 class="sheet-capa-title">Auto de Infração</h2>
+    <div class="sheet-protocolo">
+      <span>Auto</span>
+      <strong class="sheet-capa-numero-text">32319/2026-M0000094</strong>
+    </div>
+  </div>
+  <div class="sheet-rule"><i></i></div>
+  <section class="sheet-docs">
+    <div class="sheet-docs-pane"><label>Capa / Notificação</label><img src="../assets/img/exemplo-evidencia-94/capa.png" alt="Notificação 32319/2026"></div>
+    <div class="sheet-docs-pane"><label>Auto</label><img src="../assets/img/exemplo-evidencia-94/auto.png" alt="Auto 000094"></div>
+  </section>
+  <section class="sheet-gallery">
+    <img src="../assets/img/exemplo-evidencia-94/map1.png" alt="CAD 13:00 — partida sem login">
+    <img src="../assets/img/exemplo-evidencia-94/map2.png" alt="CAD 13:50 — login remoto CIOP">
+  </section>
+  <div class="sheet-rule soft"><i></i></div>
+  <section class="sheet-text">
+    <div class="sheet-text-label">Referência</div>
+    <p>Através do CAD o veículo parte do Terminal Central às 13:00, sem realizar o login.</p>
+    <p>O login remoto é realizado pelo CIOP às 13:50. Incidente 55047.</p>
+  </section>
+  <section class="sheet-grid">
+    <div class="span-2"><span>Data</span><b>04/07/2026</b></div>
+    <div class="span-2"><span>Horário</span><b>13:00</b></div>
+    <div class="span-2"><span>Protocolo</span><b>32319/2026</b></div>
+    <div class="span-2"><span>Linha</span><b>407 — João Paz</b></div>
+    <div class="span-2"><span>Carro</span><b>3133</b></div>
+    <div class="span-2"><span>Placa</span><b>TBJ 1I23</b></div>
+    <div class="span-2"><span>Matrícula</span><b>12650</b></div>
+    <div class="span-4"><span>Motorista</span><b>JURANDIR AMANCIO PINHEIRO</b></div>
+    <div class="span-3"><span>Agente CMTU</span><b>JOEL GABRIEL DE SOUZA</b></div>
+    <div class="span-3"><span>Motivo</span><b>NÃO AUTENTICAÇÃO / LOGIN TDM</b></div>
+  </section>
+</article>
+</body>
+</html>
