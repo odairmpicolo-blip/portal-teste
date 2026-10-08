@@ -440,9 +440,10 @@ router.get("/icv", requireFirebaseUser, async (req, res) => {
   } catch (err) { erro(res, err); }
 });
 
-/* Duas medições distintas de pontualidade, cada uma na sua tabela:
-     2/6 (padrão)     cr_custom_ontime — 213 dias, IPV na casa dos 92%
-     1/3 (alternativo) cr_0258         — 44 dias (01/06 a 15/07), IPV na casa dos 80%
+/* Medições distintas de pontualidade, cada uma na sua tabela:
+     2/6 (padrão)      cr_custom_ontime — IPV na casa dos 92%
+     1/3 TCGL          cr_0258          — IPV na casa dos 80%
+     1/3 LondriSul     cr_0258_ldsul    — mesma régua −1/+3, dias ainda em carga
    Elas NÃO se somam nem se misturam: medem coisas diferentes e uma média entre as
    duas produziria um número sem significado. O parâmetro fonte escolhe qual ler, e a
    resposta usa os mesmos nomes de campo nos dois casos para a página não traduzir.
@@ -454,7 +455,11 @@ const FONTES_IPV = {
            pontos: "pontos_de_controle_processados" },
   "1-3": { tabela: "cr_0258",
            ipv: "on_time", adiantado: "early", atrasado: "late",
-           pontos: "timepoints_processed" }
+           pontos: "timepoints_processed" },
+  /* LondriSul −1/+3. Os CSVs ainda entram dia a dia: a série só traz os dias já carregados. */
+  "1-3-ldsul": { tabela: "cr_0258_ldsul",
+                 ipv: "on_time", adiantado: "early", atrasado: "late",
+                 pontos: "timepoints_processed" }
 };
 
 const TOKEN_IPV_SHARE = process.env.IPV_SHARE_TOKEN || "IPV@2026";
@@ -467,7 +472,7 @@ async function consultarIpv(req) {
   const chave = String(req.query.fonte || "2-6");
   const f = FONTES_IPV[chave];
   if (!f) {
-    const err = new Error("fonte inválida (use 2-6 ou 1-3)");
+    const err = new Error("fonte inválida (use 2-6, 1-3 ou 1-3-ldsul)");
     err.status = 400;
     throw err;
   }
@@ -558,7 +563,7 @@ router.get("/ipv", requireFirebaseUser, async (req, res) => {
   const chave = String(req.query.fonte || "2-6");
   const f = FONTES_IPV[chave];
   if (!f) {
-    res.status(400).json({ ok: false, erro: "fonte inválida (use 2-6 ou 1-3)" });
+    res.status(400).json({ ok: false, erro: "fonte inválida (use 2-6, 1-3 ou 1-3-ldsul)" });
     return;
   }
   try {
