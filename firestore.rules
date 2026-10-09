@@ -76,7 +76,8 @@ service cloud.firestore {
     }
 
     match /config/{docId} {
-      allow read: if signedIn();
+      // cadAds tem sessão do Dynamic Scheduling — só o dono lê.
+      allow read: if signedIn() && (docId != "cadAds" || donoPortal());
       allow write: if donoPortal();
     }
 
@@ -92,6 +93,10 @@ service cloud.firestore {
 
     match /performanceHoras/{diaId} {
       allow read, write: if signedIn() && perfilAtual() == 'Administrador';
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
