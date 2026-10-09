@@ -239,9 +239,9 @@ body:has(#portalAbas) .container {
   z-index: 40;
   left: 8px;
   top: 280px;
-  bottom: auto;
+  bottom: 12px;
   height: auto !important;
-  max-height: calc(100dvh - 296px);
+  max-height: none;
   margin: 0;
   transform: none;
   width: 44px !important;
@@ -250,7 +250,7 @@ body:has(#portalAbas) .container {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 8px 5px;
+  padding: 6px 5px;
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 16px;
@@ -276,8 +276,9 @@ body.portal-dock-on .portal-abas {
   position: relative !important;
   display: flex !important;
   flex-direction: column !important;
-  flex: 0 0 auto !important;
-  height: auto !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
   width: 100% !important;
   max-width: 34px !important;
   margin: 0 !important;
@@ -294,21 +295,23 @@ html.dk-dark body.portal-dock-on .portal-abas {
 }
 
 body.portal-dock-on .portal-aba {
-  flex: 0 0 auto !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
   width: 100% !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   border-radius: 10px !important;
-  padding: 10px 0 !important;
+  padding: 4px 0 !important;
   text-align: center !important;
-  font-size: 11px !important;
+  font-size: var(--dock-tab-size, 10px) !important;
   font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.04em !important;
   writing-mode: vertical-lr;
   text-orientation: upright;
   transform: none;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 body.portal-dock-on .portal-aba-indicador {

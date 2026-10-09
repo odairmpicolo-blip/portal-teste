@@ -371,3 +371,67 @@ html:not(:has(#kiosk)) body:has(#portalAbas) .grid .card-figure::before {
     border-radius: 14px !important;
   }
 }
+
+/* Dock vertical: não deixar o Launchpad deitar as abas nem cortar Relatórios. */
+html:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-abas {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  justify-content: stretch !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: 34px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  background: var(--ciop-light-grad-y, var(--ciop-light-grad)) !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-aba {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  color: #06245c !important;
+  background: transparent !important;
+  font-size: var(--dock-tab-size, 10px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  padding: 4px 0 !important;
+  writing-mode: vertical-lr !important;
+  text-orientation: upright !important;
+}
+
+html:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-aba[aria-selected="true"] {
+  background: #06245c !important;
+  color: #fff !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-aba {
+  color: #e8eef5 !important;
+}
+
+html.dk-dark:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-aba[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 900px) {
+  html:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-abas {
+    flex-direction: row !important;
+    max-width: none !important;
+    height: auto !important;
+    width: auto !important;
+  }
+  html:not(:has(#kiosk)) body.portal-dock-on:has(#portalAbas) .portal-aba {
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    font-size: 14px !important;
+    flex: 1 1 auto !important;
+    padding: 10px 12px !important;
+    letter-spacing: 0.02em !important;
+  }
+}
