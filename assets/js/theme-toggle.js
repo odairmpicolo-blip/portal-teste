@@ -2,9 +2,7 @@ var DK_KEY = "dk-theme";
 var DK_BRAND_LIGHT = "logomarca-portalciop-tcgl-claro.png";
 var DK_BRAND_DARK = "logomarca-portalciop-tcgl-escuro.png";
 var DK_AUTO_TIMER = null;
-/** Escurece a partir das 18h; clareia a partir das 6h (horário local). */
-var DK_AUTO_DARK_FROM = 18;
-var DK_AUTO_LIGHT_FROM = 6;
+var DK_SYSTEM_MQ = null;
 
 function dkNormalize(pref) {
   if (pref === "dark" || pref === "auto") return pref;
@@ -17,15 +15,17 @@ function dkStoredPref() {
   return dkNormalize(stored);
 }
 
-function dkPreferDarkByTime(date) {
-  var d = date || new Date();
-  var h = d.getHours();
-  return h >= DK_AUTO_DARK_FROM || h < DK_AUTO_LIGHT_FROM;
+function dkPreferDarkBySystem() {
+  try {
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  } catch (e) {
+    return false;
+  }
 }
 
 function dkResolveMode(pref) {
   var p = dkNormalize(pref);
-  if (p === "auto") return dkPreferDarkByTime() ? "dark" : "light";
+  if (p === "auto") return dkPreferDarkBySystem() ? "dark" : "light";
   return p;
 }
 
@@ -61,7 +61,7 @@ function dkSwapTcglLogos(isDark) {
 
 function dkPrefLabel(pref) {
   if (pref === "dark") return "Tema escuro";
-  if (pref === "auto") return "Automático";
+  if (pref === "auto") return "Automático (sistema)";
   return "Tema claro";
 }
 
@@ -90,14 +90,17 @@ function dkClearAutoTimer() {
 
 function dkScheduleAuto() {
   dkClearAutoTimer();
-  if (dkStoredPref() !== "auto") return;
-  DK_AUTO_TIMER = window.setInterval(function () {
-    if (dkStoredPref() !== "auto") {
-      dkClearAutoTimer();
-      return;
+  try {
+    if (!DK_SYSTEM_MQ && window.matchMedia) {
+      DK_SYSTEM_MQ = window.matchMedia("(prefers-color-scheme: dark)");
+      var onSys = function () {
+        if (dkStoredPref() === "auto") dkApply("auto", true);
+      };
+      if (DK_SYSTEM_MQ.addEventListener) DK_SYSTEM_MQ.addEventListener("change", onSys);
+      else if (DK_SYSTEM_MQ.addListener) DK_SYSTEM_MQ.addListener(onSys);
     }
-    dkApply("auto", true);
-  }, 60 * 1000);
+  } catch (e) {}
+  if (dkStoredPref() !== "auto") return;
 }
 
 function dkApply(pref, silent) {
