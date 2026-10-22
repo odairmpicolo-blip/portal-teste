@@ -428,7 +428,7 @@ function garantirCssVisualUltimo() {
   if (!link) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = portalPath("assets/css/portal-visual.css?v=20261022liq");
+    link.href = portalPath("assets/css/portal-visual.css?v=20261022fume");
     link.dataset.portalVisual = "1";
     document.head.appendChild(link);
     return;

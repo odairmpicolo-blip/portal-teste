@@ -11,20 +11,20 @@ html:not(:has(#kiosk)) {
   --lg-text: #1c1c1e;
   --lg-label: #3a3a3c;
   --lg-muted: #5c5c60;
-  --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(220, 220, 224, 0.16) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(226, 226, 230, 0.22) 100%);
-  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(232, 232, 236, 0.26) 100%);
-  --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(220, 220, 224, 0.14) 100%);
-  --lg-fill-header: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(224, 224, 228, 0.18) 100%);
-  --lg-fill-data-head: rgba(255, 255, 255, 0.22);
+  --lg-fill: linear-gradient(180deg, rgba(236, 236, 238, 0.52) 0%, rgba(210, 210, 214, 0.40) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(244, 244, 246, 0.58) 0%, rgba(220, 220, 224, 0.46) 100%);
+  --lg-fill-hover: linear-gradient(180deg, rgba(248, 248, 250, 0.62) 0%, rgba(226, 226, 230, 0.50) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(236, 236, 238, 0.50) 0%, rgba(210, 210, 214, 0.38) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(240, 240, 242, 0.56) 0%, rgba(216, 216, 220, 0.44) 100%);
+  --lg-fill-data-head: rgba(228, 228, 232, 0.48);
   --ciop-light-grad: var(--lg-fill-data);
   --ciop-light-grad-y: var(--lg-fill-data);
   --ciop-light-grad-fx: var(--lg-fill-header);
-  --lg-blur: blur(48px) saturate(170%);
-  --lg-blur-soft: blur(40px) saturate(160%);
-  --lg-blur-data: blur(44px) saturate(160%);
-  --lg-border: rgba(255, 255, 255, 0.38);
-  --lg-edge: 1px solid rgba(255, 255, 255, 0.34);
+  --lg-blur: blur(44px) saturate(150%);
+  --lg-blur-soft: blur(36px) saturate(140%);
+  --lg-blur-data: blur(40px) saturate(140%);
+  --lg-border: rgba(60, 60, 67, 0.16);
+  --lg-edge: 1px solid rgba(255, 255, 255, 0.42);
   --lg-shadow:
     0 16px 40px -24px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
@@ -49,13 +49,14 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-scan {
   background-color: transparent !important;
   background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov") !important;
   background-size: cover !important;
-  background-position: center !important;
+  background-position: center 30% !important;
   background-repeat: no-repeat !important;
   filter: none !important;
 }
 html.dk-dark .bg-wall,
 html.dk-dark .body-bg-wall {
   background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov") !important;
+  background-position: center 30% !important;
   filter: none !important;
 }
 .bg-wall::after,
@@ -201,7 +202,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill,
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
   padding: 5px !important;
-  background: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(236, 236, 238, 0.42) !important;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba {
   border-radius: 999px;
@@ -285,7 +286,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   .table-card, .filters-panel, .topbar, .toolbar, .cv-panel, .hero-pro-panel,
   .table-wrap, .chart-box, .chart-panel, .filter-bar, footer.portal-site-footer
 ) {
-  background-color: rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(232, 232, 236, 0.45) !important;
   background: var(--lg-fill-data) !important;
   background-image: var(--lg-fill-data) !important;
   animation: none !important;
@@ -365,7 +366,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
   background-image: var(--lg-fill-hover) !important;
-  background-color: rgba(255, 255, 255, 0.28) !important;
+  background-color: rgba(244, 244, 246, 0.55) !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(

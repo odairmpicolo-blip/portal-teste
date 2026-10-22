@@ -23,7 +23,7 @@ body.login-v2 {
   z-index: -2;
   background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov");
   background-size: cover;
-  background-position: center;
+  background-position: center 30%;
   background-repeat: no-repeat;
 }
 
@@ -39,7 +39,7 @@ html.dk-dark body.login-v2{
 
 html.dk-dark .login-card-v2{
   background:
-    linear-gradient(145deg, rgba(56, 189, 248, 0.12) 0%, rgba(8, 18, 42, 0.42) 48%, rgba(255, 107, 0, 0.10) 100%);
+    linear-gradient(180deg, rgba(44, 44, 46, 0.58) 0%, rgba(28, 28, 30, 0.48) 100%);
   border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
     0 24px 60px -20px rgba(0, 0, 0, 0.55),
@@ -77,10 +77,10 @@ html.dk-dark .login-card-v2::after{
   justify-self: center;
   align-self: center;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.10) 48%, rgba(255, 255, 255, 0.14) 100%);
-  backdrop-filter: blur(36px) saturate(180%);
-  -webkit-backdrop-filter: blur(36px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+    linear-gradient(180deg, rgba(240, 240, 242, 0.54) 0%, rgba(220, 220, 224, 0.42) 100%);
+  backdrop-filter: blur(36px) saturate(150%);
+  -webkit-backdrop-filter: blur(36px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 22px;
   padding: 28px 26px;
   box-shadow:
@@ -99,8 +99,8 @@ html.dk-dark .login-card-v2::after{
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 40%);
-  opacity: .4;
+  background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 42%);
+  opacity: .35;
   pointer-events: none;
   z-index: -1;
 }
@@ -132,7 +132,7 @@ html.dk-dark .login-card-v2::after{
 .login-card-v2 label {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--cinza);
+  color: #1c1c1e;
 }
 
 .login-card-v2 input {
@@ -143,7 +143,7 @@ html.dk-dark .login-card-v2::after{
   border-radius: 12px;
   font-size: 15px;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -157,9 +157,9 @@ html.dk-dark .login-card-v2::after{
   cursor: pointer;
   font-weight: 700;
   font-size: 15px;
-  background: linear-gradient(135deg, #7a5cff, #c04fd6);
+  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-hover) 72%, var(--laranja) 160%);
   color: #fff;
-  box-shadow: 0 12px 26px -10px rgba(122, 92, 255, 0.55);
+  box-shadow: 0 12px 26px -10px rgba(6, 36, 92, 0.45);
 }
 
 .login-card-v2 .btn-primary:hover {
@@ -180,6 +180,7 @@ html.dk-dark .login-card-v2::after{
   font-size: 14px;
   cursor: pointer;
   text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .login-error-v2 {
