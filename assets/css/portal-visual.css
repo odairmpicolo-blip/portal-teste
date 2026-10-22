@@ -11,12 +11,12 @@ html:not(:has(#kiosk)) {
   --lg-text: #1c1c1e;
   --lg-label: #3a3a3c;
   --lg-muted: #5c5c60;
-  --lg-fill: linear-gradient(180deg, rgba(236, 236, 238, 0.82) 0%, rgba(210, 210, 214, 0.68) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(244, 244, 246, 0.88) 0%, rgba(220, 220, 224, 0.74) 100%);
-  --lg-fill-hover: linear-gradient(180deg, rgba(248, 248, 250, 0.90) 0%, rgba(224, 224, 228, 0.76) 100%);
-  --lg-fill-data: linear-gradient(180deg, rgba(236, 236, 238, 0.82) 0%, rgba(210, 210, 214, 0.68) 100%);
-  --lg-fill-header: linear-gradient(180deg, rgba(240, 240, 242, 0.86) 0%, rgba(216, 216, 220, 0.70) 100%);
-  --lg-fill-data-head: rgba(228, 228, 232, 0.80);
+  --lg-fill: linear-gradient(180deg, rgba(240, 240, 242, 0.94) 0%, rgba(220, 220, 224, 0.90) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(246, 246, 248, 0.96) 0%, rgba(226, 226, 230, 0.92) 100%);
+  --lg-fill-hover: linear-gradient(180deg, rgba(250, 250, 252, 0.97) 0%, rgba(232, 232, 236, 0.93) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(240, 240, 242, 0.94) 0%, rgba(220, 220, 224, 0.90) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(244, 244, 246, 0.95) 0%, rgba(224, 224, 228, 0.91) 100%);
+  --lg-fill-data-head: rgba(232, 232, 236, 0.92);
   --ciop-light-grad: var(--lg-fill-data);
   --ciop-light-grad-y: var(--lg-fill-data);
   --ciop-light-grad-fx: var(--lg-fill-header);
@@ -37,8 +37,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-scan {
   opacity: 0 !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-wall,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-wall {
+.bg-wall,
+.body-bg-wall {
   display: block !important;
   position: fixed !important;
   inset: 0 !important;
@@ -47,22 +47,24 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-wall {
   opacity: 1 !important;
   visibility: visible !important;
   background-color: transparent !important;
-  background-image: url("../img/portal-bg-onibus.jpg?v=20260718j") !important;
+  background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov") !important;
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
   filter: none !important;
 }
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-wall::after,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-wall::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-  opacity: 0 !important;
+html.dk-dark .bg-wall,
+html.dk-dark .body-bg-wall {
+  background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov") !important;
+  filter: none !important;
 }
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-stain,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-blobs,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-blob-mid {
+.bg-wall::after,
+.body-bg-wall::after,
+.bg-wall-shade,
+.body-bg-stain,
+.bg-blobs,
+.bg-blob-mid {
+  content: none !important;
   display: none !important;
   background: none !important;
   opacity: 0 !important;
@@ -273,6 +275,113 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba:not([aria-selected="true"]) {
   color: #3a3a3c !important;
   -webkit-text-fill-color: #3a3a3c !important;
+}
+
+/* Ganha do liquid-glass / home (azul #6ea6d4 e clip de texto). */
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .header, .header.header-v2, .sidebar, .portal-dock, .portal-abas, .portal-mod-nav,
+  .ciop-command-inner, .notice-board, .notice-item, .card, .toolbar-whatsapp,
+  .menu-toggle, .ciop-session, .panel, .kpi-card, .stat-card, .chart-card,
+  .table-card, .filters-panel, .topbar, .toolbar, .cv-panel, .hero-pro-panel,
+  .table-wrap, .chart-box, .chart-panel, .filter-bar, footer.portal-site-footer
+) {
+  background-color: rgba(236, 236, 238, 0.94) !important;
+  background: var(--lg-fill-data) !important;
+  background-image: var(--lg-fill-data) !important;
+  animation: none !important;
+  color: #1c1c1e !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .header, .header.header-v2
+) {
+  background: var(--lg-fill-header) !important;
+  background-image: var(--lg-fill-header) !important;
+  animation: none !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .hero-pro-panel {
+  background:
+    linear-gradient(90deg, #8e8e93 0 5px, transparent 5px),
+    var(--lg-fill-strong) !important;
+  background-image:
+    linear-gradient(90deg, #8e8e93 0 5px, transparent 5px),
+    var(--lg-fill-strong) !important;
+  box-shadow:
+    inset 5px 0 0 0 #8e8e93,
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 32px -18px rgba(0, 0, 0, 0.18) !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) :is(
+  .hero-pro-nome, .hero-pro-saudacao-label, .header-hero-mes, .hero-pro-welcome
+) {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
+  text-shadow: none !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .header, .sidebar, .card, .hero-pro-panel, .ciop-command-inner, .notice-board,
+  .panel, .kpi-card, .stat-card, .chart-card, .table-card, .ciop-kpi
+) :is(h1, h2, h3, h4, h5, p, span, strong, small, label, li, td, th, b) {
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 1;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .hero-pro-nome, .card-title, .header-title, .page-title, .ciop-kpi-num, .kpi-value
+) {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title,
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title * {
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
+) {
+  color: #4a4a4e !important;
+  -webkit-text-fill-color: #4a4a4e !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
+  background-image: var(--lg-fill-hover) !important;
+  background-color: rgba(248, 248, 250, 0.96) !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+),
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+) * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+html.dk-light:not(.dk-dark):not(:has(#kiosk)) body.portal-dock-on .portal-aba[aria-selected="true"] {
+  background: #2c2c2e !important;
+  color: #fff !important;
 }
 
 .paper,

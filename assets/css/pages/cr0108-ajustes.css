@@ -105,7 +105,7 @@ table.mini td{padding:4px 9px;border:1px solid var(--border);text-align:center;b
   body{background:transparent !important}
   .body-bg-wall{
     position:fixed;inset:0;z-index:-3;
-    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20261022mov');
     background-size:cover;background-position:center;background-repeat:no-repeat;
   }
   .body-bg-stain{

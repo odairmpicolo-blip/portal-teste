@@ -407,8 +407,7 @@ function garantirCssLiquidGlass() {
 
 function paginaSemWallpaperIos() {
   const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
-  if (/^painel-tv|^login\.html$/.test(file)) return true;
-  if (document.getElementById("kiosk")) return true;
+  if (/^login\.html$/.test(file)) return true;
   if (document.body && document.body.classList.contains("login-v2")) return true;
   return false;
 }
@@ -429,7 +428,7 @@ function garantirCssVisualUltimo() {
   if (!link) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = portalPath("assets/css/portal-visual.css?v=20261022cinza");
+    link.href = portalPath("assets/css/portal-visual.css?v=20261022mov");
     link.dataset.portalVisual = "1";
     document.head.appendChild(link);
     return;
@@ -440,7 +439,6 @@ function garantirCssVisualUltimo() {
 function garantirWallpaperIos() {
   if (paginaSemWallpaperIos()) return;
   if (!document.body) return;
-  if (!document.querySelector(".header") && !document.querySelector(".bg-wall")) return;
   if (document.querySelector(".bg-wall, .body-bg-wall")) return;
   const wall = document.createElement("div");
   wall.className = "body-bg-wall";

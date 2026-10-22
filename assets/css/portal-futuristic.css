@@ -1114,7 +1114,7 @@ html.dk-dark body {
 /* Wallpaper noturno real (sem escurecer a foto diurna) */
 html.dk-dark .bg-wall,
 html.dk-dark .body-bg-wall {
-  background-image: url("../img/portal-bg-noite.jpg?v=20260720a") !important;
+  background-image: url("../img/portal-bg-onibus.jpg?v=20261022mov") !important;
   filter: none;
 }
 

@@ -151,11 +151,9 @@
   }
 
   function garantirWallpaper() {
-    if (document.getElementById("kiosk")) return;
     if (document.body.classList.contains("login-v2")) return;
     var file = (location.pathname.split("/").pop() || "").split("?")[0];
-    if (/^painel-tv|^login\.html$/.test(file)) return;
-    if (!document.querySelector(".header") && !document.querySelector(".bg-wall")) return;
+    if (/^login\.html$/.test(file)) return;
     if (document.querySelector(".bg-wall, .body-bg-wall")) return;
     var wall = document.createElement("div");
     wall.className = "body-bg-wall";

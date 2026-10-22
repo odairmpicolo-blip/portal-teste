@@ -99,7 +99,7 @@ canvas{max-width:100%}
   body{background:transparent !important}
   .body-bg-wall{
     position:fixed;inset:0;z-index:-3;
-    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20260718j');
+    background-image:url('../assets/img/portal-bg-onibus.jpg?v=20261022mov');
     background-size:cover;background-position:center;background-repeat:no-repeat;
   }
   .body-bg-stain{
