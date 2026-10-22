@@ -417,3 +417,6 @@ html#portal-home.portal-home-2026 .home-notices-empty {margin:0;padding:24px 0;c
 @media(max-width:480px){html#portal-home.portal-home-2026 .home-settings-admin-actions {grid-template-columns:minmax(0,1fr)}html#portal-home.portal-home-2026 #homeNoticesDialog {padding:20px}}
 
 html#portal-home.portal-home-2026 .home-settings-version {margin:20px 0 0;padding-top:16px;border-top:1px solid var(--home-line);text-align:center;color:var(--home-muted);font-size:12px;letter-spacing:.04em}
+
+/* Emphasize the live clock, date and all weather temperatures. */
+html#portal-home.portal-home-2026 .home-meta :is(.ciop-kpi-value,.ciop-kpi-num,.ciop-clima-range) {font-weight:700!important}
