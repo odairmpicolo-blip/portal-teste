@@ -2,6 +2,7 @@
 (function () {
   var script = document.currentScript;
   var root = new URL('../../', script.src);
+  function init() {
   var html = document.documentElement;
   if (html.classList.contains('portal-home-2026')) return;
   var kiosk = !!document.querySelector('#kiosk, .kiosk');
@@ -26,4 +27,7 @@
   document.addEventListener('load', function (event) {
     if (event.target.matches?.('img.portal-brand-art')) brand();
   }, true);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
 })();
