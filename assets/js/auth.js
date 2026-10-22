@@ -400,7 +400,7 @@ function garantirCssLiquidGlass() {
   if (document.querySelector("link[data-portal-liquid]")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = portalPath("assets/css/portal-liquid-glass.css?v=20261022ciop");
+  link.href = portalPath("assets/css/portal-liquid-glass.css?v=20260818p");
   link.dataset.portalLiquid = "1";
   document.head.appendChild(link);
 }
@@ -418,7 +418,7 @@ function garantirCssGlassDesktop() {
   if (paginaSemWallpaperIos()) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = portalPath("assets/css/portal-glass-desktop.css?v=20261022ciop");
+  link.href = portalPath("assets/css/portal-glass-desktop.css?v=20261022ios27");
   link.dataset.portalGlassDesktop = "1";
   document.head.appendChild(link);
 }
@@ -429,7 +429,7 @@ function garantirCssVisualUltimo() {
   if (!link) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = portalPath("assets/css/portal-visual.css?v=20261022ciop");
+    link.href = portalPath("assets/css/portal-visual.css?v=20261022ios27");
     link.dataset.portalVisual = "1";
     document.head.appendChild(link);
     return;
