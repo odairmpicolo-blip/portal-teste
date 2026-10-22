@@ -2,17 +2,21 @@
    Só no portal-teste. Sem azul. Login / kiosk / PDF ficam de fora. */
 
 html:not(:has(#kiosk)) {
+  --azul: #2c2c2e;
+  --azul-hover: #3a3a3c;
+  --fx-blue: #3a3a3c;
+  --fx-accent: linear-gradient(135deg, #6e6e73 0%, #8e8e93 100%);
   --texto: #1c1c1e;
   --muted: #5c5c60;
   --lg-text: #1c1c1e;
   --lg-label: #3a3a3c;
   --lg-muted: #5c5c60;
-  --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.10) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.14) 100%);
-  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.16) 100%);
-  --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
-  --lg-fill-header: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%);
-  --lg-fill-data-head: rgba(255, 255, 255, 0.18);
+  --lg-fill: linear-gradient(180deg, rgba(236, 236, 238, 0.82) 0%, rgba(210, 210, 214, 0.68) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(244, 244, 246, 0.88) 0%, rgba(220, 220, 224, 0.74) 100%);
+  --lg-fill-hover: linear-gradient(180deg, rgba(248, 248, 250, 0.90) 0%, rgba(224, 224, 228, 0.76) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(236, 236, 238, 0.82) 0%, rgba(210, 210, 214, 0.68) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(240, 240, 242, 0.86) 0%, rgba(216, 216, 220, 0.70) 100%);
+  --lg-fill-data-head: rgba(228, 228, 232, 0.80);
   --ciop-light-grad: var(--lg-fill-data);
   --ciop-light-grad-y: var(--lg-fill-data);
   --ciop-light-grad-fx: var(--lg-fill-header);
@@ -213,6 +217,62 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .panel.filters-panel .fi
   -webkit-backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .chart-card, .chart-box, .chart-panel, .chart-body, .table-card, .table-wrap,
+  .grid .card, .toolbar, .cv-panel, .ciop-command-inner, .notice-board
+) {
+  background: var(--lg-fill-data) !important;
+  background-image: var(--lg-fill-data) !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
+  background: var(--lg-fill-hover) !important;
+  background-image: var(--lg-fill-hover) !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-command-inner::before {
+  background: #8e8e93 !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-kpi:has(.ciop-kpi-num)::after {
+  background: linear-gradient(90deg, #6e6e73 0%, #8e8e93 100%) !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .header, .header.header-v2, .ciop-command-inner, .notice-board, .card,
+  .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
+  .topbar, .toolbar, .cv-panel, .hero-pro-panel, .ciop-kpi
+) :is(h1, h2, h3, h4, h5, p, span, strong, small, label, div, a, li, td, th) {
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
+) {
+  color: #4a4a4e !important;
+  -webkit-text-fill-color: #4a4a4e !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+),
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+) * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+
+html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba:not([aria-selected="true"]) {
+  color: #3a3a3c !important;
+  -webkit-text-fill-color: #3a3a3c !important;
 }
 
 .paper,
