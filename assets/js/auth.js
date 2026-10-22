@@ -429,7 +429,7 @@ function garantirCssVisualUltimo() {
   if (!link) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = portalPath("assets/css/portal-visual.css?v=20261022ios27");
+    link.href = portalPath("assets/css/portal-visual.css?v=20261022clear");
     link.dataset.portalVisual = "1";
     document.head.appendChild(link);
     return;
