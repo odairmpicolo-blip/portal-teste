@@ -1,30 +1,30 @@
-/* Portal CIOP — iOS 27 vidro fumê cinza, fundo escuro, leitura alta.
+/* Portal CIOP — iOS 27 vidro fumê cinza sobre fundo claro.
    Só no portal-teste. Sem azul. Login / kiosk / PDF ficam de fora. */
 
 html:not(:has(#kiosk)) {
-  --texto: #f2f2f3;
-  --muted: #b8b8bc;
-  --lg-text: #f2f2f3;
-  --lg-label: #d4d4d7;
-  --lg-muted: #b8b8bc;
-  --lg-fill: linear-gradient(180deg, rgba(36, 36, 38, 0.78) 0%, rgba(22, 22, 24, 0.64) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(44, 44, 46, 0.86) 0%, rgba(28, 28, 30, 0.74) 100%);
-  --lg-fill-hover: linear-gradient(180deg, rgba(52, 52, 54, 0.82) 0%, rgba(32, 32, 34, 0.70) 100%);
-  --lg-fill-data: linear-gradient(180deg, rgba(36, 36, 38, 0.78) 0%, rgba(22, 22, 24, 0.64) 100%);
-  --lg-fill-header: linear-gradient(180deg, rgba(28, 28, 30, 0.82) 0%, rgba(18, 18, 20, 0.70) 100%);
-  --lg-fill-data-head: rgba(32, 32, 34, 0.78);
+  --texto: #1c1c1e;
+  --muted: #5c5c60;
+  --lg-text: #1c1c1e;
+  --lg-label: #3a3a3c;
+  --lg-muted: #5c5c60;
+  --lg-fill: linear-gradient(180deg, rgba(248, 248, 250, 0.62) 0%, rgba(214, 214, 218, 0.48) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(228, 228, 232, 0.58) 100%);
+  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(232, 232, 236, 0.58) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(246, 246, 248, 0.64) 0%, rgba(210, 210, 214, 0.50) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(250, 250, 252, 0.70) 0%, rgba(224, 224, 228, 0.52) 100%);
+  --lg-fill-data-head: rgba(236, 236, 240, 0.62);
   --ciop-light-grad: var(--lg-fill-data);
   --ciop-light-grad-y: var(--lg-fill-data);
   --ciop-light-grad-fx: var(--lg-fill-header);
-  --lg-blur: blur(40px) saturate(70%);
-  --lg-blur-soft: blur(32px) saturate(70%);
-  --lg-blur-data: blur(36px) saturate(70%);
-  --lg-border: rgba(255, 255, 255, 0.14);
-  --lg-edge: 1px solid rgba(255, 255, 255, 0.14);
+  --lg-blur: blur(40px) saturate(80%);
+  --lg-blur-soft: blur(32px) saturate(80%);
+  --lg-blur-data: blur(36px) saturate(80%);
+  --lg-border: rgba(60, 60, 67, 0.18);
+  --lg-edge: 1px solid rgba(60, 60, 67, 0.16);
   --lg-shadow:
-    0 18px 48px -24px rgba(0, 0, 0, 0.62),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+    0 16px 40px -22px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.06);
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-overlay,
@@ -42,15 +42,14 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-wall {
   pointer-events: none !important;
   opacity: 1 !important;
   visibility: visible !important;
-  background-color: #141416 !important;
+  background-color: #ececee !important;
   background-image:
-    radial-gradient(1200px 640px at 12% -10%, rgba(255, 255, 255, 0.05), transparent 58%),
-    radial-gradient(900px 520px at 100% 110%, rgba(255, 255, 255, 0.03), transparent 52%),
-    url("../img/portal-bg-noite.jpg?v=20260720a") !important;
+    radial-gradient(1200px 640px at 12% -8%, rgba(255, 255, 255, 0.55), transparent 58%),
+    url("../img/portal-bg-onibus.jpg?v=20260718j") !important;
   background-size: cover !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
-  filter: grayscale(1) contrast(1.08) brightness(0.38) !important;
+  filter: grayscale(0.92) brightness(1.18) contrast(0.96) !important;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-wall::after,
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-wall::after {
@@ -59,7 +58,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-wall::after {
   position: absolute !important;
   inset: 0 !important;
   opacity: 1 !important;
-  background: linear-gradient(180deg, rgba(18, 18, 20, 0.42) 0%, rgba(12, 12, 14, 0.62) 100%) !important;
+  background: linear-gradient(180deg, rgba(244, 244, 246, 0.42) 0%, rgba(232, 232, 236, 0.58) 100%) !important;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .body-bg-stain,
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-blobs,
@@ -70,8 +69,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .bg-blob-mid {
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
-  color: #f2f2f3;
-  background-color: #121214;
+  color: #1c1c1e;
+  background-color: #ececee;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -103,9 +102,9 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   border-top: none !important;
   border-radius: 0 !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 16px 40px -28px rgba(0, 0, 0, 0.55) !important;
+    0 1px 0 rgba(60, 60, 67, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 12px 28px -20px rgba(0, 0, 0, 0.18) !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) footer.portal-site-footer {
@@ -139,8 +138,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-value, .ciop-session-user, .hero-pro-nome, .hero-pro-saudacao-label,
   .ciop-kpi-value, .ciop-kpi-num
 ) {
-  color: #f4f4f5 !important;
-  -webkit-text-fill-color: #f4f4f5 !important;
+  color: #1c1c1e !important;
+  -webkit-text-fill-color: #1c1c1e !important;
   text-shadow: none !important;
 }
 
@@ -149,8 +148,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .kpi-label, .kpi-sub, .stat-card .lbl, .field label, .status-line,
   .notice-item-text, p, td, th, li, .card-note, .chart-note, .ciop-kpi-label
 ) {
-  color: #c6c6ca !important;
-  -webkit-text-fill-color: #c6c6ca !important;
+  color: #4a4a4e !important;
+  -webkit-text-fill-color: #4a4a4e !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -160,32 +159,32 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   font-feature-settings: "tnum" 1, "lnum" 1;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fafafa !important;
-  -webkit-text-fill-color: #fafafa !important;
+  color: #111113 !important;
+  -webkit-text-fill-color: #111113 !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   input, select, textarea, .filter-select, .ciop-search-input
 ):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]) {
-  color: #f4f4f5 !important;
-  background: rgba(10, 10, 12, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #1c1c1e !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(60, 60, 67, 0.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border-radius: 12px;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) table :is(th, td) {
-  color: #ececee !important;
+  color: #1c1c1e !important;
   background: transparent !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) thead th {
   font-weight: 700;
   letter-spacing: 0.02em;
-  background: rgba(255, 255, 255, 0.06) !important;
-  color: #f0f0f2 !important;
+  background: rgba(60, 60, 67, 0.06) !important;
+  color: #2c2c2e !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .btn-primary, .btn.primary, .btn-portal) {
@@ -200,14 +199,14 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill,
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
   padding: 5px !important;
-  background: rgba(20, 20, 22, 0.72) !important;
+  background: rgba(232, 232, 236, 0.72) !important;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba {
   border-radius: 999px;
-  color: #d8d8dc;
+  color: #3a3a3c;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba[aria-selected="true"] {
-  background: rgba(255, 255, 255, 0.14) !important;
+  background: #2c2c2e !important;
   color: #fff !important;
 }
 
