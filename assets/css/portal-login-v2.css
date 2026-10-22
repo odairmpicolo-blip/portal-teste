@@ -302,3 +302,6 @@ html.dk-dark .login-card-v2::after{
     min-height: 44px;
   }
 }
+/* A single centered access card; the logo belongs inside the card. */
+.login-stack-v2 {display:flex;align-items:center;justify-content:center;min-height:calc(100svh - 44px)}
+.login-card-logo {display:block;width:min(240px,80%);height:auto;max-height:100px;object-fit:contain;margin:0 auto 18px}

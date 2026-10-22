@@ -204,11 +204,12 @@
     var bell = document.createElement("button");
     bell.type = "button";
     bell.className = "home-bell";
-    bell.setAttribute("aria-label", "Ir para avisos");
+    bell.setAttribute("aria-label", "Ver meus avisos");
+    bell.setAttribute("aria-haspopup", "dialog");
     bell.innerHTML = ICO.sino + '<span class="home-bell-count" id="homeBellCount" data-empty="1"></span>';
     bell.addEventListener("click", function () {
-      var n = document.querySelector(".notice-board");
-      if (n) n.scrollIntoView({ block: "start" });
+      if (window.portalHomeSettings?.openNotices) window.portalHomeSettings.openNotices();
+      else document.querySelector(".notice-board")?.scrollIntoView({ block: "start" });
     });
     if (lock) {
       var menu = lock.querySelector(".menu-toggle");
@@ -315,6 +316,7 @@
 
   // Atalhos reflect the original module visibility; they must never expose a restricted entry.
   function sincronizarAtalhos() {
+    if (window.portalHomeSettings) { window.portalHomeSettings.refresh(); return; }
     document.querySelectorAll("#homeQuick a").forEach(function (link) {
       var source = Array.prototype.find.call(document.querySelectorAll(".card-section a.card"), function (card) {
         return card.getAttribute("href") === link.getAttribute("href");
@@ -396,6 +398,7 @@
     montarIndicadoresNoHeader();
     lead();
     montarAtalhos();
+    window.portalHomeSettings?.init();
     sincronizarAtalhos();
     montarAbaTodos();
     kpiLabels();

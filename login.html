@@ -12,9 +12,9 @@ if (/[?&](app|novo)=1(?:&|$)/.test(location.search)) {
 <link rel="manifest" href="assets/pwa/manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/img/logomarca-portalciop-tcgl-claro.png?v=20261022logo">
 <title>Portal CIOP / TCGL</title>
-<link rel="stylesheet" href="assets/css/portal-login-v2.css?v=20261022txt">
+<link rel="stylesheet" href="assets/css/portal-login-v2.css?v=20261022prefs12">
 <link rel="stylesheet" href="assets/css/portal-brand.css?v=20260818head3">
-<script src="assets/js/theme-toggle.js?v=20261022glass10"></script>
+<script src="assets/js/theme-toggle.js?v=20261022prefs12"></script>
 <link rel="stylesheet" href="assets/css/portal-titulos.css">
 <link rel="stylesheet" href="assets/css/portal-footer.css">
 <link rel="stylesheet" href="assets/css/portal-tokens.css?v=20260930v1">
@@ -25,11 +25,12 @@ if (/[?&](app|novo)=1(?:&|$)/.test(location.search)) {
 <div class="bg-wall" aria-hidden="true"></div>
 <div class="bg-wall-shade" aria-hidden="true"></div>
 
+<div class="login-brand-v2">
+  <img class="portal-brand-art login-corner-logo" src="assets/img/portal-logo-clean-light.png" alt="PortalCiOP · TCGL Operações" fetchpriority="high">
+</div>
+
 <div class="login-page-v2">
   <div class="login-stack-v2">
-    <div class="login-brand-v2 portal-brand-mark" aria-label="Portal CIOP TCGL Operações">
-      <img class="portal-brand-art" src="assets/img/logomarca-portalciop-tcgl-claro-login.png?v=20261022logo" alt="Portal CIOP TCGL Operações" fetchpriority="high" decoding="async">
-    </div>
     <form class="login-card-v2" onsubmit="event.preventDefault(); login();">
     <label for="email">E-mail</label>
     <input

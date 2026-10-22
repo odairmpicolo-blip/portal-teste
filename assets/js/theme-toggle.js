@@ -9,8 +9,14 @@ function dkNormalize(pref) {
   return "light";
 }
 
+function dkPreferenceKey() {
+  var email = String(window.portalUsuario?.email || '').trim().toLowerCase();
+  return email ? DK_KEY + ':' + encodeURIComponent(email) : DK_KEY;
+}
+
 function dkStoredPref() {
-  var stored = localStorage.getItem(DK_KEY);
+  var stored = localStorage.getItem(dkPreferenceKey());
+  if (stored == null) stored = localStorage.getItem(DK_KEY);
   if (stored == null) return "auto";
   return dkNormalize(stored);
 }
@@ -121,7 +127,7 @@ function dkApply(pref, silent) {
 
 function dkSetPref(pref) {
   var p = dkNormalize(pref);
-  localStorage.setItem(DK_KEY, p);
+  localStorage.setItem(dkPreferenceKey(), p);
   dkApply(p);
 }
 
@@ -172,8 +178,10 @@ window.dkSwapBrandLogos = dkSwapBrandLogos;
   var current = document.currentScript;
   if (!current?.src) return;
   var script = document.createElement('script');
-  script.src = new URL('portal-design-system.js?v=20261022glass10', current.src).href;
+  script.src = new URL('portal-design-system.js?v=20261022prefs12', current.src).href;
   script.dataset.portalDesignSystem = '1';
   script.defer = true;
   document.head.appendChild(script);
 })();
+
+window.addEventListener("portal:usuario-validado", function () { dkApply(dkStoredPref()); });
