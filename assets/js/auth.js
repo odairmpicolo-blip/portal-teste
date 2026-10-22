@@ -449,7 +449,7 @@ function garantirWallpaperIos() {
 function garantirThemeToggle() {
   if (document.querySelector("script[src*='theme-toggle.js']")) return;
   const script = document.createElement("script");
-  script.src = portalPath("assets/js/theme-toggle.js?v=20260818logo6");
+  script.src = portalPath("assets/js/theme-toggle.js?v=20261022logo");
   document.head.appendChild(script);
 }
 
@@ -503,7 +503,7 @@ function garantirPwa() {
   if (!document.querySelector("link[rel=\"apple-touch-icon\"]")) {
     const icon = document.createElement("link");
     icon.rel = "apple-touch-icon";
-    icon.href = portalPath("assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6");
+    icon.href = portalPath("assets/img/logomarca-portalciop-tcgl-claro.png?v=20261022logo");
     document.head.appendChild(icon);
   }
 }
