@@ -635,14 +635,10 @@
   }
 
   function forcarFundoClaro() {
-    if (document.getElementById("kiosk")) return;
-    if (document.body && document.body.classList.contains("login-v2")) return;
-    document.documentElement.classList.add("dk-light");
-    document.documentElement.classList.remove("dk-dark");
+    /* Tema claro/escuro fica a cargo do theme-toggle. */
   }
 
   function init() {
-    forcarFundoClaro();
     garantirWallpaper();
     ensureIconGradient();
     enhanceDuotoneIcons();

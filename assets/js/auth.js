@@ -428,7 +428,7 @@ function garantirCssVisualUltimo() {
   if (!link) {
     link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = portalPath("assets/css/portal-visual.css?v=20261022txt");
+    link.href = portalPath("assets/css/portal-visual.css?v=20261022home");
     link.dataset.portalVisual = "1";
     document.head.appendChild(link);
     return;
@@ -436,19 +436,9 @@ function garantirCssVisualUltimo() {
   document.head.appendChild(link);
 }
 
-function forcarTemaClaroLeitura() {
-  const file = (window.location.pathname.split("/").pop() || "").split("?")[0];
-  if (/^login\.html$|^painel-tv/.test(file)) return;
-  if (document.body && document.body.classList.contains("login-v2")) return;
-  if (document.getElementById("kiosk")) return;
-  document.documentElement.classList.add("dk-light");
-  document.documentElement.classList.remove("dk-dark");
-}
-
 function garantirWallpaperIos() {
   if (paginaSemWallpaperIos()) return;
   if (!document.body) return;
-  forcarTemaClaroLeitura();
   if (document.querySelector(".bg-wall, .body-bg-wall")) return;
   const wall = document.createElement("div");
   wall.className = "body-bg-wall";

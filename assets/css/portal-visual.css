@@ -473,3 +473,45 @@ html:not(:has(#kiosk)) body:has(.header) :is(.leaflet-container, .map-shell, #ma
     transition: none;
   }
 }
+
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+  color: #f4f7fb;
+  background-color: #071018;
+}
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .header, .header.header-v2, .ciop-command-inner, .notice-board, .notice-item,
+  .card, .toolbar-whatsapp, .menu-toggle, .ciop-session, .portal-abas,
+  .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
+  .topbar, .toolbar, .cv-panel, .hero-pro-panel, .table-wrap, .chart-box,
+  .sidebar, footer.portal-site-footer
+) {
+  background: linear-gradient(180deg, rgba(18, 32, 54, 0.72) 0%, rgba(8, 16, 28, 0.58) 100%) !important;
+  background-image: linear-gradient(180deg, rgba(18, 32, 54, 0.72) 0%, rgba(8, 16, 28, 0.58) 100%) !important;
+  color: #f4f7fb !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  animation: none !important;
+}
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  h1, h2, h3, h4, h5, p, span, a, li, td, th, label, small, strong, .card-title,
+  .page-title, .header-title, .ciop-session-user, .hero-pro-nome, .ciop-kpi-num
+):not(.btn-primary):not(.btn-portal):not(.btn-logout):not(.card-btn):not(.firm-pct):not(.firm-week-pct) {
+  color: #f4f7fb !important;
+  -webkit-text-fill-color: #f4f7fb !important;
+  text-shadow: none !important;
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+}
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .muted, .help-text, .kpi-label, .ciop-kpi-label, .subtitle, .small
+) {
+  color: #c5d0de !important;
+  -webkit-text-fill-color: #c5d0de !important;
+}
+html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  input, select, textarea, .ciop-search-input
+):not([type="checkbox"]):not([type="radio"]) {
+  color: #f4f7fb !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
