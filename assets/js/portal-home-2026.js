@@ -46,7 +46,7 @@
     var brand = document.createElement("div");
     brand.className = "home-brand";
     brand.innerHTML =
-      '<img class="portal-brand-art" src="assets/img/logomarca-portalciop-tcgl-claro.png?v=20260818logo6" alt="">' +
+      '<img class="portal-brand-art" src="assets/img/logomarca-portalciop-tcgl-claro.png?v=20261022logo" alt="">' +
       '<span class="home-brand-copy"><b>Portal CIOP</b><small>TCGL · Operações</small></span>';
     var nav = document.createElement("nav");
     nav.className = "home-nav";
