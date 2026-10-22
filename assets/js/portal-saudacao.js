@@ -235,7 +235,21 @@ function htmlLaco(tema) {
     return svgLaco(tema.corClara, tema.corEscura);
 }
 
+export function aplicarCorCampanhaMes(opts = {}) {
+    const tema = temaMesAtual(new Date(), opts);
+    const root = document.documentElement;
+    root.style.setProperty("--hero-mes-cor", tema.cor);
+    root.style.setProperty("--hero-mes-escura", tema.corEscura);
+    root.style.setProperty("--hero-mes-gradiente", tema.gradiente);
+    root.style.setProperty("--home-accent", tema.cor);
+    root.dataset.mesCampanha = tema.mes.toLowerCase();
+    return tema;
+}
+
+if (typeof document !== "undefined") aplicarCorCampanhaMes();
+
 export function aplicarSaudacaoHero(nome, opts = {}) {
+    aplicarCorCampanhaMes(opts);
     const hero = document.getElementById("headerHero");
     const bloc = document.getElementById("heroSaudacaoBloc");
     const saudacaoEl = document.getElementById("heroSaudacao");
@@ -269,6 +283,9 @@ export function aplicarSaudacaoHero(nome, opts = {}) {
     hero.style.setProperty("--hero-mes-cor", tema.cor);
     hero.style.setProperty("--hero-mes-escura", tema.corEscura);
     hero.style.setProperty("--hero-mes-gradiente", tema.gradiente);
+    document.documentElement.style.setProperty("--hero-mes-cor", tema.cor);
+    document.documentElement.style.setProperty("--hero-mes-escura", tema.corEscura);
+    document.documentElement.style.setProperty("--home-accent", tema.cor);
     if (bloc) {
         bloc.style.setProperty("--hero-mes-cor", tema.cor);
         bloc.style.setProperty("--hero-mes-escura", tema.corEscura);

@@ -12,7 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { app, buscarUsuarioFirestore, normalizarCadastro } from "./portal-firestore.js";
 import { usuarios } from "./usuarios.js";
-import { aplicarSaudacaoHero } from "./portal-saudacao.js?v=20260704a";
+import { aplicarSaudacaoHero } from "./portal-saudacao.js?v=20261022home3";
 import { carregarAcessosPerfis, usuarioTemModulo } from "./portal-perfis-acesso.js?v=20260901cartao";
 import "./portal-mfa.js?v=20260820mfa";
 import {

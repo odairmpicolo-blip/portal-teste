@@ -74,7 +74,7 @@
     if (!abas || !abas.parentNode) return;
     var wrap = document.createElement("div");
     wrap.innerHTML =
-      '<div class="home-quick-head"><h2>Acessos rápidos</h2></div>' +
+      '<div class="home-quick-head"><h2>Acessos rápidos</h2><button type="button" class="home-personalizar">Personalizar</button></div>' +
       '<section class="home-quick" id="homeQuick">' +
       '<a href="pages/monitoramento.html"><strong>Monitoramento</strong><span>Acompanhe a operação</span></a>' +
       '<a href="pages/Folhadeservico1.html"><strong>Lançar serviço</strong><span>Registre um novo serviço</span></a>' +
