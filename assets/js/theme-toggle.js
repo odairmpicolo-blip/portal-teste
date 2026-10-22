@@ -165,3 +165,15 @@ document.addEventListener("DOMContentLoaded", dkInit);
 window.dkSetPref = dkSetPref;
 window.dkIsDark = dkIsDark;
 window.dkSwapBrandLogos = dkSwapBrandLogos;
+
+/* All standard portal pages receive the same presentation layer through this shared entry point. */
+(function () {
+  if (document.querySelector('script[data-portal-design-system]')) return;
+  var current = document.currentScript;
+  if (!current?.src) return;
+  var script = document.createElement('script');
+  script.src = new URL('portal-design-system.js?v=20261022glass8', current.src).href;
+  script.dataset.portalDesignSystem = '1';
+  script.defer = true;
+  document.head.appendChild(script);
+})();
