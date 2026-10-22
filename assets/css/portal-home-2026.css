@@ -415,3 +415,5 @@ html#portal-home.portal-home-2026 .home-notice-list-item .notice-item-title {fon
 html#portal-home.portal-home-2026 .home-notice-list-item .notice-item-text {font-size:13px!important;margin-top:7px!important;white-space:pre-wrap}
 html#portal-home.portal-home-2026 .home-notices-empty {margin:0;padding:24px 0;color:var(--home-muted);font-size:13px}
 @media(max-width:480px){html#portal-home.portal-home-2026 .home-settings-admin-actions {grid-template-columns:minmax(0,1fr)}html#portal-home.portal-home-2026 #homeNoticesDialog {padding:20px}}
+
+html#portal-home.portal-home-2026 .home-settings-version {margin:20px 0 0;padding-top:16px;border-top:1px solid var(--home-line);text-align:center;color:var(--home-muted);font-size:12px;letter-spacing:.04em}

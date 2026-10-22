@@ -108,6 +108,13 @@
     dialog = document.createElement('dialog'); dialog.id = 'homeSettingsDialog';
     dialog.setAttribute('aria-labelledby', 'homeSettingsTitle');
     dialog.innerHTML = '<div class="home-settings-top"><div><p class="home-settings-eyebrow">SEU PORTAL, DO SEU JEITO</p><h2 id="homeSettingsTitle">Configurações</h2></div><button type="button" class="home-settings-close" aria-label="Fechar configurações">×</button></div><section class="home-settings-section home-settings-security"><details id="homeSettingsPassword"><summary><span class="home-settings-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></svg></span><span><strong>Alterar senha</strong><small>Atualize sua senha de acesso.</small></span></summary><div id="homeSettingsPasswordSlot"></div></details></section><section class="home-settings-section home-settings-admin" hidden><h3>Administração</h3><div class="home-settings-admin-actions"></div></section><section class="home-settings-section"><h3>Aparência</h3><p>Escolha o tema que combina com você.</p><div id="homeSettingsTheme"></div></section><section class="home-settings-section"><h3>Acessos rápidos</h3><p>Escolha até 6 módulos para ter sempre à mão.</p><div id="homeSettingsModules"></div></section><p id="homeSettingsStatus" role="status" aria-live="polite"></p><div class="home-settings-footer"><small>Preferências salvas neste navegador para sua conta.</small><button type="button" class="home-settings-save">Salvar acessos</button></div>';
+    var novidades = document.createElement('section'); novidades.className = 'home-settings-section';
+    novidades.innerHTML = '<h3>Sobre o portal</h3><button type="button" class="home-settings-action">Rever novidades do portal</button>';
+    novidades.querySelector('button').onclick = function () { dialog.close(); window.portalNovidades?.abrir(); };
+    dialog.querySelector('.home-settings-footer').before(novidades);
+    var version = document.createElement('p'); version.className = 'home-settings-version';
+    version.textContent = 'PortalCiOP · Versão 2.0';
+    dialog.appendChild(version);
     document.body.appendChild(dialog);
     chooser = dialog.querySelector('#homeSettingsModules'); status = dialog.querySelector('#homeSettingsStatus');
     var passwordSection = dialog.querySelector('#homeSettingsPassword');

@@ -1,3 +1,4 @@
+import './portal-novidades.js?v=20261022intro1';
 import {
   getAuth,
   onAuthStateChanged,
