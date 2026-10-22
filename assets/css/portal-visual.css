@@ -1,7 +1,7 @@
 /* Portal CIOP — iOS 27 vidro fumê cinza sobre fundo claro.
    Só no portal-teste. Sem azul. Login / kiosk / PDF ficam de fora. */
 
-html:not(:has(#kiosk)) {
+html:not(.portal-home-2026):not(:has(#kiosk)) {
   --azul: #2c2c2e;
   --azul-hover: #3a3a3c;
   --fx-blue: #3a3a3c;
@@ -31,8 +31,8 @@ html:not(:has(#kiosk)) {
     inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-overlay,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-scan {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-overlay,
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-scan {
   display: none !important;
   opacity: 0 !important;
 }
@@ -71,12 +71,12 @@ html.dk-dark .body-bg-wall {
   opacity: 0 !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
   color: #1c1c1e;
   background-color: transparent;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2, .ciop-command-inner, .notice-board, .notice-item,
   .card, .toolbar-whatsapp, .menu-toggle, .ciop-session, .portal-abas,
   .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
@@ -93,7 +93,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   color: var(--lg-text) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2
 ) {
   background: var(--lg-fill-header) !important;
@@ -110,14 +110,14 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
     0 12px 28px -20px rgba(0, 0, 0, 0.18) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) footer.portal-site-footer {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) footer.portal-site-footer {
   border-left: none !important;
   border-right: none !important;
   border-bottom: none !important;
   border-radius: 0 !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card, .panel, .kpi-card, .stat-card, .chart-card, .table-card,
   .filters-panel, .topbar, .toolbar, .notice-board, .cv-panel,
   .lancamento-card, .result-box, .hero-pro-panel, .notice-item
@@ -125,16 +125,16 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   border-radius: 22px !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-session,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-session,
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
   border-radius: 999px !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.card, .kpi-card, .stat-card):hover {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.card, .kpi-card, .stat-card):hover {
   background: var(--lg-fill-hover) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   h1, h2, h3, h4,
   .page-title, .page-title-art, .header-title, .panel-title, .group-title,
   .card-title, .chart-title, .kpi-value, .stat-card .val, .kpi-card .val,
@@ -146,7 +146,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   text-shadow: none !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .subtitle, .header-subtitle, .title-sub, .muted, .help-text,
   .kpi-label, .kpi-sub, .stat-card .lbl, .field label, .status-line,
   .notice-item-text, p, td, th, li, .card-note, .chart-note, .ciop-kpi-label
@@ -155,7 +155,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-text-fill-color: #2c2c2e !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .kpi-value, .stat-card .val, .kpi-card .val, .card-value, .ciop-kpi-num
 ) {
   font-variant-numeric: tabular-nums;
@@ -166,7 +166,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-text-fill-color: #111113 !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   input, select, textarea, .filter-select, .ciop-search-input
 ):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]) {
   color: #1c1c1e !important;
@@ -178,43 +178,43 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   border-radius: 12px;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) table :is(th, td) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) table :is(th, td) {
   color: #1c1c1e !important;
   background: transparent !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) thead th {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) thead th {
   font-weight: 700;
   letter-spacing: 0.02em;
   background: rgba(60, 60, 67, 0.06) !important;
   color: #2c2c2e !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .btn-primary, .btn.primary, .btn-portal) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .btn-primary, .btn.primary, .btn-portal) {
   border-radius: 12px !important;
   font-weight: 800;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill, .tag, .card-btn, .portal-aba) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill, .tag, .card-btn, .portal-aba) {
   -webkit-text-fill-color: unset;
   text-shadow: none !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
   padding: 5px !important;
   background: rgba(236, 236, 238, 0.42) !important;
 }
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba {
   border-radius: 999px;
   color: #3a3a3c;
 }
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba[aria-selected="true"] {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba[aria-selected="true"] {
   background: #2c2c2e !important;
   color: #fff !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .filters-panel .filters,
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .panel.filters-panel .filters {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .filters-panel .filters,
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .panel.filters-panel .filters {
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -222,7 +222,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .panel.filters-panel .fi
   box-shadow: none !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .chart-card, .chart-box, .chart-panel, .chart-body, .table-card, .table-wrap,
   .grid .card, .toolbar, .cv-panel, .ciop-command-inner, .notice-board
 ) {
@@ -230,20 +230,20 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   background-image: var(--lg-fill-data) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
   background: var(--lg-fill-hover) !important;
   background-image: var(--lg-fill-hover) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-command-inner::before {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-command-inner::before {
   background: #8e8e93 !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-kpi:has(.ciop-kpi-num)::after {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .ciop-kpi:has(.ciop-kpi-num)::after {
   background: linear-gradient(90deg, #6e6e73 0%, #8e8e93 100%) !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2, .ciop-command-inner, .notice-board, .card,
   .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
   .topbar, .toolbar, .cv-panel, .hero-pro-panel, .ciop-kpi
@@ -254,18 +254,18 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-background-clip: border-box !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
 ) {
   color: #2c2c2e !important;
   -webkit-text-fill-color: #2c2c2e !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ),
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ) * {
@@ -273,13 +273,13 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-text-fill-color: #fff !important;
 }
 
-html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba:not([aria-selected="true"]) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba:not([aria-selected="true"]) {
   color: #3a3a3c !important;
   -webkit-text-fill-color: #3a3a3c !important;
 }
 
 /* Ganha do liquid-glass / home (azul #6ea6d4 e clip de texto). */
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2, .sidebar, .portal-dock, .portal-abas, .portal-mod-nav,
   .ciop-command-inner, .notice-board, .notice-item, .card, .toolbar-whatsapp,
   .menu-toggle, .ciop-session, .panel, .kpi-card, .stat-card, .chart-card,
@@ -293,7 +293,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   color: #1c1c1e !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2
 ) {
   background: var(--lg-fill-header) !important;
@@ -301,7 +301,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   animation: none !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .hero-pro-panel {
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .hero-pro-panel {
   background:
     linear-gradient(90deg, #8e8e93 0 5px, transparent 5px),
     var(--lg-fill-strong) !important;
@@ -314,7 +314,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v
     0 14px 32px -18px rgba(0, 0, 0, 0.18) !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) :is(
   .hero-pro-nome, .hero-pro-saudacao-label, .header-hero-mes, .hero-pro-welcome
 ) {
   background: none !important;
@@ -326,7 +326,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v
   text-shadow: none !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .sidebar, .card, .hero-pro-panel, .ciop-command-inner, .notice-board,
   .panel, .kpi-card, .stat-card, .chart-card, .table-card, .ciop-kpi
 ) :is(h1, h2, h3, h4, h5, p, span, strong, small, label, li, td, th, b) {
@@ -339,7 +339,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   opacity: 1;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .hero-pro-nome, .card-title, .header-title, .page-title, .ciop-kpi-num, .kpi-value
 ) {
   background: none !important;
@@ -351,29 +351,29 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   text-shadow: none !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title,
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title * {
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title,
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title * {
   color: #1c1c1e !important;
   -webkit-text-fill-color: #1c1c1e !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
 ) {
   color: #2c2c2e !important;
   -webkit-text-fill-color: #2c2c2e !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
   background-image: var(--lg-fill-hover) !important;
   background-color: rgba(244, 244, 246, 0.55) !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ),
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ) * {
@@ -381,18 +381,18 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   -webkit-text-fill-color: #fff !important;
 }
 
-html.dk-light:not(.dk-dark):not(:has(#kiosk)) body.portal-dock-on .portal-aba[aria-selected="true"] {
+html.dk-light:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body.portal-dock-on .portal-aba[aria-selected="true"] {
   background: #2c2c2e !important;
   color: #fff !important;
 }
 
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
   color: #111111;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, label, small, strong, em, b,
   dt, dd, legend, figcaption, button, .card-title, .card-desc, .muted, .small,
   .help-text, .kpi-label, .kpi-sub, .ciop-kpi-label, .ciop-kpi-value, .subtitle,
@@ -407,7 +407,7 @@ html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-font-smoothing: antialiased;
 }
 
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .muted, .small, .help-text, .kpi-label, .kpi-sub, .ciop-kpi-label,
   .subtitle, .header-subtitle, .title-sub, .skip, em, dt, .cv-item em, .cv-dl dt,
   .field label, .metric span
@@ -417,7 +417,7 @@ html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   font-weight: 600;
 }
 
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .hero-pro-nome, .ai-console-title, .card-title, .page-title, .header-title
 ) {
   background: none !important;
@@ -429,11 +429,11 @@ html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   filter: none !important;
 }
 
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ),
-html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html:not(.dk-dark):not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
   .portal-aba[aria-selected="true"]
 ) * {
@@ -450,8 +450,8 @@ body.login-v2,
 body.login-v2 * {
   text-shadow: none !important;
 }
-html:not(:has(#kiosk)) body:has(.header) .paper,
-html:not(:has(#kiosk)) body:has(.header) .paper * {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header) .paper,
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header) .paper * {
   background: unset !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -460,7 +460,7 @@ html:not(:has(#kiosk)) body:has(.header) .paper * {
   -webkit-text-fill-color: unset !important;
   text-shadow: none !important;
 }
-html:not(:has(#kiosk)) body:has(.header) :is(.leaflet-container, .map-shell, #map) {
+html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header) :is(.leaflet-container, .map-shell, #map) {
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -469,16 +469,16 @@ html:not(:has(#kiosk)) body:has(.header) :is(.leaflet-container, .map-shell, #ma
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.card, .kpi-card, .stat-card) {
+  html:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.card, .kpi-card, .stat-card) {
     transition: none;
   }
 }
 
-html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
   color: #f4f7fb;
   background-color: #071018;
 }
-html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .header, .header.header-v2, .ciop-command-inner, .notice-board, .notice-item,
   .card, .toolbar-whatsapp, .menu-toggle, .ciop-session, .portal-abas,
   .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
@@ -491,7 +491,7 @@ html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   border-color: rgba(255, 255, 255, 0.12) !important;
   animation: none !important;
 }
-html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   h1, h2, h3, h4, h5, p, span, a, li, td, th, label, small, strong, .card-title,
   .page-title, .header-title, .ciop-session-user, .hero-pro-nome, .ciop-kpi-num
 ):not(.btn-primary):not(.btn-portal):not(.btn-logout):not(.card-btn):not(.firm-pct):not(.firm-week-pct) {
@@ -502,13 +502,13 @@ html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   -webkit-background-clip: border-box !important;
   background-clip: border-box !important;
 }
-html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .muted, .help-text, .kpi-label, .ciop-kpi-label, .subtitle, .small
 ) {
   color: #c5d0de !important;
   -webkit-text-fill-color: #c5d0de !important;
 }
-html.dk-dark:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   input, select, textarea, .ciop-search-input
 ):not([type="checkbox"]):not([type="radio"]) {
   color: #f4f7fb !important;

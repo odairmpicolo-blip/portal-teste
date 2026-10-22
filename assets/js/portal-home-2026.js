@@ -13,7 +13,8 @@
     servico: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
     liberacao: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
     relatorio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h4"/></svg>',
-    sino: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 21h4"/></svg>'
+    sino: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 21h4"/></svg>',
+    outros: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>'
   };
 
   function primeiroNome() {
@@ -77,12 +78,20 @@
       '<button type="button" class="home-nav-btn" data-home-nav="secaoDashboards">' + ICO.monitoramento + " Monitoramento</button>" +
       '<button type="button" class="home-nav-btn" data-home-nav="secaoRelatorios">' + ICO.relatorios + " Relatórios</button>" +
       '<a class="home-nav-btn" data-home-nav="admin" data-modulo="gerenciar-usuarios" data-perfis="Administrador,Supervisor,Gerência,Gerencia,Secretária,Secretaria" href="pages/admin-usuarios.html">' +
-      ICO.admin + " Administração</a>";
+      ICO.admin + " Administração</a>" +
+      '<button type="button" class="home-nav-btn home-outros-btn" data-home-nav="outros" aria-expanded="false" aria-controls="homeOutros">' +
+      ICO.outros + ' Outros<span class="home-outros-chevron" aria-hidden="true"></span></button>';
     var wrap = document.createElement("div");
     wrap.className = "home-side-links";
+    wrap.id = "homeOutros";
+    wrap.hidden = true;
     Array.prototype.slice.call(side.children).forEach(function (el) {
       if (el.classList.contains("dk-theme-picker")) return;
       if (el.classList.contains("home-nav") || el.classList.contains("home-brand")) return;
+      if (el.classList.contains("sidebar-header")) {
+        el.remove();
+        return;
+      }
       wrap.appendChild(el);
     });
     var campanha = document.createElement("div");
@@ -94,7 +103,7 @@
     var picker = side.querySelector(".dk-theme-picker");
     side.insertBefore(brand, side.firstChild);
     side.insertBefore(nav, brand.nextSibling);
-    side.appendChild(wrap);
+    nav.appendChild(wrap);
     side.appendChild(campanha);
     side.appendChild(online);
     if (picker) side.appendChild(picker);
@@ -102,10 +111,37 @@
       var btn = ev.target.closest("[data-home-nav]");
       if (!btn || btn.tagName === "A") return;
       var alvo = btn.getAttribute("data-home-nav");
+      if (alvo === "outros") {
+        var aberto = !wrap.hidden;
+        wrap.hidden = aberto;
+        btn.setAttribute("aria-expanded", aberto ? "false" : "true");
+        marcarNav(aberto ? "inicio" : "outros");
+        return;
+      }
+      wrap.hidden = true;
+      var outrosBtn = nav.querySelector('[data-home-nav="outros"]');
+      if (outrosBtn) outrosBtn.setAttribute("aria-expanded", "false");
       if (alvo === "inicio") mostrarTodos();
       else clicarAba(alvo);
     });
     if (window.dkSwapBrandLogos) window.dkSwapBrandLogos(!!window.dkIsDark && window.dkIsDark());
+    sincronizarOutros();
+  }
+
+  function sincronizarOutros() {
+    var wrap = document.getElementById("homeOutros");
+    var btn = document.querySelector('[data-home-nav="outros"]');
+    if (!wrap || !btn) return;
+    var visivel = Array.prototype.some.call(wrap.querySelectorAll(".side-link"), function (el) {
+      if (el.hidden) return false;
+      var st = window.getComputedStyle(el);
+      return st.display !== "none" && st.visibility !== "hidden";
+    });
+    btn.hidden = !visivel;
+    if (!visivel) {
+      wrap.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    }
   }
 
   function montarTopo() {
@@ -230,17 +266,44 @@
   }
 
   function kpiLabels() {
-    var map = { ciopKpiModulos: "Módulos disponíveis", ciopKpiUsuarios: "Ativos agora", ciopKpiAvisos: "Avisos" };
+    var map = {
+      ciopKpiModulos: { t: "Módulos disponíveis", i: ICO.monitoramento },
+      ciopKpiUsuarios: { t: "Ativos agora", i: ICO.admin },
+      ciopKpiAvisos: { t: "Avisos", i: ICO.sino }
+    };
     Object.keys(map).forEach(function (id) {
       var num = document.getElementById(id);
       var kpi = num && num.closest(".ciop-kpi");
-      var lab = kpi && kpi.querySelector(".ciop-kpi-label");
-      if (lab) lab.textContent = map[id];
+      if (!kpi) return;
+      var lab = kpi.querySelector(".ciop-kpi-label");
+      if (lab) lab.textContent = map[id].t;
+      if (!kpi.querySelector(".home-kpi-ico")) {
+        var ico = document.createElement("span");
+        ico.className = "home-kpi-ico";
+        ico.setAttribute("aria-hidden", "true");
+        ico.innerHTML = map[id].i;
+        kpi.insertBefore(ico, kpi.firstChild);
+      }
     });
+  }
+
+  function montarSheet() {
+    if (document.querySelector(".home-sheet")) return;
+    var header = document.querySelector("header.header");
+    var toolbar = document.querySelector(".toolbar");
+    var container = document.querySelector(".container");
+    if (!header || !container || !header.parentNode) return;
+    var sheet = document.createElement("div");
+    sheet.className = "home-sheet";
+    header.parentNode.insertBefore(sheet, header);
+    sheet.appendChild(header);
+    if (toolbar) sheet.appendChild(toolbar);
+    sheet.appendChild(container);
   }
 
   function iniciar() {
     montarNav();
+    montarSheet();
     montarTopo();
     montarMeta();
     lead();
@@ -251,6 +314,7 @@
     atualizarCampanhaSide();
     atualizarOnlineSide();
     atualizarSino();
+    sincronizarOutros();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
@@ -260,6 +324,7 @@
     atualizarCampanhaSide();
     atualizarOnlineSide();
     atualizarSino();
+    sincronizarOutros();
   });
   window.addEventListener("dk-theme-change", function () {
     if (window.dkSwapBrandLogos) window.dkSwapBrandLogos(!!window.dkIsDark && window.dkIsDark());
@@ -281,4 +346,5 @@
   setTimeout(ola, 600);
   setTimeout(ola, 1600);
   setTimeout(atualizarCampanhaSide, 800);
+  setTimeout(sincronizarOutros, 900);
 })();
