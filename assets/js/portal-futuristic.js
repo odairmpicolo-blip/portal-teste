@@ -636,15 +636,7 @@
     });
   }
 
-  function forcarGlassEscuro() {
-    if (document.getElementById("kiosk")) return;
-    if (document.body && document.body.classList.contains("login-v2")) return;
-    document.documentElement.classList.add("dk-dark");
-    document.documentElement.classList.remove("dk-light");
-  }
-
   function init() {
-    forcarGlassEscuro();
     garantirWallpaper();
     ensureIconGradient();
     enhanceDuotoneIcons();
