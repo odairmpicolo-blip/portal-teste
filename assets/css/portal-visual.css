@@ -11,24 +11,24 @@ html:not(:has(#kiosk)) {
   --lg-text: #1c1c1e;
   --lg-label: #3a3a3c;
   --lg-muted: #5c5c60;
-  --lg-fill: linear-gradient(180deg, rgba(240, 240, 242, 0.94) 0%, rgba(220, 220, 224, 0.90) 100%);
-  --lg-fill-strong: linear-gradient(180deg, rgba(246, 246, 248, 0.96) 0%, rgba(226, 226, 230, 0.92) 100%);
-  --lg-fill-hover: linear-gradient(180deg, rgba(250, 250, 252, 0.97) 0%, rgba(232, 232, 236, 0.93) 100%);
-  --lg-fill-data: linear-gradient(180deg, rgba(240, 240, 242, 0.94) 0%, rgba(220, 220, 224, 0.90) 100%);
-  --lg-fill-header: linear-gradient(180deg, rgba(244, 244, 246, 0.95) 0%, rgba(224, 224, 228, 0.91) 100%);
-  --lg-fill-data-head: rgba(232, 232, 236, 0.92);
+  --lg-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(220, 220, 224, 0.16) 100%);
+  --lg-fill-strong: linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(226, 226, 230, 0.22) 100%);
+  --lg-fill-hover: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(232, 232, 236, 0.26) 100%);
+  --lg-fill-data: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(220, 220, 224, 0.14) 100%);
+  --lg-fill-header: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(224, 224, 228, 0.18) 100%);
+  --lg-fill-data-head: rgba(255, 255, 255, 0.22);
   --ciop-light-grad: var(--lg-fill-data);
   --ciop-light-grad-y: var(--lg-fill-data);
   --ciop-light-grad-fx: var(--lg-fill-header);
-  --lg-blur: blur(40px) saturate(140%);
-  --lg-blur-soft: blur(32px) saturate(130%);
-  --lg-blur-data: blur(36px) saturate(130%);
-  --lg-border: rgba(60, 60, 67, 0.18);
-  --lg-edge: 1px solid rgba(60, 60, 67, 0.16);
+  --lg-blur: blur(48px) saturate(170%);
+  --lg-blur-soft: blur(40px) saturate(160%);
+  --lg-blur-data: blur(44px) saturate(160%);
+  --lg-border: rgba(255, 255, 255, 0.38);
+  --lg-edge: 1px solid rgba(255, 255, 255, 0.34);
   --lg-shadow:
-    0 16px 40px -22px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+    0 16px 40px -24px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-hud-overlay,
@@ -72,7 +72,7 @@ html.dk-dark .body-bg-wall {
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) {
   color: #1c1c1e;
-  background-color: #ececee;
+  background-color: transparent;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -201,7 +201,7 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(.btn, .badge, .pill,
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-abas {
   padding: 5px !important;
-  background: rgba(232, 232, 236, 0.72) !important;
+  background: rgba(255, 255, 255, 0.22) !important;
 }
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) .portal-aba {
   border-radius: 999px;
@@ -285,7 +285,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   .table-card, .filters-panel, .topbar, .toolbar, .cv-panel, .hero-pro-panel,
   .table-wrap, .chart-box, .chart-panel, .filter-bar, footer.portal-site-footer
 ) {
-  background-color: rgba(236, 236, 238, 0.94) !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
   background: var(--lg-fill-data) !important;
   background-image: var(--lg-fill-data) !important;
   animation: none !important;
@@ -322,7 +322,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v
   background-clip: border-box !important;
   color: #1c1c1e !important;
   -webkit-text-fill-color: #1c1c1e !important;
-  text-shadow: none !important;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85) !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -347,6 +347,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   background-clip: border-box !important;
   color: #1c1c1e !important;
   -webkit-text-fill-color: #1c1c1e !important;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85) !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title,
@@ -364,7 +365,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
   background-image: var(--lg-fill-hover) !important;
-  background-color: rgba(248, 248, 250, 0.96) !important;
+  background-color: rgba(255, 255, 255, 0.28) !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
