@@ -125,8 +125,10 @@ html.dk-dark .login-card-v2::after{
 
 .login-brand-v2 p {
   margin: 4px 0 0;
-  color: var(--cinza);
+  color: #1c1c1e;
   font-size: 0.92rem;
+  font-weight: 600;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .login-card-v2 label {

@@ -151,8 +151,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .kpi-label, .kpi-sub, .stat-card .lbl, .field label, .status-line,
   .notice-item-text, p, td, th, li, .card-note, .chart-note, .ciop-kpi-label
 ) {
-  color: #4a4a4e !important;
-  -webkit-text-fill-color: #4a4a4e !important;
+  color: #2c2c2e !important;
+  -webkit-text-fill-color: #2c2c2e !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -257,8 +257,8 @@ html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
 ) {
-  color: #4a4a4e !important;
-  -webkit-text-fill-color: #4a4a4e !important;
+  color: #2c2c2e !important;
+  -webkit-text-fill-color: #2c2c2e !important;
 }
 
 html:not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -323,7 +323,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v
   background-clip: border-box !important;
   color: #1c1c1e !important;
   -webkit-text-fill-color: #1c1c1e !important;
-  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85) !important;
+  text-shadow: none !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
@@ -348,7 +348,7 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
   background-clip: border-box !important;
   color: #1c1c1e !important;
   -webkit-text-fill-color: #1c1c1e !important;
-  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.85) !important;
+  text-shadow: none !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v2) .grid .card-title,
@@ -360,8 +360,8 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(#portalAbas):not(.login-v
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
   .card-desc, .subtitle, .muted, .kpi-label, .ciop-kpi-label, .help-text
 ) {
-  color: #4a4a4e !important;
-  -webkit-text-fill-color: #4a4a4e !important;
+  color: #2c2c2e !important;
+  -webkit-text-fill-color: #2c2c2e !important;
 }
 
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) .grid .card:hover {
@@ -384,6 +384,62 @@ html.dk-light:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :
 html.dk-light:not(.dk-dark):not(:has(#kiosk)) body.portal-dock-on .portal-aba[aria-selected="true"] {
   background: #2c2c2e !important;
   color: #fff !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) {
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  h1, h2, h3, h4, h5, h6, p, span, a, li, td, th, label, small, strong, em, b,
+  dt, dd, legend, figcaption, button, .card-title, .card-desc, .muted, .small,
+  .help-text, .kpi-label, .kpi-sub, .ciop-kpi-label, .ciop-kpi-value, .subtitle,
+  .page-title, .header-title, .panel-title, .notice-item-text, .skip, .cv-item,
+  .field label, .status-line, .chart-title, .group-title, .card-note, .chart-note
+):not(.firm-pct):not(.firm-week-pct):not(.firm-label):not(.firm-delta):not(.btn-primary):not(.btn-portal):not(.btn-logout):not(.btn-senha-portal):not(.card-btn) {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .card-desc, .muted, .small, .help-text, .kpi-label, .kpi-sub, .ciop-kpi-label,
+  .subtitle, .header-subtitle, .title-sub, .skip, em, dt, .cv-item em, .cv-dl dt,
+  .field label, .metric span
+) {
+  color: #2c2c2e !important;
+  -webkit-text-fill-color: #2c2c2e !important;
+  font-weight: 600;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .hero-pro-nome, .ai-console-title, .card-title, .page-title, .header-title
+) {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  filter: none !important;
+}
+
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+),
+html:not(.dk-dark):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .btn-primary, .btn-portal, .btn-logout, .btn-senha-portal, .card-btn,
+  .portal-aba[aria-selected="true"]
+) * {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: none !important;
 }
 
 .paper,
