@@ -13,7 +13,7 @@ Legenda: **Navegador** = exercitado com servidor local; **Código** = tokens/DS/
 | `login.html` | Acesso | Navegador | Navegador 1920/390 | Formulário | Foto nos dois temas |
 | `index.html` | Home | Navegador (ops1, claro+escuro, 1440; código 390/768/1366/1920) | Navegador + CSS | Login cobre sessão | `.home-ops` ~50/22/28; hora HH:mm; Adiantado rgb(220,38,38) / Atrasado rgb(202,138,4); welcome `#102c53` / `#f5f8ff` |
 | `pages/icv.html` | Dashboard | Código | Código | Login | Gráfico reage a `dk-theme-change` |
-| `pages/pontualidade.html` | IPV | Código | Código | Login | |
+| `pages/pontualidade.html` | IPV | Navegador (KPI + seletor + tabela, claro/escuro; fill ≠ color) | Código | Login | Adiantado `--portal-op-early`, Atrasado `--portal-op-late` |
 | `pages/pontualidade-ajustada.html` | Dashboard | Código | Código | Erro amigável | API `/ipv-ajustado` ausente |
 | `pages/pontualidade-tempo-real.html` | Ao vivo | Código | Código | Login | Paleta kiosk-like |
 | `pages/performance-tempo-real.html` | Dashboard | Código | Código | Login | |
@@ -59,6 +59,8 @@ Capturas versionadas (catálogo, dados fictícios): [`assets/catalogo-claro.png`
 Home unificada (prévia sem Firebase, 2026-10-26): [`assets/home-ops-claro-desktop.png`](assets/home-ops-claro-desktop.png), [`assets/home-ops-escuro-desktop.png`](assets/home-ops-escuro-desktop.png).
 
 Seletor de modelo aberto (2026-10-26): [`assets/seletor-modelo-claro.png`](assets/seletor-modelo-claro.png), [`assets/seletor-modelo-escuro.png`](assets/seletor-modelo-escuro.png). Computed: claro, botão/span/SVG `rgb(16,44,83)`, ativa `rgb(18,101,194)` / `#fff`, status `rgb(58,82,112)`. Escuro: botão/span/SVG `rgb(245,248,255)`, ativa `rgb(29,111,191)` / `rgb(245,248,255)`, status `rgb(213,227,244)`.
+
+Pontualidade KPI (2026-10-26): [`assets/pontualidade-kpi-claro.png`](assets/pontualidade-kpi-claro.png), [`assets/pontualidade-kpi-escuro.png`](assets/pontualidade-kpi-escuro.png). Escuro: `#melhorHorario` color **e** `-webkit-text-fill-color` `rgb(245,248,255)`, clip `border-box`; Adiantado `rgb(248,113,113)`; Atrasado `rgb(250,204,21)`; `.highlight-cell` fundo on-time 16% / texto `rgb(74,222,128)`; 1/3 inativo texto `rgb(245,248,255)` sobre `--portal-field`.
 
 Widget hora+clima (2026-10-26): desktop claro conferido no navegador (data por extenso, 25 °C atual vs mín/máx, “Atualizado às”, ícone do sol em poço escuro). Escuro: tokens `--home-ink` `#f5f8ff` e vidro `rgba(8,24,42,.48)` no computed. ≤900 px o widget desce da saudação; ≤520 px os blocos empilham. Busca permanece 42 px.
 

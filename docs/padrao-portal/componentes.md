@@ -64,6 +64,8 @@ Padrão de markup (ICV, IPV, dashboards):
 </article>
 ```
 
+`.kpi-value` precisa de `color` **e** `-webkit-text-fill-color` no mesmo token: no WebKit o fill pinta o glifo. Adiantado `.is-early` / Atrasado `.is-late`. Célula `.highlight-cell`: fundo misturado com `--portal-op-ontime` e o mesmo token no texto. Seletor `.scenario-button:not(.active)` usa `--portal-on-option` sobre `--portal-field`, não branco com texto claro.
+
 Home: performance em faixa própria (`.home-perf` + `.home-perf-bar`), depois da saudação e do clima. Contagens de módulos/usuários/avisos **no bloco da saudação** (`.home-header-stats` sem vidro). Adiantado vermelho, Atrasado âmbar: [cores-operacionais.md](cores-operacionais.md).
 
 ## Widget hora e clima (home)
