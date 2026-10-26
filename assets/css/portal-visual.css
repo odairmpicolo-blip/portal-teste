@@ -505,7 +505,8 @@ html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.log
   .card, .toolbar-whatsapp, .menu-toggle, .ciop-session, .portal-abas,
   .panel, .kpi-card, .stat-card, .chart-card, .table-card, .filters-panel,
   .topbar, .toolbar, .cv-panel, .hero-pro-panel, .table-wrap, .chart-box,
-  .sidebar, footer.portal-site-footer
+  .sidebar, footer.portal-site-footer, .exchange-card, .terminal-card,
+  .terminal-kpi-card, .fiscal-lead-card
 ) {
   background: linear-gradient(180deg, rgba(18, 32, 54, 0.72) 0%, rgba(8, 16, 28, 0.58) 100%) !important;
   background-image: linear-gradient(180deg, rgba(18, 32, 54, 0.72) 0%, rgba(8, 16, 28, 0.58) 100%) !important;
@@ -623,4 +624,69 @@ html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.log
   color: #f4f7fb !important;
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .exchange-item, .time-chip, .terminal-kpi-time, .count-pill, .segmented
+) {
+  background: var(--portal-field, rgba(255, 255, 255, 0.08)) !important;
+  color: var(--portal-on-field, #f5f8ff) !important;
+  -webkit-text-fill-color: var(--portal-on-field, #f5f8ff) !important;
+  border-color: var(--portal-border, rgba(191, 219, 246, 0.18)) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .exchange-item:hover,
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .exchange-item:focus-visible {
+  background: var(--portal-option-hover, rgba(130, 196, 255, 0.22)) !important;
+  color: var(--portal-on-option, #f5f8ff) !important;
+  -webkit-text-fill-color: var(--portal-on-option, #f5f8ff) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .exchange-time, .exchange-person, .terminal-kpi-name, .fiscal-lead-name, .person-line b
+) {
+  color: var(--portal-on-elevated, #f5f8ff) !important;
+  -webkit-text-fill-color: var(--portal-on-elevated, #f5f8ff) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .exchange-kind, .exchange-terminal, .exchange-meta, .person-line small,
+  .terminal-kpi-registro, .fiscal-lead-reg, .count-pill
+) {
+  color: var(--portal-text-secondary, #d5e3f4) !important;
+  -webkit-text-fill-color: var(--portal-text-secondary, #d5e3f4) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .status-badge.status-now {
+  background: color-mix(in srgb, var(--portal-op-ontime, #4ade80) 22%, transparent) !important;
+  color: var(--portal-op-ontime, #4ade80) !important;
+  -webkit-text-fill-color: var(--portal-op-ontime, #4ade80) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .status-badge.status-next,
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .status-badge.status-reserve,
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .count-pill.reserve {
+  background: color-mix(in srgb, var(--portal-accent-warn, #ffab66) 22%, transparent) !important;
+  color: var(--portal-accent-warn, #ffab66) !important;
+  -webkit-text-fill-color: var(--portal-accent-warn, #ffab66) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .status-badge.status-today {
+  background: color-mix(in srgb, var(--portal-accent, #82c4ff) 22%, transparent) !important;
+  color: var(--portal-accent, #82c4ff) !important;
+  -webkit-text-fill-color: var(--portal-accent, #82c4ff) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .status-badge.status-ended {
+  background: var(--portal-field, rgba(255, 255, 255, 0.08)) !important;
+  color: var(--portal-text-secondary, #d5e3f4) !important;
+  -webkit-text-fill-color: var(--portal-text-secondary, #d5e3f4) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .segmented button {
+  color: var(--portal-on-option, #f5f8ff) !important;
+  -webkit-text-fill-color: var(--portal-on-option, #f5f8ff) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) :is(
+  .segmented button.active, .segmented button[aria-pressed="true"]
+) {
+  background: var(--portal-option-selected, #1d6fbf) !important;
+  color: var(--portal-on-option-selected, #f5f8ff) !important;
+  -webkit-text-fill-color: var(--portal-on-option-selected, #f5f8ff) !important;
+}
+html.dk-dark:not(.portal-home-2026):not(:has(#kiosk)) body:has(.header):not(.login-v2) .error-box {
+  background: color-mix(in srgb, var(--portal-op-early, #f87171) 16%, var(--portal-field, #10253c)) !important;
+  color: var(--portal-op-early, #f87171) !important;
+  -webkit-text-fill-color: var(--portal-op-early, #f87171) !important;
 }

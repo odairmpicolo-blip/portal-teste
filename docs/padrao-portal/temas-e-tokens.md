@@ -84,6 +84,31 @@ Páginas internas: o design system remapeia `--text` / `--muted` / `--ink` para 
 | `.scenario-button.active` | marca / azul | `#fff` |
 | `.highlight-cell` | mistura de `--portal-op-ontime` | `--portal-op-ontime` (nunca mint `#f2faf4` com texto claro) |
 
+### Linhas operacionais (próximas trocas, fiscais, chips)
+
+Não deixar a linha branca se o tema escuro já pintou o nome de claro. Cada filho tem o par da superfície — não basta o contêiner.
+
+| Superfície | Fundo | Texto / fill |
+| --- | --- | --- |
+| `.exchange-card`, `.terminal-card`, `.fiscal-lead-card` | `--portal-glass-mid` | `--portal-on-elevated` |
+| `.exchange-item` | `--portal-field` | `--portal-on-field` |
+| Nome / horário (`.exchange-person`, `.exchange-time`) | linha | `--portal-on-elevated` |
+| Terminal / tipo (`.exchange-terminal`, `.exchange-kind`) | linha | `--portal-text-secondary` |
+| Hover / foco da linha | `--portal-option-hover` | `--portal-on-option` |
+| `.time-chip`, `.terminal-kpi-time`, `.count-pill` | `--portal-field` | `--portal-on-field` |
+| `.status-badge.status-now` | mistura de `--portal-op-ontime` | `--portal-op-ontime` |
+| `.status-badge.status-next` / reserva | mistura de `--portal-accent-warn` | `--portal-accent-warn` |
+| `.segmented button` inativo | transparente sobre `--portal-field` | `--portal-on-option` |
+| `.segmented button.active` | `--portal-option-selected` | `--portal-on-option-selected` |
+| `.error-box` | mistura de `--portal-op-early` | `--portal-op-early` |
+| `.paper` / PDF | `--portal-paper` | `#102c53` (não herda o texto claro do tema) |
+
+`.terminal-kpi-card` no escuro usa mistura do acento do terminal com `--portal-glass-mid`, não o degradê até `#fff`.
+
+![Próximas trocas no tema claro](assets/terminais-proximas-claro.png)
+
+![Próximas trocas no tema escuro](assets/terminais-proximas-escuro.png)
+
 ### Texto e ação
 
 | Token | Finalidade | Claro | Escuro |
