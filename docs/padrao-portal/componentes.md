@@ -2,7 +2,7 @@
 
 Só o que existe no portal clássico. Adaptação permitida: layout do módulo (grid, colunas da tabela). **Não permitido:** novo logo, nova paleta, segundo seletor de tema, copiar CSS de botão de outro HTML.
 
-Classes globais: `assets/css/portal-design-system.css`. Home: `portal-home-2026.css`. Auth: `assets/js/auth.js`.
+Classes globais: `assets/css/portal-design-system.css`. Home: `portal-home-2026.css`. Auth: `assets/js/auth.js`. Clima da TV: [clima-tv.md](clima-tv.md).
 
 ## Estrutura da página
 
