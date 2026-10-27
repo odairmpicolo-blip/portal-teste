@@ -79,7 +79,7 @@ Um único vidro `.home-meta.home-now` à direita da saudação (`montarMeta` em 
 
 Fonte: Open-Meteo já usada (`current.temperature_2m`, `current.weather_code`, `current.is_day`; `daily` só para mín/máx). Não tratar a previsão diária como o valor “agora”.
 
-Estados: dado fresco (“Atualizado às HH:mm”); cache antigo (`.is-stale`, “Última atualização às HH:mm”); falha sem cache (`.is-unavailable`, “Clima indisponível”). Ícone do sol com poço escuro e traço, para contrastar com a foto alaranjada. Sem animação contínua no widget.
+Estados: dado fresco (“Atualizado às HH:mm” em linha própria, junto com o horário); cache antigo (`.is-stale`, “Última atualização às HH:mm”); falha sem cache (`.is-unavailable`, “Clima indisponível”). Ícone do sol com poço escuro e traço, para contrastar com a foto alaranjada. Sem animação contínua no widget.
 
 Responsivo: ≤900 px o widget vai para baixo da saudação; ≤520 px os dois blocos empilham. A busca e a sessão no topo não entram nesse grid.
 
