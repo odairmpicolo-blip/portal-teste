@@ -4,12 +4,14 @@ Fonte: `assets/img/`, `assets/css/portal-tokens.css`, `assets/js/theme-toggle.js
 
 ## Logos CIOP / TCGL
 
-Arquivos oficiais — **não redesenhar**, não sobrepor outra marca, não aplicar filtro CSS:
+Arquivos oficiais — **não redesenhar**, não sobrepor outra marca, **não aplicar** `filter`/`opacity` no PNG (invertia ou apagava a marca no vidro claro):
 
-| Tema | Arquivo |
-| --- | --- |
-| Claro | `assets/img/portal-logo-clean-light.png` |
-| Escuro | `assets/img/portal-logo-clean-dark.png` |
+| Tema | Arquivo | Porquê |
+| --- | --- | --- |
+| Claro | `assets/img/logomarca-portalciop-tcgl-claro.png` | Tinta cheia sobre vidro claro / foto |
+| Escuro | `assets/img/portal-logo-clean-dark.png` | Traço claro sobre navy |
+
+`portal-logo-clean-light.png` permanece no repositório (overlay de loading / fallback), mas **não** é o arquivo do header no tema claro — o traço fino ficava apagado no vidro.
 
 Uso: `img.portal-brand-art` (páginas) e `img.home-logo` (home). O texto “TCGL · Operações” já está no PNG. A classe `.portal-brand-meta` fica **oculta** no design system.
 
@@ -21,7 +23,7 @@ Quem troca o arquivo no claro/escuro: `dkSwapBrandLogos` em `theme-toggle.js` e 
 
 **Não aplicar** a troca em: `titulo-portal-ciop*`, artes de campanha, cartão de aniversário, `.pdf-sheet-top`, `.print-only`, `[data-print-brand]`.
 
-Fallback do overlay de carregamento (se o PNG limpo 404): `logomarca-portalciop-tcgl-claro.png` / `…-escuro.png` (`auth.js`, `loading.js`).
+Overlay de carregamento: `portal-logo-clean-light.png` / `portal-logo-clean-dark.png`; se 404, `logomarca-portalciop-tcgl-claro.png` / `…-escuro.png` (`auth.js`, `loading.js`).
 
 ## Fotografia de fundo
 

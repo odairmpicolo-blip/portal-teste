@@ -23,5 +23,7 @@ Imagens do [catálogo](../catalogo.html) com **dados fictícios** (linha 999, pr
 | `painel-ciop-clima-noite.png` | Painel CIOP TV: céu limpo à noite com lua genérica, colunas horárias e “Agora” |
 | `terminais-proximas-claro.png` | Terminais Agora: Próxima troca e lista Próximas, tema claro |
 | `terminais-proximas-escuro.png` | O mesmo recorte no tema escuro (linhas escuras, nome/horário claros) |
+| `terminais-chrome-claro.png` | Terminais Agora: logo cheia + filtro “Todos os terminais”, tema claro |
+| `terminais-chrome-escuro.png` | O mesmo chrome no tema escuro |
 
 Ao mudar o padrão visual compartilhado, recapturar estas imagens e atualizar o `.md` correspondente.

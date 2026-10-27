@@ -93,7 +93,7 @@ Não deixar a linha branca se o tema escuro já pintou o nome de claro. Cada fil
 | `.exchange-card`, `.terminal-card`, `.fiscal-lead-card` | `--portal-glass-mid` | `--portal-on-elevated` |
 | `.exchange-item` | `--portal-field` | `--portal-on-field` |
 | Nome / horário (`.exchange-person`, `.exchange-time`) | linha | `--portal-on-elevated` |
-| Terminal / tipo (`.exchange-terminal`, `.exchange-kind`) | linha | `--portal-text-secondary` |
+| Terminal / tipo / registro / atualização | linha | `--portal-text-secondary`, 12–13 px, peso 500 |
 | Hover / foco da linha | `--portal-option-hover` | `--portal-on-option` |
 | `.time-chip`, `.terminal-kpi-time`, `.count-pill` | `--portal-field` | `--portal-on-field` |
 | `.status-badge.status-now` | mistura de `--portal-op-ontime` | `--portal-op-ontime` |
@@ -108,6 +108,10 @@ Não deixar a linha branca se o tema escuro já pintou o nome de claro. Cada fil
 ![Próximas trocas no tema claro](assets/terminais-proximas-claro.png)
 
 ![Próximas trocas no tema escuro](assets/terminais-proximas-escuro.png)
+
+![Terminais Agora no tema claro: logo cheia e filtro](assets/terminais-chrome-claro.png)
+
+![Terminais Agora no tema escuro: logo clara e filtro](assets/terminais-chrome-escuro.png)
 
 ### Texto e ação
 

@@ -14,16 +14,16 @@
   if (!document.querySelector('link[data-portal-tokens]')) {
     var tokens = document.createElement('link');
     tokens.rel = 'stylesheet';
-    tokens.href = new URL('assets/css/portal-tokens.css?v=20261026row1', root).href;
+    tokens.href = new URL('assets/css/portal-tokens.css?v=20261027term2', root).href;
     tokens.dataset.portalTokens = '1';
     document.head.appendChild(tokens);
   }
-  style.href = new URL('assets/css/portal-design-system.css?v=20261026row1', root).href;
+  style.href = new URL('assets/css/portal-design-system.css?v=20261027term2', root).href;
   style.dataset.portalDesign = '1';
   document.head.appendChild(style);
   function brand() {
     var dark = html.classList.contains('dk-dark') || kiosk;
-    var src = new URL('assets/img/portal-logo-clean-' + (dark ? 'dark' : 'light') + '.png', root).href;
+    var src = new URL('assets/img/' + (dark ? 'portal-logo-clean-dark.png' : 'logomarca-portalciop-tcgl-claro.png'), root).href;
     document.querySelectorAll('img.portal-brand-art').forEach(function (img) {
       if (img.src !== src) img.src = src;
     });

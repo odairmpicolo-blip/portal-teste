@@ -27,7 +27,7 @@
 
 a.portal-brand-mark:hover .portal-brand-art,
 a.portal-brand-mark:focus-visible .portal-brand-art {
-  opacity: 0.92;
+  opacity: 1;
 }
 
 .portal-brand-mark--center {
@@ -124,9 +124,10 @@ body.login-v2 .portal-brand-art {
   }
 }
 
+html:not(.dk-dark) .portal-brand-art,
 html.dk-dark .portal-brand-art,
 html.dk-dark body:has(.bg-wall) .portal-brand-art,
 html.dk-dark body:has(.body-bg-wall) .portal-brand-art {
-  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.45)) !important;
+  filter: none !important;
   opacity: 1 !important;
 }

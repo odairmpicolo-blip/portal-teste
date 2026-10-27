@@ -658,12 +658,16 @@ html.dk-dark body:has(.body-bg-wall) .page-footer {
   color: rgba(255, 255, 255, 0.88) !important;
 }
 
-html.dk-dark body:has(.body-bg-wall) .portal-brand-art,
 html.dk-dark body:has(.body-bg-wall) [class$="-title-art"] img,
 html.dk-dark body:has(.body-bg-wall) .header-title img,
 html.dk-dark body:has(.body-bg-wall) .title-wrap > img {
   filter: brightness(0) invert(1);
   opacity: 0.96;
+}
+html.dk-dark body:has(.body-bg-wall) .portal-brand-art,
+html:not(.dk-dark) body:has(.body-bg-wall) .portal-brand-art {
+  filter: none !important;
+  opacity: 1 !important;
 }
 
 html.dk-dark body:has(.body-bg-wall) img.logo-tcgl,
