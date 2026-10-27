@@ -48,7 +48,7 @@
     box.setAttribute('aria-label', 'Tema da interface');
     box.innerHTML =
       '<button type="button" class="dk-theme-opt" data-dk-pref="light" aria-label="Tema claro">Claro</button>' +
-      '<button type="button" class="dk-theme-opt" data-dk-pref="auto" aria-label="Tema automático">Auto</button>' +
+      '<button type="button" class="dk-theme-opt" data-dk-pref="auto" aria-label="Tema automático (claro de dia, escuro à noite)">Auto</button>' +
       '<button type="button" class="dk-theme-opt" data-dk-pref="dark" aria-label="Tema escuro">Escuro</button>';
     host.insertBefore(box, host.firstChild);
     var pref = document.documentElement.getAttribute('data-dk-pref') || 'auto';
