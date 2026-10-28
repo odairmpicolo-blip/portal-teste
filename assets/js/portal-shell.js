@@ -1,11 +1,13 @@
 /* Casco compartilhado: marca | título | sessão. Roda antes do auth.js. */
 (function () {
   if (document.getElementById("portalAbas")) return;
+  if (document.documentElement.classList.contains("portal-home-2026")) return;
   if (document.body && document.body.classList.contains("login-v2")) return;
   if (document.getElementById("kiosk")) return;
 
   const header = document.querySelector("header.header, div.header, .header");
   if (!header || header.getAttribute("data-portal-shell") === "off") return;
+  if (header.classList.contains("portal-shell-header")) return;
 
   const inPages = window.location.pathname.includes("/pages/");
   const base = inPages ? "../" : "";
@@ -49,7 +51,7 @@
   header.innerHTML =
     '<div class="portal-brand-lockup">' +
       '<a class="portal-brand-mark" href="' + base + 'index.html" aria-label="Portal CIOP TCGL Operações">' +
-        '<img class="portal-brand-art" src="' + base + 'assets/img/titulo-portal-ciop.png" alt="Portal CIOP">' +
+        '<img class="portal-brand-art" src="' + base + 'assets/img/logomarca-portalciop-tcgl-claro.png" alt="Portal CIOP">' +
         '<span class="portal-brand-meta">TCGL · Operações</span>' +
       "</a>" +
       '<a href="https://www.tcgrandelondrina.com.br/" target="_blank" rel="noopener" class="logo-tcgl-link" aria-label="Site TCGL">' +

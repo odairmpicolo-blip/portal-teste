@@ -4,6 +4,8 @@ Ambiente: `portal-teste`, servidor estático local. **Não** publicar para valid
 
 Larguras: 390, 768, 1366, 1920. Temas: claro, escuro, automático.
 
+Inventário completo e status por página: [inventario-auditoria.md](inventario-auditoria.md). Auditoria 2026-10-28, **etapa 1 aprovada** no catálogo (claro/escuro, pares computed, estado carregando). Internas autenticadas e TV permanecem fora desta aprovação.
+
 ## Matriz (outubro de 2026)
 
 Legenda: **Navegador** = exercitado com servidor local; **Código** = tokens/DS/HTML conferidos; **Login** = redireciona sem sessão; **Kiosk** = layout próprio; **Fora** = preview/app.
@@ -78,9 +80,11 @@ Não há banco de “antes” da home autenticada. O catálogo serve de **depois
 | Logo overlay 404 | Confirmado | `dkTcglPath` usa URL absoluta; loading logos excluídos da troca |
 | Decreto sempre escuro no claro | Confirmado | Override `dk-light .ai-console` |
 | Ícone Portal duplicado | Confirmado | Dedupe |
-| Flash de tema (páginas só com auth.js) | Confirmado (mecanismo) | Proposta: script no head |
+| Flash de tema (páginas só com auth.js) | Mitigado | `theme-toggle.js` no `<head>` das internas; kiosk TV permanece com defer |
 | Lentidão Folha + vidro | Suspeita | Não perfilado |
-| Contraste em todas as 70 telas | Não varrido | Precisa sessão |
+| Contraste em todas as 70 telas | Não varrido | Precisa sessão; etapa 1 só tokens/DS/filtros/tabela |
+| Cumprimento na Performance ao vivo | Bloqueado | API do mapa sem programadas/realizadas/corte |
+| Filtros comprimidos / thead 9 px | Confirmado | Wrap 160 px; thead 11 px; overflow-x; pares de campo no escuro |
 
 ## Aceite de mudança nova
 
