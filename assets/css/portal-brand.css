@@ -39,7 +39,8 @@ a.portal-brand-mark:focus-visible .portal-brand-art {
   display: block;
   height: 56px;
   width: auto;
-  max-width: min(420px, 58vw);
+  max-width: min(220px, 48vw);
+  aspect-ratio: 1024 / 349;
   margin: 0;
   object-fit: contain;
   object-position: left center;
@@ -105,15 +106,15 @@ body.login-v2 .portal-brand-art {
   }
 
   .portal-brand-art {
-    height: 46px;
-    max-width: min(340px, 78vw);
+    height: 44px;
+    max-width: min(200px, 72vw);
   }
 }
 
 @media (max-width: 520px) {
   .portal-brand-art {
-    height: 38px;
-    max-width: min(280px, 82vw);
+    height: 36px;
+    max-width: min(180px, 78vw);
   }
 
   .login-brand-v2 .portal-brand-art,
