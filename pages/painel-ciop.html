@@ -321,10 +321,9 @@
   }
   #slide-tempo .wx-fx.is-cloud .wx-sky{
     background:
-      radial-gradient(ellipse 48% 36% at 18% 12%, rgba(214,230,244,.42), transparent 64%),
-      radial-gradient(ellipse 62% 42% at 82% 6%, rgba(255,255,255,.2), transparent 58%),
-      radial-gradient(ellipse 40% 28% at 48% 78%, rgba(70,104,138,.45), transparent 70%),
-      linear-gradient(180deg, #2f6ea8 0%, #5ea0d0 36%, #4a86b8 100%);
+      radial-gradient(ellipse 42% 30% at 18% 14%, rgba(255,255,255,.22), transparent 64%),
+      radial-gradient(ellipse 50% 32% at 80% 8%, rgba(198,214,228,.3), transparent 60%),
+      linear-gradient(180deg, #5a7086 0%, #7d94a8 42%, #62788e 100%);
   }
   #slide-tempo .wx-fx.is-drizzle .wx-sky{
     background:
@@ -1327,12 +1326,38 @@ function pintarEvolucao(est, ids, n = diaIpv) {
   });
 }
 
-function climaSvg(code, extraClass, isDay) {
-  if (window.portalClimaSvg) return window.portalClimaSvg(code, extraClass, isDay);
+function climaSvg(code, extraClass, isDay, atMs) {
+  if (window.portalClimaSvg) return window.portalClimaSvg(code, extraClass, isDay, atMs);
   return "";
 }
-function marcarCenaClima(code, fxId, isDay) {
-  if (window.portalMarcarCenaClima) window.portalMarcarCenaClima(code, fxId, isDay);
+const CENAS_PREVIA = {
+  sol: { code: 0, dia: true },
+  parcial: { code: 2, dia: true },
+  nublado: { code: 3, dia: true },
+  garoa: { code: 53, dia: true },
+  chuva: { code: 63, dia: true },
+  tempestade: { code: 95, dia: true },
+  vento: { code: 1, dia: true, vento: 48, rajada: 70 },
+  neblina: { code: 45, dia: true },
+  noite: { code: 0, dia: false },
+  "noite-nublada": { code: 3, dia: false },
+  "noite-chuva": { code: 63, dia: false },
+  "noite-vento": { code: 1, dia: false, vento: 46, rajada: 62 },
+  "noite-tempestade": { code: 95, dia: false },
+  neutro: { neutro: true }
+};
+function cenaPrevia() {
+  const nome = PARAMS.get("cena");
+  return nome && CENAS_PREVIA[nome] ? CENAS_PREVIA[nome] : null;
+}
+function marcarCenaClima(code, fxId, isDay, extras) {
+  const sim = cenaPrevia();
+  if (sim && window.portalMarcarCenaClima) {
+    if (sim.neutro) window.portalMarcarCenaClima(null, fxId, false, { neutro: true });
+    else window.portalMarcarCenaClima(sim.code, fxId, sim.dia, { vento: sim.vento, rajada: sim.rajada, atMs: Date.now() });
+    return;
+  }
+  if (window.portalMarcarCenaClima) window.portalMarcarCenaClima(code, fxId, isDay, extras || {});
 }
 function climaEhDia(opts) {
   return window.portalClimaEhDia ? window.portalClimaEhDia(opts) : true;
@@ -1538,7 +1563,7 @@ function pintarHorasClima() {
     const vigente = agora >= h.time && agora < h.time + 60 * 60 * 1000;
     return `<div class="wx-hour${vigente ? " is-now" : ""}">
       <span class="wx-hour-name">${vigente ? "Agora" : h.label}</span>
-      ${climaSvg(h.code, "wx-hour-icon", h.isDay)}
+      ${climaSvg(h.code, "wx-hour-icon", h.isDay, h.time)}
       <span class="wx-hour-rain">${chuvaTxt}</span>
       <span class="wx-hour-temp">${h.temp != null && Number.isFinite(Number(h.temp)) ? Math.round(h.temp) + "°" : "—"}</span>
     </div>`;
@@ -1579,10 +1604,19 @@ async function carregarClima() {
     sunrises: daily.sunrise,
     sunsets: daily.sunset
   });
-  marcarCenaClima(cod, "wxFx", agoraDia);
+  marcarCenaClima(cod, "wxFx", agoraDia, {
+    vento: cur.wind_speed_10m,
+    rajada: cur.wind_gusts_10m,
+    atMs: Date.now()
+  });
   aplicarPele(cod, agoraDia);
   const icone = document.getElementById("wxIcone");
-  if (icone) icone.innerHTML = climaSvg(cod, "wx-hero-mark", agoraDia);
+  const simIcone = cenaPrevia();
+  if (icone) {
+    icone.innerHTML = simIcone
+      ? (simIcone.neutro ? "" : climaSvg(simIcone.code, "wx-hero-mark", simIcone.dia, Date.now()))
+      : climaSvg(cod, "wx-hero-mark", agoraDia, Date.now());
+  }
   document.getElementById("wxTemp").textContent = climaTexto(cur.temperature_2m, "°C");
   document.getElementById("wxLabel").textContent = label || "—";
   const maxHoje = climaNumero(daily.temperature_2m_max?.[0]);
@@ -1627,10 +1661,19 @@ async function carregarClima() {
         sunrises: d.sunrise,
         sunsets: d.sunset
       });
-      marcarCenaClima(c.weather_code, "wxFx", dia);
+      marcarCenaClima(c.weather_code, "wxFx", dia, {
+        vento: c.wind_speed_10m,
+        rajada: c.wind_gusts_10m,
+        atMs: Date.now()
+      });
       aplicarPele(c.weather_code, dia);
       const icone = document.getElementById("wxIcone");
-      if (icone) icone.innerHTML = climaSvg(c.weather_code, "wx-hero-mark", dia);
+      const simIcone = cenaPrevia();
+      if (icone) {
+        icone.innerHTML = simIcone
+          ? (simIcone.neutro ? "" : climaSvg(simIcone.code, "wx-hero-mark", simIcone.dia, Date.now()))
+          : climaSvg(c.weather_code, "wx-hero-mark", dia, Date.now());
+      }
       climaHoras = montarHorasClima(fresh.hourly || {}, d);
       pintarHorasClima();
     });
@@ -1910,8 +1953,13 @@ function leituraFalhou() {
 function climaFalhou() {
   const fonte = document.getElementById("wxFonte");
   const wx = document.querySelector("#slide-tempo .wx");
+  const fx = document.getElementById("wxFx");
   if (wx) wx.classList.add("is-stale");
   if (fonte) fonte.textContent = textoFonteClima(true);
+  if (cenaPrevia()) marcarCenaClima(null, "wxFx", true);
+  else if (fx && !fx.dataset.grupo && window.portalMarcarCenaClima) {
+    window.portalMarcarCenaClima(null, "wxFx", false, { neutro: true });
+  }
   atualizarStatus();
 }
 
